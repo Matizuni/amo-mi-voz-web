@@ -1,0 +1,19 @@
+@use '../abstracts/variables' as variables;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: variables.$color-background;
+  overflow-x: hidden;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+::selection {
+  color: variables.$color-black;
+  background-color: variables.$color-primary;
+}

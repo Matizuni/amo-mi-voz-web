@@ -1,0 +1,44 @@
+@use './breakpoints' as breakpoint;
+
+@mixin respond-to($size) {
+  @if $size == sm {
+    @media (min-width: breakpoint.$breakpoint-sm) {
+      @content;
+    }
+  }
+
+  @if $size == md {
+    @media (min-width: breakpoint.$breakpoint-md) {
+      @content;
+    }
+  }
+
+  @if $size == lg {
+    @media (min-width: breakpoint.$breakpoint-lg) {
+      @content;
+    }
+  }
+
+  @if $size == xl {
+    @media (min-width: breakpoint.$breakpoint-xl) {
+      @content;
+    }
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin section-spacing {
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+@mixin focus-visible {
+  &:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 4px;
+  }
+}

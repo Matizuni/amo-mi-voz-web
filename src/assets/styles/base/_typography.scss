@@ -1,0 +1,26 @@
+@use '../abstracts/variables' as variables;
+
+body {
+  font-family: variables.$font-family-primary;
+  font-size: variables.$font-size-base;
+  font-weight: variables.$font-weight-regular;
+  line-height: 1.6;
+  color: variables.$color-text-primary;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: variables.$font-family-heading;
+  font-weight: variables.$font-weight-bold;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+p {
+  color: variables.$color-text-secondary;
+  text-wrap: pretty;
+}
