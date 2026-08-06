@@ -24,6 +24,8 @@
 @use '@/assets/styles/abstracts/variables' as variables;
 
 .hero {
+
+  padding-top: 76px;
   display: flex;
   min-height: 100vh;
   align-items: center;
@@ -36,6 +38,8 @@
 
 .hero__content {
   display: flex;
+  max-width: 900px;
+  padding-block: variables.$spacing-3xl;
   flex-direction: column;
   gap: variables.$spacing-lg;
 }
@@ -47,11 +51,14 @@
 }
 
 .hero h1 {
-  font-size: variables.$font-size-hero;
+  max-width: 100%;
+  font-size: clamp(3.2rem, 12vw, 8rem);
+  line-height: 0.95;
 }
 
 .hero__description {
   max-width: 650px;
+  font-size: clamp(1rem, 2vw, 1.25rem);
 }
 
 .hero__buttons {
@@ -86,4 +93,21 @@
   background-color: transparent;
   border: 1px solid variables.$color-white;
 }
+
+@media (max-width: 575px) {
+  .hero {
+    background-position: 65% center;
+  }
+
+  .hero__buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero button {
+    width: 100%;
+  }
+}
+
 </style>
+
