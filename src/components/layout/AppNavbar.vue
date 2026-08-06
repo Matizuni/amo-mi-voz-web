@@ -9,7 +9,7 @@
 
       <nav class="navbar__menu">
 
-        <a href="#">Academia</a>
+        <a href="#academia">Academia</a>
 
         <a href="#">Talleres</a>
 
