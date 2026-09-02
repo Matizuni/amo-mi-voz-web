@@ -1,0 +1,30 @@
+.reveal {
+  opacity: 0;
+  transform: translateY(60px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s ease;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: none;
+}
+
+.fade-left {
+  transform: translateX(-60px);
+}
+
+.fade-right {
+  transform: translateX(60px);
+}
+
+.zoom {
+  transform: scale(0.85);
+}
+
+.reveal.active.fade-left,
+.reveal.active.fade-right,
+.reveal.active.zoom {
+  transform: none;
+}
