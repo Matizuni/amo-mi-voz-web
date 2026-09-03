@@ -197,10 +197,23 @@
               <div class="login-form__group">
 
                 <div class="login-form__label-row">
-                  <label for="password">
-                    Contraseña
-                  </label>
-                </div>
+  <label for="password">
+    Contraseña
+  </label>
+
+  <button
+    type="button"
+    class="login-form__forgot"
+    :disabled="isSendingReset"
+    @click="handlePasswordReset"
+  >
+    {{
+      isSendingReset
+        ? 'Enviando...'
+        : '¿Olvidaste tu contraseña?'
+    }}
+  </button>
+</div>
 
                 <div class="password-field">
 
@@ -237,6 +250,17 @@
                 </div>
 
               </div>
+
+              <div
+  v-if="resetMessage"
+  class="login-form__success"
+>
+  <span>✓</span>
+
+  <p>
+    {{ resetMessage }}
+  </p>
+</div>
 
               <div
                 v-if="loginError"
@@ -407,6 +431,13 @@
             Calificaciones
           </RouterLink>
 
+          <RouterLink
+  to="/aula/cuenta"
+  active-class="is-active"
+>
+  Mi cuenta
+</RouterLink>
+
         </nav>
 
         <!-- USUARIO -->
@@ -437,6 +468,13 @@
           <div class="aula-user__avatar">
             {{ initials }}
           </div>
+
+          <RouterLink
+  to="/aula/cuenta"
+  active-class="is-active"
+>
+  Mi cuenta
+</RouterLink>
 
           <button
             type="button"
@@ -608,6 +646,8 @@ import {
   useAuth
 } from '@/composables/useAuth'
 
+import { supabase } from '@/lib/supabase'
+
 /* =========================================================
    ROUTER
 ========================================================= */
@@ -645,8 +685,10 @@ const isSubmitting = ref(false)
 const isLoggingOut = ref(false)
 
 const localError = ref('')
-
 const authReady = ref(false)
+
+const resetMessage = ref('')
+const isSendingReset = ref(false)
 
 /* =========================================================
    ERROR
@@ -696,6 +738,46 @@ const initials = computed(() => {
     .join('')
     .toUpperCase()
 })
+
+const handlePasswordReset = async () => {
+  localError.value = ''
+  resetMessage.value = ''
+
+  if (!email.value) {
+    localError.value =
+      'Escribe primero tu correo electrónico para recuperar tu contraseña.'
+    return
+  }
+
+  isSendingReset.value = true
+
+  try {
+    const { error } =
+      await supabase.auth.resetPasswordForEmail(
+        email.value,
+        {
+          redirectTo: `${window.location.origin}/aula/cuenta`
+        }
+      )
+
+    if (error) {
+      throw error
+    }
+
+    resetMessage.value =
+      'Te enviamos un correo con el enlace para crear una nueva contraseña.'
+  } catch (error) {
+    console.error(
+      'Error enviando recuperación:',
+      error
+    )
+
+    localError.value =
+      'No fue posible enviar el correo de recuperación.'
+  } finally {
+    isSendingReset.value = false
+  }
+}
 
 /* =========================================================
    LOGIN
@@ -1894,4 +1976,65 @@ onMounted(async () => {
       variables.$spacing-lg;
   }
 }
+
+.login-form__label-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.login-form__forgot {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: variables.$color-primary;
+  font: inherit;
+  font-size: variables.$font-size-xs;
+  font-weight: variables.$font-weight-semibold;
+  cursor: pointer;
+}
+
+.login-form__forgot:hover {
+  text-decoration: underline;
+}
+
+.login-form__forgot:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.login-form__success {
+  display: flex;
+  gap: variables.$spacing-sm;
+  align-items: flex-start;
+  padding: variables.$spacing-md;
+  border:
+    1px solid
+    rgba(223, 185, 47, 0.35);
+  border-radius: variables.$radius-lg;
+  background:
+    rgba(223, 185, 47, 0.07);
+  color: variables.$color-white;
+}
+
+.login-form__success span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: variables.$color-primary;
+  color: #090909;
+  font-size: variables.$font-size-xs;
+  font-weight: bold;
+}
+
+.login-form__success p {
+  margin: 2px 0 0;
+  font-size: variables.$font-size-sm;
+  line-height: 1.5;
+}
+
 </style>

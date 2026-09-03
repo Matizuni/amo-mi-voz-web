@@ -1,31 +1,45 @@
 <template>
-  <section class="lesson">
+  <section class="lesson-page">
     <!-- =====================================================
-         CARGA
+         LOADING
     ====================================================== -->
+
     <section
       v-if="isLoading"
-      class="state-card"
+      class="state-screen"
     >
-      <div class="loading-spinner"></div>
-      <strong>Cargando clase...</strong>
-      <p>Sincronizando planificación, recursos y tareas.</p>
+      <div class="state-screen__loader"></div>
+
+      <strong>
+        Cargando clase
+      </strong>
+
+      <p>
+        Preparando materiales y actividades...
+      </p>
     </section>
 
     <!-- =====================================================
          ERROR
     ====================================================== -->
+
     <section
       v-else-if="loadError"
-      class="state-card state-card--error"
+      class="state-screen state-screen--error"
     >
-      <div class="state-card__icon">!</div>
+      <div class="state-screen__error-icon">
+        !
+      </div>
 
-      <h1>No pudimos cargar la clase</h1>
+      <h1>
+        No pudimos cargar esta clase
+      </h1>
 
-      <p>{{ loadError }}</p>
+      <p>
+        {{ loadError }}
+      </p>
 
-      <div class="state-card__actions">
+      <div class="state-screen__actions">
         <button
           type="button"
           @click="loadLesson"
@@ -33,7 +47,9 @@
           Reintentar
         </button>
 
-        <RouterLink to="/aula/programa-formativo">
+        <RouterLink
+          to="/aula/programa-formativo"
+        >
           Volver al programa
         </RouterLink>
       </div>
@@ -42,31 +58,38 @@
     <!-- =====================================================
          CLASE
     ====================================================== -->
+
     <template v-else-if="lesson">
-      <div class="lesson__topbar">
+      <!-- ===================================================
+           TOPBAR
+      ==================================================== -->
+
+      <div class="lesson-topbar">
         <RouterLink
           to="/aula/programa-formativo"
-          class="lesson__back"
+          class="back-link"
         >
-          ← Volver al programa
+          <span>←</span>
+          Programa formativo
         </RouterLink>
 
         <div
           v-if="isTeacher"
-          class="lesson__teacher-actions"
+          class="teacher-actions"
         >
           <RouterLink
             :to="`/aula/clase/${lesson.id}/editar`"
-            class="teacher-button teacher-button--primary"
+            class="teacher-button"
           >
-            ✎ Editar clase
+            <span>✎</span>
+            Editar clase
           </RouterLink>
 
           <RouterLink
             :to="`/aula/clase/${lesson.id}/trabajo`"
-            class="teacher-button"
+            class="teacher-button teacher-button--primary"
           >
-            Recursos y tareas
+            Administrar contenidos
           </RouterLink>
         </div>
       </div>
@@ -74,530 +97,1033 @@
       <!-- ===================================================
            HERO
       ==================================================== -->
-      <header class="lesson__hero">
-        <div class="lesson__hero-main">
-          <div class="lesson__hero-number">
-            <span>CLASE</span>
+
+      <header class="lesson-hero">
+        <div class="lesson-hero__content">
+          <div class="lesson-hero__eyebrow">
+            <span></span>
+
+            CLASE
+            {{ String(lesson.id).padStart(2, '0') }}
+          </div>
+
+          <h1>
+            {{ lesson.title }}
+          </h1>
+
+          <p class="lesson-hero__description">
+            {{
+              lesson.description ||
+              'Consulta el material y las actividades disponibles para esta clase.'
+            }}
+          </p>
+
+          <div class="lesson-hero__meta">
+            <span v-if="lesson.date">
+              {{ lesson.date }}
+            </span>
+
+            <span v-if="lesson.time">
+              {{ lesson.time }}
+            </span>
+
+            <span v-if="lesson.duration">
+              {{ lesson.duration }}
+            </span>
+
+            <span v-if="lesson.modality">
+              {{ lesson.modality }}
+            </span>
+          </div>
+        </div>
+
+        <aside class="lesson-hero__aside">
+          <div class="lesson-number">
+            <span>
+              CLASE
+            </span>
 
             <strong>
               {{ String(lesson.id).padStart(2, '0') }}
             </strong>
           </div>
 
-          <div class="lesson__hero-copy">
-            <div class="lesson__hero-meta">
-              <span>{{ lesson.date || 'Fecha por definir' }}</span>
-
-              <span
-                class="status-badge"
-                :class="`status-badge--${lesson.status || 'available'}`"
-              >
-                {{ getStatusLabel(lesson.status) }}
-              </span>
-            </div>
-
-            <h1>{{ lesson.title }}</h1>
-
-            <p class="lesson__lead">
-              {{
-                lesson.description ||
-                'Esta clase todavía no tiene una descripción publicada.'
-              }}
-            </p>
-
-            <div class="lesson__chips">
-              <span v-if="lesson.time">◷ {{ lesson.time }}</span>
-              <span v-if="lesson.duration">{{ lesson.duration }}</span>
-              <span v-if="lesson.modality">{{ lesson.modality }}</span>
-              <span v-if="lesson.location">{{ lesson.location }}</span>
-            </div>
-          </div>
-        </div>
-
-        <RouterLink
-          :to="`/aula/clase/${lesson.id}/trabajo`"
-          class="classwork-button"
-        >
-          <div>
-            <span>TRABAJO DE CLASE</span>
-            <strong>Recursos, tareas y entregas</strong>
-          </div>
-
-          <b>→</b>
-        </RouterLink>
+          <span
+            class="status-badge"
+            :class="`status-badge--${lesson.status || 'available'}`"
+          >
+            {{ getStatusLabel(lesson.status) }}
+          </span>
+        </aside>
       </header>
 
       <!-- ===================================================
-           RESUMEN
+           RESUMEN RÁPIDO
       ==================================================== -->
-      <section class="lesson__summary">
-        <article>
-          <span>Objetivos</span>
-          <strong>{{ objectives.length }}</strong>
-        </article>
 
+      <section class="quick-info">
         <article>
-          <span>Contenidos</span>
-          <strong>{{ contents.length }}</strong>
-        </article>
+          <span>
+            Materiales
+          </span>
 
-        <article>
-          <span>Actividades</span>
-          <strong>{{ activities.length }}</strong>
+          <strong>
+            {{ lessonMaterials.length }}
+          </strong>
         </article>
 
         <article>
-          <span>Repertorio</span>
-          <strong>{{ repertoire.length }}</strong>
+          <span>
+            Actividades
+          </span>
+
+          <strong>
+            {{ publishedAssignments.length }}
+          </strong>
         </article>
 
-        <article class="lesson__summary--live">
-          <span>Recursos</span>
-          <strong>{{ lessonMaterials.length }}</strong>
-          <small>Supabase</small>
+        <article>
+          <span>
+            Modalidad
+          </span>
+
+          <strong class="quick-info__text">
+            {{ lesson.modality || '—' }}
+          </strong>
         </article>
 
-        <article class="lesson__summary--live">
-          <span>Tareas</span>
-          <strong>{{ publishedAssignments.length }}</strong>
-          <small>Supabase</small>
+        <article>
+          <span>
+            Lugar
+          </span>
+
+          <strong class="quick-info__text">
+            {{ lesson.location || 'Por definir' }}
+          </strong>
         </article>
       </section>
 
       <!-- ===================================================
-           FOCO
+           GRID PRINCIPAL
       ==================================================== -->
-      <section
-        v-if="lesson.focus"
-        class="focus-card"
-      >
-        <div class="focus-card__icon">◎</div>
 
-        <div>
-          <span>FOCO PEDAGÓGICO</span>
-          <h2>{{ lesson.focus }}</h2>
-        </div>
-      </section>
+      <div class="lesson-layout">
+        <!-- =================================================
+             COLUMNA PRINCIPAL
+        ================================================== -->
 
-      <!-- ===================================================
-           CONTENIDO
-      ==================================================== -->
-      <div class="lesson__layout">
-        <aside class="lesson__sidebar">
-          <div class="lesson__sidebar-title">
-            <span>CONTENIDO</span>
-            <strong>
-              Clase {{ String(lesson.id).padStart(2, '0') }}
-            </strong>
-          </div>
-
-          <nav>
-            <a href="#overview">01 · Descripción</a>
-
-            <a
-              v-if="objectives.length"
-              href="#objectives"
-            >
-              02 · Objetivos
-            </a>
-
-            <a
-              v-if="contents.length"
-              href="#contents"
-            >
-              03 · Contenidos
-            </a>
-
-            <a
-              v-if="activities.length"
-              href="#activities"
-            >
-              04 · Actividades
-            </a>
-
-            <a
-              v-if="repertoire.length"
-              href="#repertoire"
-            >
-              05 · Repertorio
-            </a>
-
-            <a href="#resources">
-              06 · Recursos y tareas
-            </a>
-          </nav>
-
-          <RouterLink
-            :to="`/aula/clase/${lesson.id}/trabajo`"
-            class="sidebar-classwork"
-          >
-            Abrir trabajo de clase
-            <span>→</span>
-          </RouterLink>
-        </aside>
-
-        <main class="lesson__content">
+        <main class="lesson-main">
           <!-- ===============================================
-               01 · DESCRIPCIÓN
+               MATERIAL PRINCIPAL
           ================================================ -->
-          <article
-            id="overview"
-            class="lesson-block lesson-block--overview"
-          >
-            <div class="lesson-block__number">01</div>
 
-            <div class="lesson-block__body">
-              <p class="lesson-block__category">Introducción</p>
+          <section class="content-section material-section">
+            <header class="section-heading">
+              <div>
+                <span>
+                  MATERIAL DE ESTUDIO
+                </span>
 
-              <h2>Sobre esta clase</h2>
-
-              <p class="lesson-block__lead">
-                {{
-                  lesson.description ||
-                  'Aún no se ha publicado una descripción detallada para esta clase.'
-                }}
-              </p>
-
-              <div class="class-info-grid">
-                <article>
-                  <span>Fecha</span>
-                  <strong>{{ lesson.date || 'Por definir' }}</strong>
-                </article>
-
-                <article>
-                  <span>Horario</span>
-                  <strong>{{ lesson.time || 'Por definir' }}</strong>
-                </article>
-
-                <article>
-                  <span>Duración</span>
-                  <strong>{{ lesson.duration || 'Por definir' }}</strong>
-                </article>
-
-                <article>
-                  <span>Modalidad</span>
-                  <strong>{{ lesson.modality || 'Por definir' }}</strong>
-                </article>
-
-                <article>
-                  <span>Lugar</span>
-                  <strong>{{ lesson.location || 'Por definir' }}</strong>
-                </article>
-
-                <article>
-                  <span>Estado</span>
-                  <strong>{{ getStatusLabel(lesson.status) }}</strong>
-                </article>
+                <h2>
+                  Material principal
+                </h2>
               </div>
-            </div>
-          </article>
 
-          <!-- ===============================================
-               02 · OBJETIVOS
-          ================================================ -->
-          <article
-            v-if="objectives.length"
-            id="objectives"
-            class="lesson-block"
-          >
-            <div class="lesson-block__number">02</div>
+              <span
+                v-if="primaryMaterial"
+                class="section-count"
+              >
+                PDF
+              </span>
+            </header>
 
-            <div class="lesson-block__body">
-              <p class="lesson-block__category">Aprendizaje</p>
-              <h2>Objetivos de aprendizaje</h2>
+            <!-- PDF PRINCIPAL -->
 
-              <div class="objective-list">
-                <article
-                  v-for="(objective, index) in objectives"
-                  :key="`objective-${index}`"
-                >
+            <article
+              v-if="primaryMaterial"
+              class="primary-material"
+            >
+              <div class="primary-material__visual">
+                <div class="pdf-icon">
                   <span>
-                    {{ String(index + 1).padStart(2, '0') }}
+                    PDF
                   </span>
 
-                  <p>{{ objective }}</p>
-                </article>
-              </div>
-            </div>
-          </article>
-
-          <!-- ===============================================
-               03 · CONTENIDOS
-          ================================================ -->
-          <article
-            v-if="contents.length"
-            id="contents"
-            class="lesson-block"
-          >
-            <div class="lesson-block__number">03</div>
-
-            <div class="lesson-block__body">
-              <p class="lesson-block__category">Formación</p>
-              <h2>Contenidos de la clase</h2>
-
-              <div class="content-grid">
-                <article
-                  v-for="(content, index) in contents"
-                  :key="`content-${index}`"
-                  class="content-card"
-                >
-                  <div>
-                    {{ String(index + 1).padStart(2, '0') }}
-                  </div>
-
-                  <p>{{ content }}</p>
-                </article>
-              </div>
-            </div>
-          </article>
-
-          <!-- ===============================================
-               04 · ACTIVIDADES
-          ================================================ -->
-          <article
-            v-if="activities.length"
-            id="activities"
-            class="lesson-block lesson-block--activities"
-          >
-            <div class="lesson-block__number">04</div>
-
-            <div class="lesson-block__body">
-              <p class="lesson-block__category">Práctica</p>
-              <h2>Actividades</h2>
-
-              <div class="activity-list">
-                <article
-                  v-for="(activity, index) in activities"
-                  :key="`activity-${index}`"
-                >
-                  <div class="activity-list__icon">✓</div>
-
-                  <div>
-                    <span>
-                      ACTIVIDAD {{ String(index + 1).padStart(2, '0') }}
-                    </span>
-
-                    <strong>{{ activity }}</strong>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </article>
-
-          <!-- ===============================================
-               05 · REPERTORIO
-          ================================================ -->
-          <article
-            v-if="repertoire.length"
-            id="repertoire"
-            class="lesson-block lesson-block--repertoire"
-          >
-            <div class="lesson-block__number">05</div>
-
-            <div class="lesson-block__body">
-              <p class="lesson-block__category">Interpretación</p>
-              <h2>Repertorio</h2>
-
-              <div class="repertoire-grid">
-                <article
-                  v-for="(song, index) in repertoire"
-                  :key="`song-${index}`"
-                >
-                  <div class="repertoire-grid__number">♪</div>
-
-                  <div>
-                    <span>
-                      OBRA {{ String(index + 1).padStart(2, '0') }}
-                    </span>
-
-                    <strong>{{ song }}</strong>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </article>
-
-          <!-- ===============================================
-               06 · RECURSOS Y TAREAS
-          ================================================ -->
-          <article
-            id="resources"
-            class="lesson-block lesson-block--resources"
-          >
-            <div class="lesson-block__number">06</div>
-
-            <div class="lesson-block__body">
-              <p class="lesson-block__category">Aula Virtual</p>
-
-              <h2>Recursos y trabajo de clase</h2>
-
-              <p class="lesson-block__lead">
-                Partituras, audios, documentos, actividades,
-                tareas y entregas correspondientes a esta clase.
-              </p>
-
-              <div class="resource-summary">
-                <article>
-                  <span>RECURSOS</span>
-                  <strong>{{ lessonMaterials.length }}</strong>
-                  <small>archivos disponibles</small>
-                </article>
-
-                <article>
-                  <span>TAREAS</span>
-                  <strong>{{ publishedAssignments.length }}</strong>
-                  <small>actividades publicadas</small>
-                </article>
+                  <strong>
+                    AMV
+                  </strong>
+                </div>
               </div>
 
-              <div
-                v-if="previewMaterials.length"
-                class="materials-preview"
-              >
-                <article
-                  v-for="material in previewMaterials"
-                  :key="material.id"
-                >
-                  <div class="materials-preview__icon">
-                    {{ getMaterialIcon(material.type) }}
-                  </div>
+              <div class="primary-material__content">
+                <div class="primary-material__eyebrow">
+                  Material principal de la clase
+                </div>
 
-                  <div>
-                    <span>{{ getMaterialType(material.type) }}</span>
-                    <strong>{{ material.title }}</strong>
-                    <small>{{ getVoiceLabel(material.voice) }}</small>
-                  </div>
-                </article>
-              </div>
-
-              <div
-                v-else
-                class="no-resources"
-              >
-                <span>i</span>
+                <h3>
+                  {{
+                    getMaterialDisplayName(
+                      primaryMaterial
+                    )
+                  }}
+                </h3>
 
                 <p>
-                  Todavía no hay archivos publicados para esta clase.
+                  {{
+                    primaryMaterial.description ||
+                    'Documento principal para estudiar y acompañar esta sesión.'
+                  }}
                 </p>
+
+                <div class="primary-material__meta">
+                  <span>
+                    PDF
+                  </span>
+
+                  <span
+                    v-if="primaryMaterial.fileSize"
+                  >
+                    {{
+                      formatFileSize(
+                        primaryMaterial.fileSize
+                      )
+                    }}
+                  </span>
+
+                  <span
+                    v-if="primaryMaterial.voice"
+                  >
+                    {{
+                      getVoiceLabel(
+                        primaryMaterial.voice
+                      )
+                    }}
+                  </span>
+                </div>
+
+                <div class="primary-material__actions">
+                  <a
+                    v-if="primaryMaterial.url"
+                    :href="primaryMaterial.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="material-button material-button--primary"
+                  >
+                    <span>
+                      ↗
+                    </span>
+
+                    Abrir material
+                  </a>
+
+                  <a
+                    v-if="primaryMaterial.url"
+                    :href="primaryMaterial.url"
+                    :download="
+                      primaryMaterial.fileName ||
+                      undefined
+                    "
+                    class="material-button"
+                  >
+                    ↓ Descargar
+                  </a>
+
+                  <RouterLink
+                    :to="`/aula/clase/${lesson.id}/trabajo`"
+                    class="material-button"
+                  >
+                    Ver recursos
+                  </RouterLink>
+                </div>
+              </div>
+            </article>
+
+            <!-- SIN PDF -->
+
+            <div
+              v-else
+              class="empty-material"
+            >
+              <div class="empty-material__icon">
+                PDF
               </div>
 
-              <div
-                v-if="previewAssignments.length"
-                class="assignments-preview"
-              >
-                <RouterLink
-                  v-for="task in previewAssignments"
-                  :key="task.id"
-                  :to="`/aula/clase/${lesson.id}/tarea/${task.id}`"
-                >
-                  <div class="assignments-preview__icon">
-                    {{ getAssignmentIcon(task.type) }}
-                  </div>
-
-                  <div>
-                    <span>{{ getAssignmentType(task.type) }}</span>
-                    <strong>{{ task.title }}</strong>
-                    <small>
-                      {{ task.points ?? 100 }} pts ·
-                      {{ task.dueDate ? formatDate(task.dueDate) : 'Sin fecha límite' }}
-                    </small>
-                  </div>
-
-                  <b>→</b>
-                </RouterLink>
-              </div>
-
-              <div
-                v-else
-                class="no-resources"
-              >
-                <span>✓</span>
+              <div>
+                <strong>
+                  No hay material principal publicado
+                </strong>
 
                 <p>
-                  Todavía no hay tareas publicadas para esta clase.
+                  {{
+                    isTeacher
+                      ? 'Puedes subir el PDF principal desde la edición de la clase o desde Recursos.'
+                      : 'El profesor todavía no ha publicado un PDF para esta clase.'
+                  }}
                 </p>
               </div>
 
               <RouterLink
+                v-if="isTeacher"
                 :to="`/aula/clase/${lesson.id}/trabajo`"
-                class="open-classwork"
               >
-                <div>
-                  <span>ABRIR AULA DE LA CLASE</span>
-                  <strong>Recursos, tareas y entregas</strong>
-                </div>
-
-                <b>→</b>
+                Agregar material
               </RouterLink>
             </div>
-          </article>
+          </section>
 
           <!-- ===============================================
-               PROFESOR
+               RECURSOS COMPLEMENTARIOS
           ================================================ -->
-          <article
-            v-if="
-              isTeacher &&
-              (
-                lesson.support_materials ||
-                lesson.notes
-              )
-            "
-            class="lesson-block lesson-block--teacher"
+
+          <section
+            v-if="secondaryMaterials.length"
+            class="content-section"
           >
-            <div class="lesson-block__number">07</div>
+            <header class="section-heading">
+              <div>
+                <span>
+                  BIBLIOTECA DE LA CLASE
+                </span>
 
-            <div class="lesson-block__body">
-              <p class="lesson-block__category">Solo profesor</p>
-              <h2>Registro docente</h2>
-
-              <div
-                v-if="lesson.support_materials"
-                class="teacher-note"
-              >
-                <span>MATERIAL DE APOYO</span>
-                <p>{{ lesson.support_materials }}</p>
+                <h2>
+                  Recursos complementarios
+                </h2>
               </div>
 
-              <div
-                v-if="lesson.notes"
-                class="teacher-note"
+              <span class="section-count">
+                {{ secondaryMaterials.length }}
+              </span>
+            </header>
+
+            <div class="resource-list">
+              <a
+                v-for="material in secondaryMaterials"
+                :key="material.id"
+                :href="material.url || undefined"
+                :target="
+                  material.url
+                    ? '_blank'
+                    : undefined
+                "
+                :rel="
+                  material.url
+                    ? 'noopener noreferrer'
+                    : undefined
+                "
+                class="resource-item"
+                :class="{
+                  'resource-item--disabled':
+                    !material.url
+                }"
+                @click="
+                  handleMaterialClick(
+                    $event,
+                    material
+                  )
+                "
               >
-                <span>OBSERVACIONES</span>
-                <p>{{ lesson.notes }}</p>
+                <div class="resource-item__icon">
+                  {{
+                    getMaterialIcon(
+                      material.type
+                    )
+                  }}
+                </div>
+
+                <div class="resource-item__content">
+                  <span>
+                    {{
+                      getMaterialType(
+                        material.type
+                      )
+                    }}
+                  </span>
+
+                  <strong>
+                    {{ material.title }}
+                  </strong>
+
+                  <small>
+                    {{
+                      getMaterialSubtitle(
+                        material
+                      )
+                    }}
+                  </small>
+                </div>
+
+                <div class="resource-item__action">
+                  {{
+                    material.url
+                      ? 'Abrir →'
+                      : 'Sin enlace'
+                  }}
+                </div>
+              </a>
+            </div>
+
+            <RouterLink
+              :to="`/aula/clase/${lesson.id}/trabajo`"
+              class="view-all-link"
+            >
+              Ver todos los recursos
+
+              <span>
+                →
+              </span>
+            </RouterLink>
+          </section>
+
+          <!-- ===============================================
+               ACTIVIDADES / TAREAS
+          ================================================ -->
+
+          <section class="content-section">
+            <header class="section-heading">
+              <div>
+                <span>
+                  TRABAJO DE CLASE
+                </span>
+
+                <h2>
+                  Actividades
+                </h2>
+              </div>
+
+              <span class="section-count">
+                {{ publishedAssignments.length }}
+              </span>
+            </header>
+
+            <div
+              v-if="publishedAssignments.length"
+              class="assignment-list"
+            >
+              <RouterLink
+                v-for="task in publishedAssignments"
+                :key="task.id"
+                :to="`/aula/clase/${lesson.id}/tarea/${task.id}`"
+                class="assignment-card"
+              >
+                <div class="assignment-card__icon">
+                  {{
+                    getAssignmentIcon(
+                      task.type
+                    )
+                  }}
+                </div>
+
+                <div class="assignment-card__content">
+                  <span>
+                    {{
+                      getAssignmentType(
+                        task.type
+                      )
+                    }}
+                  </span>
+
+                  <strong>
+                    {{ task.title }}
+                  </strong>
+
+                  <div class="assignment-card__meta">
+                    <span>
+                      {{ task.points ?? 100 }}
+                      pts
+                    </span>
+
+                    <span>
+                      {{
+                        task.dueDate
+                          ? `Entrega ${formatDate(task.dueDate)}`
+                          : 'Sin fecha límite'
+                      }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="assignment-card__arrow">
+                  →
+                </div>
+              </RouterLink>
+            </div>
+
+            <div
+              v-else
+              class="empty-assignments"
+            >
+              <div>
+                ✓
+              </div>
+
+              <section>
+                <strong>
+                  No hay actividades pendientes
+                </strong>
+
+                <p>
+                  {{
+                    isTeacher
+                      ? 'Puedes crear tareas o actividades desde Trabajo de clase.'
+                      : 'Por ahora esta clase no tiene tareas publicadas.'
+                  }}
+                </p>
+              </section>
+            </div>
+
+            <RouterLink
+              :to="`/aula/clase/${lesson.id}/trabajo`"
+              class="classwork-link"
+            >
+              <div>
+                <span>
+                  AULA DE LA CLASE
+                </span>
+
+                <strong>
+                  Recursos, tareas y entregas
+                </strong>
+              </div>
+
+              <b>
+                →
+              </b>
+            </RouterLink>
+          </section>
+
+          <!-- ===============================================
+               INFORMACIÓN
+          ================================================ -->
+
+          <section class="content-section">
+            <header class="section-heading">
+              <div>
+                <span>
+                  INFORMACIÓN
+                </span>
+
+                <h2>
+                  Sobre esta clase
+                </h2>
+              </div>
+            </header>
+
+            <div class="class-data">
+              <article>
+                <span>
+                  Fecha
+                </span>
+
+                <strong>
+                  {{ lesson.date || 'Por definir' }}
+                </strong>
+              </article>
+
+              <article>
+                <span>
+                  Horario
+                </span>
+
+                <strong>
+                  {{ lesson.time || 'Por definir' }}
+                </strong>
+              </article>
+
+              <article>
+                <span>
+                  Duración
+                </span>
+
+                <strong>
+                  {{ lesson.duration || 'Por definir' }}
+                </strong>
+              </article>
+
+              <article>
+                <span>
+                  Modalidad
+                </span>
+
+                <strong>
+                  {{ lesson.modality || 'Por definir' }}
+                </strong>
+              </article>
+
+              <article class="class-data__wide">
+                <span>
+                  Lugar
+                </span>
+
+                <strong>
+                  {{ lesson.location || 'Por definir' }}
+                </strong>
+              </article>
+            </div>
+          </section>
+
+          <!-- ===============================================
+               CONTENIDO PEDAGÓGICO COLAPSABLE
+          ================================================ -->
+
+          <section
+            v-if="hasAcademicContent"
+            class="academic-section"
+          >
+            <button
+              type="button"
+              class="academic-toggle"
+              :aria-expanded="showAcademicContent"
+              @click="
+                showAcademicContent =
+                  !showAcademicContent
+              "
+            >
+              <div>
+                <div class="academic-toggle__icon">
+                  {{
+                    showAcademicContent
+                      ? '−'
+                      : '+'
+                  }}
+                </div>
+
+                <div>
+                  <span>
+                    CONTENIDO ADICIONAL
+                  </span>
+
+                  <strong>
+                    Detalle de aprendizaje
+                  </strong>
+
+                  <small>
+                    Objetivos, contenidos, práctica y repertorio.
+                  </small>
+                </div>
+              </div>
+
+              <span>
+                {{
+                  showAcademicContent
+                    ? 'Ocultar'
+                    : 'Ver detalle'
+                }}
+              </span>
+            </button>
+
+            <Transition name="academic">
+              <div
+                v-if="showAcademicContent"
+                class="academic-content"
+              >
+                <!-- FOCO -->
+
+                <article
+                  v-if="lesson.focus"
+                  class="academic-block academic-block--focus"
+                >
+                  <span>
+                    FOCO PEDAGÓGICO
+                  </span>
+
+                  <h3>
+                    {{ lesson.focus }}
+                  </h3>
+                </article>
+
+                <!-- OBJETIVOS -->
+
+                <article
+                  v-if="objectives.length"
+                  class="academic-block"
+                >
+                  <header>
+                    <span>
+                      01
+                    </span>
+
+                    <h3>
+                      Objetivos
+                    </h3>
+                  </header>
+
+                  <div class="academic-list">
+                    <div
+                      v-for="(objective, index) in objectives"
+                      :key="`objective-${index}`"
+                    >
+                      <span>
+                        {{
+                          String(index + 1)
+                            .padStart(2, '0')
+                        }}
+                      </span>
+
+                      <p>
+                        {{ objective }}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- CONTENIDOS -->
+
+                <article
+                  v-if="contents.length"
+                  class="academic-block"
+                >
+                  <header>
+                    <span>
+                      02
+                    </span>
+
+                    <h3>
+                      Contenidos
+                    </h3>
+                  </header>
+
+                  <div class="academic-tags">
+                    <span
+                      v-for="(content, index) in contents"
+                      :key="`content-${index}`"
+                    >
+                      {{ content }}
+                    </span>
+                  </div>
+                </article>
+
+                <!-- ACTIVIDADES DE PLANIFICACIÓN -->
+
+                <article
+                  v-if="activities.length"
+                  class="academic-block"
+                >
+                  <header>
+                    <span>
+                      03
+                    </span>
+
+                    <h3>
+                      Trabajo en clase
+                    </h3>
+                  </header>
+
+                  <div class="academic-list">
+                    <div
+                      v-for="(activity, index) in activities"
+                      :key="`activity-${index}`"
+                    >
+                      <span>
+                        ✓
+                      </span>
+
+                      <p>
+                        {{ activity }}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- REPERTORIO -->
+
+                <article
+                  v-if="repertoire.length"
+                  class="academic-block"
+                >
+                  <header>
+                    <span>
+                      04
+                    </span>
+
+                    <h3>
+                      Repertorio
+                    </h3>
+                  </header>
+
+                  <div class="repertoire-list">
+                    <div
+                      v-for="(song, index) in repertoire"
+                      :key="`song-${index}`"
+                    >
+                      <span>
+                        ♪
+                      </span>
+
+                      <div>
+                        <small>
+                          OBRA
+                          {{
+                            String(index + 1)
+                              .padStart(2, '0')
+                          }}
+                        </small>
+
+                        <strong>
+                          {{ song }}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </Transition>
+          </section>
+
+          <!-- ===============================================
+               INFORMACIÓN PRIVADA PROFESOR
+          ================================================ -->
+
+          <section
+            v-if="
+              isTeacher &&
+              hasTeacherNotes
+            "
+            class="teacher-notes"
+          >
+            <header>
+              <div>
+                <span>
+                  SOLO PROFESOR
+                </span>
+
+                <h2>
+                  Notas docentes
+                </h2>
               </div>
 
               <RouterLink
                 :to="`/aula/clase/${lesson.id}/editar`"
-                class="edit-planning"
               >
-                ✎ Editar planificación
+                Editar
               </RouterLink>
+            </header>
+
+            <div
+              v-if="lesson.supportMaterials"
+              class="teacher-note"
+            >
+              <span>
+                MATERIAL DE APOYO
+              </span>
+
+              <p>
+                {{ lesson.supportMaterials }}
+              </p>
             </div>
-          </article>
 
-          <section class="lesson-footer">
-            <RouterLink
-              to="/aula/programa-formativo"
-              class="lesson-footer__back"
+            <div
+              v-if="lesson.notes"
+              class="teacher-note"
             >
-              ← Programa completo
-            </RouterLink>
+              <span>
+                OBSERVACIONES
+              </span>
 
-            <RouterLink
-              :to="`/aula/clase/${lesson.id}/trabajo`"
-              class="lesson-footer__next"
-            >
-              <div>
-                <span>SIGUIENTE</span>
-                <strong>Trabajo de clase</strong>
-              </div>
-
-              <b>→</b>
-            </RouterLink>
+              <p>
+                {{ lesson.notes }}
+              </p>
+            </div>
           </section>
         </main>
+
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
+        <aside class="lesson-sidebar">
+          <section class="sidebar-card">
+            <span class="sidebar-card__eyebrow">
+              ESTA CLASE
+            </span>
+
+            <h3>
+              {{ lesson.title }}
+            </h3>
+
+            <div class="sidebar-progress">
+              <div>
+                <span>
+                  Material
+                </span>
+
+                <strong>
+                  {{
+                    primaryMaterial
+                      ? 'Disponible'
+                      : 'Pendiente'
+                  }}
+                </strong>
+              </div>
+
+              <div class="sidebar-progress__bar">
+                <span
+                  :style="{
+                    width:
+                      primaryMaterial
+                        ? '100%'
+                        : '15%'
+                  }"
+                ></span>
+              </div>
+            </div>
+
+            <div class="sidebar-summary">
+              <article>
+                <span>
+                  {{ lessonMaterials.length }}
+                </span>
+
+                <small>
+                  Recursos
+                </small>
+              </article>
+
+              <article>
+                <span>
+                  {{ publishedAssignments.length }}
+                </span>
+
+                <small>
+                  Actividades
+                </small>
+              </article>
+            </div>
+          </section>
+
+          <!-- ATAJOS -->
+
+          <section class="sidebar-card">
+            <span class="sidebar-card__eyebrow">
+              ACCESOS
+            </span>
+
+            <nav class="sidebar-nav">
+              <a
+                v-if="primaryMaterial?.url"
+                :href="primaryMaterial.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div>
+                  <span>
+                    PDF
+                  </span>
+
+                  <strong>
+                    Material principal
+                  </strong>
+                </div>
+
+                <b>
+                  ↗
+                </b>
+              </a>
+
+              <RouterLink
+                :to="`/aula/clase/${lesson.id}/trabajo`"
+              >
+                <div>
+                  <span>
+                    AULA
+                  </span>
+
+                  <strong>
+                    Recursos y tareas
+                  </strong>
+                </div>
+
+                <b>
+                  →
+                </b>
+              </RouterLink>
+
+              <RouterLink
+                v-if="isTeacher"
+                :to="`/aula/clase/${lesson.id}/editar`"
+              >
+                <div>
+                  <span>
+                    PROFESOR
+                  </span>
+
+                  <strong>
+                    Editar clase
+                  </strong>
+                </div>
+
+                <b>
+                  →
+                </b>
+              </RouterLink>
+            </nav>
+          </section>
+
+          <!-- CONSEJO -->
+
+          <section
+            v-if="!isTeacher"
+            class="sidebar-tip"
+          >
+            <span>
+              ♪
+            </span>
+
+            <div>
+              <strong>
+                Consejo de estudio
+              </strong>
+
+              <p>
+                Revisa primero el material principal y
+                luego completa las actividades de la clase.
+              </p>
+            </div>
+          </section>
+        </aside>
       </div>
+
+      <!-- ===================================================
+           FOOTER
+      ==================================================== -->
+
+      <footer class="lesson-footer">
+        <RouterLink
+          to="/aula/programa-formativo"
+        >
+          <span>
+            ←
+          </span>
+
+          <div>
+            <small>
+              VOLVER
+            </small>
+
+            <strong>
+              Programa formativo
+            </strong>
+          </div>
+        </RouterLink>
+
+        <RouterLink
+          :to="`/aula/clase/${lesson.id}/trabajo`"
+          class="lesson-footer__next"
+        >
+          <div>
+            <small>
+              CONTINUAR
+            </small>
+
+            <strong>
+              Trabajo de clase
+            </strong>
+          </div>
+
+          <span>
+            →
+          </span>
+        </RouterLink>
+      </footer>
     </template>
   </section>
 </template>
@@ -607,208 +1133,602 @@ import {
   computed,
   onMounted,
   ref,
-  watch
+  watch,
 } from 'vue'
 
 import {
   RouterLink,
-  useRoute
+  useRoute,
 } from 'vue-router'
 
 import {
-  fetchLessonById
+  fetchLessonById,
 } from '@/services/lessonService'
 
 import {
-  fetchMaterialsByLesson
+  fetchMaterialsByLesson,
 } from '@/services/materialService'
 
 import {
-  fetchAssignmentsByLesson
+  fetchAssignmentsByLesson,
 } from '@/services/assignmentService'
 
 import {
-  useAuth
+  useAuth,
 } from '@/composables/useAuth'
 
 const route = useRoute()
-const { isTeacher } = useAuth()
+
+const {
+  isTeacher,
+} = useAuth()
+
+/* =========================================================
+   ESTADO
+========================================================= */
 
 const lesson = ref(null)
+
 const lessonMaterials = ref([])
 const lessonAssignments = ref([])
 
 const isLoading = ref(true)
 const loadError = ref('')
 
+const showAcademicContent =
+  ref(false)
+
+/* =========================================================
+   CARGAR CLASE
+========================================================= */
+
 const loadLesson = async () => {
   isLoading.value = true
   loadError.value = ''
 
   try {
-    const id = Number(route.params.id)
+    const id =
+      Number(
+        route.params.id,
+      )
+
+    if (
+      !Number.isFinite(id) ||
+      id <= 0
+    ) {
+      throw new Error(
+        'La clase solicitada no es válida.',
+      )
+    }
 
     const [
       loadedLesson,
       loadedMaterials,
-      loadedAssignments
+      loadedAssignments,
     ] = await Promise.all([
       fetchLessonById(id),
       fetchMaterialsByLesson(id),
-      fetchAssignmentsByLesson(id)
+      fetchAssignmentsByLesson(id),
     ])
 
-    lesson.value = loadedLesson
-    lessonMaterials.value = loadedMaterials || []
-    lessonAssignments.value = loadedAssignments || []
+    lesson.value =
+      loadedLesson
+
+    lessonMaterials.value =
+      loadedMaterials ||
+      []
+
+    lessonAssignments.value =
+      loadedAssignments ||
+      []
   } catch (error) {
     console.error(
       'Error cargando la clase:',
-      error
+      error,
     )
 
     lesson.value = null
+
     lessonMaterials.value = []
     lessonAssignments.value = []
 
     loadError.value =
       error?.message ||
-      'No se pudo obtener la clase desde Supabase.'
+      'No fue posible obtener esta clase.'
   } finally {
     isLoading.value = false
   }
 }
 
+/* =========================================================
+   PLANIFICACIÓN
+========================================================= */
+
 const normalizeArray = value => {
-  if (!Array.isArray(value)) return []
+  if (
+    !Array.isArray(value)
+  ) {
+    return []
+  }
 
   return value
-    .map(item => String(item).trim())
+    .map(item =>
+      String(item).trim(),
+    )
     .filter(Boolean)
 }
 
-const objectives = computed(() =>
-  normalizeArray(lesson.value?.objectives)
-)
-
-const contents = computed(() =>
-  normalizeArray(lesson.value?.contents)
-)
-
-const activities = computed(() =>
-  normalizeArray(lesson.value?.activities)
-)
-
-const repertoire = computed(() =>
-  normalizeArray(lesson.value?.repertoire)
-)
-
-const publishedAssignments = computed(() =>
-  lessonAssignments.value.filter(
-    task => task.status !== 'draft'
+const objectives =
+  computed(() =>
+    normalizeArray(
+      lesson.value
+        ?.objectives,
+    ),
   )
-)
 
-const previewMaterials = computed(() =>
-  lessonMaterials.value.slice(0, 4)
-)
+const contents =
+  computed(() =>
+    normalizeArray(
+      lesson.value
+        ?.contents,
+    ),
+  )
 
-const previewAssignments = computed(() =>
-  publishedAssignments.value.slice(0, 4)
-)
+const activities =
+  computed(() =>
+    normalizeArray(
+      lesson.value
+        ?.activities,
+    ),
+  )
+
+const repertoire =
+  computed(() =>
+    normalizeArray(
+      lesson.value
+        ?.repertoire,
+    ),
+  )
+
+const hasAcademicContent =
+  computed(() => {
+    return Boolean(
+      lesson.value?.focus ||
+      objectives.value.length ||
+      contents.value.length ||
+      activities.value.length ||
+      repertoire.value.length,
+    )
+  })
+
+const hasTeacherNotes =
+  computed(() => {
+    return Boolean(
+      lesson.value
+        ?.supportMaterials ||
+      lesson.value
+        ?.support_materials ||
+      lesson.value?.notes,
+    )
+  })
+
+/* =========================================================
+   MATERIALES
+========================================================= */
+
+/*
+ * El PDF creado desde CreateLessonView
+ * queda almacenado con:
+ *
+ * type: 'pdf'
+ * folder: 'material-principal'
+ *
+ * Por eso primero buscamos ese folder.
+ *
+ * También dejamos fallback para PDFs antiguos.
+ */
+
+const primaryMaterial =
+  computed(() => {
+    const materials =
+      lessonMaterials.value
+
+    if (
+      !materials.length
+    ) {
+      return null
+    }
+
+    const explicitPrimary =
+      materials.find(
+        material =>
+          String(
+            material.storagePath ||
+            '',
+          ).includes(
+            '/material-principal/',
+          ),
+      )
+
+    if (
+      explicitPrimary
+    ) {
+      return explicitPrimary
+    }
+
+    const titledPrimary =
+      materials.find(
+        material =>
+          String(
+            material.title ||
+            '',
+          )
+            .toLowerCase()
+            .includes(
+              'material principal',
+            ),
+      )
+
+    if (
+      titledPrimary
+    ) {
+      return titledPrimary
+    }
+
+    const firstPdf =
+      materials.find(
+        material =>
+          material.type ===
+            'pdf' ||
+          material.mimeType ===
+            'application/pdf',
+      )
+
+    return (
+      firstPdf ||
+      null
+    )
+  })
+
+const secondaryMaterials =
+  computed(() => {
+    if (
+      !primaryMaterial.value
+    ) {
+      return lessonMaterials.value
+    }
+
+    return lessonMaterials.value
+      .filter(
+        material =>
+          Number(material.id) !==
+          Number(
+            primaryMaterial.value.id,
+          ),
+      )
+  })
+
+/* =========================================================
+   TAREAS
+========================================================= */
+
+const publishedAssignments =
+  computed(() =>
+    lessonAssignments.value.filter(
+      assignment =>
+        assignment.status !==
+        'draft',
+    ),
+  )
+
+/* =========================================================
+   LABELS
+========================================================= */
 
 const getStatusLabel = status => {
   const labels = {
-    available: 'Disponible',
-    planned: 'Planificada',
-    published: 'Publicada',
-    completed: 'Realizada',
-    draft: 'Borrador'
+    available:
+      'Disponible',
+
+    planned:
+      'Planificada',
+
+    published:
+      'Publicada',
+
+    completed:
+      'Realizada',
+
+    draft:
+      'Borrador',
   }
 
-  return labels[status] || 'Disponible'
+  return (
+    labels[status] ||
+    'Disponible'
+  )
 }
 
 const getMaterialType = type => {
   const labels = {
-    pdf: 'PDF',
-    score: 'Partitura',
-    audio: 'Audio',
-    video: 'Video',
-    image: 'Imagen',
-    link: 'Enlace',
-    document: 'Documento',
-    other: 'Archivo'
+    pdf:
+      'PDF',
+
+    score:
+      'Partitura',
+
+    audio:
+      'Audio',
+
+    video:
+      'Video',
+
+    image:
+      'Imagen',
+
+    link:
+      'Enlace',
+
+    document:
+      'Documento',
+
+    file:
+      'Archivo',
+
+    other:
+      'Archivo',
   }
 
-  return labels[type] || 'Material'
+  return (
+    labels[type] ||
+    'Material'
+  )
 }
 
 const getMaterialIcon = type => {
   const icons = {
-    pdf: 'PDF',
-    score: '♫',
-    audio: '♪',
-    video: '▶',
-    image: 'IMG',
-    link: '↗',
-    document: 'DOC',
-    other: 'FILE'
+    pdf:
+      'PDF',
+
+    score:
+      '♫',
+
+    audio:
+      '♪',
+
+    video:
+      '▶',
+
+    image:
+      'IMG',
+
+    link:
+      '↗',
+
+    document:
+      'DOC',
+
+    file:
+      'FILE',
+
+    other:
+      '•',
   }
 
-  return icons[type] || '•'
+  return (
+    icons[type] ||
+    '•'
+  )
 }
 
 const getVoiceLabel = voice => {
-  if (!voice || voice === 'general') {
+  if (
+    !voice ||
+    voice === 'general'
+  ) {
     return 'General'
   }
 
   return voice
 }
 
-const getAssignmentType = type => {
-  const labels = {
-    assignment: 'Tarea',
-    performance: 'Performance',
-    audio: 'Audio',
-    video: 'Video',
-    score: 'Partitura'
+const getMaterialDisplayName =
+  material => {
+    if (!material) {
+      return ''
+    }
+
+    return (
+      material.fileName ||
+      material.title ||
+      'Material de la clase'
+    )
   }
 
-  return labels[type] || 'Tarea'
+const getMaterialSubtitle =
+  material => {
+    const parts = []
+
+    if (
+      material.voice &&
+      material.voice !==
+        'general'
+    ) {
+      parts.push(
+        getVoiceLabel(
+          material.voice,
+        ),
+      )
+    }
+
+    if (
+      material.fileSize
+    ) {
+      parts.push(
+        formatFileSize(
+          material.fileSize,
+        ),
+      )
+    }
+
+    if (
+      material.description
+    ) {
+      parts.push(
+        material.description,
+      )
+    }
+
+    return (
+      parts.join(' · ') ||
+      'Recurso de la clase'
+    )
+  }
+
+/* =========================================================
+   TAREAS
+========================================================= */
+
+const getAssignmentType = type => {
+  const labels = {
+    assignment:
+      'Tarea',
+
+    performance:
+      'Interpretación',
+
+    audio:
+      'Entrega de audio',
+
+    video:
+      'Entrega de video',
+
+    score:
+      'Partitura',
+  }
+
+  return (
+    labels[type] ||
+    'Actividad'
+  )
 }
 
 const getAssignmentIcon = type => {
   const icons = {
-    assignment: '✓',
-    performance: '★',
-    audio: '♪',
-    video: '▶',
-    score: '♫'
+    assignment:
+      '✓',
+
+    performance:
+      '★',
+
+    audio:
+      '♪',
+
+    video:
+      '▶',
+
+    score:
+      '♫',
   }
 
-  return icons[type] || '✓'
+  return (
+    icons[type] ||
+    '✓'
+  )
 }
 
+/* =========================================================
+   FORMATOS
+========================================================= */
+
 const formatDate = value => {
-  if (!value) return '—'
+  if (!value) {
+    return '—'
+  }
 
-  const parts = String(value).split('-')
+  const parts =
+    String(value)
+      .split('-')
 
-  if (parts.length === 3) {
-    const [year, month, day] = parts
+  if (
+    parts.length === 3
+  ) {
+    const [
+      year,
+      month,
+      day,
+    ] = parts
+
     return `${day}/${month}/${year}`
   }
 
   return value
 }
 
-watch(
-  () => route.params.id,
-  () => {
-    loadLesson()
+const formatFileSize = bytes => {
+  const value =
+    Number(bytes || 0)
+
+  if (!value) {
+    return ''
   }
+
+  if (
+    value < 1024
+  ) {
+    return `${value} B`
+  }
+
+  if (
+    value <
+    1024 * 1024
+  ) {
+    return `${(
+      value /
+      1024
+    ).toFixed(1)} KB`
+  }
+
+  return `${(
+    value /
+    (
+      1024 *
+      1024
+    )
+  ).toFixed(1)} MB`
+}
+
+/* =========================================================
+   MATERIAL SIN URL
+========================================================= */
+
+const handleMaterialClick = (
+  event,
+  material,
+) => {
+  if (
+    material?.url
+  ) {
+    return
+  }
+
+  event.preventDefault()
+}
+
+/* =========================================================
+   ROUTE
+========================================================= */
+
+watch(
+  () =>
+    route.params.id,
+
+  () => {
+    showAcademicContent.value =
+      false
+
+    loadLesson()
+  },
 )
 
 onMounted(() => {
@@ -819,796 +1739,1880 @@ onMounted(() => {
 <style lang="scss" scoped>
 @use '@/assets/styles/abstracts/variables' as variables;
 
-.lesson {
+/* =========================================================
+   BASE
+========================================================= */
+
+.lesson-page {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1320px;
   margin: 0 auto;
+  padding-bottom: 5rem;
 }
 
-.lesson__topbar {
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.lesson-topbar {
   display: flex;
-  gap: variables.$spacing-lg;
+  gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: variables.$spacing-xl;
+  margin-bottom: 1.4rem;
 }
 
-.lesson__back {
+.back-link {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
   color: variables.$color-primary;
-  font-weight: variables.$font-weight-semibold;
+  font-size: 0.78rem;
+  font-weight: 800;
   text-decoration: none;
 }
 
-.lesson__teacher-actions {
+.back-link span {
+  transition: transform 0.18s ease;
+}
+
+.back-link:hover span {
+  transform: translateX(-3px);
+}
+
+.teacher-actions {
   display: flex;
-  gap: 8px;
+  gap: 0.55rem;
 }
 
 .teacher-button {
-  padding: 9px 12px;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  color: variables.$color-white;
-  font-size: variables.$font-size-sm;
-  font-weight: variables.$font-weight-semibold;
+  display: inline-flex;
+  min-height: 40px;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 10px;
+  color:
+    variables.$color-white;
+  font-size: 0.7rem;
+  font-weight: 800;
   text-decoration: none;
 }
 
 .teacher-button--primary {
-  border-color: variables.$color-primary;
-  color: variables.$color-primary;
+  border-color:
+    variables.$color-primary;
+  color:
+    variables.$color-primary;
 }
 
-.lesson__hero {
-  margin-bottom: variables.$spacing-xl;
-  padding: variables.$spacing-3xl;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
+/* =========================================================
+   HERO
+========================================================= */
+
+.lesson-hero {
+  position: relative;
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 2.7rem;
+  overflow: hidden;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 24px;
   background:
     radial-gradient(
-      circle at 90% 10%,
-      rgba(variables.$color-primary, 0.18),
-      transparent 35%
+      circle at 92% 10%,
+      rgba(
+        255,
+        196,
+        0,
+        0.14
+      ),
+      transparent 32%
     ),
     variables.$color-surface;
 }
 
-.lesson__hero-main {
-  display: grid;
-  gap: variables.$spacing-2xl;
-  grid-template-columns: auto 1fr;
+.lesson-hero::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 115px;
+  height: 3px;
+  background:
+    variables.$color-primary;
+  content: '';
 }
 
-.lesson__hero-number {
+.lesson-hero__eyebrow {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  color:
+    variables.$color-primary;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.lesson-hero__eyebrow > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background:
+    variables.$color-primary;
+  box-shadow:
+    0 0 0 5px
+    rgba(
+      255,
+      196,
+      0,
+      0.08
+    );
+}
+
+.lesson-hero h1 {
+  max-width: 920px;
+  margin:
+    1rem
+    0
+    0;
+  font-size:
+    clamp(
+      2.8rem,
+      7vw,
+      5.6rem
+    );
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.lesson-hero__description {
+  max-width: 730px;
+  margin:
+    1.3rem
+    0
+    0;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.52
+    );
+  line-height: 1.7;
+}
+
+.lesson-hero__meta {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-top: 1.35rem;
+}
+
+.lesson-hero__meta span {
+  padding:
+    0.38rem
+    0.62rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 999px;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.5
+    );
+  font-size: 0.65rem;
+}
+
+.lesson-hero__aside {
   display: grid;
-  width: 130px;
-  height: 130px;
+  gap: 0.75rem;
+  justify-items: center;
+}
+
+.lesson-number {
+  display: grid;
+  width: 125px;
+  height: 125px;
   place-items: center;
   align-content: center;
-  border: 1px solid variables.$color-primary;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.55
+    );
   border-radius: 50%;
 }
 
-.lesson__hero-number span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
+.lesson-number span,
+.lesson-number strong {
+  display: block;
+}
+
+.lesson-number span {
+  color:
+    variables.$color-primary;
+  font-size: 0.58rem;
+  font-weight: 900;
   letter-spacing: 0.12em;
 }
 
-.lesson__hero-number strong {
-  color: variables.$color-primary;
-  font-family: variables.$font-family-heading;
-  font-size: 3rem;
-}
-
-.lesson__hero-meta {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: variables.$spacing-md;
-}
-
-.lesson__hero-meta > span:first-child {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-sm;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.lesson__hero h1 {
-  max-width: 950px;
-  margin: 0 0 variables.$spacing-lg;
-  font-size: clamp(3rem, 7vw, 6rem);
-  line-height: 0.96;
-}
-
-.lesson__lead {
-  max-width: 780px;
-  margin: 0;
-  line-height: 1.65;
-  opacity: 0.65;
-}
-
-.lesson__chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: variables.$spacing-xl;
-}
-
-.lesson__chips span {
-  padding: 6px 10px;
-  border: 1px solid variables.$color-border;
-  border-radius: 999px;
-  font-size: variables.$font-size-xs;
-  opacity: 0.65;
+.lesson-number strong {
+  color:
+    variables.$color-primary;
+  font-size: 2.8rem;
+  line-height: 1;
 }
 
 .status-badge {
-  padding: 5px 9px;
+  padding:
+    0.4rem
+    0.65rem;
   border-radius: 999px;
-  font-size: variables.$font-size-xs;
+  font-size: 0.62rem;
+  font-weight: 800;
 }
 
 .status-badge--available,
 .status-badge--published {
-  border: 1px solid variables.$color-primary;
-  color: variables.$color-primary;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.4
+    );
+  color:
+    variables.$color-primary;
 }
 
 .status-badge--planned,
 .status-badge--draft {
-  border: 1px solid variables.$color-border;
-  opacity: 0.55;
+  border:
+    1px solid
+    variables.$color-border;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.4
+    );
 }
 
 .status-badge--completed {
-  background: variables.$color-primary;
-  color: variables.$color-white;
+  background:
+    variables.$color-primary;
+  color: #070707;
 }
 
-.classwork-button {
-  display: flex;
-  gap: variables.$spacing-xl;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: variables.$spacing-2xl;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  color: variables.$color-white;
-  text-decoration: none;
+/* =========================================================
+   QUICK INFO
+========================================================= */
+
+.quick-info {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+  margin-bottom: 1rem;
 }
 
-.classwork-button span,
-.classwork-button strong {
+.quick-info article {
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 13px;
+  background:
+    variables.$color-surface;
+}
+
+.quick-info span,
+.quick-info strong {
   display: block;
 }
 
-.classwork-button span {
-  margin-bottom: 4px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  letter-spacing: 0.1em;
+.quick-info span {
+  margin-bottom: 0.35rem;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.32
+    );
+  font-size: 0.62rem;
+  text-transform: uppercase;
 }
 
-.classwork-button b {
-  color: variables.$color-primary;
-  font-size: 2rem;
+.quick-info strong {
+  color:
+    variables.$color-primary;
+  font-size: 1.35rem;
 }
 
-.lesson__summary {
+.quick-info__text {
+  overflow-wrap: anywhere;
+  color:
+    variables.$color-white !important;
+  font-size: 0.78rem !important;
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.lesson-layout {
   display: grid;
-  gap: variables.$spacing-md;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  margin-bottom: variables.$spacing-xl;
+  gap: 1rem;
+  grid-template-columns:
+    minmax(0, 1fr)
+    285px;
+  align-items: start;
 }
 
-.lesson__summary article {
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-}
-
-.lesson__summary span,
-.lesson__summary strong,
-.lesson__summary small {
-  display: block;
-}
-
-.lesson__summary span {
-  margin-bottom: 5px;
-  font-size: variables.$font-size-xs;
-  opacity: 0.45;
-}
-
-.lesson__summary strong {
-  color: variables.$color-primary;
-  font-size: 1.7rem;
-}
-
-.lesson__summary small {
-  margin-top: 5px;
-  font-size: variables.$font-size-xs;
-  opacity: 0.35;
-}
-
-.lesson__summary--live {
-  border-color: variables.$color-primary !important;
-}
-
-.focus-card {
-  display: flex;
-  gap: variables.$spacing-lg;
-  align-items: center;
-  margin-bottom: variables.$spacing-2xl;
-  padding: variables.$spacing-xl;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background: rgba(variables.$color-primary, 0.05);
-}
-
-.focus-card__icon {
+.lesson-main {
   display: grid;
-  width: 55px;
-  height: 55px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid variables.$color-primary;
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: 1.5rem;
+  gap: 1rem;
 }
 
-.focus-card span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  letter-spacing: 0.12em;
-}
-
-.focus-card h2 {
-  margin: 5px 0 0;
-}
-
-.lesson__layout {
-  display: grid;
-  gap: variables.$spacing-3xl;
-  grid-template-columns: 230px minmax(0, 1fr);
-}
-
-.lesson__sidebar {
+.lesson-sidebar {
   position: sticky;
-  top: 2rem;
-  align-self: start;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
+  top: 1rem;
+  display: grid;
+  gap: 0.8rem;
 }
 
-.lesson__sidebar-title {
-  padding-bottom: variables.$spacing-lg;
-  border-bottom: 1px solid variables.$color-border;
+/* =========================================================
+   SECTION
+========================================================= */
+
+.content-section,
+.teacher-notes {
+  padding: 1.8rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 18px;
+  background:
+    variables.$color-surface;
 }
 
-.lesson__sidebar-title span,
-.lesson__sidebar-title strong {
-  display: block;
+.section-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.35rem;
 }
 
-.lesson__sidebar-title span {
-  margin-bottom: 5px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
+.section-heading > div > span {
+  color:
+    variables.$color-primary;
+  font-size: 0.6rem;
+  font-weight: 900;
   letter-spacing: 0.12em;
 }
 
-.lesson__sidebar nav {
-  display: flex;
-  gap: variables.$spacing-md;
-  flex-direction: column;
-  margin: variables.$spacing-lg 0;
+.section-heading h2 {
+  margin:
+    0.25rem
+    0
+    0;
+  font-size:
+    clamp(
+      1.45rem,
+      3vw,
+      2rem
+    );
 }
 
-.lesson__sidebar nav a {
-  color: variables.$color-white;
-  font-size: variables.$font-size-sm;
-  text-decoration: none;
-  opacity: 0.6;
-}
-
-.lesson__sidebar nav a:hover {
-  color: variables.$color-primary;
-  opacity: 1;
-}
-
-.sidebar-classwork {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: variables.$spacing-md;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-sm;
-  font-weight: variables.$font-weight-semibold;
-  text-decoration: none;
-}
-
-.lesson__content {
+.section-count {
   display: grid;
-  gap: variables.$spacing-xl;
+  min-width: 36px;
+  height: 36px;
+  place-items: center;
+  padding:
+    0
+    0.55rem;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.3
+    );
+  border-radius: 999px;
+  color:
+    variables.$color-primary;
+  font-size: 0.63rem;
+  font-weight: 900;
 }
 
-.lesson-block {
-  display: grid;
-  gap: variables.$spacing-xl;
-  grid-template-columns: 75px 1fr;
-  padding: variables.$spacing-3xl;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-  scroll-margin-top: 2rem;
-}
+/* =========================================================
+   PRIMARY MATERIAL
+========================================================= */
 
-.lesson-block--overview,
-.lesson-block--resources {
+.material-section {
   background:
     radial-gradient(
-      circle at 90% 10%,
-      rgba(variables.$color-primary, 0.08),
-      transparent 35%
+      circle at 100% 0%,
+      rgba(
+        255,
+        196,
+        0,
+        0.08
+      ),
+      transparent 38%
     ),
     variables.$color-surface;
 }
 
-.lesson-block__number {
-  color: variables.$color-primary;
-  font-family: variables.$font-family-heading;
-  font-size: 2rem;
+.primary-material {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns:
+    155px
+    minmax(0, 1fr);
+  padding: 1.35rem;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.28
+    );
+  border-radius: 15px;
+  background:
+    variables.$color-background;
 }
 
-.lesson-block__category {
-  margin: 0 0 variables.$spacing-sm;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-sm;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.12em;
+.primary-material__visual {
+  display: grid;
+  place-items: center;
+  min-height: 170px;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        255,
+        196,
+        0,
+        0.07
+      ),
+      transparent
+    );
+}
+
+.pdf-icon {
+  display: grid;
+  width: 80px;
+  height: 100px;
+  place-items: center;
+  align-content: center;
+  border:
+    1px solid
+    variables.$color-primary;
+  border-radius: 8px;
+}
+
+.pdf-icon span {
+  color:
+    variables.$color-primary;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.pdf-icon strong {
+  margin-top: 0.4rem;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.35
+    );
+  font-size: 0.65rem;
+}
+
+.primary-material__content {
+  align-self: center;
+}
+
+.primary-material__eyebrow {
+  color:
+    variables.$color-primary;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.lesson-block h2 {
-  margin: 0 0 variables.$spacing-lg;
-  font-size: clamp(2rem, 4vw, 3.5rem);
+.primary-material h3 {
+  margin:
+    0.5rem
+    0
+    0;
+  overflow-wrap: anywhere;
+  font-size:
+    clamp(
+      1.3rem,
+      3vw,
+      1.8rem
+    );
 }
 
-.lesson-block__lead {
-  max-width: 850px;
-  line-height: 1.65;
-  opacity: 0.65;
+.primary-material p {
+  max-width: 650px;
+  margin:
+    0.7rem
+    0
+    0;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.43
+    );
+  font-size: 0.75rem;
+  line-height: 1.6;
 }
 
-.class-info-grid,
-.content-grid,
-.repertoire-grid,
-.resource-summary {
-  display: grid;
-  gap: variables.$spacing-md;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: variables.$spacing-xl;
-}
-
-.class-info-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.class-info-grid article,
-.content-card,
-.repertoire-grid article,
-.resource-summary article {
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
-}
-
-.class-info-grid span,
-.class-info-grid strong,
-.resource-summary span,
-.resource-summary strong,
-.resource-summary small {
-  display: block;
-}
-
-.class-info-grid span,
-.resource-summary span {
-  margin-bottom: 6px;
-  font-size: variables.$font-size-xs;
-  opacity: 0.45;
-}
-
-.class-info-grid strong,
-.resource-summary strong {
-  color: variables.$color-primary;
-}
-
-.resource-summary strong {
-  margin: variables.$spacing-sm 0;
-  font-size: 2rem;
-}
-
-.objective-list,
-.activity-list,
-.materials-preview,
-.assignments-preview {
-  display: grid;
-  gap: variables.$spacing-md;
-  margin-top: variables.$spacing-xl;
-}
-
-.objective-list article,
-.activity-list article,
-.materials-preview article,
-.assignments-preview a {
-  display: grid;
-  gap: variables.$spacing-md;
-  align-items: center;
-  padding: variables.$spacing-md;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
-}
-
-.objective-list article {
-  grid-template-columns: auto 1fr;
-}
-
-.objective-list span {
-  color: variables.$color-primary;
-}
-
-.objective-list p {
-  margin: 0;
-}
-
-.content-card {
+.primary-material__meta {
   display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
 }
 
-.content-card > div,
-.activity-list__icon,
-.repertoire-grid__number,
-.materials-preview__icon,
-.assignments-preview__icon {
-  display: grid;
-  width: 45px;
-  height: 45px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid variables.$color-primary;
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
+.primary-material__meta span {
+  padding:
+    0.3rem
+    0.5rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 999px;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.34
+    );
+  font-size: 0.6rem;
 }
 
-.content-card p {
-  margin: 0;
-}
-
-.activity-list article,
-.repertoire-grid article {
+.primary-material__actions {
   display: flex;
-  gap: variables.$spacing-lg;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.1rem;
+}
+
+.material-button {
+  display: inline-flex;
+  min-height: 40px;
+  gap: 0.4rem;
   align-items: center;
-}
-
-.activity-list span,
-.activity-list strong,
-.repertoire-grid span,
-.repertoire-grid strong,
-.materials-preview span,
-.materials-preview strong,
-.materials-preview small,
-.assignments-preview span,
-.assignments-preview strong,
-.assignments-preview small {
-  display: block;
-}
-
-.activity-list span,
-.repertoire-grid span,
-.materials-preview span,
-.assignments-preview span {
-  margin-bottom: 4px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.materials-preview article {
-  grid-template-columns: auto 1fr;
-}
-
-.materials-preview small,
-.assignments-preview small {
-  margin-top: 3px;
-  opacity: 0.45;
-}
-
-.assignments-preview a {
-  color: variables.$color-white;
+  justify-content: center;
+  padding:
+    0.65rem
+    0.8rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 9px;
+  color:
+    variables.$color-white;
+  font-size: 0.68rem;
+  font-weight: 800;
   text-decoration: none;
-  grid-template-columns: auto 1fr auto;
 }
 
-.assignments-preview a:hover {
-  border-color: variables.$color-primary;
+.material-button--primary {
+  border-color:
+    variables.$color-primary;
+  background:
+    variables.$color-primary;
+  color: #070707;
 }
 
-.assignments-preview b {
-  color: variables.$color-primary;
-  font-size: 1.5rem;
-}
+/* =========================================================
+   EMPTY MATERIAL
+========================================================= */
 
-.no-resources {
-  display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
-  margin-top: variables.$spacing-lg;
-  padding: variables.$spacing-lg;
-  border: 1px dashed variables.$color-border;
-  border-radius: variables.$radius-lg;
-}
-
-.no-resources > span {
+.empty-material {
   display: grid;
-  width: 35px;
-  height: 35px;
+  gap: 1rem;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  padding: 1.2rem;
+  border:
+    1px dashed
+    variables.$color-border;
+  border-radius: 14px;
+}
+
+.empty-material__icon {
+  display: grid;
+  width: 47px;
+  height: 47px;
+  place-items: center;
+  border:
+    1px solid
+    variables.$color-primary;
+  border-radius: 11px;
+  color:
+    variables.$color-primary;
+  font-size: 0.6rem;
+  font-weight: 900;
+}
+
+.empty-material strong {
+  font-size: 0.78rem;
+}
+
+.empty-material p {
+  margin:
+    0.3rem
+    0
+    0;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.4
+    );
+  font-size: 0.68rem;
+}
+
+.empty-material a {
+  color:
+    variables.$color-primary;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* =========================================================
+   RESOURCE LIST
+========================================================= */
+
+.resource-list,
+.assignment-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.resource-item {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  padding: 0.9rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 12px;
+  background:
+    variables.$color-background;
+  color:
+    variables.$color-white;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.resource-item:hover:not(
+  .resource-item--disabled
+) {
+  border-color:
+    variables.$color-primary;
+  transform:
+    translateY(-1px);
+}
+
+.resource-item--disabled {
+  cursor: default;
+}
+
+.resource-item__icon,
+.assignment-card__icon {
+  display: grid;
+  width: 43px;
+  height: 43px;
+  place-items: center;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.45
+    );
+  border-radius: 11px;
+  color:
+    variables.$color-primary;
+  font-size: 0.61rem;
+  font-weight: 900;
+}
+
+.resource-item__content span,
+.resource-item__content strong,
+.resource-item__content small {
+  display: block;
+}
+
+.resource-item__content > span {
+  color:
+    variables.$color-primary;
+  font-size: 0.57rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.resource-item__content strong {
+  margin-top: 0.15rem;
+  overflow-wrap: anywhere;
+  font-size: 0.76rem;
+}
+
+.resource-item__content small {
+  margin-top: 0.15rem;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.3
+    );
+  font-size: 0.6rem;
+}
+
+.resource-item__action {
+  color:
+    variables.$color-primary;
+  font-size: 0.63rem;
+  font-weight: 800;
+}
+
+.view-all-link {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+  color:
+    variables.$color-primary;
+  font-size: 0.67rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* =========================================================
+   ASSIGNMENTS
+========================================================= */
+
+.assignment-card {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 12px;
+  background:
+    variables.$color-background;
+  color:
+    variables.$color-white;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.assignment-card:hover {
+  border-color:
+    variables.$color-primary;
+  transform:
+    translateY(-1px);
+}
+
+.assignment-card__content > span {
+  color:
+    variables.$color-primary;
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.assignment-card__content > strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+}
+
+.assignment-card__meta {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.assignment-card__meta span {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.34
+    );
+  font-size: 0.61rem;
+}
+
+.assignment-card__arrow {
+  color:
+    variables.$color-primary;
+  font-size: 1.1rem;
+}
+
+.empty-assignments {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 1rem;
+  border:
+    1px dashed
+    variables.$color-border;
+  border-radius: 12px;
+}
+
+.empty-assignments > div {
+  display: grid;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid variables.$color-primary;
+  border:
+    1px solid
+    variables.$color-primary;
   border-radius: 50%;
-  color: variables.$color-primary;
+  color:
+    variables.$color-primary;
 }
 
-.no-resources p {
-  margin: 0;
-  opacity: 0.55;
+.empty-assignments strong {
+  font-size: 0.75rem;
 }
 
-.open-classwork {
+.empty-assignments p {
+  margin:
+    0.2rem
+    0
+    0;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.38
+    );
+  font-size: 0.65rem;
+}
+
+.classwork-link {
   display: flex;
-  gap: variables.$spacing-xl;
+  gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  margin-top: variables.$spacing-xl;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  color: variables.$color-white;
+  margin-top: 1rem;
+  padding: 1rem;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.35
+    );
+  border-radius: 12px;
+  color:
+    variables.$color-white;
   text-decoration: none;
 }
 
-.open-classwork span,
-.open-classwork strong {
+.classwork-link span,
+.classwork-link strong {
   display: block;
 }
 
-.open-classwork span {
-  margin-bottom: 4px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
+.classwork-link span {
+  color:
+    variables.$color-primary;
+  font-size: 0.57rem;
+  font-weight: 900;
   letter-spacing: 0.1em;
 }
 
-.open-classwork b {
-  color: variables.$color-primary;
-  font-size: 2rem;
+.classwork-link strong {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
 }
 
-.teacher-note {
-  margin-top: variables.$spacing-lg;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
+.classwork-link b {
+  color:
+    variables.$color-primary;
+  font-size: 1.3rem;
 }
 
-.teacher-note span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
+/* =========================================================
+   CLASS DATA
+========================================================= */
+
+.class-data {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
 }
 
-.teacher-note p {
-  margin-bottom: 0;
-  line-height: 1.65;
-  white-space: pre-line;
+.class-data article {
+  padding: 0.9rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 11px;
+  background:
+    variables.$color-background;
 }
 
-.edit-planning {
-  display: inline-block;
-  margin-top: variables.$spacing-xl;
-  color: variables.$color-primary;
-  font-weight: variables.$font-weight-semibold;
-  text-decoration: none;
-}
-
-.lesson-footer {
-  display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.lesson-footer__back {
-  color: variables.$color-primary;
-  font-weight: variables.$font-weight-semibold;
-  text-decoration: none;
-}
-
-.lesson-footer__next {
-  display: flex;
-  min-width: 300px;
-  gap: variables.$spacing-xl;
-  align-items: center;
-  justify-content: space-between;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  color: variables.$color-white;
-  text-decoration: none;
-}
-
-.lesson-footer__next span,
-.lesson-footer__next strong {
+.class-data span,
+.class-data strong {
   display: block;
 }
 
-.lesson-footer__next span {
-  margin-bottom: 4px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
+.class-data span {
+  margin-bottom: 0.3rem;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.3
+    );
+  font-size: 0.59rem;
+  text-transform: uppercase;
 }
 
-.lesson-footer__next b {
-  color: variables.$color-primary;
+.class-data strong {
+  overflow-wrap: anywhere;
+  color:
+    variables.$color-primary;
+  font-size: 0.72rem;
 }
 
-.state-card {
+.class-data__wide {
+  grid-column:
+    span 2;
+}
+
+/* =========================================================
+   ACADEMIC
+========================================================= */
+
+.academic-section {
+  overflow: hidden;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 18px;
+  background:
+    variables.$color-surface;
+}
+
+.academic-toggle {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem;
+  border: 0;
+  background: transparent;
+  color:
+    variables.$color-white;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.academic-toggle > div {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.academic-toggle__icon {
   display: grid;
-  min-height: 420px;
-  gap: variables.$spacing-md;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  place-items: center;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.35
+    );
+  border-radius: 10px;
+  color:
+    variables.$color-primary;
+}
+
+.academic-toggle span,
+.academic-toggle strong,
+.academic-toggle small {
+  display: block;
+}
+
+.academic-toggle > div > div:last-child > span {
+  color:
+    variables.$color-primary;
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.academic-toggle strong {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+}
+
+.academic-toggle small {
+  margin-top: 0.12rem;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.3
+    );
+  font-size: 0.61rem;
+}
+
+.academic-toggle > span {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.3
+    );
+  font-size: 0.62rem;
+}
+
+.academic-content {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.2rem;
+  border-top:
+    1px solid
+    variables.$color-border;
+}
+
+.academic-block {
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 12px;
+  background:
+    variables.$color-background;
+}
+
+.academic-block--focus {
+  border-color:
+    rgba(
+      255,
+      196,
+      0,
+      0.3
+    );
+}
+
+.academic-block--focus > span {
+  color:
+    variables.$color-primary;
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.academic-block--focus h3 {
+  margin:
+    0.35rem
+    0
+    0;
+}
+
+.academic-block header {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.academic-block header > span {
+  color:
+    variables.$color-primary;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.academic-block h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.academic-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.academic-list > div {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.6rem;
+  border-top:
+    1px solid
+    variables.$color-border;
+}
+
+.academic-list > div > span {
+  color:
+    variables.$color-primary;
+  font-size: 0.61rem;
+  font-weight: 900;
+}
+
+.academic-list p {
+  margin: 0;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.62
+    );
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.academic-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.academic-tags span {
+  padding:
+    0.45rem
+    0.6rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 999px;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.58
+    );
+  font-size: 0.65rem;
+}
+
+.repertoire-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.repertoire-list > div {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.65rem;
+  border-top:
+    1px solid
+    variables.$color-border;
+}
+
+.repertoire-list > div > span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  place-items: center;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.35
+    );
+  border-radius: 50%;
+  color:
+    variables.$color-primary;
+}
+
+.repertoire-list small,
+.repertoire-list strong {
+  display: block;
+}
+
+.repertoire-list small {
+  color:
+    variables.$color-primary;
+  font-size: 0.54rem;
+}
+
+.repertoire-list strong {
+  margin-top: 0.12rem;
+  font-size: 0.7rem;
+}
+
+.academic-enter-active,
+.academic-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.academic-enter-from,
+.academic-leave-to {
+  opacity: 0;
+  transform:
+    translateY(-6px);
+}
+
+/* =========================================================
+   TEACHER
+========================================================= */
+
+.teacher-notes {
+  border-color:
+    rgba(
+      255,
+      196,
+      0,
+      0.22
+    );
+}
+
+.teacher-notes > header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.teacher-notes > header span {
+  color:
+    variables.$color-primary;
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.teacher-notes h2 {
+  margin:
+    0.2rem
+    0
+    0;
+}
+
+.teacher-notes > header a {
+  color:
+    variables.$color-primary;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.teacher-note {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 10px;
+  background:
+    variables.$color-background;
+}
+
+.teacher-note span {
+  color:
+    variables.$color-primary;
+  font-size: 0.57rem;
+  font-weight: 900;
+}
+
+.teacher-note p {
+  margin:
+    0.35rem
+    0
+    0;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.55
+    );
+  font-size: 0.69rem;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar-card {
+  padding: 1.1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 15px;
+  background:
+    variables.$color-surface;
+}
+
+.sidebar-card__eyebrow {
+  color:
+    variables.$color-primary;
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.sidebar-card h3 {
+  margin:
+    0.4rem
+    0
+    0;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.sidebar-progress {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top:
+    1px solid
+    variables.$color-border;
+}
+
+.sidebar-progress > div:first-child {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+
+.sidebar-progress span,
+.sidebar-progress strong {
+  font-size: 0.6rem;
+}
+
+.sidebar-progress span {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.35
+    );
+}
+
+.sidebar-progress strong {
+  color:
+    variables.$color-primary;
+}
+
+.sidebar-progress__bar {
+  height: 4px;
+  margin-top: 0.55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.06
+    );
+}
+
+.sidebar-progress__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    variables.$color-primary;
+}
+
+.sidebar-summary {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns:
+    1fr
+    1fr;
+  margin-top: 1rem;
+}
+
+.sidebar-summary article {
+  padding: 0.65rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 9px;
+  background:
+    variables.$color-background;
+}
+
+.sidebar-summary span,
+.sidebar-summary small {
+  display: block;
+}
+
+.sidebar-summary span {
+  color:
+    variables.$color-primary;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.sidebar-summary small {
+  margin-top: 0.1rem;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.3
+    );
+  font-size: 0.57rem;
+}
+
+/* =========================================================
+   SIDEBAR NAV
+========================================================= */
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.sidebar-nav a {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 9px;
+  color:
+    variables.$color-white;
+  text-decoration: none;
+}
+
+.sidebar-nav a:hover {
+  border-color:
+    variables.$color-primary;
+}
+
+.sidebar-nav span,
+.sidebar-nav strong {
+  display: block;
+}
+
+.sidebar-nav span {
+  color:
+    variables.$color-primary;
+  font-size: 0.52rem;
+  font-weight: 900;
+}
+
+.sidebar-nav strong {
+  margin-top: 0.1rem;
+  font-size: 0.66rem;
+}
+
+.sidebar-nav b {
+  color:
+    variables.$color-primary;
+}
+
+.sidebar-tip {
+  display: flex;
+  gap: 0.7rem;
+  padding: 1rem;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.24
+    );
+  border-radius: 14px;
+  background:
+    rgba(
+      255,
+      196,
+      0,
+      0.025
+    );
+}
+
+.sidebar-tip > span {
+  display: grid;
+  width: 33px;
+  height: 33px;
+  flex-shrink: 0;
+  place-items: center;
+  border:
+    1px solid
+    variables.$color-primary;
+  border-radius: 50%;
+  color:
+    variables.$color-primary;
+}
+
+.sidebar-tip strong {
+  font-size: 0.67rem;
+}
+
+.sidebar-tip p {
+  margin:
+    0.25rem
+    0
+    0;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.35
+    );
+  font-size: 0.61rem;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.lesson-footer {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.lesson-footer > a {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.8rem 0;
+  color:
+    variables.$color-white;
+  text-decoration: none;
+}
+
+.lesson-footer small,
+.lesson-footer strong {
+  display: block;
+}
+
+.lesson-footer small {
+  color:
+    variables.$color-primary;
+  font-size: 0.55rem;
+  font-weight: 900;
+}
+
+.lesson-footer strong {
+  margin-top: 0.1rem;
+  font-size: 0.7rem;
+}
+
+.lesson-footer > a > span {
+  color:
+    variables.$color-primary;
+}
+
+.lesson-footer__next {
+  min-width: 240px;
+  justify-content: space-between;
+  padding:
+    0.8rem
+    1rem !important;
+  border:
+    1px solid
+    rgba(
+      255,
+      196,
+      0,
+      0.35
+    );
+  border-radius: 11px;
+}
+
+/* =========================================================
+   STATES
+========================================================= */
+
+.state-screen {
+  display: grid;
+  min-height: 430px;
+  gap: 0.7rem;
   place-items: center;
   align-content: center;
-  padding: variables.$spacing-3xl;
-  border: 1px dashed variables.$color-border;
-  border-radius: variables.$radius-lg;
+  padding: 2rem;
+  border:
+    1px dashed
+    variables.$color-border;
+  border-radius: 18px;
   text-align: center;
 }
 
-.state-card p {
+.state-screen p {
   margin: 0;
-  opacity: 0.55;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.4
+    );
 }
 
-.state-card__icon {
-  display: grid;
-  width: 64px;
-  height: 64px;
-  place-items: center;
+.state-screen__loader {
+  width: 45px;
+  height: 45px;
+  border:
+    3px solid
+    variables.$color-border;
+  border-top-color:
+    variables.$color-primary;
   border-radius: 50%;
-  background: variables.$color-primary;
-  color: variables.$color-white;
-  font-size: 2rem;
+  animation:
+    spinnerRotate
+    0.75s
+    linear
+    infinite;
 }
 
-.state-card__actions {
+@keyframes spinnerRotate {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+.state-screen__error-icon {
+  display: grid;
+  width: 55px;
+  height: 55px;
+  place-items: center;
+  border:
+    1px solid
+    #ff6f6f;
+  border-radius: 50%;
+  color:
+    #ff6f6f;
+  font-size: 1.4rem;
+}
+
+.state-screen__actions {
   display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
-  margin-top: variables.$spacing-md;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
-.state-card__actions button,
-.state-card__actions a {
-  padding: variables.$spacing-sm variables.$spacing-md;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
+.state-screen__actions button,
+.state-screen__actions a {
+  padding:
+    0.65rem
+    0.8rem;
+  border:
+    1px solid
+    variables.$color-primary;
+  border-radius: 9px;
   background: transparent;
-  color: variables.$color-primary;
+  color:
+    variables.$color-primary;
   font: inherit;
-  font-weight: variables.$font-weight-semibold;
+  font-size: 0.68rem;
+  font-weight: 800;
   text-decoration: none;
   cursor: pointer;
 }
 
-.loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 3px solid variables.$color-border;
-  border-top-color: variables.$color-primary;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 1100px) {
-  .lesson__summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .lesson__layout {
+@media (max-width: 1050px) {
+  .lesson-layout {
     grid-template-columns: 1fr;
   }
 
-  .lesson__sidebar {
+  .lesson-sidebar {
     position: static;
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
   }
 
-  .lesson__sidebar nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .sidebar-tip {
+    grid-column:
+      1 / -1;
   }
 }
 
-@media (max-width: 760px) {
-  .lesson__topbar {
+@media (max-width: 820px) {
+  .lesson-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .lesson-hero__aside {
+    grid-template-columns:
+      auto
+      auto;
+    justify-content: start;
+    align-items: center;
+  }
+
+  .lesson-number {
+    width: 82px;
+    height: 82px;
+  }
+
+  .lesson-number strong {
+    font-size: 1.8rem;
+  }
+
+  .quick-info {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .class-data {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .class-data__wide {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .lesson-topbar {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .lesson__teacher-actions {
-    flex-direction: column;
+  .teacher-actions {
+    width: 100%;
   }
 
-  .lesson__hero {
-    padding: variables.$spacing-xl;
+  .teacher-button {
+    flex: 1;
+    justify-content: center;
   }
 
-  .lesson__hero-main {
+  .lesson-hero,
+  .content-section,
+  .teacher-notes {
+    padding: 1.3rem;
+  }
+
+  .primary-material {
     grid-template-columns: 1fr;
   }
 
-  .lesson__hero-number {
-    width: 90px;
-    height: 90px;
+  .primary-material__visual {
+    min-height: 140px;
   }
 
-  .lesson__hero-number strong {
-    font-size: 2.1rem;
-  }
-
-  .lesson__summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .lesson-block {
-    grid-template-columns: 1fr;
-    padding: variables.$spacing-xl;
-  }
-
-  .lesson-block__number {
-    font-size: 1.35rem;
-  }
-
-  .class-info-grid,
-  .content-grid,
-  .repertoire-grid,
-  .resource-summary {
+  .lesson-sidebar {
     grid-template-columns: 1fr;
   }
 
-  .lesson__sidebar nav {
-    grid-template-columns: 1fr;
+  .sidebar-tip {
+    grid-column: auto;
   }
 
   .lesson-footer {
@@ -1617,22 +3621,72 @@ onMounted(() => {
   }
 
   .lesson-footer__next {
-    min-width: 0;
     width: 100%;
   }
 }
 
-@media (max-width: 500px) {
-  .lesson__summary {
+@media (max-width: 520px) {
+  .lesson-hero {
+    border-radius: 18px;
+  }
+
+  .lesson-hero h1 {
+    font-size:
+      clamp(
+        2.5rem,
+        14vw,
+        4rem
+      );
+  }
+
+  .quick-info {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .class-data {
     grid-template-columns: 1fr;
   }
 
-  .assignments-preview a {
-    grid-template-columns: auto 1fr;
+  .resource-item,
+  .assignment-card {
+    grid-template-columns:
+      auto
+      1fr;
   }
 
-  .assignments-preview b {
+  .resource-item__action,
+  .assignment-card__arrow {
+    grid-column: 2;
+  }
+
+  .primary-material__actions {
+    flex-direction: column;
+  }
+
+  .material-button {
+    width: 100%;
+  }
+
+  .empty-material {
+    grid-template-columns:
+      auto
+      1fr;
+  }
+
+  .empty-material > a {
+    grid-column: 2;
+  }
+
+  .academic-toggle {
+    align-items: flex-start;
+  }
+
+  .academic-toggle > span {
     display: none;
+  }
+
+  .teacher-actions {
+    flex-direction: column;
   }
 }
 </style>

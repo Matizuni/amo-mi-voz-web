@@ -322,7 +322,28 @@ const router = createRouter({
           path: 'inscripciones',
           name: 'aula-inscriptions',
           component: InscriptionsView
-        }
+        },
+        {
+          path: 'cuenta',
+          name: 'aula-account',
+          component: () => import('@/views/aula/AccountView.vue'),
+        },
+        {
+          path: 'clase/:id/evaluacion/nueva',
+          name: 'aula-crear-evaluacion',
+          component: () =>
+            import(
+              '@/views/aula/CreateQuizView.vue'
+            )
+        },
+        {
+          path: 'clase/:id/evaluacion/:quizId',
+          name: 'aula-evaluacion',
+          component: () =>
+            import(
+              '@/views/aula/QuizView.vue'
+            )
+        },
       ]
     }
   ],

@@ -1,332 +1,606 @@
 import { supabase } from '@/lib/supabase'
 
+const MATERIALS_TABLE = 'materials'
+const MATERIALS_BUCKET = 'aula-materiales'
+
 /* =========================================================
-   NORMALIZAR DATOS
+   HELPERS
 ========================================================= */
 
+const parseId = value => {
+  const parsed = Number(value)
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null
+  }
+
+  return parsed
+}
+
+const sanitizeFileName = value => {
+  return String(value || 'archivo')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 const normalizeMaterial = material => {
-    if (!material) {
-        return null
-    }
+  if (!material) {
+    return null
+  }
 
-    return {
-        id: material.id,
+  return {
+    id: Number(material.id),
+    lessonId: Number(material.lesson_id),
 
-        lessonId:
-            material.lesson_id,
+    type: material.type || 'other',
+    voice: material.voice || 'general',
 
-        type:
-            material.type,
+    title: material.title || '',
+    description: material.description || '',
 
-        voice:
-            material.voice || 'general',
+    url: material.url || '',
+    storagePath: material.storage_path || '',
 
-        title:
-            material.title,
+    fileName: material.file_name || '',
+    fileSize: Number(material.file_size || 0),
+    mimeType: material.mime_type || '',
 
-        description:
-            material.description || '',
+    createdAt: material.created_at,
+    updatedAt: material.updated_at,
+  }
+}
 
-        url:
-            material.url || '',
+const throwServiceError = (
+  message,
+  error,
+) => {
+  console.error(message, error)
 
-        storagePath:
-            material.storage_path || '',
-
-        fileName:
-            material.file_name || '',
-
-        fileSize:
-            material.file_size || 0,
-
-        mimeType:
-            material.mime_type || '',
-
-        createdAt:
-            material.created_at,
-
-        updatedAt:
-            material.updated_at
-    }
+  throw new Error(
+    error?.message ||
+    message,
+  )
 }
 
 /* =========================================================
    TRAER TODOS LOS RECURSOS
 ========================================================= */
 
-export const fetchMaterials = async () => {
-    const {
-        data,
-        error
-    } = await supabase
-        .from('materials')
-        .select('*')
-        .order('lesson_id', {
-            ascending: true
-        })
-        .order('id', {
-            ascending: true
-        })
+export async function fetchMaterials() {
+  const { data, error } =
+    await supabase
+      .from(MATERIALS_TABLE)
+      .select('*')
+      .order(
+        'lesson_id',
+        {
+          ascending: true,
+        },
+      )
+      .order(
+        'id',
+        {
+          ascending: true,
+        },
+      )
 
-    if (error) {
-        console.error(
-            'Error obteniendo materiales:',
-            error
-        )
-
-        throw error
-    }
-
-    return (
-        data || []
-    ).map(
-        normalizeMaterial
+  if (error) {
+    throwServiceError(
+      'Error obteniendo materiales.',
+      error,
     )
+  }
+
+  return (data || [])
+    .map(normalizeMaterial)
 }
 
 /* =========================================================
-   TRAER RECURSOS DE UNA CLASE
+   RECURSOS POR CLASE
 ========================================================= */
 
-export const fetchMaterialsByLesson =
-    async lessonId => {
-        const {
-            data,
-            error
-        } = await supabase
-            .from('materials')
-            .select('*')
-            .eq(
-                'lesson_id',
-                Number(lessonId)
-            )
-            .order('id', {
-                ascending: true
-            })
+export async function fetchMaterialsByLesson(
+  lessonId,
+) {
+  const parsedLessonId =
+    parseId(lessonId)
 
-        if (error) {
-            console.error(
-                'Error obteniendo materiales de la clase:',
-                error
-            )
+  if (!parsedLessonId) {
+    return []
+  }
 
-            throw error
-        }
+  const { data, error } =
+    await supabase
+      .from(MATERIALS_TABLE)
+      .select('*')
+      .eq(
+        'lesson_id',
+        parsedLessonId,
+      )
+      .order(
+        'id',
+        {
+          ascending: true,
+        },
+      )
 
-        return (
-            data || []
-        ).map(
-            normalizeMaterial
-        )
-    }
+  if (error) {
+    throwServiceError(
+      'Error obteniendo materiales de la clase.',
+      error,
+    )
+  }
+
+  return (data || [])
+    .map(normalizeMaterial)
+}
 
 /* =========================================================
-   CREAR RECURSO
+   SUBIR ARCHIVO A STORAGE
 ========================================================= */
 
-export const insertMaterial =
-    async material => {
-        const payload = {
-            lesson_id:
-                Number(
-                    material.lessonId
-                ),
+export async function uploadMaterialFile({
+  file,
+  lessonId,
+  folder = 'materiales',
+}) {
+  if (!file) {
+    throw new Error(
+      'Debes seleccionar un archivo.',
+    )
+  }
 
-            type:
-                material.type ||
-                'other',
+  const parsedLessonId =
+    parseId(lessonId)
 
-            voice:
-                material.voice ||
-                'general',
+  if (!parsedLessonId) {
+    throw new Error(
+      'La clase no es válida.',
+    )
+  }
 
-            title:
-                material.title,
+  const safeName =
+    sanitizeFileName(
+      file.name,
+    )
 
-            description:
-                material.description ||
-                '',
+  const uniqueName =
+    `${Date.now()}-${safeName}`
 
-            url:
-                material.url ||
-                '',
+  const storagePath = [
+    `clase-${parsedLessonId}`,
+    folder,
+    uniqueName,
+  ].join('/')
 
-            storage_path:
-                material.storagePath ||
-                '',
+  const {
+    error: uploadError,
+  } = await supabase
+    .storage
+    .from(MATERIALS_BUCKET)
+    .upload(
+      storagePath,
+      file,
+      {
+        cacheControl: '3600',
+        upsert: false,
+        contentType:
+          file.type ||
+          undefined,
+      },
+    )
 
-            file_name:
-                material.fileName ||
-                '',
+  if (uploadError) {
+    throwServiceError(
+      'No fue posible subir el archivo.',
+      uploadError,
+    )
+  }
 
-            file_size:
-                Number(
-                    material.fileSize ||
-                    0
-                ),
+  const {
+    data: publicUrlData,
+  } = supabase
+    .storage
+    .from(MATERIALS_BUCKET)
+    .getPublicUrl(
+      storagePath,
+    )
 
-            mime_type:
-                material.mimeType ||
-                ''
-        }
+  return {
+    storagePath,
+    url:
+      publicUrlData?.publicUrl ||
+      '',
+    fileName:
+      file.name,
+    fileSize:
+      Number(
+        file.size ||
+        0,
+      ),
+    mimeType:
+      file.type ||
+      '',
+  }
+}
 
-        const {
-            data,
-            error
-        } = await supabase
-            .from('materials')
-            .insert(payload)
-            .select()
-            .single()
+/* =========================================================
+   BORRAR SOLO ARCHIVO DE STORAGE
+========================================================= */
 
-        if (error) {
-            console.error(
-                'Error creando recurso:',
-                error
-            )
+export async function removeMaterialFile(
+  storagePath,
+) {
+  if (!storagePath) {
+    return true
+  }
 
-            throw error
-        }
+  const { error } =
+    await supabase
+      .storage
+      .from(MATERIALS_BUCKET)
+      .remove([
+        storagePath,
+      ])
 
-        return normalizeMaterial(
-            data
-        )
+  if (error) {
+    throwServiceError(
+      'Error eliminando archivo de Storage.',
+      error,
+    )
+  }
+
+  return true
+}
+
+/* =========================================================
+   CREAR REGISTRO
+========================================================= */
+
+export async function insertMaterial(
+  material,
+) {
+  const lessonId =
+    parseId(
+      material.lessonId,
+    )
+
+  if (!lessonId) {
+    throw new Error(
+      'El recurso necesita una clase válida.',
+    )
+  }
+
+  const title =
+    String(
+      material.title ||
+      '',
+    ).trim()
+
+  if (!title) {
+    throw new Error(
+      'El recurso necesita un título.',
+    )
+  }
+
+  const payload = {
+    lesson_id:
+      lessonId,
+
+    type:
+      material.type ||
+      'other',
+
+    voice:
+      material.voice ||
+      'general',
+
+    title,
+
+    description:
+      String(
+        material.description ||
+        '',
+      ).trim(),
+
+    url:
+      material.url ||
+      '',
+
+    storage_path:
+      material.storagePath ||
+      '',
+
+    file_name:
+      material.fileName ||
+      '',
+
+    file_size:
+      Number(
+        material.fileSize ||
+        0,
+      ),
+
+    mime_type:
+      material.mimeType ||
+      '',
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from(MATERIALS_TABLE)
+    .insert(payload)
+    .select()
+    .single()
+
+  if (error) {
+    throwServiceError(
+      'Error creando recurso.',
+      error,
+    )
+  }
+
+  return normalizeMaterial(
+    data,
+  )
+}
+
+/* =========================================================
+   SUBIR ARCHIVO + CREAR REGISTRO
+========================================================= */
+
+export async function createMaterialFromFile({
+  file,
+  lessonId,
+  title,
+  description = '',
+  type = 'file',
+  voice = 'general',
+  folder = 'materiales',
+}) {
+  const uploaded =
+    await uploadMaterialFile({
+      file,
+      lessonId,
+      folder,
+    })
+
+  try {
+    return await insertMaterial({
+      lessonId,
+      type,
+      voice,
+
+      title:
+        title ||
+        file.name,
+
+      description,
+
+      url:
+        uploaded.url,
+
+      storagePath:
+        uploaded.storagePath,
+
+      fileName:
+        uploaded.fileName,
+
+      fileSize:
+        uploaded.fileSize,
+
+      mimeType:
+        uploaded.mimeType,
+    })
+  } catch (error) {
+    /*
+     * Si falla la creación
+     * del registro en materials,
+     * limpiamos el archivo
+     * que ya habíamos subido.
+     */
+    try {
+      await removeMaterialFile(
+        uploaded.storagePath,
+      )
+    } catch (
+    cleanupError
+    ) {
+      console.error(
+        'No se pudo limpiar el archivo después del error:',
+        cleanupError,
+      )
     }
+
+    throw error
+  }
+}
 
 /* =========================================================
    ACTUALIZAR RECURSO
 ========================================================= */
 
-export const updateMaterial =
-    async (
-        materialId,
-        material
-    ) => {
-        const payload = {
-            lesson_id:
-                Number(
-                    material.lessonId
-                ),
+export async function updateMaterial(
+  materialId,
+  material,
+) {
+  const parsedMaterialId =
+    parseId(
+      materialId,
+    )
 
-            type:
-                material.type ||
-                'other',
+  if (!parsedMaterialId) {
+    throw new Error(
+      'El recurso no es válido.',
+    )
+  }
 
-            voice:
-                material.voice ||
-                'general',
+  const payload = {
+    lesson_id:
+      parseId(
+        material.lessonId,
+      ),
 
-            title:
-                material.title,
+    type:
+      material.type ||
+      'other',
 
-            description:
-                material.description ||
-                '',
+    voice:
+      material.voice ||
+      'general',
 
-            updated_at:
-                new Date().toISOString()
-        }
+    title:
+      String(
+        material.title ||
+        '',
+      ).trim(),
 
-        const {
-            data,
-            error
-        } = await supabase
-            .from('materials')
-            .update(payload)
-            .eq(
-                'id',
-                Number(materialId)
-            )
-            .select()
-            .single()
+    description:
+      String(
+        material.description ||
+        '',
+      ).trim(),
 
-        if (error) {
-            console.error(
-                'Error actualizando recurso:',
-                error
-            )
+    updated_at:
+      new Date()
+        .toISOString(),
+  }
 
-            throw error
-        }
+  if (
+    material.url !==
+    undefined
+  ) {
+    payload.url =
+      material.url || ''
+  }
 
-        return normalizeMaterial(
-            data
-        )
-    }
+  if (
+    material.storagePath !==
+    undefined
+  ) {
+    payload.storage_path =
+      material.storagePath || ''
+  }
+
+  if (
+    material.fileName !==
+    undefined
+  ) {
+    payload.file_name =
+      material.fileName || ''
+  }
+
+  if (
+    material.fileSize !==
+    undefined
+  ) {
+    payload.file_size =
+      Number(
+        material.fileSize ||
+        0,
+      )
+  }
+
+  if (
+    material.mimeType !==
+    undefined
+  ) {
+    payload.mime_type =
+      material.mimeType ||
+      ''
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from(MATERIALS_TABLE)
+    .update(payload)
+    .eq(
+      'id',
+      parsedMaterialId,
+    )
+    .select()
+    .single()
+
+  if (error) {
+    throwServiceError(
+      'Error actualizando recurso.',
+      error,
+    )
+  }
+
+  return normalizeMaterial(
+    data,
+  )
+}
 
 /* =========================================================
-   ELIMINAR METADATA
+   ELIMINAR SOLO REGISTRO
 ========================================================= */
 
-export const removeMaterialRecord =
-    async materialId => {
-        const {
-            error
-        } = await supabase
-            .from('materials')
-            .delete()
-            .eq(
-                'id',
-                Number(materialId)
-            )
+export async function removeMaterialRecord(
+  materialId,
+) {
+  const parsedMaterialId =
+    parseId(
+      materialId,
+    )
 
-        if (error) {
-            console.error(
-                'Error eliminando registro del recurso:',
-                error
-            )
+  if (!parsedMaterialId) {
+    return false
+  }
 
-            throw error
-        }
+  const { error } =
+    await supabase
+      .from(MATERIALS_TABLE)
+      .delete()
+      .eq(
+        'id',
+        parsedMaterialId,
+      )
 
-        return true
-    }
+  if (error) {
+    throwServiceError(
+      'Error eliminando registro del recurso.',
+      error,
+    )
+  }
+
+  return true
+}
 
 /* =========================================================
-   ELIMINAR ARCHIVO + METADATA
+   ELIMINAR ARCHIVO + REGISTRO
 ========================================================= */
 
-export const removeMaterial =
-    async material => {
-        if (!material) {
-            return false
-        }
+export async function removeMaterial(
+  material,
+) {
+  if (!material) {
+    return false
+  }
 
-        /*
-         * Primero eliminamos el archivo físico
-         * de Storage.
-         */
+  if (
+    material.storagePath
+  ) {
+    await removeMaterialFile(
+      material.storagePath,
+    )
+  }
 
-        if (material.storagePath) {
-            const {
-                error: storageError
-            } = await supabase
-                .storage
-                .from(
-                    'aula-materiales'
-                )
-                .remove([
-                    material.storagePath
-                ])
+  await removeMaterialRecord(
+    material.id,
+  )
 
-            if (storageError) {
-                console.error(
-                    'Error eliminando archivo de Storage:',
-                    storageError
-                )
+  return true
+}
 
-                throw storageError
-            }
-        }
-
-        /*
-         * Luego eliminamos la fila
-         * de la tabla materials.
-         */
-
-        await removeMaterialRecord(
-            material.id
-        )
-
-        return true
-    }
+export {
+  normalizeMaterial,
+}
