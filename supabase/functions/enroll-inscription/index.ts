@@ -71,6 +71,17 @@ Deno.serve(async (req) => {
         'SUPABASE_SERVICE_ROLE_KEY'
       )
 
+    const appUrl =
+      String(
+        Deno.env.get('APP_URL') ||
+        'https://amo-mi-voz-web.vercel.app'
+      )
+        .trim()
+        .replace(/\/$/, '')
+
+    const activationRedirectUrl =
+      `${appUrl}/aula/activar-cuenta`
+
     if (
       !supabaseUrl ||
       !supabaseAnonKey ||
@@ -496,6 +507,48 @@ Deno.serve(async (req) => {
     }
 
     /* =====================================================
+       VERIFICAR DUPLICADOS
+    ====================================================== */
+
+    const {
+      data: existingStudent,
+      error: existingStudentError,
+    } =
+      await admin
+        .from('students')
+        .select('id, name, active')
+        .ilike('name', name)
+        .eq('active', true)
+        .maybeSingle()
+
+    if (existingStudentError) {
+      console.error(
+        `[${requestId}] Error buscando estudiante existente:`,
+        existingStudentError
+      )
+
+      return jsonResponse(
+        {
+          error:
+            'No fue posible comprobar si el estudiante ya existe.',
+          requestId,
+        },
+        500
+      )
+    }
+
+    if (existingStudent) {
+      return jsonResponse(
+        {
+          error:
+            'Ya existe un estudiante activo con este nombre.',
+          requestId,
+        },
+        409
+      )
+    }
+
+    /* =====================================================
        CREAR ESTUDIANTE
     ====================================================== */
 
@@ -566,6 +619,9 @@ Deno.serve(async (req) => {
               role:
                 'student',
             },
+
+            redirectTo:
+              activationRedirectUrl,
           }
         )
 
@@ -630,13 +686,19 @@ Deno.serve(async (req) => {
 
           display_name:
             name,
+
+          account_status:
+            'invited',
+
+          activated_at:
+            null,
         })
         .eq(
           'id',
           authUser.id
         )
         .select(
-          'id, role, student_id, display_name'
+          'id, role, student_id, display_name, account_status, activated_at'
         )
         .maybeSingle()
 
@@ -805,6 +867,17 @@ Deno.serve(async (req) => {
 
           email:
             authUser.email,
+
+          accountStatus:
+            linkedProfile.account_status,
+        },
+
+        activation: {
+          status:
+            linkedProfile.account_status,
+
+          redirectTo:
+            activationRedirectUrl,
         },
 
         profile: {
@@ -819,6 +892,12 @@ Deno.serve(async (req) => {
 
           display_name:
             linkedProfile.display_name,
+
+          account_status:
+            linkedProfile.account_status,
+
+          activated_at:
+            linkedProfile.activated_at,
         },
 
         inscription:

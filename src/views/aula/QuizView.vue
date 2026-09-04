@@ -1,26 +1,32 @@
 <template>
   <section class="quiz-page">
     <!-- =====================================================
-         CARGA
+         LOADING
     ====================================================== -->
-    <div
+    <section
       v-if="isLoading"
       class="quiz-state"
     >
-      <div class="quiz-spinner"></div>
+      <div class="quiz-state__spinner"></div>
 
-      <strong>Preparando evaluación...</strong>
+      <span class="quiz-state__eyebrow">
+        EVALUACIÓN
+      </span>
+
+      <h1>
+        Preparando tu evaluación
+      </h1>
 
       <p>
-        Estamos cargando tu evaluación y recuperando
-        cualquier respuesta guardada.
+        Estamos cargando las preguntas y recuperando
+        tu avance guardado.
       </p>
-    </div>
+    </section>
 
     <!-- =====================================================
          ERROR
     ====================================================== -->
-    <div
+    <section
       v-else-if="loadError"
       class="quiz-state quiz-state--error"
     >
@@ -28,19 +34,33 @@
         !
       </div>
 
-      <strong>No pudimos abrir la evaluación</strong>
+      <span class="quiz-state__eyebrow">
+        NO PUDIMOS CONTINUAR
+      </span>
+
+      <h1>
+        Ocurrió un problema
+      </h1>
 
       <p>
         {{ loadError }}
       </p>
 
-      <RouterLink
-        :to="classworkUrl"
-        class="quiz-button quiz-button--secondary"
-      >
-        Volver al trabajo de clase
-      </RouterLink>
-    </div>
+      <div class="quiz-state__actions">
+        <button
+          type="button"
+          @click="loadQuiz"
+        >
+          Reintentar
+        </button>
+
+        <RouterLink
+          :to="lessonRoute"
+        >
+          Volver a la clase
+        </RouterLink>
+      </div>
+    </section>
 
     <!-- =====================================================
          RESULTADO
@@ -49,750 +69,805 @@
       v-else-if="submissionResult"
       class="result-screen"
     >
-      <div class="result-screen__eyebrow">
-        EVALUACIÓN ENTREGADA
-      </div>
-
       <div
         class="result-screen__icon"
-        :class="resultIconClass"
+        :class="{
+          'result-screen__icon--pending':
+            submissionResult.requiresManualGrading
+        }"
       >
-        {{ resultIcon }}
+        {{
+          submissionResult.requiresManualGrading
+            ? '…'
+            : '✓'
+        }}
       </div>
 
+      <span class="result-screen__eyebrow">
+        EVALUACIÓN ENTREGADA
+      </span>
+
       <h1>
-        {{ resultTitle }}
+        {{
+          submissionResult.requiresManualGrading
+            ? 'Tu evaluación fue enviada'
+            : 'Tu evaluación fue corregida'
+        }}
       </h1>
 
-      <p class="result-screen__description">
-        {{ resultDescription }}
+      <p>
+        {{
+          submissionResult.requiresManualGrading
+            ? 'Hay respuestas que deben ser revisadas por tu profesor. Tu entrega quedó registrada correctamente.'
+            : 'Tu entrega quedó registrada correctamente.'
+        }}
       </p>
 
       <div
         v-if="
-          submissionResult.status === 'graded' &&
-          submissionResult.percentage !== null
+          submissionResult.score !== null &&
+          submissionResult.score !== undefined
         "
         class="result-score"
       >
-        <div class="result-score__number">
-          {{ formatPercentage(submissionResult.percentage) }}%
-        </div>
-
-        <div class="result-score__details">
-          <span>
-            Puntaje
-          </span>
+        <div>
+          <small>
+            PUNTAJE
+          </small>
 
           <strong>
-            {{ formatPoints(submissionResult.score) }}
+            {{ formatScore(submissionResult.score) }}
             /
-            {{ formatPoints(submissionResult.maxScore) }}
+            {{ formatScore(submissionResult.maxScore) }}
+          </strong>
+        </div>
+
+        <div
+          v-if="
+            submissionResult.percentage !== null &&
+            submissionResult.percentage !== undefined
+          "
+        >
+          <small>
+            RESULTADO
+          </small>
+
+          <strong>
+            {{ Math.round(submissionResult.percentage) }}%
+          </strong>
+        </div>
+
+        <div
+          v-if="
+            submissionResult.passed !== null &&
+            submissionResult.passed !== undefined
+          "
+        >
+          <small>
+            ESTADO
+          </small>
+
+          <strong
+            :class="{
+              'result-score__passed':
+                submissionResult.passed,
+              'result-score__failed':
+                !submissionResult.passed
+            }"
+          >
+            {{
+              submissionResult.passed
+                ? 'Aprobada'
+                : 'Por reforzar'
+            }}
           </strong>
         </div>
       </div>
 
       <div
-        v-if="submissionResult.passed !== null"
-        class="result-status"
-        :class="{
-          'result-status--passed':
-            submissionResult.passed,
-          'result-status--failed':
-            !submissionResult.passed,
-        }"
+        v-else
+        class="result-notice"
       >
-        {{
-          submissionResult.passed
-            ? 'Evaluación aprobada'
-            : 'Evaluación no aprobada'
-        }}
+        <strong>
+          Entrega registrada
+        </strong>
+
+        <p>
+          El resultado no está configurado para mostrarse
+          inmediatamente.
+        </p>
       </div>
 
-      <div
-        v-if="submissionResult.requiresManualGrading"
-        class="manual-notice"
-      >
-        <div class="manual-notice__icon">
-          ✎
+      <section class="result-guidance">
+        <div>
+          <small>
+            TIPO DE EVALUACIÓN
+          </small>
+
+          <strong>
+            {{
+              quiz?.assessmentType === 'test'
+                ? 'Prueba evaluada'
+                : 'Quiz formativo'
+            }}
+          </strong>
         </div>
 
         <div>
+          <small>
+            INTENTOS
+          </small>
+
           <strong>
-            Corrección docente pendiente
+            {{ attemptRuleLabel }}
           </strong>
+        </div>
+
+        <div>
+          <small>
+            SIGUIENTE PASO
+          </small>
+
+          <strong>
+            {{ resultNextStepLabel }}
+          </strong>
+        </div>
+      </section>
+
+      <div
+        v-if="
+          quiz?.assessmentType === 'quiz' &&
+          canRetakeQuiz
+        "
+        class="result-learning-box"
+      >
+        <span>
+          QUIZ FORMATIVO
+        </span>
+
+        <h2>
+          Puedes volver a intentarlo
+        </h2>
+
+        <p>
+          Los quiz están pensados para practicar,
+          detectar qué contenidos debes reforzar y
+          comparar tu progreso entre intentos.
+        </p>
+
+        <button
+          type="button"
+          class="button button--primary"
+          @click="startNewPracticeAttempt"
+        >
+          Reintentar quiz
+        </button>
+      </div>
+
+      <div
+        v-else-if="
+          quiz?.assessmentType === 'test'
+        "
+        class="result-learning-box result-learning-box--locked"
+      >
+        <span>
+          PRUEBA EVALUADA
+        </span>
+
+        <h2>
+          Intento registrado
+        </h2>
+
+        <p>
+          Las pruebas respetan el número de intentos
+          definido por el profesor. Si el límite es uno,
+          no podrás rendirla nuevamente.
+        </p>
+      </div>
+
+      <section class="result-next-step">
+        <div class="result-next-step__copy">
+          <span>
+            SIGUIENTE PASO
+          </span>
+
+          <h2>
+            {{
+              submissionResult.requiresManualGrading
+                ? 'Espera la revisión del profesor'
+                : submissionResult.percentage >= 80
+                  ? 'Revisa tus respuestas y consolida lo aprendido'
+                  : 'Revisa tus errores antes de volver a practicar'
+            }}
+          </h2>
 
           <p>
-            Tu evaluación incluye preguntas de desarrollo
-            o respuesta escrita. El profesor debe revisar
-            esas respuestas antes de entregar la
-            calificación definitiva.
+            {{
+              submissionResult.requiresManualGrading
+                ? 'Tu entrega quedó registrada. Cuando el profesor termine la corrección podrás revisar el resultado desde Mis evaluaciones.'
+                : 'Abre la revisión completa para ver qué respuestas estuvieron correctas, cuáles debes reforzar y la explicación disponible para cada pregunta.'
+            }}
+          </p>
+        </div>
+
+        <div class="result-next-step__actions">
+          <RouterLink
+            v-if="reviewAttemptId"
+            :to="`/aula/evaluaciones/intento/${reviewAttemptId}`"
+            class="result-action result-action--primary"
+          >
+            <span class="result-action__icon">
+              ✓
+            </span>
+
+            <div>
+              <small>
+                APRENDER DEL RESULTADO
+              </small>
+
+              <strong>
+                Ver revisión completa
+              </strong>
+            </div>
+
+            <b>
+              →
+            </b>
+          </RouterLink>
+
+          <RouterLink
+            to="/aula/evaluaciones"
+            class="result-action"
+          >
+            <span class="result-action__icon">
+              %
+            </span>
+
+            <div>
+              <small>
+                MI HISTORIAL
+              </small>
+
+              <strong>
+                Mis evaluaciones
+              </strong>
+            </div>
+
+            <b>
+              →
+            </b>
+          </RouterLink>
+
+          <RouterLink
+            :to="lessonRoute"
+            class="result-action"
+          >
+            <span class="result-action__icon">
+              ♪
+            </span>
+
+            <div>
+              <small>
+                VOLVER A ESTUDIAR
+              </small>
+
+              <strong>
+                Material de la clase
+              </strong>
+            </div>
+
+            <b>
+              →
+            </b>
+          </RouterLink>
+        </div>
+      </section>
+
+      <div
+        v-if="
+          !submissionResult.requiresManualGrading &&
+          submissionResult.percentage !== null &&
+          submissionResult.percentage !== undefined
+        "
+        class="result-learning-summary"
+        :class="{
+          'result-learning-summary--excellent':
+            submissionResult.percentage >= 90,
+          'result-learning-summary--good':
+            submissionResult.percentage >= 70 &&
+            submissionResult.percentage < 90,
+          'result-learning-summary--reinforce':
+            submissionResult.percentage < 70
+        }"
+      >
+        <div class="result-learning-summary__icon">
+          {{
+            submissionResult.percentage >= 90
+              ? '★'
+              : submissionResult.percentage >= 70
+                ? '✓'
+                : '↗'
+          }}
+        </div>
+
+        <div>
+          <span>
+            LECTURA PEDAGÓGICA
+          </span>
+
+          <h2>
+            {{
+              submissionResult.percentage >= 90
+                ? 'Dominio muy sólido'
+                : submissionResult.percentage >= 70
+                  ? 'Buen avance'
+                  : 'Hay contenidos que conviene reforzar'
+            }}
+          </h2>
+
+          <p>
+            {{
+              submissionResult.percentage >= 90
+                ? 'Tu resultado muestra un dominio muy sólido de los contenidos evaluados. Revisa igualmente las preguntas para consolidar los conceptos.'
+                : submissionResult.percentage >= 70
+                  ? 'Vas por buen camino. La revisión te ayudará a detectar los conceptos que todavía necesitan práctica.'
+                  : 'Antes de repetir el quiz, revisa las preguntas incorrectas y vuelve al material de la clase.'
+            }}
           </p>
         </div>
       </div>
 
-      <div class="result-screen__actions">
+      <div class="result-screen__actions result-screen__actions--secondary">
         <RouterLink
-          :to="classworkUrl"
-          class="quiz-button quiz-button--primary"
+          to="/aula/programa-formativo"
+          class="button button--secondary"
         >
-          Volver al trabajo de clase
-        </RouterLink>
-
-        <RouterLink
-          :to="`/aula/clase/${lessonId}`"
-          class="quiz-button quiz-button--secondary"
-        >
-          Ir a la clase
+          Ver programa completo
         </RouterLink>
       </div>
     </section>
 
     <!-- =====================================================
-         PORTADA
+         QUIZ
     ====================================================== -->
-    <template v-else-if="quiz && !attempt">
-      <RouterLink
-        :to="classworkUrl"
-        class="quiz-back"
-      >
-        ← Volver al trabajo de clase
-      </RouterLink>
+    <template v-else-if="quiz && attempt">
+      <!-- TOPBAR -->
+      <header class="quiz-topbar">
+        <RouterLink
+          :to="lessonRoute"
+          class="quiz-back"
+        >
+          <span>←</span>
+          Volver a la clase
+        </RouterLink>
 
-      <header class="quiz-cover">
-        <div class="quiz-cover__copy">
-          <p class="quiz-eyebrow">
-            {{
-              quiz.assessmentType === 'test'
-                ? 'PRUEBA'
-                : 'QUIZ FORMATIVO'
-            }}
-          </p>
+        <div class="quiz-topbar__status">
+          <span
+            class="save-indicator"
+            :class="{
+              'save-indicator--saving':
+                isSavingAnyAnswer,
+              'save-indicator--error':
+                Boolean(saveError)
+            }"
+          ></span>
 
-          <h1>
-            {{ quiz.title }}
-          </h1>
-
-          <p class="quiz-cover__description">
-            {{
-              quiz.description ||
-              'Lee atentamente las instrucciones antes de comenzar.'
-            }}
-          </p>
-        </div>
-
-        <div class="quiz-cover__badge">
-          <span>
-            PUNTAJE
-          </span>
-
-          <strong>
-            {{ formatPoints(quiz.totalPoints) }}
-          </strong>
-
-          <small>
-            puntos totales
-          </small>
+          {{
+            saveError
+              ? 'No se pudo guardar una respuesta'
+              : isSavingAnyAnswer
+                ? 'Guardando...'
+                : 'Respuestas guardadas'
+          }}
         </div>
       </header>
 
-      <section class="quiz-instructions">
-        <div class="quiz-instructions__heading">
-          <span>ANTES DE COMENZAR</span>
-
-          <h2>
-            Información de la evaluación
-          </h2>
-        </div>
-
-        <div class="quiz-info-grid">
-          <article>
-            <span>Preguntas</span>
-
-            <strong>
-              {{ questions.length }}
-            </strong>
-
-            <small>
-              preguntas en total
-            </small>
-          </article>
-
-          <article>
-            <span>Tiempo</span>
-
-            <strong>
-              {{
-                quiz.timeLimitMinutes
-                  ? `${quiz.timeLimitMinutes} min`
-                  : 'Sin límite'
-              }}
-            </strong>
-
-            <small>
-              desde que comienzas
-            </small>
-          </article>
-
-          <article>
-            <span>Intentos</span>
-
-            <strong>
-              {{
-                quiz.attemptsAllowed ??
-                'Ilimitados'
-              }}
-            </strong>
-
-            <small>
-              intentos permitidos
-            </small>
-          </article>
-
-          <article>
-            <span>Aprobación</span>
-
-            <strong>
-              {{
-                quiz.passingPercentage !== null
-                  ? `${quiz.passingPercentage}%`
-                  : '—'
-              }}
-            </strong>
-
-            <small>
-              porcentaje requerido
-            </small>
-          </article>
-        </div>
-
-        <div class="instructions-card">
-          <div class="instructions-card__number">
-            01
-          </div>
-
-          <div>
-            <strong>
-              Tus respuestas se guardan automáticamente
-            </strong>
-
-            <p>
-              Puedes avanzar entre preguntas sin perder
-              lo que ya respondiste.
-            </p>
-          </div>
-        </div>
-
-        <div class="instructions-card">
-          <div class="instructions-card__number">
-            02
-          </div>
-
-          <div>
-            <strong>
-              Revisa antes de entregar
-            </strong>
-
-            <p>
-              Al final podrás ver qué preguntas has
-              respondido y cuáles siguen pendientes.
-            </p>
-          </div>
-        </div>
-
-        <div
-          v-if="quiz.timeLimitMinutes"
-          class="instructions-card instructions-card--warning"
-        >
-          <div class="instructions-card__number">
-            !
-          </div>
-
-          <div>
-            <strong>
-              Esta evaluación tiene tiempo límite
-            </strong>
-
-            <p>
-              El cronómetro comienza cuando presiones
-              “Comenzar evaluación”.
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="start-button"
-          :disabled="isStarting"
-          @click="startAssessment"
-        >
-          <template v-if="isStarting">
-            Preparando intento...
-          </template>
-
-          <template v-else>
-            Comenzar evaluación →
-          </template>
-        </button>
-      </section>
-    </template>
-
-    <!-- =====================================================
-         EVALUACIÓN EN PROGRESO
-    ====================================================== -->
-    <template v-else-if="quiz && attempt">
-      <header class="exam-header">
-        <div class="exam-header__main">
-          <RouterLink
-            :to="classworkUrl"
-            class="exam-header__back"
-          >
-            ←
-          </RouterLink>
-
-          <div class="exam-header__title">
+      <!-- HERO -->
+      <section class="quiz-hero">
+        <div class="quiz-hero__main">
+          <div class="quiz-hero__eyebrow">
             <span>
               {{
                 quiz.assessmentType === 'test'
                   ? 'PRUEBA'
                   : 'QUIZ'
               }}
-              · INTENTO {{ attempt.attemptNumber }}
             </span>
-
-            <strong>
-              {{ quiz.title }}
-            </strong>
-          </div>
-        </div>
-
-        <div class="exam-header__status">
-          <div class="save-status">
-            <span
-              class="save-status__dot"
-              :class="{
-                'is-saving':
-                  saveState === 'saving',
-                'is-error':
-                  saveState === 'error',
-              }"
-            ></span>
 
             <span>
-              {{ saveStatusLabel }}
+              Clase {{ lessonNumberLabel }}
             </span>
           </div>
+
+          <h1>
+            {{ quiz.title }}
+          </h1>
+
+          <p v-if="quiz.description">
+            {{ quiz.description }}
+          </p>
 
           <div
-            class="timer"
+            class="assessment-purpose"
             :class="{
-              'timer--warning':
-                isTimerWarning,
-              'timer--critical':
-                isTimerCritical,
+              'assessment-purpose--test':
+                quiz.assessmentType === 'test'
             }"
           >
+            <strong>
+              {{
+                quiz.assessmentType === 'test'
+                  ? 'Prueba evaluada'
+                  : 'Quiz formativo'
+              }}
+            </strong>
+
             <span>
-              TIEMPO
+              {{
+                quiz.assessmentType === 'test'
+                  ? 'Tu resultado quedará registrado como evaluación formal.'
+                  : 'Úsalo para practicar, detectar errores y reforzar contenidos.'
+              }}
+            </span>
+          </div>
+
+          <div class="quiz-hero__meta">
+            <span>
+              {{ quiz.totalPoints || totalQuestionPoints }} pts
             </span>
 
-            <strong>
-              {{ formattedRemainingTime }}
-            </strong>
+            <span>
+              {{ questions.length }}
+              {{
+                questions.length === 1
+                  ? 'pregunta'
+                  : 'preguntas'
+              }}
+            </span>
+
+            <span v-if="quiz.attemptsAllowed">
+              {{
+                quiz.attemptsAllowed === 1
+                  ? '1 intento'
+                  : `${quiz.attemptsAllowed} intentos`
+              }}
+            </span>
+
+            <span v-if="quiz.timeLimitMinutes">
+              {{ quiz.timeLimitMinutes }} min
+            </span>
           </div>
         </div>
-      </header>
 
-      <div class="quiz-progress">
-        <div class="quiz-progress__copy">
-          <span>
-            Progreso
-          </span>
+        <aside
+          v-if="quiz.timeLimitMinutes"
+          class="timer-card"
+          :class="{
+            'timer-card--warning':
+              remainingSeconds <= 300 &&
+              remainingSeconds > 60,
+            'timer-card--critical':
+              remainingSeconds <= 60
+          }"
+        >
+          <small>
+            TIEMPO RESTANTE
+          </small>
 
           <strong>
-            {{ answeredCount }}
-            /
-            {{ questions.length }}
-            respondidas
+            {{ remainingTimeLabel }}
           </strong>
-        </div>
 
-        <div class="quiz-progress__track">
-          <div
-            class="quiz-progress__fill"
-            :style="{
-              width: `${progressPercentage}%`,
-            }"
-          ></div>
-        </div>
-      </div>
+          <span>
+            {{
+              remainingSeconds <= 60
+                ? 'Entrega pronto'
+                : 'Tu progreso se guarda'
+            }}
+          </span>
+        </aside>
+      </section>
 
-      <!-- ===================================================
-           MODO RESPONDER
-      ==================================================== -->
-      <div
-        v-if="!isReviewMode"
-        class="exam-layout"
-      >
-        <aside class="question-navigation">
-          <div class="question-navigation__heading">
+      <!-- PROGRESS -->
+      <section class="quiz-progress">
+        <div class="quiz-progress__heading">
+          <div>
             <span>
-              PREGUNTAS
+              TU AVANCE
             </span>
 
             <strong>
-              {{ answeredCount }}/{{ questions.length }}
+              {{ answeredCount }}
+              de {{ questions.length }}
+              respondidas
             </strong>
           </div>
 
-          <div class="question-navigation__grid">
-            <button
-              v-for="(
-                navigationQuestion,
-                index
-              ) in questions"
-              :key="navigationQuestion.id"
-              type="button"
-              class="question-nav-button"
-              :class="{
-                'is-current':
-                  index ===
-                  currentQuestionIndex,
+          <b>
+            {{ progressPercentage }}%
+          </b>
+        </div>
 
-                'is-answered':
-                  isAnswered(
-                    navigationQuestion,
-                  ),
+        <div class="quiz-progress__bar">
+          <span
+            :style="{
+              width: `${progressPercentage}%`
+            }"
+          ></span>
+        </div>
+      </section>
 
-                'is-unanswered':
-                  !isAnswered(
-                    navigationQuestion,
-                  ),
-              }"
-              @click="
-                goToQuestion(
-                  index,
-                )
-              "
-            >
-              {{ index + 1 }}
-            </button>
-          </div>
-
-          <div class="question-navigation__legend">
-            <span>
-              <i class="legend-dot legend-dot--answered"></i>
-              Respondida
-            </span>
-
-            <span>
-              <i class="legend-dot legend-dot--pending"></i>
-              Pendiente
-            </span>
-          </div>
-        </aside>
-
-        <main
-          v-if="currentQuestion"
-          class="question-panel"
-        >
-          <div class="question-panel__top">
+      <!-- MAIN LAYOUT -->
+      <div class="quiz-layout">
+        <!-- QUESTION -->
+        <main class="question-panel">
+          <header class="question-header">
             <div>
-              <p>
+              <span class="question-number">
                 PREGUNTA
-                {{ currentQuestionIndex + 1 }}
-                DE
-                {{ questions.length }}
-              </p>
+                {{
+                  String(
+                    currentQuestionIndex + 1,
+                  ).padStart(2, '0')
+                }}
+              </span>
 
-              <div class="question-meta">
-                <span>
-                  {{
-                    getQuestionTypeLabel(
-                      currentQuestion.type,
+              <span
+                v-if="currentQuestion.required"
+                class="required-badge"
+              >
+                Obligatoria
+              </span>
+            </div>
+
+            <strong>
+              {{ currentQuestion.points }}
+              {{
+                Number(currentQuestion.points) === 1
+                  ? 'punto'
+                  : 'puntos'
+              }}
+            </strong>
+          </header>
+
+          <section class="question-content">
+            <h2>
+              {{ currentQuestion.prompt }}
+            </h2>
+
+            <div
+              v-if="currentQuestion.mediaUrl"
+              class="question-media"
+            >
+              <audio
+                v-if="currentQuestion.mediaType === 'audio'"
+                :src="currentQuestion.mediaUrl"
+                controls
+                preload="metadata"
+              ></audio>
+
+              <img
+                v-else-if="currentQuestion.mediaType === 'image'"
+                :src="currentQuestion.mediaUrl"
+                alt="Material visual de la pregunta"
+              >
+            </div>
+
+            <!-- SINGLE / TRUE FALSE -->
+            <div
+              v-if="
+                currentQuestion.type === 'single_choice' ||
+                currentQuestion.type === 'true_false'
+              "
+              class="options-list"
+            >
+              <label
+                v-for="option in currentQuestion.options"
+                :key="option.id"
+                class="option-card"
+                :class="{
+                  'option-card--selected':
+                    isOptionSelected(
+                      currentQuestion.id,
+                      option.id,
                     )
-                  }}
-                </span>
-
-                <span>
-                  {{
-                    formatPoints(
-                      currentQuestion.points,
+                }"
+              >
+                <input
+                  type="radio"
+                  :name="`question-${currentQuestion.id}`"
+                  :value="option.id"
+                  :checked="
+                    isOptionSelected(
+                      currentQuestion.id,
+                      option.id,
                     )
-                  }}
-                  pts
-                </span>
-
-                <span
-                  v-if="
-                    currentQuestion.required
+                  "
+                  @change="
+                    selectSingleOption(
+                      currentQuestion,
+                      option.id,
+                    )
                   "
                 >
-                  Obligatoria
+
+                <span class="option-card__marker">
+                  {{
+                    optionLetter(
+                      currentQuestion.options,
+                      option.id,
+                    )
+                  }}
                 </span>
-              </div>
+
+                <strong>
+                  {{ option.text }}
+                </strong>
+              </label>
             </div>
 
-            <div class="question-number">
-              {{
-                String(
-                  currentQuestionIndex + 1,
-                ).padStart(
-                  2,
-                  '0',
-                )
-              }}
-            </div>
-          </div>
-
-          <div
-            v-if="
-              currentQuestion.mediaType !==
-                'none' &&
-              currentQuestion.mediaUrl
-            "
-            class="question-media"
-          >
-            <audio
-              v-if="
-                currentQuestion.mediaType ===
-                'audio'
-              "
-              :src="currentQuestion.mediaUrl"
-              controls
-              preload="metadata"
-            ></audio>
-
-            <img
+            <!-- MULTIPLE -->
+            <div
               v-else-if="
-                currentQuestion.mediaType ===
-                'image'
+                currentQuestion.type === 'multiple_choice'
               "
-              :src="currentQuestion.mediaUrl"
-              alt="Material de la pregunta"
+              class="options-list"
             >
-          </div>
+              <p class="question-hint">
+                Puedes seleccionar más de una alternativa.
+              </p>
 
-          <h2 class="question-prompt">
-            {{ currentQuestion.prompt }}
-          </h2>
-
-          <!-- ===============================================
-               SELECCIÓN ÚNICA / V-F
-          ================================================ -->
-          <div
-            v-if="
-              [
-                'single_choice',
-                'true_false',
-              ].includes(
-                currentQuestion.type,
-              )
-            "
-            class="options-list"
-          >
-            <label
-              v-for="(
-                option,
-                optionIndex
-              ) in currentQuestion.options"
-              :key="option.id"
-              class="option-card"
-              :class="{
-                'is-selected':
-                  currentAnswer
-                    .selectedOptionIds
-                    .includes(
-                      option.id,
-                    ),
-              }"
-            >
-              <input
-                type="radio"
-                :name="`question-${currentQuestion.id}`"
-                :value="option.id"
-                :checked="
-                  currentAnswer
-                    .selectedOptionIds
-                    .includes(
+              <label
+                v-for="option in currentQuestion.options"
+                :key="option.id"
+                class="option-card"
+                :class="{
+                  'option-card--selected':
+                    isOptionSelected(
+                      currentQuestion.id,
                       option.id,
                     )
+                }"
+              >
+                <input
+                  type="checkbox"
+                  :value="option.id"
+                  :checked="
+                    isOptionSelected(
+                      currentQuestion.id,
+                      option.id,
+                    )
+                  "
+                  @change="
+                    toggleMultipleOption(
+                      currentQuestion,
+                      option.id,
+                    )
+                  "
+                >
+
+                <span class="option-card__marker">
+                  {{
+                    optionLetter(
+                      currentQuestion.options,
+                      option.id,
+                    )
+                  }}
+                </span>
+
+                <strong>
+                  {{ option.text }}
+                </strong>
+              </label>
+            </div>
+
+            <!-- SHORT -->
+            <div
+              v-else-if="
+                currentQuestion.type === 'short_answer'
+              "
+              class="text-answer"
+            >
+              <label
+                :for="`answer-${currentQuestion.id}`"
+              >
+                Tu respuesta
+              </label>
+
+              <input
+                :id="`answer-${currentQuestion.id}`"
+                :value="
+                  getAnswer(
+                    currentQuestion.id,
+                  ).textAnswer
                 "
-                @change="
-                  selectSingleOption(
-                    option.id,
+                type="text"
+                maxlength="500"
+                placeholder="Escribe tu respuesta aquí..."
+                @input="
+                  updateTextAnswer(
+                    currentQuestion,
+                    $event.target.value,
+                  )
+                "
+                @blur="
+                  flushQuestionSave(
+                    currentQuestion.id,
                   )
                 "
               >
+            </div>
 
-              <span class="option-card__letter">
-                {{
-                  getOptionLetter(
-                    optionIndex,
-                  )
-                }}
-              </span>
-
-              <span class="option-card__text">
-                {{ option.text }}
-              </span>
-
-              <span class="option-card__check">
-                ✓
-              </span>
-            </label>
-          </div>
-
-          <!-- ===============================================
-               SELECCIÓN MÚLTIPLE
-          ================================================ -->
-          <div
-            v-else-if="
-              currentQuestion.type ===
-                'multiple_choice'
-            "
-            class="options-list"
-          >
-            <p class="multiple-notice">
-              Puedes seleccionar más de una alternativa.
-            </p>
-
-            <label
-              v-for="(
-                option,
-                optionIndex
-              ) in currentQuestion.options"
-              :key="option.id"
-              class="option-card"
-              :class="{
-                'is-selected':
-                  currentAnswer
-                    .selectedOptionIds
-                    .includes(
-                      option.id,
-                    ),
-              }"
+            <!-- ESSAY -->
+            <div
+              v-else-if="
+                currentQuestion.type === 'essay'
+              "
+              class="text-answer"
             >
-              <input
-                type="checkbox"
-                :value="option.id"
-                :checked="
-                  currentAnswer
-                    .selectedOptionIds
-                    .includes(
-                      option.id,
-                    )
-                "
-                @change="
-                  toggleMultipleOption(
-                    option.id,
-                  )
-                "
+              <label
+                :for="`answer-${currentQuestion.id}`"
               >
+                Tu respuesta
+              </label>
 
-              <span class="option-card__letter">
-                {{
-                  getOptionLetter(
-                    optionIndex,
+              <textarea
+                :id="`answer-${currentQuestion.id}`"
+                :value="
+                  getAnswer(
+                    currentQuestion.id,
+                  ).textAnswer
+                "
+                rows="10"
+                maxlength="10000"
+                placeholder="Desarrolla tu respuesta..."
+                @input="
+                  updateTextAnswer(
+                    currentQuestion,
+                    $event.target.value,
                   )
-                }}
-              </span>
+                "
+                @blur="
+                  flushQuestionSave(
+                    currentQuestion.id,
+                  )
+                "
+              ></textarea>
+            </div>
 
-              <span class="option-card__text">
-                {{ option.text }}
-              </span>
-
-              <span class="option-card__check">
-                ✓
-              </span>
-            </label>
-          </div>
-
-          <!-- ===============================================
-               RESPUESTA CORTA
-          ================================================ -->
-          <div
-            v-else-if="
-              currentQuestion.type ===
-                'short_answer'
-            "
-            class="text-answer"
-          >
-            <label>
-              Tu respuesta
-            </label>
-
-            <input
-              :value="
-                currentAnswer.textAnswer
-              "
-              type="text"
-              maxlength="500"
-              placeholder="Escribe tu respuesta..."
-              @input="
-                updateTextAnswer(
-                  $event.target.value,
-                )
-              "
+            <div
+              v-else
+              class="unsupported-question"
             >
+              Esta pregunta utiliza un formato que todavía
+              no está habilitado.
+            </div>
+          </section>
 
-            <small>
-              {{
-                currentAnswer
-                  .textAnswer
-                  .length
-              }}/500
-            </small>
-          </div>
-
-          <!-- ===============================================
-               DESARROLLO
-          ================================================ -->
-          <div
-            v-else
-            class="text-answer"
-          >
-            <label>
-              Desarrolla tu respuesta
-            </label>
-
-            <textarea
-              :value="
-                currentAnswer.textAnswer
-              "
-              rows="9"
-              maxlength="5000"
-              placeholder="Escribe tu respuesta aquí..."
-              @input="
-                updateTextAnswer(
-                  $event.target.value,
-                )
-              "
-            ></textarea>
-
-            <small>
-              {{
-                currentAnswer
-                  .textAnswer
-                  .length
-              }}/5000
-            </small>
-          </div>
-
+          <!-- QUESTION NAV -->
           <footer class="question-actions">
             <button
               type="button"
-              class="quiz-button quiz-button--secondary"
-              :disabled="
-                currentQuestionIndex === 0
-              "
+              class="button button--secondary"
+              :disabled="currentQuestionIndex === 0"
               @click="previousQuestion"
             >
               ← Anterior
             </button>
 
-            <div class="question-actions__save">
-              {{ saveStatusLabel }}
+            <div class="question-actions__center">
+              <span
+                v-if="currentQuestion.required"
+              >
+                {{
+                  isQuestionAnswered(
+                    currentQuestion,
+                    getAnswer(currentQuestion.id),
+                  )
+                    ? '✓ Respondida'
+                    : 'Respuesta obligatoria'
+                }}
+              </span>
             </div>
 
             <button
@@ -801,7 +876,7 @@
                 questions.length - 1
               "
               type="button"
-              class="quiz-button quiz-button--primary"
+              class="button button--primary"
               @click="nextQuestion"
             >
               Siguiente →
@@ -810,275 +885,272 @@
             <button
               v-else
               type="button"
-              class="quiz-button quiz-button--primary"
-              @click="openReview"
+              class="button button--primary"
+              @click="openSubmitDialog"
             >
-              Revisar respuestas →
+              Revisar y entregar →
             </button>
           </footer>
         </main>
-      </div>
 
-      <!-- ===================================================
-           REVISIÓN FINAL
-      ==================================================== -->
-      <section
-        v-else
-        class="review-screen"
-      >
-        <div class="review-screen__heading">
-          <p>
-            REVISIÓN FINAL
-          </p>
+        <!-- SIDEBAR -->
+        <aside class="question-sidebar">
+          <section class="navigator-card">
+            <span class="navigator-card__eyebrow">
+              PREGUNTAS
+            </span>
 
-          <h1>
-            Antes de entregar
-          </h1>
+            <div class="question-grid">
+              <button
+                v-for="(question, index) in questions"
+                :key="question.id"
+                type="button"
+                class="question-dot"
+                :class="{
+                  'question-dot--current':
+                    index === currentQuestionIndex,
+                  'question-dot--answered':
+                    isQuestionAnswered(
+                      question,
+                      getAnswer(question.id),
+                    ),
+                  'question-dot--pending':
+                    !isQuestionAnswered(
+                      question,
+                      getAnswer(question.id),
+                    ),
+                  'question-dot--required':
+                    question.required
+                }"
+                :aria-label="
+                  `Ir a pregunta ${index + 1}`
+                "
+                @click="
+                  goToQuestion(index)
+                "
+              >
+                <span>
+                  {{ index + 1 }}
+                </span>
 
-          <span>
-            Revisa tu evaluación. Después de enviarla,
-            este intento quedará cerrado.
-          </span>
-        </div>
-
-        <div class="review-summary">
-          <article>
-            <span>Respondidas</span>
-
-            <strong>
-              {{ answeredCount }}
-            </strong>
-          </article>
-
-          <article>
-            <span>Pendientes</span>
-
-            <strong>
-              {{ unansweredCount }}
-            </strong>
-          </article>
-
-          <article>
-            <span>Total</span>
-
-            <strong>
-              {{ questions.length }}
-            </strong>
-          </article>
-
-          <article>
-            <span>Tiempo restante</span>
-
-            <strong>
-              {{ formattedRemainingTime }}
-            </strong>
-          </article>
-        </div>
-
-        <div class="review-questions">
-          <button
-            v-for="(
-              question,
-              index
-            ) in questions"
-            :key="question.id"
-            type="button"
-            class="review-question"
-            :class="{
-              'is-complete':
-                isAnswered(
-                  question,
-                ),
-              'is-pending':
-                !isAnswered(
-                  question,
-                ),
-            }"
-            @click="
-              editQuestion(
-                index,
-              )
-            "
-          >
-            <div class="review-question__number">
-              {{ index + 1 }}
+                <b
+                  v-if="
+                    isQuestionAnswered(
+                      question,
+                      getAnswer(question.id),
+                    ) &&
+                    index !== currentQuestionIndex
+                  "
+                  aria-hidden="true"
+                >
+                  ✓
+                </b>
+              </button>
             </div>
 
-            <div class="review-question__copy">
+            <div class="navigator-legend">
               <span>
-                Pregunta {{ index + 1 }}
+                <i class="legend-box legend-box--current"></i>
+                Actual
+              </span>
+
+              <span>
+                <i class="legend-box legend-box--answered"></i>
+                Respondida
+              </span>
+
+              <span>
+                <i class="legend-box legend-box--pending"></i>
+                Pendiente
+              </span>
+            </div>
+          </section>
+
+          <section class="summary-card">
+            <span class="navigator-card__eyebrow">
+              RESUMEN
+            </span>
+
+            <div class="summary-row">
+              <span>
+                Respondidas
               </span>
 
               <strong>
-                {{
-                  truncateText(
-                    question.prompt,
-                    75,
-                  )
-                }}
+                {{ answeredCount }}
               </strong>
             </div>
 
-            <div class="review-question__status">
+            <div class="summary-row">
+              <span>
+                Pendientes
+              </span>
+
+              <strong>
+                {{ unansweredCount }}
+              </strong>
+            </div>
+
+            <div class="summary-row">
+              <span>
+                Obligatorias pendientes
+              </span>
+
+              <strong>
+                {{ requiredUnansweredCount }}
+              </strong>
+            </div>
+
+            <button
+              type="button"
+              class="submit-sidebar-button"
+              :disabled="
+                isSubmitting ||
+                isSavingAnyAnswer ||
+                Boolean(saveError)
+              "
+              @click="openSubmitDialog"
+            >
+              Entregar evaluación
+              <span>→</span>
+            </button>
+          </section>
+
+          <section
+            class="autosave-card"
+            :class="{
+              'autosave-card--error':
+                Boolean(saveError)
+            }"
+          >
+            <div>
+              {{ saveError ? '!' : '✓' }}
+            </div>
+
+            <p>
               {{
-                isAnswered(question)
-                  ? 'Respondida'
-                  : 'Pendiente'
+                saveError
+                  ? 'Hubo un problema de conexión. Revisa internet antes de entregar.'
+                  : 'Tus respuestas se guardan automáticamente mientras avanzas.'
               }}
-            </div>
-
-            <div class="review-question__arrow">
-              →
-            </div>
-          </button>
-        </div>
-
-        <div
-          v-if="unansweredRequiredCount > 0"
-          class="review-warning"
-        >
-          <div>
-            !
-          </div>
-
-          <p>
-            Tienes
-            <strong>
-              {{ unansweredRequiredCount }}
-            </strong>
-            {{
-              unansweredRequiredCount === 1
-                ? 'pregunta obligatoria sin responder.'
-                : 'preguntas obligatorias sin responder.'
-            }}
-          </p>
-        </div>
-
-        <div class="review-actions">
-          <button
-            type="button"
-            class="quiz-button quiz-button--secondary"
-            @click="
-              isReviewMode = false
-            "
-          >
-            ← Seguir revisando
-          </button>
-
-          <button
-            type="button"
-            class="submit-button"
-            :disabled="isSubmitting"
-            @click="requestSubmission"
-          >
-            {{
-              isSubmitting
-                ? 'Entregando...'
-                : 'Entregar evaluación'
-            }}
-          </button>
-        </div>
-      </section>
-
-      <!-- ===================================================
-           CONFIRMACIÓN ENTREGA
-      ==================================================== -->
-      <Teleport to="body">
-        <Transition name="modal">
-          <div
-            v-if="showSubmitConfirmation"
-            class="modal-overlay"
-            @click.self="
-              showSubmitConfirmation =
-                false
-            "
-          >
-            <section class="confirmation-modal">
-              <div class="confirmation-modal__icon">
-                ✓
-              </div>
-
-              <p class="quiz-eyebrow">
-                ENTREGA FINAL
-              </p>
-
-              <h2>
-                ¿Entregar evaluación?
-              </h2>
-
-              <p>
-                Has respondido
-                <strong>
-                  {{ answeredCount }}
-                  de
-                  {{ questions.length }}
-                </strong>
-                preguntas.
-              </p>
-
-              <p
-                v-if="
-                  unansweredRequiredCount >
-                  0
-                "
-                class="confirmation-modal__warning"
-              >
-                Aún tienes
-                {{ unansweredRequiredCount }}
-                {{
-                  unansweredRequiredCount ===
-                  1
-                    ? 'pregunta obligatoria pendiente.'
-                    : 'preguntas obligatorias pendientes.'
-                }}
-              </p>
-
-              <div class="confirmation-modal__actions">
-                <button
-                  type="button"
-                  class="quiz-button quiz-button--secondary"
-                  :disabled="isSubmitting"
-                  @click="
-                    showSubmitConfirmation =
-                      false
-                  "
-                >
-                  Seguir revisando
-                </button>
-
-                <button
-                  type="button"
-                  class="submit-button"
-                  :disabled="isSubmitting"
-                  @click="submitAssessment"
-                >
-                  {{
-                    isSubmitting
-                      ? 'Entregando...'
-                      : 'Sí, entregar'
-                  }}
-                </button>
-              </div>
-            </section>
-          </div>
-        </Transition>
-      </Teleport>
+            </p>
+          </section>
+        </aside>
+      </div>
     </template>
 
     <!-- =====================================================
-         TOAST
+         CONFIRMAR ENTREGA
     ====================================================== -->
     <Teleport to="body">
-      <Transition name="toast">
+      <Transition name="modal">
         <div
-          v-if="toastMessage"
-          class="quiz-toast"
-          :class="{
-            'quiz-toast--error':
-              toastType === 'error',
-          }"
+          v-if="showSubmitDialog"
+          class="modal-backdrop"
+          @click.self="
+            !isSubmitting &&
+            closeSubmitDialog()
+          "
         >
-          {{ toastMessage }}
+          <article
+            class="submit-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="submit-dialog-title"
+          >
+            <div class="submit-dialog__icon">
+              ✓
+            </div>
+
+            <span class="submit-dialog__eyebrow">
+              ENTREGA FINAL
+            </span>
+
+            <h2 id="submit-dialog-title">
+              ¿Entregar esta evaluación?
+            </h2>
+
+            <p>
+              Has respondido
+              <strong>{{ answeredCount }}</strong>
+              de
+              <strong>{{ questions.length }}</strong>
+              preguntas.
+            </p>
+
+            <div
+              v-if="requiredUnansweredCount"
+              class="submit-warning"
+            >
+              <strong>
+                Te faltan
+                {{ requiredUnansweredCount }}
+                {{
+                  requiredUnansweredCount === 1
+                    ? 'pregunta obligatoria'
+                    : 'preguntas obligatorias'
+                }}.
+              </strong>
+
+              <p>
+                Puedes volver y responderlas antes de entregar.
+              </p>
+            </div>
+
+            <div
+              v-else-if="unansweredCount"
+              class="submit-notice"
+            >
+              Quedan {{ unansweredCount }}
+              {{
+                unansweredCount === 1
+                  ? 'pregunta sin responder'
+                  : 'preguntas sin responder'
+              }}.
+            </div>
+
+            <div
+              v-else
+              class="submit-success"
+            >
+              <strong>
+                ✓ Todas las preguntas están respondidas
+              </strong>
+
+              <p>
+                Revisa una última vez y entrega cuando estés listo.
+              </p>
+            </div>
+
+            <div class="submit-dialog__actions">
+              <button
+                type="button"
+                class="button button--secondary"
+                :disabled="isSubmitting"
+                @click="closeSubmitDialog"
+              >
+                Seguir revisando
+              </button>
+
+              <button
+                type="button"
+                class="button button--primary"
+                :disabled="
+                  isSubmitting ||
+                  isSavingAnyAnswer ||
+                  Boolean(saveError) ||
+                  requiredUnansweredCount > 0
+                "
+                @click="submitEvaluation"
+              >
+                {{
+                  isSubmitting
+                    ? 'Entregando...'
+                    : 'Sí, entregar'
+                }}
+              </button>
+            </div>
+          </article>
         </div>
       </Transition>
     </Teleport>
@@ -1088,10 +1160,11 @@
 <script setup>
 import {
   computed,
+  nextTick,
+  onBeforeUnmount,
   onMounted,
-  onUnmounted,
-  reactive,
   ref,
+  watch,
 } from 'vue'
 
 import {
@@ -1101,31 +1174,32 @@ import {
 
 import {
   calculateRemainingSeconds,
-  createEmptyAnswer,
   fetchAttemptAnswers,
   fetchStudentQuizContent,
   formatRemainingTime,
-  isQuestionAnswered,
   saveQuizAnswer,
   startQuizAttempt,
   submitQuizAttempt,
 } from '@/services/quizAttemptService'
 
 import {
+  fetchLessonById,
+  fetchLessons,
+} from '@/services/lessonService'
+
+import {
   useAuth,
 } from '@/composables/useAuth'
 
-/* =========================================================
-   ROUTE / AUTH
-========================================================= */
-
-const route =
-  useRoute()
+const route = useRoute()
 
 const {
   isStudent,
-} =
-  useAuth()
+} = useAuth()
+
+/* =========================================================
+   IDS
+========================================================= */
 
 const lessonId =
   computed(() =>
@@ -1141,74 +1215,386 @@ const quizId =
     ),
   )
 
-const classworkUrl =
+const lessonRoute =
   computed(() =>
-    `/aula/clase/${lessonId.value}/trabajo`,
+    `/aula/clase/${lessonId.value}`,
   )
+
+const resultStorageKey =
+  computed(() =>
+    `amv-quiz-result-${quizId.value}`,
+  )
+
+const saveResultCache =
+  result => {
+    try {
+      window.localStorage
+        .setItem(
+          resultStorageKey.value,
+          JSON.stringify({
+            ...result,
+            quizId:
+              quizId.value,
+            savedAt:
+              new Date()
+                .toISOString(),
+          }),
+        )
+    } catch {
+      // El cache local es solo una ayuda visual.
+    }
+  }
+
+const readResultCache =
+  () => {
+    try {
+      const raw =
+        window.localStorage
+          .getItem(
+            resultStorageKey.value,
+          )
+
+      if (!raw) {
+        return null
+      }
+
+      const parsed =
+        JSON.parse(raw)
+
+      if (
+        Number(parsed?.quizId) !==
+        Number(quizId.value)
+      ) {
+        return null
+      }
+
+      return parsed
+    } catch {
+      return null
+    }
+  }
+
+const clearResultCache =
+  () => {
+    try {
+      window.localStorage
+        .removeItem(
+          resultStorageKey.value,
+        )
+    } catch {
+      // Sin acción.
+    }
+  }
 
 /* =========================================================
    ESTADO
 ========================================================= */
 
-const quiz =
-  ref(null)
+const quiz = ref(null)
+const questions = ref([])
+const attempt = ref(null)
+const lesson = ref(null)
+const allLessons = ref([])
 
-const questions =
-  ref([])
+const answers = ref({})
 
-const attempt =
-  ref(null)
+const isLoading = ref(true)
+const isSubmitting = ref(false)
 
-const answers =
-  reactive({})
+const loadError = ref('')
+const saveError = ref('')
 
-const isLoading =
-  ref(true)
+const currentQuestionIndex = ref(0)
 
-const isStarting =
+const submissionResult = ref(null)
+
+const showSubmitDialog = ref(false)
+
+const remainingSeconds = ref(0)
+
+const resultWasRestored =
   ref(false)
 
-const isSubmitting =
-  ref(false)
+const savingQuestionIds =
+  ref(new Set())
 
-const loadError =
-  ref('')
+const saveTimers =
+  new Map()
 
-const currentQuestionIndex =
-  ref(0)
+let timerInterval = null
+let hasAutoSubmitted = false
 
-const isReviewMode =
-  ref(false)
+/* =========================================================
+   CARGA
+========================================================= */
 
-const submissionResult =
-  ref(null)
+const loadQuiz =
+  async () => {
+    isLoading.value = true
+    loadError.value = ''
+    saveError.value = ''
+    submissionResult.value = null
 
-const showSubmitConfirmation =
-  ref(false)
+    try {
+      if (
+        !isStudent.value
+      ) {
+        throw new Error(
+          'Esta evaluación está disponible para estudiantes.',
+        )
+      }
 
-const remainingSeconds =
-  ref(null)
+      if (
+        !Number.isFinite(
+          lessonId.value,
+        ) ||
+        lessonId.value <= 0 ||
+        !Number.isFinite(
+          quizId.value,
+        ) ||
+        quizId.value <= 0
+      ) {
+        throw new Error(
+          'La evaluación solicitada no es válida.',
+        )
+      }
 
-const saveState =
-  ref('saved')
+      const [
+        loadedLesson,
+        loadedLessons,
+        loadedQuiz,
+      ] =
+        await Promise.all([
+          fetchLessonById(
+            lessonId.value,
+          ),
 
-const toastMessage =
-  ref('')
+          fetchLessons(),
 
-const toastType =
-  ref('success')
+          fetchStudentQuizContent(
+            quizId.value,
+          ),
+        ])
 
-let timerInterval =
-  null
+      lesson.value =
+        loadedLesson
 
-let saveTimer =
-  null
+      allLessons.value =
+        loadedLessons || []
 
-let toastTimer =
-  null
+      quiz.value =
+        loadedQuiz
 
-let isAutoSubmitting =
-  false
+      questions.value =
+        Array.isArray(
+          loadedQuiz?.questions,
+        )
+          ? loadedQuiz.questions
+          : []
+
+      /*
+       * El RPC seguro puede responder en camelCase o snake_case.
+       * Solo bloqueamos si realmente recibimos un lessonId válido
+       * y este corresponde a otra clase.
+       */
+      const loadedQuizLessonId =
+        Number(
+          loadedQuiz?.lessonId ??
+          loadedQuiz?.lesson_id ??
+          loadedQuiz?.quiz?.lessonId ??
+          loadedQuiz?.quiz?.lesson_id ??
+          0,
+        )
+
+      if (
+        loadedQuizLessonId > 0 &&
+        loadedQuizLessonId !==
+          Number(
+            lessonId.value,
+          )
+      ) {
+        throw new Error(
+          'Esta evaluación pertenece a otra clase.',
+        )
+      }
+
+      if (
+        !questions.value.length
+      ) {
+        throw new Error(
+          'La evaluación todavía no tiene preguntas disponibles.',
+        )
+      }
+
+      /*
+       * Si existe un resultado reciente en este dispositivo,
+       * lo mostramos antes de iniciar automáticamente otro intento.
+       * El servidor sigue siendo quien debe hacer cumplir
+       * attempts_allowed.
+       */
+      const cachedResult =
+        readResultCache()
+
+      if (
+        cachedResult &&
+        cachedResult.status ===
+          'submitted'
+      ) {
+        submissionResult.value =
+          cachedResult
+
+        resultWasRestored.value =
+          true
+
+        return
+      }
+
+      attempt.value =
+        await startQuizAttempt(
+          quizId.value,
+        )
+
+      const savedAnswers =
+        await fetchAttemptAnswers(
+          attempt.value.id,
+        )
+
+      answers.value = {}
+
+      for (
+        const question of
+        questions.value
+      ) {
+        answers.value[
+          question.id
+        ] = {
+          questionId:
+            question.id,
+
+          selectedOptionIds:
+            [],
+
+          textAnswer:
+            '',
+        }
+      }
+
+      for (
+        const saved of
+        savedAnswers || []
+      ) {
+        const savedQuestionId =
+          Number(
+            saved.questionId ??
+            saved.question_id,
+          )
+
+        if (
+          !Number.isFinite(
+            savedQuestionId,
+          )
+        ) {
+          continue
+        }
+
+        const selectedOptionIds =
+          saved.selectedOptionIds ??
+          saved.selected_option_ids ??
+          []
+
+        const textAnswer =
+          saved.textAnswer ??
+          saved.text_answer ??
+          ''
+
+        answers.value[
+          savedQuestionId
+        ] = {
+          questionId:
+            savedQuestionId,
+
+          selectedOptionIds:
+            Array.isArray(
+              selectedOptionIds,
+            )
+              ? selectedOptionIds
+                  .map(Number)
+                  .filter(Number.isFinite)
+              : [],
+
+          textAnswer:
+            String(
+              textAnswer || '',
+            ),
+        }
+      }
+
+      startTimer()
+    } catch (error) {
+      console.error(
+        'Error cargando evaluación:',
+        error,
+      )
+
+      loadError.value =
+        error?.message ||
+        'No fue posible cargar la evaluación.'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+/* =========================================================
+   NÚMERO ACADÉMICO
+========================================================= */
+
+const unitLessons =
+  computed(() => {
+    const unitId =
+      Number(
+        lesson.value?.unitId,
+      )
+
+    if (!unitId) {
+      return []
+    }
+
+    return allLessons.value
+      .filter(
+        item =>
+          Number(item.unitId) ===
+          unitId,
+      )
+      .sort(
+        (a, b) =>
+          Number(a.id) -
+          Number(b.id),
+      )
+  })
+
+const lessonNumber =
+  computed(() => {
+    const index =
+      unitLessons.value
+        .findIndex(
+          item =>
+            Number(item.id) ===
+            Number(
+              lesson.value?.id,
+            ),
+        )
+
+    return index >= 0
+      ? index + 1
+      : 1
+  })
+
+const lessonNumberLabel =
+  computed(() =>
+    String(
+      lessonNumber.value,
+    ).padStart(2, '0'),
+  )
 
 /* =========================================================
    PREGUNTA ACTUAL
@@ -1219,42 +1605,121 @@ const currentQuestion =
     questions.value[
       currentQuestionIndex.value
     ] ||
+    questions.value[0] ||
     null,
   )
 
-const currentAnswer =
-  computed(() => {
-    if (
-      !currentQuestion.value
-    ) {
-      return {
-        selectedOptionIds: [],
-        textAnswer: '',
-      }
-    }
-
+const getAnswer =
+  questionId => {
     return (
-      answers[
-        currentQuestion.value.id
-      ] ||
-      createEmptyAnswer(
-        currentQuestion.value,
-      )
+      answers.value[
+        questionId
+      ] || {
+        questionId:
+          Number(questionId),
+
+        selectedOptionIds:
+          [],
+
+        textAnswer:
+          '',
+      }
     )
-  })
+  }
 
 /* =========================================================
-   PROGRESO
+   DETECTAR RESPUESTAS
+   Compatible con estado local y respuestas del RPC
+========================================================= */
+
+const isQuestionAnswered = (
+  question,
+  answer,
+) => {
+  if (
+    !question ||
+    !answer
+  ) {
+    return false
+  }
+
+  const selectedOptionIds =
+    answer.selectedOptionIds ??
+    answer.selected_option_ids ??
+    []
+
+  const textAnswer =
+    answer.textAnswer ??
+    answer.text_answer ??
+    ''
+
+  const questionType =
+    question.type ??
+    question.questionType ??
+    question.question_type ??
+    ''
+
+  if (
+    questionType ===
+      'single_choice' ||
+    questionType ===
+      'multiple_choice' ||
+    questionType ===
+      'true_false'
+  ) {
+    return (
+      Array.isArray(
+        selectedOptionIds,
+      ) &&
+      selectedOptionIds.length >
+        0
+    )
+  }
+
+  if (
+    questionType ===
+      'short_answer' ||
+    questionType ===
+      'short' ||
+    questionType ===
+      'essay'
+  ) {
+    return Boolean(
+      String(
+        textAnswer || '',
+      ).trim(),
+    )
+  }
+
+  return Boolean(
+    (
+      Array.isArray(
+        selectedOptionIds,
+      ) &&
+      selectedOptionIds.length >
+        0
+    ) ||
+    String(
+      textAnswer || '',
+    ).trim(),
+  )
+}
+
+/* =========================================================
+   CONTADORES
 ========================================================= */
 
 const answeredCount =
   computed(() =>
-    questions.value.filter(
-      question =>
-        isAnswered(
-          question,
-        ),
-    ).length,
+    questions.value
+      .filter(
+        question =>
+          isQuestionAnswered(
+            question,
+            getAnswer(question.id),
+          ),
+      )
+      .length,
   )
 
 const unansweredCount =
@@ -1262,19 +1727,22 @@ const unansweredCount =
     Math.max(
       0,
       questions.value.length -
-        answeredCount.value,
+      answeredCount.value,
     ),
   )
 
-const unansweredRequiredCount =
+const requiredUnansweredCount =
   computed(() =>
-    questions.value.filter(
-      question =>
-        question.required &&
-        !isAnswered(
-          question,
-        ),
-    ).length,
+    questions.value
+      .filter(
+        question =>
+          question.required &&
+          !isQuestionAnswered(
+            question,
+            getAnswer(question.id),
+          ),
+      )
+      .length,
   )
 
 const progressPercentage =
@@ -1294,481 +1762,187 @@ const progressPercentage =
     )
   })
 
-/* =========================================================
-   GUARDADO
-========================================================= */
-
-const saveStatusLabel =
-  computed(() => {
-    const labels = {
-      saved:
-        'Guardado ✓',
-
-      saving:
-        'Guardando...',
-
-      error:
-        'Error al guardar',
-    }
-
-    return (
-      labels[
-        saveState.value
-      ] ||
-      'Guardado'
-    )
-  })
-
-/* =========================================================
-   CRONÓMETRO
-========================================================= */
-
-const formattedRemainingTime =
+const totalQuestionPoints =
   computed(() =>
-    formatRemainingTime(
-      remainingSeconds.value,
+    questions.value.reduce(
+      (
+        total,
+        question,
+      ) =>
+        total +
+        Number(
+          question.points || 0,
+        ),
+      0,
     ),
   )
 
-const isTimerWarning =
-  computed(() =>
-    remainingSeconds.value !==
-      null &&
-    remainingSeconds.value <=
-      300 &&
-    remainingSeconds.value >
-      60,
-  )
-
-const isTimerCritical =
-  computed(() =>
-    remainingSeconds.value !==
-      null &&
-    remainingSeconds.value <=
-      60,
-  )
-
 /* =========================================================
-   RESULTADO
+   OPCIONES
 ========================================================= */
 
-const resultIcon =
-  computed(() => {
-    if (
-      submissionResult.value
-        ?.requiresManualGrading
-    ) {
-      return '…'
-    }
-
-    if (
-      submissionResult.value
-        ?.passed === true
-    ) {
-      return '✓'
-    }
-
-    if (
-      submissionResult.value
-        ?.passed === false
-    ) {
-      return '!'
-    }
-
-    return '✓'
-  })
-
-const resultIconClass =
-  computed(() => ({
-    'result-screen__icon--passed':
-      submissionResult.value
-        ?.passed === true,
-
-    'result-screen__icon--failed':
-      submissionResult.value
-        ?.passed === false,
-
-    'result-screen__icon--pending':
-      submissionResult.value
-        ?.requiresManualGrading,
-  }))
-
-const resultTitle =
-  computed(() => {
-    if (
-      submissionResult.value
-        ?.requiresManualGrading
-    ) {
-      return 'Evaluación recibida'
-    }
-
-    if (
-      submissionResult.value
-        ?.passed === true
-    ) {
-      return '¡Evaluación aprobada!'
-    }
-
-    if (
-      submissionResult.value
-        ?.passed === false
-    ) {
-      return 'Evaluación finalizada'
-    }
-
-    return 'Evaluación entregada'
-  })
-
-const resultDescription =
-  computed(() => {
-    if (
-      submissionResult.value
-        ?.requiresManualGrading
-    ) {
-      return 'Tus respuestas fueron guardadas correctamente. La calificación final estará disponible después de la revisión docente.'
-    }
-
-    if (
-      submissionResult.value
-        ?.percentage !== null
-    ) {
-      return 'Tu evaluación fue corregida automáticamente y el resultado quedó registrado.'
-    }
-
-    return 'Tu evaluación fue entregada correctamente.'
-  })
-
-/* =========================================================
-   CARGA INICIAL
-========================================================= */
-
-const loadQuiz =
-  async () => {
-    isLoading.value =
-      true
-
-    loadError.value =
-      ''
-
-    try {
-      if (
-        !isStudent.value
-      ) {
-        throw new Error(
-          'Esta evaluación debe ser rendida desde una cuenta de estudiante.',
-        )
-      }
-
-      if (
-        !lessonId.value ||
-        !quizId.value
-      ) {
-        throw new Error(
-          'La evaluación solicitada no es válida.',
-        )
-      }
-
-      const {
-        quiz:
-          loadedQuiz,
-
-        questions:
-          loadedQuestions,
-      } =
-        await fetchStudentQuizContent(
-          quizId.value,
-        )
-
-      if (
-        Number(
-          loadedQuiz.lessonId,
-        ) !==
-        lessonId.value
-      ) {
-        throw new Error(
-          'Esta evaluación no pertenece a la clase indicada.',
-        )
-      }
-
-      quiz.value =
-        loadedQuiz
-
-      questions.value =
-        loadedQuestions
-
-      initializeAnswers()
-    } catch (error) {
-      console.error(
-        'Error cargando evaluación:',
-        error,
-      )
-
-      loadError.value =
-        error?.message ||
-        'No fue posible cargar la evaluación.'
-    } finally {
-      isLoading.value =
-        false
-    }
-  }
-
-/* =========================================================
-   RESPUESTAS VACÍAS
-========================================================= */
-
-const initializeAnswers =
-  () => {
-    questions.value.forEach(
-      question => {
-        answers[
-          question.id
-        ] =
-          createEmptyAnswer(
-            question,
-          )
-      },
+const isOptionSelected = (
+  questionId,
+  optionId,
+) => {
+  return getAnswer(
+    questionId,
+  ).selectedOptionIds
+    .map(Number)
+    .includes(
+      Number(optionId),
     )
-  }
+}
 
-/* =========================================================
-   INICIAR EVALUACIÓN
-========================================================= */
-
-const startAssessment =
-  async () => {
-    if (
-      isStarting.value
-    ) {
-      return
-    }
-
-    isStarting.value =
-      true
-
-    try {
-      const startedAttempt =
-        await startQuizAttempt(
-          quizId.value,
-        )
-
-      attempt.value =
-        startedAttempt
-
-      const storedAnswers =
-        await fetchAttemptAnswers(
-          startedAttempt.id,
-        )
-
-      restoreAnswers(
-        storedAnswers,
-      )
-
-      startTimer()
-
-      if (
-        startedAttempt.resumed
-      ) {
-        showToast(
-          'Continuamos tu intento anterior.',
-        )
-      } else {
-        showToast(
-          'Evaluación iniciada.',
-        )
-      }
-    } catch (error) {
-      console.error(
-        'Error iniciando evaluación:',
-        error,
-      )
-
-      showToast(
-        error?.message ||
-          'No fue posible iniciar la evaluación.',
-        'error',
-      )
-    } finally {
-      isStarting.value =
-        false
-    }
-  }
-
-/* =========================================================
-   RESTAURAR RESPUESTAS
-========================================================= */
-
-const restoreAnswers =
-  storedAnswers => {
-    storedAnswers.forEach(
-      storedAnswer => {
-        if (
-          !answers[
-            storedAnswer
-              .questionId
-          ]
-        ) {
-          return
-        }
-
-        answers[
-          storedAnswer
-            .questionId
-        ] = {
-          questionId:
-            storedAnswer
-              .questionId,
-
-          selectedOptionIds:
-            [
-              ...storedAnswer
-                .selectedOptionIds,
-            ],
-
-          textAnswer:
-            storedAnswer
-              .textAnswer ||
-            '',
-        }
-      },
+const optionLetter = (
+  options,
+  optionId,
+) => {
+  const index =
+    options.findIndex(
+      option =>
+        Number(option.id) ===
+        Number(optionId),
     )
+
+  if (
+    index < 0
+  ) {
+    return '•'
   }
 
+  return String.fromCharCode(
+    65 + index,
+  )
+}
+
+const selectSingleOption = (
+  question,
+  optionId,
+) => {
+  answers.value = {
+    ...answers.value,
+
+    [question.id]: {
+      ...getAnswer(
+        question.id,
+      ),
+
+      selectedOptionIds: [
+        Number(optionId),
+      ],
+    },
+  }
+
+  scheduleAnswerSave(
+    question.id,
+    150,
+  )
+}
+
+const toggleMultipleOption = (
+  question,
+  optionId,
+) => {
+  const current =
+    new Set(
+      getAnswer(
+        question.id,
+      ).selectedOptionIds
+        .map(Number),
+    )
+
+  const parsed =
+    Number(optionId)
+
+  if (
+    current.has(parsed)
+  ) {
+    current.delete(parsed)
+  } else {
+    current.add(parsed)
+  }
+
+  answers.value = {
+    ...answers.value,
+
+    [question.id]: {
+      ...getAnswer(
+        question.id,
+      ),
+
+      selectedOptionIds:
+        Array.from(current),
+    },
+  }
+
+  scheduleAnswerSave(
+    question.id,
+    250,
+  )
+}
+
 /* =========================================================
-   SABER SI ESTÁ RESPONDIDA
+   TEXTO
 ========================================================= */
 
-const isAnswered =
-  question =>
-    isQuestionAnswered({
-      question,
+const updateTextAnswer = (
+  question,
+  value,
+) => {
+  answers.value = {
+    ...answers.value,
 
-      answer:
-        answers[
-          question.id
-        ],
-    })
+    [question.id]: {
+      ...getAnswer(
+        question.id,
+      ),
 
-/* =========================================================
-   RESPUESTA ÚNICA
-========================================================= */
-
-const selectSingleOption =
-  optionId => {
-    if (
-      !currentQuestion.value
-    ) {
-      return
-    }
-
-    const answer =
-      answers[
-        currentQuestion.value.id
-      ]
-
-    answer.selectedOptionIds =
-      [
-        Number(
-          optionId,
+      textAnswer:
+        String(
+          value || '',
         ),
-      ]
-
-    scheduleSave(
-      currentQuestion.value.id,
-    )
+    },
   }
 
-/* =========================================================
-   RESPUESTA MÚLTIPLE
-========================================================= */
-
-const toggleMultipleOption =
-  optionId => {
-    if (
-      !currentQuestion.value
-    ) {
-      return
-    }
-
-    const answer =
-      answers[
-        currentQuestion.value.id
-      ]
-
-    const id =
-      Number(optionId)
-
-    if (
-      answer
-        .selectedOptionIds
-        .includes(id)
-    ) {
-      answer.selectedOptionIds =
-        answer
-          .selectedOptionIds
-          .filter(
-            selectedId =>
-              selectedId !==
-              id,
-          )
-    } else {
-      answer.selectedOptionIds =
-        [
-          ...answer
-            .selectedOptionIds,
-          id,
-        ]
-    }
-
-    scheduleSave(
-      currentQuestion.value.id,
-    )
-  }
-
-/* =========================================================
-   RESPUESTA DE TEXTO
-========================================================= */
-
-const updateTextAnswer =
-  value => {
-    if (
-      !currentQuestion.value
-    ) {
-      return
-    }
-
-    answers[
-      currentQuestion.value.id
-    ].textAnswer =
-      value
-
-    scheduleSave(
-      currentQuestion.value.id,
-    )
-  }
+  scheduleAnswerSave(
+    question.id,
+    700,
+  )
+}
 
 /* =========================================================
    AUTOGUARDADO
 ========================================================= */
 
-const scheduleSave =
-  questionId => {
-    clearTimeout(
-      saveTimer,
+const isSavingAnyAnswer =
+  computed(() =>
+    savingQuestionIds.value
+      .size > 0,
+  )
+
+const setQuestionSaving = (
+  questionId,
+  saving,
+) => {
+  const next =
+    new Set(
+      savingQuestionIds.value,
     )
 
-    saveState.value =
-      'saving'
-
-    saveTimer =
-      setTimeout(
-        () => {
-          persistAnswer(
-            questionId,
-          )
-        },
-        650,
-      )
+  if (saving) {
+    next.add(
+      Number(questionId),
+    )
+  } else {
+    next.delete(
+      Number(questionId),
+    )
   }
+
+  savingQuestionIds.value =
+    next
+}
 
 const persistAnswer =
   async questionId => {
@@ -1779,109 +1953,175 @@ const persistAnswer =
     }
 
     const answer =
-      answers[
-        questionId
-      ]
+      getAnswer(
+        questionId,
+      )
 
-    if (!answer) {
-      return
-    }
+    setQuestionSaving(
+      questionId,
+      true,
+    )
 
-    saveState.value =
-      'saving'
+    saveError.value = ''
 
     try {
-      await saveQuizAnswer({
-        attemptId:
-          attempt.value.id,
+      const saved =
+        await saveQuizAnswer({
+          attemptId:
+            attempt.value.id,
 
-        questionId,
+          questionId:
+            Number(questionId),
 
-        selectedOptionIds:
-          answer
-            .selectedOptionIds,
+          selectedOptionIds:
+            answer
+              .selectedOptionIds,
 
-        textAnswer:
-          answer
-            .textAnswer,
-      })
+          textAnswer:
+            answer.textAnswer,
+        })
 
-      saveState.value =
-        'saved'
+      const savedSelectedOptionIds =
+        saved?.selectedOptionIds ??
+        saved?.selected_option_ids
+
+      const savedTextAnswer =
+        saved?.textAnswer ??
+        saved?.text_answer
+
+      answers.value = {
+        ...answers.value,
+
+        [questionId]: {
+          questionId:
+            Number(questionId),
+
+          selectedOptionIds:
+            Array.isArray(
+              savedSelectedOptionIds,
+            )
+              ? savedSelectedOptionIds
+                  .map(Number)
+                  .filter(Number.isFinite)
+              : answer.selectedOptionIds,
+
+          textAnswer:
+            savedTextAnswer ??
+            answer.textAnswer,
+        },
+      }
     } catch (error) {
       console.error(
         'Error guardando respuesta:',
         error,
       )
 
-      saveState.value =
-        'error'
-
-      showToast(
+      saveError.value =
         error?.message ||
-          'No se pudo guardar una respuesta.',
-        'error',
+        'No se pudo guardar una respuesta.'
+    } finally {
+      setQuestionSaving(
+        questionId,
+        false,
       )
     }
   }
 
-/* =========================================================
-   GUARDAR TODO ANTES DE ENTREGAR
-========================================================= */
+const scheduleAnswerSave = (
+  questionId,
+  delay = 500,
+) => {
+  const id =
+    Number(questionId)
 
-const saveAllAnswers =
-  async () => {
+  if (
+    saveTimers.has(id)
+  ) {
     clearTimeout(
-      saveTimer,
+      saveTimers.get(id),
+    )
+  }
+
+  const timer =
+    setTimeout(
+      async () => {
+        saveTimers.delete(id)
+        await persistAnswer(id)
+      },
+      delay,
     )
 
-    saveState.value =
-      'saving'
+  saveTimers.set(
+    id,
+    timer,
+  )
+}
 
-    for (
-      const question
-      of questions.value
+const flushQuestionSave =
+  async questionId => {
+    const id =
+      Number(questionId)
+
+    if (
+      saveTimers.has(id)
     ) {
-      const answer =
-        answers[
-          question.id
-        ]
+      clearTimeout(
+        saveTimers.get(id),
+      )
 
-      if (!answer) {
-        continue
-      }
-
-      await saveQuizAnswer({
-        attemptId:
-          attempt.value.id,
-
-        questionId:
-          question.id,
-
-        selectedOptionIds:
-          answer
-            .selectedOptionIds,
-
-        textAnswer:
-          answer
-            .textAnswer,
-      })
+      saveTimers.delete(id)
     }
 
-    saveState.value =
-      'saved'
+    await persistAnswer(id)
+  }
+
+const flushAllSaves =
+  async () => {
+    const ids =
+      Array.from(
+        saveTimers.keys(),
+      )
+
+    for (
+      const id of ids
+    ) {
+      clearTimeout(
+        saveTimers.get(id),
+      )
+
+      saveTimers.delete(id)
+    }
+
+    await Promise.all(
+      questions.value.map(
+        question =>
+          persistAnswer(
+            question.id,
+          ),
+      ),
+    )
   }
 
 /* =========================================================
    NAVEGACIÓN
 ========================================================= */
 
+const scrollQuestionTop =
+  async () => {
+    await nextTick()
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }
+
 const goToQuestion =
   index => {
     if (
       index < 0 ||
       index >=
-        questions.value.length
+      questions.value.length
     ) {
       return
     }
@@ -1889,63 +2129,151 @@ const goToQuestion =
     currentQuestionIndex.value =
       index
 
-    isReviewMode.value =
-      false
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
+    scrollQuestionTop()
   }
 
-const previousQuestion =
-  () => {
-    goToQuestion(
-      currentQuestionIndex.value -
-        1,
+const previousQuestion = () => {
+  goToQuestion(
+    currentQuestionIndex.value -
+      1,
+  )
+}
+
+const nextQuestion = () => {
+  goToQuestion(
+    currentQuestionIndex.value +
+      1,
+  )
+}
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+const remainingTimeLabel =
+  computed(() =>
+    formatRemainingTime(
+      remainingSeconds.value,
+    ),
+  )
+
+const refreshRemainingTime =
+  async () => {
+    if (
+      !quiz.value
+        ?.timeLimitMinutes ||
+      !attempt.value
+        ?.startedAt
+    ) {
+      remainingSeconds.value =
+        0
+
+      return
+    }
+
+    remainingSeconds.value =
+      calculateRemainingSeconds(
+        attempt.value.startedAt,
+        quiz.value
+          .timeLimitMinutes,
+      )
+
+    if (
+      remainingSeconds.value <=
+        0 &&
+      !hasAutoSubmitted &&
+      !submissionResult.value
+    ) {
+      hasAutoSubmitted = true
+
+      await autoSubmitExpired()
+    }
+  }
+
+const startTimer = () => {
+  stopTimer()
+
+  hasAutoSubmitted = false
+
+  if (
+    !quiz.value
+      ?.timeLimitMinutes ||
+    !attempt.value
+      ?.startedAt
+  ) {
+    return
+  }
+
+  refreshRemainingTime()
+
+  timerInterval =
+    setInterval(
+      refreshRemainingTime,
+      1000,
     )
-  }
+}
 
-const nextQuestion =
-  () => {
-    goToQuestion(
-      currentQuestionIndex.value +
-        1,
+const stopTimer = () => {
+  if (
+    timerInterval
+  ) {
+    clearInterval(
+      timerInterval,
     )
+
+    timerInterval = null
   }
+}
 
-const editQuestion =
-  index => {
-    goToQuestion(
-      index,
-    )
-  }
+const autoSubmitExpired =
+  async () => {
+    try {
+      /*
+       * Guardamos todo lo que alcance a estar pendiente.
+       * El servidor sigue siendo la autoridad final sobre
+       * el tiempo permitido.
+       */
+      try {
+        await flushAllSaves()
+      } catch {
+        // El RPC puede rechazar saves si el tiempo ya expiró.
+      }
 
-const openReview =
-  () => {
-    isReviewMode.value =
-      true
+      await performSubmit()
+    } catch (error) {
+      console.error(
+        'Error entregando por tiempo:',
+        error,
+      )
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
+      loadError.value =
+        error?.message ||
+        'Se acabó el tiempo y no pudimos completar la entrega automáticamente.'
+    }
   }
 
 /* =========================================================
-   ENTREGAR
+   ENTREGA
 ========================================================= */
 
-const requestSubmission =
-  () => {
-    showSubmitConfirmation.value =
-      true
+const openSubmitDialog = () => {
+  showSubmitDialog.value =
+    true
+}
+
+const closeSubmitDialog = () => {
+  if (
+    isSubmitting.value
+  ) {
+    return
   }
 
-const submitAssessment =
-  async ({
-    automatic = false,
-  } = {}) => {
+  showSubmitDialog.value =
+    false
+}
+
+const performSubmit =
+  async () => {
     if (
       isSubmitting.value ||
       !attempt.value?.id
@@ -1956,205 +2284,259 @@ const submitAssessment =
     isSubmitting.value =
       true
 
-    showSubmitConfirmation.value =
-      false
-
     try {
-      /*
-       * Para una entrega normal guardamos todo
-       * antes de cerrar el intento.
-       *
-       * Si el tiempo expiró, el servidor puede
-       * rechazar nuevos guardados. En ese caso
-       * entregamos lo último que ya alcanzó
-       * a guardarse.
-       */
-      if (!automatic) {
-        await saveAllAnswers()
-      }
+      await flushAllSaves()
 
       const result =
         await submitQuizAttempt(
           attempt.value.id,
         )
 
-      stopTimer()
+      submissionResult.value = {
+        ...result,
 
-      submissionResult.value =
-        result
+        attemptId:
+          Number(
+            result?.attemptId ??
+            result?.attempt_id ??
+            attempt.value?.id ??
+            0,
+          ) || null,
 
-      attempt.value =
-        null
+        status:
+          'submitted',
 
-      isReviewMode.value =
+        requiresManualGrading:
+          Boolean(
+            result?.requiresManualGrading ??
+            result?.requires_manual_grading ??
+            false,
+          ),
+
+        score:
+          result?.score ??
+          null,
+
+        maxScore:
+          result?.maxScore ??
+          result?.max_score ??
+          null,
+
+        percentage:
+          result?.percentage ??
+          null,
+
+        passed:
+          result?.passed ??
+          null,
+      }
+
+      saveResultCache(
+        submissionResult.value,
+      )
+
+      resultWasRestored.value =
         false
 
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      })
-    } catch (error) {
-      console.error(
-        'Error entregando evaluación:',
-        error,
-      )
+      showSubmitDialog.value =
+        false
 
-      showToast(
-        error?.message ||
-          'No fue posible entregar la evaluación.',
-        'error',
-      )
+      stopTimer()
     } finally {
       isSubmitting.value =
         false
     }
   }
 
-/* =========================================================
-   CRONÓMETRO
-========================================================= */
-
-const startTimer =
-  () => {
-    stopTimer()
-
-    remainingSeconds.value =
-      calculateRemainingSeconds({
-        startedAt:
-          attempt.value
-            ?.startedAt,
-
-        timeLimitMinutes:
-          quiz.value
-            ?.timeLimitMinutes,
-      })
-
-    if (
-      remainingSeconds.value ===
-      null
-    ) {
-      return
-    }
-
-    if (
-      remainingSeconds.value <=
-      0
-    ) {
-      handleTimeExpired()
-      return
-    }
-
-    timerInterval =
-      window.setInterval(
-        () => {
-          remainingSeconds.value =
-            calculateRemainingSeconds({
-              startedAt:
-                attempt.value
-                  ?.startedAt,
-
-              timeLimitMinutes:
-                quiz.value
-                  ?.timeLimitMinutes,
-            })
-
-          if (
-            remainingSeconds.value <=
-            0
-          ) {
-            handleTimeExpired()
-          }
-        },
-        1000,
-      )
-  }
-
-const stopTimer =
-  () => {
-    if (
-      timerInterval
-    ) {
-      window.clearInterval(
-        timerInterval,
-      )
-
-      timerInterval =
-        null
-    }
-  }
-
-const handleTimeExpired =
+const submitEvaluation =
   async () => {
     if (
-      isAutoSubmitting
+      requiredUnansweredCount
+        .value > 0
     ) {
       return
     }
 
-    isAutoSubmitting =
-      true
+    try {
+      await performSubmit()
+    } catch (error) {
+      console.error(
+        'Error entregando evaluación:',
+        error,
+      )
 
-    stopTimer()
-
-    showSubmitConfirmation.value =
-      false
-
-    showToast(
-      'El tiempo terminó. Estamos entregando tu evaluación.',
-    )
-
-    await submitAssessment({
-      automatic: true,
-    })
-
-    isAutoSubmitting =
-      false
+      saveError.value =
+        error?.message ||
+        'No fue posible entregar la evaluación.'
+    }
   }
 
+const reviewAttemptId =
+  computed(() => {
+    const id =
+      Number(
+        submissionResult.value
+          ?.attemptId ??
+        submissionResult.value
+          ?.attempt_id ??
+        attempt.value
+          ?.id ??
+        0,
+      )
+
+    return (
+      Number.isFinite(id) &&
+      id > 0
+    )
+      ? id
+      : null
+  })
+
 /* =========================================================
-   FORMATOS
+   REGLAS DE INTENTOS / RESULTADOS
 ========================================================= */
 
-const getQuestionTypeLabel =
-  type => {
-    const labels = {
-      single_choice:
-        'Selección única',
+const attemptsAllowed =
+  computed(() => {
+    const value =
+      Number(
+        quiz.value
+          ?.attemptsAllowed,
+      )
 
-      multiple_choice:
-        'Selección múltiple',
+    if (
+      !Number.isFinite(value) ||
+      value <= 0
+    ) {
+      return null
+    }
 
-      true_false:
-        'Verdadero o falso',
+    return value
+  })
 
-      short_answer:
-        'Respuesta corta',
+const currentAttemptNumber =
+  computed(() => {
+    const value =
+      Number(
+        attempt.value
+          ?.attemptNumber ??
+        attempt.value
+          ?.attempt_number ??
+        submissionResult.value
+          ?.attemptNumber ??
+        submissionResult.value
+          ?.attempt_number ??
+        1,
+      )
 
-      essay:
-        'Desarrollo',
+    return (
+      Number.isFinite(value) &&
+      value > 0
+    )
+      ? value
+      : 1
+  })
+
+const canRetakeQuiz =
+  computed(() => {
+    if (
+      quiz.value
+        ?.assessmentType !==
+      'quiz'
+    ) {
+      return false
+    }
+
+    if (
+      attemptsAllowed.value ===
+      null
+    ) {
+      return true
     }
 
     return (
-      labels[type] ||
-      'Pregunta'
+      currentAttemptNumber.value <
+      attemptsAllowed.value
     )
+  })
+
+const attemptRuleLabel =
+  computed(() => {
+    if (
+      attemptsAllowed.value ===
+      null
+    ) {
+      return (
+        quiz.value
+          ?.assessmentType ===
+        'quiz'
+          ? 'Práctica disponible'
+          : 'Según configuración'
+      )
+    }
+
+    return `${currentAttemptNumber.value} de ${attemptsAllowed.value}`
+  })
+
+const resultNextStepLabel =
+  computed(() => {
+    if (
+      submissionResult.value
+        ?.requiresManualGrading
+    ) {
+      return 'Esperar revisión'
+    }
+
+    if (
+      quiz.value
+        ?.assessmentType ===
+        'quiz' &&
+      canRetakeQuiz.value
+    ) {
+      return 'Revisar y practicar'
+    }
+
+    return 'Continuar aprendiendo'
+  })
+
+const startNewPracticeAttempt =
+  async () => {
+    if (
+      !canRetakeQuiz.value
+    ) {
+      return
+    }
+
+    clearResultCache()
+
+    submissionResult.value =
+      null
+
+    resultWasRestored.value =
+      false
+
+    attempt.value =
+      null
+
+    answers.value = {}
+
+    currentQuestionIndex.value =
+      0
+
+    await loadQuiz()
   }
 
-const getOptionLetter =
-  index =>
-    String.fromCharCode(
-      65 + index,
-    )
+/* =========================================================
+   HELPERS
+========================================================= */
 
-const formatPoints =
+const formatScore =
   value => {
     const number =
       Number(value)
 
     if (
-      !Number.isFinite(
-        number,
-      )
+      !Number.isFinite(number)
     ) {
       return '0'
     }
@@ -2166,763 +2548,644 @@ const formatPoints =
       : number.toFixed(1)
   }
 
-const formatPercentage =
-  value => {
-    const number =
-      Number(value)
-
-    if (
-      !Number.isFinite(
-        number,
-      )
-    ) {
-      return '0'
-    }
-
-    return Number.isInteger(
-      number,
-    )
-      ? String(number)
-      : number.toFixed(1)
-  }
-
-const truncateText =
-  (
-    value,
-    length = 70,
-  ) => {
-    const text =
-      String(
-        value || '',
-      )
-
-    if (
-      text.length <=
-      length
-    ) {
-      return text
-    }
-
-    return `${text.slice(
-      0,
-      length,
-    )}…`
-  }
-
 /* =========================================================
-   TOAST
+   WATCH / LIFECYCLE
 ========================================================= */
 
-const showToast =
-  (
-    message,
-    type = 'success',
-  ) => {
-    clearTimeout(
-      toastTimer,
-    )
+watch(
+  () => [
+    route.params.id,
+    route.params.quizId,
+  ],
+  async () => {
+    stopTimer()
 
-    toastMessage.value =
-      message
+    for (
+      const timer of
+      saveTimers.values()
+    ) {
+      clearTimeout(timer)
+    }
 
-    toastType.value =
-      type
+    saveTimers.clear()
 
-    toastTimer =
-      setTimeout(
-        () => {
-          toastMessage.value =
-            ''
-        },
-        3500,
-      )
-  }
+    currentQuestionIndex.value =
+      0
 
-/* =========================================================
-   CICLO DE VIDA
-========================================================= */
+    await loadQuiz()
+  },
+)
 
-onMounted(() => {
-  loadQuiz()
-})
+onMounted(
+  loadQuiz,
+)
 
-onUnmounted(() => {
-  clearTimeout(
-    saveTimer,
-  )
-
-  clearTimeout(
-    toastTimer,
-  )
-
+onBeforeUnmount(() => {
   stopTimer()
+
+  for (
+    const timer of
+    saveTimers.values()
+  ) {
+    clearTimeout(timer)
+  }
+
+  saveTimers.clear()
 })
 </script>
 
 <style lang="scss" scoped>
 @use '@/assets/styles/abstracts/variables' as variables;
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 .quiz-page {
-  width: 100%;
-  max-width: 1240px;
+  width: min(1440px, 100%);
   margin: 0 auto;
+  padding:
+    clamp(1rem, 2vw, 2rem)
+    clamp(1rem, 3vw, 2.5rem)
+    5rem;
 }
 
 /* =========================================================
-   ESTADOS
+   STATE
 ========================================================= */
 
-.quiz-state {
+.quiz-state,
+.result-screen {
   display: grid;
-  min-height: 520px;
-  gap: 12px;
+  min-height: 62vh;
+  gap: 1rem;
   place-items: center;
   align-content: center;
-  padding: 40px 20px;
   text-align: center;
 }
 
-.quiz-state p {
-  max-width: 540px;
-  margin: 0;
-  line-height: 1.6;
-  opacity: 0.55;
-}
-
-.quiz-state--error strong {
-  color: #ff7676;
-}
-
-.quiz-state__icon {
-  display: grid;
-  width: 72px;
-  height: 72px;
-  place-items: center;
-  border: 1px solid #d85151;
+.quiz-state__spinner {
+  width: 52px;
+  height: 52px;
+  border:
+    3px solid
+    rgba(255, 255, 255, 0.1);
+  border-top-color:
+    variables.$color-primary;
   border-radius: 50%;
-  color: #ff7676;
-  font-size: 2rem;
+  animation:
+    spin 0.8s linear infinite;
 }
 
-.quiz-spinner {
-  width: 50px;
-  height: 50px;
-  border: 3px solid variables.$color-border;
-  border-top-color: variables.$color-primary;
-  border-radius: 50%;
-  animation: quiz-spin 0.8s linear infinite;
-}
-
-@keyframes quiz-spin {
+@keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* =========================================================
-   BOTONES
-========================================================= */
+.quiz-state__eyebrow,
+.result-screen__eyebrow {
+  color:
+    variables.$color-primary;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
 
-.quiz-button,
-.start-button,
-.submit-button {
-  display: inline-flex;
-  min-height: 46px;
-  align-items: center;
+.quiz-state h1,
+.result-screen h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size:
+    clamp(2rem, 5vw, 4rem);
+  line-height: 1.05;
+}
+
+.quiz-state p,
+.result-screen > p {
+  max-width: 650px;
+  margin: 0;
+  color:
+    rgba(255, 255, 255, 0.58);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.quiz-state__icon,
+.result-screen__icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border:
+    1px solid
+    #ef6767;
+  border-radius: 50%;
+  color: #ff7b7b;
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+
+.result-screen__icon {
+  border-color:
+    variables.$color-primary;
+  color:
+    variables.$color-primary;
+}
+
+.result-screen__icon--pending {
+  font-size: 2rem;
+}
+
+.quiz-state__actions,
+.result-screen__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   justify-content: center;
-  padding: 0 20px;
-  border-radius: variables.$radius-lg;
+  margin-top: 1rem;
+}
+
+.quiz-state__actions button,
+.quiz-state__actions a {
+  min-height: 46px;
+  padding:
+    0.75rem
+    1rem;
+  border:
+    1px solid
+    variables.$color-primary;
+  border-radius: 10px;
+  background:
+    transparent;
+  color:
+    variables.$color-primary;
   font: inherit;
-  font-weight: variables.$font-weight-semibold;
+  font-weight: 800;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    opacity 0.18s ease;
-}
-
-.quiz-button:hover:not(:disabled),
-.start-button:hover:not(:disabled),
-.submit-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.quiz-button:disabled,
-.start-button:disabled,
-.submit-button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.quiz-button--primary,
-.start-button,
-.submit-button {
-  border: 1px solid variables.$color-primary;
-  background: variables.$color-primary;
-  color: variables.$color-white;
-}
-
-.quiz-button--secondary {
-  border: 1px solid variables.$color-border;
-  background: variables.$color-surface;
-  color: variables.$color-white;
-}
-
-.quiz-button--secondary:hover:not(:disabled) {
-  border-color: variables.$color-primary;
-  color: variables.$color-primary;
 }
 
 /* =========================================================
-   PORTADA
+   TOPBAR
 ========================================================= */
+
+.quiz-topbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
 
 .quiz-back {
-  display: inline-block;
-  margin-bottom: variables.$spacing-xl;
-  color: variables.$color-primary;
-  font-weight: variables.$font-weight-semibold;
+  display: inline-flex;
+  min-height: 44px;
+  gap: 0.55rem;
+  align-items: center;
+  color:
+    rgba(255, 255, 255, 0.75);
+  font-size: 0.86rem;
+  font-weight: 800;
   text-decoration: none;
 }
 
-.quiz-cover {
+.quiz-topbar__status {
   display: flex;
-  gap: variables.$spacing-2xl;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: variables.$spacing-3xl;
-}
-
-.quiz-cover__copy {
-  max-width: 850px;
-}
-
-.quiz-eyebrow {
-  margin: 0 0 10px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-sm;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.quiz-cover h1 {
-  margin: 0;
-  max-width: 900px;
-  font-size: clamp(2.8rem, 6vw, 5.5rem);
-  line-height: 0.98;
-}
-
-.quiz-cover__description {
-  max-width: 760px;
-  margin: variables.$spacing-xl 0 0;
-  font-size: 1.05rem;
-  line-height: 1.7;
-  opacity: 0.65;
-}
-
-.quiz-cover__badge {
-  min-width: 210px;
-  padding: variables.$spacing-xl;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background:
-    radial-gradient(
-      circle at 100% 0,
-      rgba(variables.$color-primary, 0.16),
-      transparent 50%
-    ),
-    variables.$color-surface;
-}
-
-.quiz-cover__badge span,
-.quiz-cover__badge strong,
-.quiz-cover__badge small {
-  display: block;
-}
-
-.quiz-cover__badge span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  letter-spacing: 0.12em;
-}
-
-.quiz-cover__badge strong {
-  margin: 5px 0;
-  font-size: 2.4rem;
-}
-
-.quiz-cover__badge small {
-  opacity: 0.45;
-}
-
-/* =========================================================
-   INSTRUCCIONES
-========================================================= */
-
-.quiz-instructions {
-  max-width: 1000px;
-}
-
-.quiz-instructions__heading {
-  margin-bottom: variables.$spacing-xl;
-}
-
-.quiz-instructions__heading span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.13em;
-}
-
-.quiz-instructions__heading h2 {
-  margin: 8px 0 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-}
-
-.quiz-info-grid {
-  display: grid;
-  gap: variables.$spacing-md;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-bottom: variables.$spacing-xl;
-}
-
-.quiz-info-grid article {
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-}
-
-.quiz-info-grid span,
-.quiz-info-grid strong,
-.quiz-info-grid small {
-  display: block;
-}
-
-.quiz-info-grid span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.quiz-info-grid strong {
-  margin: 8px 0 4px;
-  font-size: 1.4rem;
-}
-
-.quiz-info-grid small {
-  opacity: 0.45;
-}
-
-.instructions-card {
-  display: flex;
-  gap: variables.$spacing-lg;
+  gap: 0.5rem;
   align-items: center;
-  margin-bottom: variables.$spacing-md;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
+  color:
+    rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
 }
 
-.instructions-card__number {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid variables.$color-primary;
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-bold;
-}
-
-.instructions-card strong,
-.instructions-card p {
-  margin: 0;
-}
-
-.instructions-card p {
-  margin-top: 5px;
-  line-height: 1.55;
-  opacity: 0.55;
-}
-
-.instructions-card--warning {
-  border-color: rgba(255, 187, 69, 0.45);
-}
-
-.start-button {
-  min-width: 260px;
-  margin-top: variables.$spacing-xl;
-}
-
-/* =========================================================
-   HEADER EXAMEN
-========================================================= */
-
-.exam-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: flex;
-  gap: variables.$spacing-xl;
-  align-items: center;
-  justify-content: space-between;
-  margin: -10px 0 variables.$spacing-lg;
-  padding: 12px 0;
-  border-bottom: 1px solid variables.$color-border;
-  background: variables.$color-background;
-}
-
-.exam-header__main,
-.exam-header__status {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-
-.exam-header__back {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid variables.$color-border;
-  border-radius: 50%;
-  color: variables.$color-white;
-  text-decoration: none;
-}
-
-.exam-header__back:hover {
-  border-color: variables.$color-primary;
-  color: variables.$color-primary;
-}
-
-.exam-header__title {
-  min-width: 0;
-}
-
-.exam-header__title span,
-.exam-header__title strong {
-  display: block;
-}
-
-.exam-header__title span {
-  margin-bottom: 3px;
-  color: variables.$color-primary;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-}
-
-.exam-header__title strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 1rem;
-}
-
-.save-status {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  font-size: 0.75rem;
-  opacity: 0.6;
-}
-
-.save-status__dot {
+.save-indicator {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #63c481;
+  background:
+    #67d98b;
 }
 
-.save-status__dot.is-saving {
-  background: variables.$color-primary;
-  animation: pulse-save 0.8s infinite alternate;
+.save-indicator--saving {
+  background:
+    variables.$color-primary;
+  animation:
+    pulse 0.8s ease infinite;
 }
 
-.save-status__dot.is-error {
-  background: #ff6767;
+.save-indicator--error {
+  background:
+    #ef6767;
 }
 
-@keyframes pulse-save {
-  to {
-    opacity: 0.25;
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
   }
 }
 
-.timer {
-  min-width: 115px;
-  padding: 8px 12px;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  text-align: center;
-}
-
-.timer span,
-.timer strong {
-  display: block;
-}
-
-.timer span {
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
-  opacity: 0.45;
-}
-
-.timer strong {
-  margin-top: 2px;
-  font-variant-numeric: tabular-nums;
-  font-size: 1.1rem;
-}
-
-.timer--warning {
-  border-color: #e5ac43;
-  color: #ffd071;
-}
-
-.timer--critical {
-  border-color: #d85151;
-  color: #ff7777;
-}
-
 /* =========================================================
-   PROGRESO
+   HERO
 ========================================================= */
 
-.quiz-progress {
-  margin-bottom: variables.$spacing-xl;
-}
-
-.quiz-progress__copy {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.76rem;
-}
-
-.quiz-progress__copy span {
-  opacity: 0.5;
-}
-
-.quiz-progress__track {
-  height: 5px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: variables.$color-border;
-}
-
-.quiz-progress__fill {
-  height: 100%;
-  border-radius: inherit;
-  background: variables.$color-primary;
-  transition: width 0.3s ease;
-}
-
-/* =========================================================
-   LAYOUT EXAMEN
-========================================================= */
-
-.exam-layout {
+.quiz-hero {
   display: grid;
-  gap: variables.$spacing-xl;
-  align-items: start;
-  grid-template-columns: 220px minmax(0, 1fr);
-}
-
-.question-navigation {
-  position: sticky;
-  top: 90px;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-}
-
-.question-navigation__heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: variables.$spacing-md;
-}
-
-.question-navigation__heading span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  letter-spacing: 0.1em;
-}
-
-.question-navigation__heading strong {
-  font-size: 0.8rem;
-  opacity: 0.5;
-}
-
-.question-navigation__grid {
-  display: grid;
-  gap: 7px;
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.question-nav-button {
-  aspect-ratio: 1;
-  border: 1px solid variables.$color-border;
-  border-radius: 8px;
-  background: transparent;
-  color: variables.$color-white;
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-
-.question-nav-button.is-answered {
-  border-color: rgba(variables.$color-primary, 0.5);
-  color: variables.$color-primary;
-}
-
-.question-nav-button.is-current {
-  border-color: variables.$color-primary;
-  background: variables.$color-primary;
-  color: variables.$color-white;
-}
-
-.question-navigation__legend {
-  display: grid;
-  gap: 7px;
-  margin-top: variables.$spacing-lg;
-  padding-top: variables.$spacing-md;
-  border-top: 1px solid variables.$color-border;
-}
-
-.question-navigation__legend span {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  font-size: 0.68rem;
-  opacity: 0.55;
-}
-
-.legend-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.legend-dot--answered {
-  background: variables.$color-primary;
-}
-
-.legend-dot--pending {
-  border: 1px solid variables.$color-border;
-}
-
-/* =========================================================
-   PREGUNTA
-========================================================= */
-
-.question-panel {
-  min-height: 590px;
-  padding: clamp(24px, 5vw, 52px);
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
+  gap: 1.25rem;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+  align-items: stretch;
+  margin-bottom: 1rem;
+  padding:
+    clamp(1.3rem, 3vw, 2.4rem);
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.2);
+  border-radius: 22px;
   background:
     radial-gradient(
-      circle at 100% 0,
-      rgba(variables.$color-primary, 0.08),
-      transparent 35%
+      circle at top right,
+      rgba(255, 196, 0, 0.08),
+      transparent 38%
     ),
     variables.$color-surface;
 }
 
-.question-panel__top {
+.quiz-hero__eyebrow {
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: variables.$spacing-2xl;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
 }
 
-.question-panel__top p {
-  margin: 0 0 8px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-semibold;
+.quiz-hero__eyebrow span {
+  padding:
+    0.3rem
+    0.55rem;
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.3);
+  border-radius: 999px;
+  color:
+    variables.$color-primary;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.quiz-hero h1 {
+  max-width: 920px;
+  margin: 0;
+  font-size:
+    clamp(2rem, 4vw, 3.7rem);
+  line-height: 1.05;
+}
+
+.quiz-hero p {
+  max-width: 760px;
+  margin:
+    0.9rem
+    0
+    0;
+  color:
+    rgba(255, 255, 255, 0.6);
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.quiz-hero__meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.2rem;
+}
+
+.quiz-hero__meta span {
+  padding:
+    0.35rem
+    0.55rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 8px;
+  color:
+    rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+.timer-card {
+  display: grid;
+  min-width: 170px;
+  place-items: center;
+  align-content: center;
+  padding: 1rem;
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.3);
+  border-radius: 18px;
+  text-align: center;
+}
+
+.timer-card small {
+  color:
+    variables.$color-primary;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.timer-card strong {
+  margin:
+    0.4rem
+    0;
+  color:
+    variables.$color-primary;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.timer-card span {
+  color:
+    rgba(255, 255, 255, 0.48);
+  font-size: 0.75rem;
+}
+
+.timer-card--warning {
+  border-color:
+    #e7a93b;
+}
+
+.timer-card--critical {
+  border-color:
+    #ef6767;
+  background:
+    rgba(239, 103, 103, 0.06);
+}
+
+.timer-card--critical strong,
+.timer-card--critical small {
+  color:
+    #ff8080;
+}
+
+.assessment-purpose {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding:
+    0.75rem
+    0.85rem;
+  border:
+    1px solid
+    rgba(103, 217, 139, 0.26);
+  border-radius: 11px;
+  background:
+    rgba(103, 217, 139, 0.045);
+}
+
+.assessment-purpose strong {
+  color:
+    #8ee3a7;
+  font-size: 0.78rem;
+}
+
+.assessment-purpose span {
+  color:
+    rgba(255, 255, 255, 0.57);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+.assessment-purpose--test {
+  border-color:
+    rgba(255, 196, 0, 0.28);
+  background:
+    rgba(255, 196, 0, 0.045);
+}
+
+.assessment-purpose--test strong {
+  color:
+    variables.$color-primary;
+}
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+.quiz-progress {
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 14px;
+  background:
+    variables.$color-surface;
+}
+
+.quiz-progress__heading {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+}
+
+.quiz-progress__heading span,
+.quiz-progress__heading strong {
+  display: block;
+}
+
+.quiz-progress__heading span {
+  margin-bottom: 0.2rem;
+  color:
+    variables.$color-primary;
+  font-size: 0.68rem;
+  font-weight: 900;
   letter-spacing: 0.12em;
 }
 
-.question-meta {
+.quiz-progress__heading strong {
+  font-size: 0.9rem;
+}
+
+.quiz-progress__heading b {
+  color:
+    variables.$color-primary;
+  font-size: 1.2rem;
+}
+
+.quiz-progress__bar {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    rgba(255, 255, 255, 0.07);
+}
+
+.quiz-progress__bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    variables.$color-primary;
+  transition:
+    width 0.25s ease;
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.quiz-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(260px, 320px);
+  align-items: start;
+}
+
+/* =========================================================
+   QUESTION
+========================================================= */
+
+.question-panel {
+  overflow: hidden;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 20px;
+  background:
+    variables.$color-surface;
+}
+
+.question-header {
   display: flex;
-  gap: 7px;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding:
+    1rem
+    1.2rem;
+  border-bottom:
+    1px solid
+    variables.$color-border;
+}
+
+.question-header > div {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.question-meta span {
-  padding: 4px 8px;
-  border: 1px solid variables.$color-border;
-  border-radius: 999px;
-  font-size: 0.65rem;
-  opacity: 0.55;
-}
-
 .question-number {
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  font-weight: variables.$font-weight-bold;
-  line-height: 1;
-  opacity: 0.08;
+  color:
+    variables.$color-primary;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
 }
 
-.question-prompt {
-  max-width: 850px;
-  margin: 0 0 variables.$spacing-2xl;
-  font-size: clamp(1.5rem, 3vw, 2.35rem);
-  line-height: 1.25;
+.required-badge {
+  padding:
+    0.25rem
+    0.45rem;
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.28);
+  border-radius: 999px;
+  color:
+    rgba(255, 255, 255, 0.68);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.question-header > strong {
+  color:
+    rgba(255, 255, 255, 0.54);
+  font-size: 0.8rem;
+}
+
+.question-content {
+  min-height: 420px;
+  padding:
+    clamp(1.2rem, 3vw, 2.2rem);
+}
+
+.question-content h2 {
+  max-width: 960px;
+  margin:
+    0
+    0
+    1.6rem;
+  font-size:
+    clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.35;
 }
 
 .question-media {
-  margin-bottom: variables.$spacing-xl;
+  margin:
+    0
+    0
+    1.4rem;
 }
 
 .question-media audio {
-  width: min(650px, 100%);
+  width: 100%;
 }
 
 .question-media img {
   display: block;
-  max-width: min(760px, 100%);
-  max-height: 440px;
-  border-radius: variables.$radius-lg;
+  max-width: 100%;
+  max-height: 480px;
   object-fit: contain;
+  border-radius: 14px;
 }
 
 /* =========================================================
-   OPCIONES
+   OPTIONS
 ========================================================= */
 
 .options-list {
   display: grid;
-  gap: 12px;
+  gap: 0.7rem;
 }
 
-.multiple-notice {
-  margin: -8px 0 8px;
-  font-size: 0.78rem;
-  opacity: 0.5;
+.question-hint {
+  margin:
+    0
+    0
+    0.2rem;
+  color:
+    rgba(255, 255, 255, 0.52);
+  font-size: 0.86rem;
 }
 
 .option-card {
   display: grid;
-  gap: 14px;
+  min-height: 64px;
+  gap: 0.85rem;
+  grid-template-columns:
+    auto
+    auto
+    minmax(0, 1fr);
   align-items: center;
-  min-height: 70px;
-  padding: 12px 16px;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
+  padding:
+    0.8rem
+    1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 13px;
+  background:
+    rgba(255, 255, 255, 0.018);
   cursor: pointer;
-  grid-template-columns: auto 1fr auto;
   transition:
     border-color 0.18s ease,
     background 0.18s ease,
@@ -2930,660 +3193,1141 @@ onUnmounted(() => {
 }
 
 .option-card:hover {
-  border-color: rgba(variables.$color-primary, 0.6);
-  transform: translateY(-1px);
+  border-color:
+    rgba(255, 196, 0, 0.34);
+  transform:
+    translateY(-1px);
 }
 
-.option-card.is-selected {
-  border-color: variables.$color-primary;
-  background: rgba(variables.$color-primary, 0.07);
+.option-card--selected {
+  border-color:
+    variables.$color-primary;
+  background:
+    rgba(255, 196, 0, 0.07);
 }
 
 .option-card input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+  width: 18px;
+  height: 18px;
+  accent-color:
+    variables.$color-primary;
 }
 
-.option-card__letter {
+.option-card__marker {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  border: 1px solid variables.$color-border;
+  border:
+    1px solid
+    variables.$color-border;
   border-radius: 50%;
-  font-size: 0.78rem;
-  font-weight: variables.$font-weight-bold;
+  color:
+    variables.$color-primary;
+  font-size: 0.8rem;
+  font-weight: 900;
 }
 
-.option-card.is-selected .option-card__letter {
-  border-color: variables.$color-primary;
-  background: variables.$color-primary;
-  color: variables.$color-white;
-}
-
-.option-card__text {
+.option-card strong {
+  font-size: 0.98rem;
+  font-weight: 700;
   line-height: 1.5;
 }
 
-.option-card__check {
-  color: variables.$color-primary;
-  opacity: 0;
-}
-
-.option-card.is-selected .option-card__check {
-  opacity: 1;
-}
-
 /* =========================================================
-   TEXTO
+   TEXT ANSWERS
 ========================================================= */
 
 .text-answer {
   display: grid;
-  gap: 8px;
+  gap: 0.55rem;
 }
 
 .text-answer label {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color:
+    variables.$color-primary;
+  font-size: 0.8rem;
+  font-weight: 900;
 }
 
 .text-answer input,
 .text-answer textarea {
   width: 100%;
-  padding: 16px;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 12px;
   outline: none;
-  background: variables.$color-background;
-  color: variables.$color-white;
+  background:
+    rgba(255, 255, 255, 0.025);
+  color:
+    variables.$color-white;
   font: inherit;
-  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.text-answer input {
+  min-height: 52px;
+  padding:
+    0
+    0.9rem;
+}
+
+.text-answer textarea {
+  min-height: 200px;
+  padding: 0.9rem;
   resize: vertical;
+  line-height: 1.65;
 }
 
 .text-answer input:focus,
 .text-answer textarea:focus {
-  border-color: variables.$color-primary;
+  border-color:
+    variables.$color-primary;
 }
 
-.text-answer small {
-  justify-self: end;
-  opacity: 0.4;
+.unsupported-question {
+  padding: 1rem;
+  border:
+    1px dashed
+    variables.$color-border;
+  border-radius: 12px;
+  color:
+    rgba(255, 255, 255, 0.55);
 }
 
 /* =========================================================
-   ACCIONES DE PREGUNTA
+   ACTIONS
 ========================================================= */
 
 .question-actions {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns:
+    auto
+    1fr
+    auto;
   align-items: center;
-  justify-content: space-between;
-  margin-top: variables.$spacing-3xl;
-  padding-top: variables.$spacing-xl;
-  border-top: 1px solid variables.$color-border;
+  padding:
+    1rem
+    1.2rem;
+  border-top:
+    1px solid
+    variables.$color-border;
 }
 
-.question-actions__save {
-  flex: 1;
-  text-align: center;
-  font-size: 0.72rem;
-  opacity: 0.45;
-}
-
-/* =========================================================
-   REVISIÓN
-========================================================= */
-
-.review-screen {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.review-screen__heading {
-  margin: variables.$spacing-xl 0 variables.$spacing-2xl;
+.question-actions__center {
   text-align: center;
 }
 
-.review-screen__heading p {
-  margin: 0 0 8px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  letter-spacing: 0.13em;
+.question-actions__center span {
+  color:
+    rgba(255, 255, 255, 0.5);
+  font-size: 0.76rem;
 }
 
-.review-screen__heading h1 {
-  margin: 0;
-  font-size: clamp(2.7rem, 6vw, 5rem);
-}
-
-.review-screen__heading > span {
-  display: block;
-  max-width: 620px;
-  margin: variables.$spacing-md auto 0;
-  line-height: 1.6;
-  opacity: 0.55;
-}
-
-.review-summary {
-  display: grid;
-  gap: variables.$spacing-md;
-  grid-template-columns: repeat(4, 1fr);
-  margin-bottom: variables.$spacing-xl;
-}
-
-.review-summary article {
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-  text-align: center;
-}
-
-.review-summary span,
-.review-summary strong {
-  display: block;
-}
-
-.review-summary span {
-  margin-bottom: 7px;
-  font-size: variables.$font-size-xs;
-  opacity: 0.45;
-}
-
-.review-summary strong {
-  color: variables.$color-primary;
-  font-size: 1.4rem;
-}
-
-.review-questions {
-  display: grid;
-  gap: 10px;
-}
-
-.review-question {
-  display: grid;
-  gap: 14px;
+.button {
+  display: inline-flex;
+  min-height: 46px;
+  gap: 0.5rem;
   align-items: center;
-  width: 100%;
-  padding: variables.$spacing-md;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-  color: variables.$color-white;
+  justify-content: center;
+  padding:
+    0.72rem
+    1rem;
+  border-radius: 10px;
   font: inherit;
-  text-align: left;
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-decoration: none;
   cursor: pointer;
-  grid-template-columns: auto 1fr auto auto;
 }
 
-.review-question:hover {
-  border-color: variables.$color-primary;
+.button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
-.review-question__number {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid variables.$color-border;
-  border-radius: 50%;
-  font-size: 0.72rem;
+.button--primary {
+  border:
+    1px solid
+    variables.$color-primary;
+  background:
+    variables.$color-primary;
+  color: #080808;
 }
 
-.review-question.is-complete .review-question__number {
-  border-color: variables.$color-primary;
-  color: variables.$color-primary;
-}
-
-.review-question.is-pending {
-  border-color: rgba(216, 81, 81, 0.4);
-}
-
-.review-question__copy {
-  min-width: 0;
-}
-
-.review-question__copy span,
-.review-question__copy strong {
-  display: block;
-}
-
-.review-question__copy span {
-  margin-bottom: 3px;
-  color: variables.$color-primary;
-  font-size: 0.65rem;
-}
-
-.review-question__copy strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.88rem;
-}
-
-.review-question__status {
-  padding: 5px 9px;
-  border: 1px solid variables.$color-border;
-  border-radius: 999px;
-  font-size: 0.65rem;
-}
-
-.review-question.is-complete .review-question__status {
-  color: variables.$color-primary;
-}
-
-.review-question.is-pending .review-question__status {
-  color: #ff7777;
-}
-
-.review-question__arrow {
-  color: variables.$color-primary;
-}
-
-.review-warning {
-  display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
-  margin-top: variables.$spacing-xl;
-  padding: variables.$spacing-lg;
-  border: 1px solid #d85151;
-  border-radius: variables.$radius-lg;
-}
-
-.review-warning > div {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 50%;
-  background: #d85151;
-  color: white;
-}
-
-.review-warning p {
-  margin: 0;
-}
-
-.review-actions {
-  display: flex;
-  gap: variables.$spacing-md;
-  justify-content: flex-end;
-  margin-top: variables.$spacing-2xl;
+.button--secondary {
+  border:
+    1px solid
+    variables.$color-border;
+  background:
+    transparent;
+  color:
+    variables.$color-white;
 }
 
 /* =========================================================
-   RESULTADO
+   SIDEBAR
 ========================================================= */
 
-.result-screen {
+.question-sidebar {
+  position: sticky;
+  top: 1rem;
   display: grid;
-  max-width: 800px;
-  min-height: 620px;
-  margin: 0 auto;
-  place-items: center;
-  align-content: center;
-  padding: 40px 20px;
-  text-align: center;
+  gap: 0.8rem;
 }
 
-.result-screen__eyebrow {
-  margin-bottom: variables.$spacing-lg;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.15em;
+.navigator-card,
+.summary-card,
+.autosave-card {
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 16px;
+  background:
+    variables.$color-surface;
 }
 
-.result-screen__icon {
+.navigator-card__eyebrow {
+  display: block;
+  margin-bottom: 0.8rem;
+  color:
+    variables.$color-primary;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.question-grid {
   display: grid;
-  width: 96px;
-  height: 96px;
-  place-items: center;
-  border: 1px solid variables.$color-primary;
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: 2.6rem;
+  gap: 0.45rem;
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    );
 }
 
-.result-screen__icon--failed {
-  border-color: #d85151;
-  color: #ff7777;
+.question-dot {
+  aspect-ratio: 1;
+  min-height: 42px;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 10px;
+  background:
+    transparent;
+  color:
+    rgba(255, 255, 255, 0.55);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-.result-screen__icon--pending {
-  border-color: #e5ac43;
-  color: #ffd071;
+.question-dot {
+  position: relative;
 }
 
-.result-screen h1 {
-  margin: variables.$spacing-xl 0 variables.$spacing-md;
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+.question-dot > span {
+  position: relative;
+  z-index: 1;
 }
 
-.result-screen__description {
-  max-width: 650px;
-  margin: 0;
-  line-height: 1.65;
-  opacity: 0.6;
-}
-
-.result-score {
-  display: flex;
-  gap: variables.$spacing-2xl;
-  align-items: center;
-  margin-top: variables.$spacing-2xl;
-  padding: variables.$spacing-xl variables.$spacing-2xl;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-}
-
-.result-score__number {
-  color: variables.$color-primary;
-  font-size: clamp(3rem, 8vw, 5rem);
-  font-weight: variables.$font-weight-bold;
+.question-dot > b {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  color:
+    #8ee3a7;
+  font-size: 0.62rem;
   line-height: 1;
 }
 
-.result-score__details {
-  text-align: left;
+.question-dot--pending {
+  border-color:
+    rgba(255, 255, 255, 0.11);
+  background:
+    rgba(255, 255, 255, 0.018);
+  color:
+    rgba(255, 255, 255, 0.5);
 }
 
-.result-score__details span,
-.result-score__details strong {
-  display: block;
+.question-dot--answered {
+  border-color:
+    rgba(103, 217, 139, 0.62);
+  background:
+    rgba(103, 217, 139, 0.12);
+  color:
+    #9be7b0;
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(103, 217, 139, 0.08);
 }
 
-.result-score__details span {
-  font-size: variables.$font-size-xs;
-  opacity: 0.45;
+.question-dot--answered:hover {
+  border-color:
+    #79df98;
+  background:
+    rgba(103, 217, 139, 0.18);
 }
 
-.result-score__details strong {
-  margin-top: 5px;
-  font-size: 1.2rem;
+.question-dot--current,
+.question-dot--current.question-dot--answered {
+  border-color:
+    variables.$color-primary;
+  background:
+    variables.$color-primary;
+  color: #080808;
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 196, 0, 0.12);
 }
 
-.result-status {
-  margin-top: variables.$spacing-lg;
-  padding: 8px 14px;
-  border: 1px solid variables.$color-border;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: variables.$font-weight-semibold;
+.question-dot--current > b {
+  display: none;
 }
 
-.result-status--passed {
-  border-color: #4caa6d;
-  color: #70d892;
+.question-dot--required:not(
+  .question-dot--answered
+) {
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(255, 255, 255, 0.05);
 }
 
-.result-status--failed {
-  border-color: #d85151;
-  color: #ff7777;
-}
-
-.manual-notice {
+.navigator-legend {
   display: flex;
-  gap: variables.$spacing-lg;
-  align-items: center;
-  max-width: 700px;
-  margin-top: variables.$spacing-xl;
-  padding: variables.$spacing-lg;
-  border: 1px solid rgba(229, 172, 67, 0.5);
-  border-radius: variables.$radius-lg;
-  text-align: left;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+  color:
+    rgba(255, 255, 255, 0.44);
+  font-size: 0.7rem;
 }
 
-.manual-notice__icon {
+.navigator-legend span {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.legend-box {
+  width: 10px;
+  height: 10px;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 3px;
+}
+
+.legend-box--current {
+  border-color:
+    variables.$color-primary;
+  background:
+    variables.$color-primary;
+}
+
+.legend-box--answered {
+  border-color:
+    rgba(103, 217, 139, 0.62);
+  background:
+    rgba(103, 217, 139, 0.18);
+}
+
+.legend-box--pending {
+  border-color:
+    rgba(255, 255, 255, 0.15);
+  background:
+    rgba(255, 255, 255, 0.025);
+}
+
+.summary-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding:
+    0.55rem
+    0;
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.05);
+}
+
+.summary-row span {
+  color:
+    rgba(255, 255, 255, 0.52);
+  font-size: 0.8rem;
+}
+
+.summary-row strong {
+  color:
+    variables.$color-primary;
+}
+
+.submit-sidebar-button {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.8rem;
+  padding:
+    0
+    0.9rem;
+  border:
+    1px solid
+    variables.$color-primary;
+  border-radius: 10px;
+  background:
+    variables.$color-primary;
+  color: #080808;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.submit-sidebar-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.autosave-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.autosave-card > div {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid #e5ac43;
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.3);
   border-radius: 50%;
-  color: #ffd071;
+  color:
+    variables.$color-primary;
+  font-weight: 900;
 }
 
-.manual-notice p {
-  margin: 5px 0 0;
-  line-height: 1.5;
-  opacity: 0.55;
+.autosave-card p {
+  margin: 0;
+  color:
+    rgba(255, 255, 255, 0.48);
+  font-size: 0.76rem;
+  line-height: 1.55;
 }
 
-.result-screen__actions {
-  display: flex;
-  gap: variables.$spacing-md;
-  margin-top: variables.$spacing-2xl;
+.autosave-card--error {
+  border-color:
+    rgba(239, 103, 103, 0.45);
+  background:
+    rgba(239, 103, 103, 0.055);
+}
+
+.autosave-card--error > div {
+  border-color:
+    rgba(239, 103, 103, 0.55);
+  color:
+    #ff8585;
 }
 
 /* =========================================================
    MODAL
 ========================================================= */
 
-.modal-overlay {
+.modal-backdrop {
   position: fixed;
+  z-index: 9999;
   inset: 0;
-  z-index: 99999;
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(8px);
+  padding: 1rem;
+  background:
+    rgba(0, 0, 0, 0.78);
+  backdrop-filter:
+    blur(9px);
 }
 
-.confirmation-modal {
+.submit-dialog {
   width: min(520px, 100%);
-  padding: clamp(24px, 5vw, 42px);
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-  text-align: center;
+  padding:
+    clamp(1.3rem, 3vw, 2rem);
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.25);
+  border-radius: 20px;
+  background:
+    #111;
+  box-shadow:
+    0 25px 80px
+    rgba(0, 0, 0, 0.55);
 }
 
-.confirmation-modal__icon {
+.submit-dialog__icon {
   display: grid;
-  width: 70px;
-  height: 70px;
+  width: 54px;
+  height: 54px;
   place-items: center;
-  margin: 0 auto variables.$spacing-lg;
-  border: 1px solid variables.$color-primary;
+  margin-bottom: 1rem;
+  border:
+    1px solid
+    variables.$color-primary;
   border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: 1.8rem;
+  color:
+    variables.$color-primary;
+  font-size: 1.2rem;
+  font-weight: 900;
 }
 
-.confirmation-modal h2 {
-  margin: 0 0 variables.$spacing-md;
-  font-size: 2rem;
+.submit-dialog__eyebrow {
+  color:
+    variables.$color-primary;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
 }
 
-.confirmation-modal > p {
+.submit-dialog h2 {
+  margin:
+    0.4rem
+    0
+    0;
+  font-size:
+    clamp(1.5rem, 4vw, 2rem);
+}
+
+.submit-dialog > p {
+  margin:
+    0.7rem
+    0
+    0;
+  color:
+    rgba(255, 255, 255, 0.58);
+  line-height: 1.6;
+}
+
+.submit-warning,
+.submit-notice {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border:
+    1px solid
+    #d89a42;
+  border-radius: 11px;
+  background:
+    rgba(216, 154, 66, 0.06);
+}
+
+.submit-warning strong {
+  color:
+    #efb55c;
+}
+
+.submit-warning p,
+.submit-notice {
+  color:
+    rgba(255, 255, 255, 0.58);
+  font-size: 0.82rem;
   line-height: 1.55;
-  opacity: 0.6;
 }
 
-.confirmation-modal__warning {
-  padding: 10px;
-  border: 1px solid rgba(216, 81, 81, 0.4);
-  border-radius: variables.$radius-lg;
-  color: #ff7777;
-  opacity: 1 !important;
+.submit-warning p {
+  margin:
+    0.35rem
+    0
+    0;
 }
 
-.confirmation-modal__actions {
-  display: grid;
-  gap: 10px;
-  margin-top: variables.$spacing-xl;
-  grid-template-columns: repeat(2, 1fr);
+
+.submit-success {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border:
+    1px solid
+    rgba(103, 217, 139, 0.38);
+  border-radius: 11px;
+  background:
+    rgba(103, 217, 139, 0.055);
 }
 
-/* =========================================================
-   TOAST
-========================================================= */
-
-.quiz-toast {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 100000;
-  max-width: min(420px, calc(100vw - 32px));
-  padding: 13px 17px;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-  color: variables.$color-white;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+.submit-success strong {
+  color:
+    #79df98;
 }
 
-.quiz-toast--error {
-  border-color: #d85151;
-  color: #ff8a8a;
+.submit-success p {
+  margin:
+    0.3rem
+    0
+    0;
+  color:
+    rgba(255, 255, 255, 0.58);
+  font-size: 0.82rem;
+  line-height: 1.55;
 }
 
-.toast-enter-active,
-.toast-leave-active,
+.submit-dialog__actions {
+  display: flex;
+  gap: 0.7rem;
+  justify-content: flex-end;
+  margin-top: 1.2rem;
+}
+
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.18s ease;
+  transition:
+    opacity 0.18s ease;
 }
 
-.toast-enter-from,
-.toast-leave-to,
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+.result-guidance {
+  display: grid;
+  width: min(760px, 100%);
+  gap: 0.7rem;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  margin-top: 0.9rem;
+}
+
+.result-guidance > div {
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 13px;
+  background:
+    variables.$color-surface;
+  text-align: left;
+}
+
+.result-guidance small,
+.result-guidance strong {
+  display: block;
+}
+
+.result-guidance small {
+  margin-bottom: 0.3rem;
+  color:
+    rgba(255, 255, 255, 0.43);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.result-guidance strong {
+  font-size: 0.9rem;
+}
+
+.result-learning-box {
+  width: min(760px, 100%);
+  margin-top: 0.9rem;
+  padding: 1.1rem;
+  border:
+    1px solid
+    rgba(103, 217, 139, 0.3);
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(103, 217, 139, 0.055),
+      transparent 70%
+    ),
+    variables.$color-surface;
+  text-align: left;
+}
+
+.result-learning-box > span {
+  color:
+    #8ee3a7;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.result-learning-box h2 {
+  margin:
+    0.35rem
+    0
+    0;
+  font-size: 1.25rem;
+}
+
+.result-learning-box p {
+  margin:
+    0.45rem
+    0
+    0.9rem;
+  color:
+    rgba(255, 255, 255, 0.56);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.result-learning-box--locked {
+  border-color:
+    rgba(255, 196, 0, 0.28);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 196, 0, 0.05),
+      transparent 70%
+    ),
+    variables.$color-surface;
+}
+
+.result-learning-box--locked > span {
+  color:
+    variables.$color-primary;
+}
+
+.result-next-step {
+  width: min(900px, 100%);
+  margin-top: 1rem;
+  padding:
+    clamp(1rem, 3vw, 1.4rem);
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.25);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 196, 0, 0.075),
+      transparent 35%
+    ),
+    variables.$color-surface;
+  text-align: left;
+}
+
+.result-next-step__copy > span,
+.result-learning-summary span {
+  color:
+    variables.$color-primary;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.result-next-step__copy h2,
+.result-learning-summary h2 {
+  margin:
+    0.35rem
+    0
+    0;
+  font-size:
+    clamp(1.3rem, 3vw, 1.8rem);
+}
+
+.result-next-step__copy p,
+.result-learning-summary p {
+  max-width: 760px;
+  margin:
+    0.45rem
+    0
+    0;
+  color:
+    rgba(255, 255, 255, 0.56);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.result-next-step__actions {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  margin-top: 1rem;
+}
+
+.result-action {
+  display: grid;
+  min-height: 78px;
+  gap: 0.75rem;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  padding:
+    0.85rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 13px;
+  color:
+    variables.$color-white;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.result-action:hover {
+  border-color:
+    rgba(255, 196, 0, 0.42);
+  background:
+    rgba(255, 196, 0, 0.035);
+  transform:
+    translateY(-1px);
+}
+
+.result-action--primary {
+  border-color:
+    variables.$color-primary;
+  background:
+    rgba(255, 196, 0, 0.065);
+}
+
+.result-action__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border:
+    1px solid
+    rgba(255, 196, 0, 0.3);
+  border-radius: 50%;
+  color:
+    variables.$color-primary;
+  font-weight: 900;
+}
+
+.result-action small,
+.result-action strong {
+  display: block;
+}
+
+.result-action small {
+  margin-bottom: 0.2rem;
+  color:
+    rgba(255, 255, 255, 0.4);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.result-action strong {
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.result-action b {
+  color:
+    variables.$color-primary;
+  font-size: 1rem;
+}
+
+.result-learning-summary {
+  display: grid;
+  width: min(900px, 100%);
+  gap: 1rem;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr);
+  align-items: start;
+  margin-top: 0.8rem;
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 15px;
+  background:
+    variables.$color-surface;
+  text-align: left;
+}
+
+.result-learning-summary__icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border:
+    1px solid
+    variables.$color-primary;
+  border-radius: 50%;
+  color:
+    variables.$color-primary;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.result-learning-summary--excellent {
+  border-color:
+    rgba(103, 217, 139, 0.34);
+}
+
+.result-learning-summary--excellent
+.result-learning-summary__icon {
+  border-color:
+    #79df98;
+  color:
+    #79df98;
+}
+
+.result-learning-summary--good {
+  border-color:
+    rgba(255, 196, 0, 0.3);
+}
+
+.result-learning-summary--reinforce {
+  border-color:
+    rgba(239, 103, 103, 0.34);
+}
+
+.result-learning-summary--reinforce
+.result-learning-summary__icon {
+  border-color:
+    #ef8585;
+  color:
+    #ef8585;
+}
+
+.result-screen__actions--secondary {
+  margin-top: 0.75rem;
+}
+
+/* =========================================================
+   RESULT
+========================================================= */
+
+.result-score {
+  display: grid;
+  width: min(680px, 100%);
+  gap: 0.7rem;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  margin-top: 0.8rem;
+}
+
+.result-score > div {
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 14px;
+  background:
+    variables.$color-surface;
+}
+
+.result-score small,
+.result-score strong {
+  display: block;
+}
+
+.result-score small {
+  margin-bottom: 0.35rem;
+  color:
+    rgba(255, 255, 255, 0.48);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.result-score strong {
+  color:
+    variables.$color-primary;
+  font-size: 1.3rem;
+}
+
+.result-score__passed {
+  color:
+    #6ed58b !important;
+}
+
+.result-score__failed {
+  color:
+    #ef7878 !important;
+}
+
+.result-notice {
+  width: min(580px, 100%);
+  margin-top: 0.8rem;
+  padding: 1rem;
+  border:
+    1px solid
+    variables.$color-border;
+  border-radius: 13px;
+  background:
+    variables.$color-surface;
+}
+
+.result-notice p {
+  margin:
+    0.35rem
+    0
+    0;
+  color:
+    rgba(255, 255, 255, 0.5);
+  font-size: 0.86rem;
+}
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+.quiz-page button,
+.quiz-page a {
+  min-height: 44px;
+}
+
+.quiz-page button:focus-visible,
+.quiz-page a:focus-visible,
+.quiz-page input:focus-visible,
+.quiz-page textarea:focus-visible {
+  outline:
+    3px solid
+    rgba(255, 196, 0, 0.62);
+  outline-offset: 3px;
 }
 
 /* =========================================================
    RESPONSIVE
 ========================================================= */
 
-@media (max-width: 1000px) {
-  .quiz-info-grid,
-  .review-summary {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .exam-layout {
+@media (
+  max-width: 980px
+) {
+  .quiz-layout {
     grid-template-columns: 1fr;
   }
 
-  .question-navigation {
+  .question-sidebar {
     position: static;
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
   }
 
-  .question-navigation__grid {
-    grid-template-columns: repeat(8, 1fr);
+  .autosave-card {
+    grid-column:
+      1 / -1;
   }
 }
 
-@media (max-width: 760px) {
-  .quiz-cover {
-    align-items: stretch;
+@media (
+  max-width: 720px
+) {
+  .quiz-page {
+    padding:
+      0.85rem
+      0.75rem
+      4rem;
+  }
+
+  .quiz-topbar {
+    align-items: flex-start;
     flex-direction: column;
   }
 
-  .quiz-cover__badge {
-    width: 100%;
+  .quiz-hero {
+    grid-template-columns: 1fr;
   }
 
-  .exam-header {
-    align-items: stretch;
-    flex-direction: column;
+  .timer-card {
+    min-width: 0;
   }
 
-  .exam-header__status {
-    justify-content: space-between;
-  }
-
-  .save-status {
-    flex: 1;
-  }
-
-  .question-navigation__grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  .question-panel {
-    padding: 22px 18px;
+  .question-content {
+    min-height: 360px;
+    padding: 1rem;
   }
 
   .question-actions {
-    align-items: stretch;
-    flex-direction: column;
+    grid-template-columns:
+      1fr
+      1fr;
   }
 
-  .question-actions__save {
-    order: -1;
+  .question-actions__center {
+    grid-column:
+      1 / -1;
+    grid-row: 1;
   }
 
-  .review-question {
-    grid-template-columns: auto 1fr auto;
-  }
-
-  .review-question__status {
-    grid-column: 2 / 4;
-    justify-self: start;
-  }
-
-  .review-actions,
-  .result-screen__actions {
-    align-items: stretch;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .result-score {
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .result-score__details {
-    text-align: center;
-  }
-}
-
-@media (max-width: 560px) {
-  .quiz-info-grid,
-  .review-summary {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .question-navigation__grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-
-  .question-prompt {
-    font-size: 1.45rem;
-  }
-
-  .option-card {
-    grid-template-columns: auto 1fr;
-  }
-
-  .option-card__check {
-    display: none;
-  }
-
-  .confirmation-modal__actions {
+  .question-sidebar {
     grid-template-columns: 1fr;
   }
 
-  .quiz-toast {
-    right: 16px;
-    bottom: 16px;
-    left: 16px;
+  .autosave-card {
+    grid-column: auto;
+  }
+
+  .result-score,
+  .result-guidance,
+  .result-next-step__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .submit-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .submit-dialog__actions .button {
+    width: 100%;
+  }
+}
+
+@media (
+  max-width: 480px
+) {
+  .question-grid {
+    grid-template-columns:
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
+  }
+
+  .option-card {
+    gap: 0.6rem;
+    grid-template-columns:
+      auto
+      minmax(0, 1fr);
+  }
+
+  .option-card input {
+    display: none;
+  }
+
+  .option-card__marker {
+    width: 34px;
+    height: 34px;
+  }
+
+  .question-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .question-actions__center {
+    grid-column: auto;
+  }
+
+  .question-actions .button {
+    width: 100%;
   }
 }
 </style>
