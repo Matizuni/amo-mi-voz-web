@@ -3,388 +3,182 @@
     <!-- =====================================================
          HERO
     ====================================================== -->
-    <section class="hero">
-      <div class="hero__grid"></div>
-      <div class="hero__glow hero__glow--top"></div>
-      <div class="hero__glow hero__glow--bottom"></div>
-
-      <div class="container hero__layout">
-        <div class="hero__content">
-          <div class="eyebrow">
-            <span></span>
-            NUESTRA ACADEMIA
-          </div>
+    <section class="academy-hero">
+      <div class="container academy-hero__layout">
+        <div class="academy-hero__content">
+          <span class="academy-eyebrow">
+            Academia de Talentos · La Calera
+          </span>
 
           <h1>
-            Formación artística
-            <em>
-              con propósito y experiencia real.
-            </em>
+            Aprende música.
+            <em>Encuentra tu voz.</em>
           </h1>
 
-          <p class="hero__lead">
-            Amo Mi Voz es un espacio de formación vocal,
-            musical y escénica donde cada estudiante
-            desarrolla herramientas para comprender,
-            interpretar y compartir música.
+          <p>
+            Formación vocal, musical y escénica
+            para niños, jóvenes y adultos.
           </p>
 
-          <div class="hero__actions">
+          <div class="academy-hero__actions">
             <RouterLink
               to="/inscripcion"
-              class="button button--primary"
+              class="academy-button academy-button--primary"
             >
-              Quiero ser parte
-              <span>→</span>
+              Quiero inscribirme
+
+              <span aria-hidden="true">
+                →
+              </span>
             </RouterLink>
 
             <RouterLink
               to="/formacion"
-              class="button button--secondary"
+              class="academy-button academy-button--secondary"
             >
-              Conocer la formación
+              Ver cómo aprendemos
             </RouterLink>
           </div>
 
-          <div class="hero__facts">
-            <article>
-              <small>FORMACIÓN</small>
-              <strong>
-                Vocal · Musical · Escénica
-              </strong>
-            </article>
+          <div
+            class="academy-hero__trust"
+            aria-label="Características de la academia"
+          >
+            <span>
+              Todas las edades
+            </span>
 
-            <article>
-              <small>METODOLOGÍA</small>
-              <strong>
-                Aprender haciendo
-              </strong>
-            </article>
+            <i></i>
 
-            <article>
-              <small>EXPERIENCIA</small>
-              <strong>
-                Aula + escenario
-              </strong>
-            </article>
+            <span>
+              Formación práctica
+            </span>
+
+            <i></i>
+
+            <span>
+              Experiencia escénica
+            </span>
           </div>
         </div>
 
-        <!-- ALUMNO 10 -->
-        <div class="hero__visual">
-          <figure class="hero-photo">
-            <img
-              :src="student10"
-              alt="Estudiante de la Academia de Talentos Amo Mi Voz"
-            />
+        <figure class="academy-hero__visual">
+          <img
+            :src="student10"
+            alt="Estudiante de la Academia de Talentos Amo Mi Voz"
+          />
 
-            <div class="hero-photo__overlay"></div>
+          <div class="academy-hero__overlay"></div>
 
-            <figcaption>
-              <small>
-                AMO MI VOZ · LA CALERA
-              </small>
-
-              <strong>
-                Descubrir.
-                <span>Desarrollar.</span>
-                Compartir.
-              </strong>
-            </figcaption>
-          </figure>
-
-          <div class="hero-badge hero-badge--top">
-            <span>♪</span>
-
-            <div>
-              <small>FORMACIÓN</small>
-              <strong>Integral</strong>
-            </div>
-          </div>
-
-          <div class="hero-badge hero-badge--bottom">
-            <span>01</span>
-
-            <div>
-              <small>OBJETIVO</small>
-              <strong>
-                Encontrar tu propia voz
-              </strong>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =====================================================
-         IDENTIDAD
-    ====================================================== -->
-    <section class="identity">
-      <div class="container identity__grid">
-        <div>
-          <span class="eyebrow eyebrow--simple">
-            QUIÉNES SOMOS
-          </span>
-
-          <h2 class="display-title">
-            Un lugar para aprender música
-            <em>viviéndola.</em>
-          </h2>
-        </div>
-
-        <div class="identity__copy">
-          <p class="identity__lead">
-            En Amo Mi Voz entendemos que aprender música
-            no consiste solamente en asistir a una clase.
-          </p>
-
-          <p>
-            El aprendizaje ocurre cuando una persona
-            comprende un concepto, lo escucha, lo experimenta,
-            lo practica, se equivoca, vuelve a intentarlo
-            y finalmente logra utilizarlo dentro de una
-            experiencia musical real.
-          </p>
-
-          <p>
-            Por eso nuestra propuesta combina técnica vocal,
-            teoría musical, entrenamiento auditivo,
-            interpretación, repertorio, trabajo colectivo
-            y experiencias frente al público.
-          </p>
-
-          <div class="identity__statement">
-            <span></span>
+          <figcaption>
+            <span>
+              Amo Mi Voz
+            </span>
 
             <strong>
-              Formación artística con herramientas
-              que puedan acompañar al estudiante
-              más allá de la sala de clases.
+              Aprender haciendo.
             </strong>
-          </div>
-        </div>
+          </figcaption>
+        </figure>
       </div>
     </section>
 
     <!-- =====================================================
-         HISTORIA VISUAL
-         ALUMNO 11
+         QUÉ HACEMOS
     ====================================================== -->
-    <section class="story">
-      <div class="container story__grid">
-        <div class="story__visual">
-          <figure>
-            <img
-              :src="student11"
-              alt="Proceso formativo de un estudiante de Amo Mi Voz"
-            />
-
-            <div class="story__overlay"></div>
-
-            <figcaption>
-              <small>
-                NUESTRA HISTORIA
-              </small>
-
-              <strong>
-                Crear un espacio donde
-                <em>la música se experimente.</em>
-              </strong>
-            </figcaption>
-          </figure>
-
-          <div class="story__floating">
-            <span>
-              AMV
-            </span>
-
-            <p>
-              Técnica, música,
-              interpretación y escenario.
-            </p>
-          </div>
-        </div>
-
-        <div class="story__content">
-          <span class="eyebrow eyebrow--simple">
-            POR QUÉ NACE AMO MI VOZ
-          </span>
-
-          <h2 class="display-title">
-            Aprender también significa
-            <em>atreverse.</em>
-          </h2>
-
-          <p>
-            Muchos estudiantes pueden aprender una canción,
-            pero todavía sentir inseguridad al momento
-            de interpretarla frente a otras personas.
-          </p>
-
-          <p>
-            Amo Mi Voz nace desde la idea de acompañar
-            ese recorrido completo: desde los primeros
-            ejercicios hasta el momento en que el estudiante
-            puede transformar lo aprendido en una experiencia
-            artística.
-          </p>
-
-          <div class="story__milestones">
-            <article>
-              <span>01</span>
-
-              <div>
-                <strong>
-                  Aprender
-                </strong>
-
-                <p>
-                  Comprender herramientas vocales
-                  y musicales.
-                </p>
-              </div>
-            </article>
-
-            <article>
-              <span>02</span>
-
-              <div>
-                <strong>
-                  Practicar
-                </strong>
-
-                <p>
-                  Llevar las herramientas
-                  a ejercicios y repertorio.
-                </p>
-              </div>
-            </article>
-
-            <article>
-              <span>03</span>
-
-              <div>
-                <strong>
-                  Interpretar
-                </strong>
-
-                <p>
-                  Dar intención, emoción
-                  y significado a la música.
-                </p>
-              </div>
-            </article>
-
-            <article>
-              <span>04</span>
-
-              <div>
-                <strong>
-                  Compartir
-                </strong>
-
-                <p>
-                  Presentarse y vivir una
-                  experiencia artística real.
-                </p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =====================================================
-         PRINCIPIOS
-    ====================================================== -->
-    <section class="principles">
+    <section class="academy-focus section">
       <div class="container">
-        <header class="section-header">
+        <header class="academy-section-heading">
           <div>
-            <span class="eyebrow eyebrow--simple">
-              NUESTRA FORMA DE ENSEÑAR
+            <span class="academy-eyebrow">
+              Nuestra formación
             </span>
 
-            <h2 class="display-title">
-              Una metodología basada
-              <em>en la experiencia.</em>
+            <h2>
+              Mucho más que
+              <em>aprender canciones.</em>
             </h2>
           </div>
 
           <p>
-            El estudiante necesita comprender
-            qué está haciendo, pero también
-            experimentar cómo se siente y cómo suena.
+            Conectamos voz, música,
+            interpretación y escenario
+            dentro de un mismo proceso.
           </p>
         </header>
 
-        <div class="principles__grid">
+        <div class="academy-focus__grid">
           <article
-            v-for="principle in principles"
-            :key="principle.number"
-            class="principle-card"
+            v-for="area in areas"
+            :key="area.number"
+            class="academy-focus__card"
           >
-            <div class="principle-card__top">
-              <span>
-                {{ principle.number }}
-              </span>
+            <span class="academy-focus__number">
+              {{ area.number }}
+            </span>
 
-              <strong>
-                {{ principle.symbol }}
-              </strong>
+            <div class="academy-focus__icon">
+              {{ area.symbol }}
             </div>
 
             <h3>
-              {{ principle.title }}
+              {{ area.title }}
             </h3>
 
             <p>
-              {{ principle.description }}
+              {{ area.description }}
             </p>
-
-            <small>
-              {{ principle.detail }}
-            </small>
           </article>
         </div>
       </div>
     </section>
 
     <!-- =====================================================
-         EXPERIENCIA
+         MÉTODO
     ====================================================== -->
-    <section class="experience">
-      <div class="container experience__grid">
-        <div class="experience__heading">
-          <span class="eyebrow eyebrow--simple">
-            LA EXPERIENCIA AMO MI VOZ
+    <section class="academy-method section">
+      <div class="container academy-method__layout">
+        <div class="academy-method__content">
+          <span class="academy-eyebrow">
+            Cómo aprendemos
           </span>
 
-          <h2 class="display-title">
-            Del aula
-            <em>al escenario.</em>
+          <h2>
+            Comprender.
+            <br />
+            Practicar.
+            <br />
+            <em>Compartir.</em>
           </h2>
 
           <p>
-            El escenario no aparece al final como un premio.
-            Es parte del proceso formativo.
+            La teoría se transforma rápidamente
+            en ejercicios, repertorio y experiencias
+            musicales reales.
           </p>
+
+          <RouterLink
+            to="/formacion"
+            class="academy-text-link"
+          >
+            Conocer el programa formativo
+
+            <span aria-hidden="true">
+              →
+            </span>
+          </RouterLink>
         </div>
 
-        <div class="experience__steps">
+        <div class="academy-method__steps">
           <article
-            v-for="step in experienceSteps"
+            v-for="step in methodSteps"
             :key="step.number"
           >
-            <span class="experience__number">
+            <span>
               {{ step.number }}
             </span>
 
             <div>
-              <small>
-                {{ step.label }}
-              </small>
-
               <h3>
                 {{ step.title }}
               </h3>
@@ -399,361 +193,233 @@
     </section>
 
     <!-- =====================================================
-         VALORES
+         EXPERIENCIA REAL
     ====================================================== -->
-    <section class="values">
-      <div class="container">
-        <header class="section-header section-header--center">
-          <div>
-            <span class="eyebrow eyebrow--simple">
-              NUESTROS VALORES
+    <section class="academy-stage section">
+      <div class="container academy-stage__layout">
+        <figure class="academy-stage__image">
+          <img
+            :src="student11"
+            alt="Estudiante participando en el proceso formativo de Amo Mi Voz"
+            loading="lazy"
+          />
+
+          <div class="academy-stage__overlay"></div>
+
+          <figcaption>
+            <span>
+              Del aula al escenario
             </span>
 
-            <h2 class="display-title">
-              La música también
-              <em>forma personas.</em>
-            </h2>
-          </div>
+            <strong>
+              La experiencia
+              también enseña.
+            </strong>
+          </figcaption>
+        </figure>
+
+        <div class="academy-stage__content">
+          <span class="academy-eyebrow">
+            Experiencia Amo Mi Voz
+          </span>
+
+          <h2>
+            Aprender música
+            <em>viviéndola.</em>
+          </h2>
 
           <p>
-            La formación artística puede desarrollar
-            capacidades que trascienden la música.
+            Clases, repertorio, ensayos,
+            conciertos y producciones artísticas
+            forman parte del proceso.
           </p>
-        </header>
 
-        <div class="values__grid">
-          <article
-            v-for="value in values"
-            :key="value.number"
-            class="value-card"
+          <div class="academy-stage__highlights">
+            <div>
+              <strong>
+                Aula
+              </strong>
+
+              <span>
+                Aprender
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                Ensayo
+              </strong>
+
+              <span>
+                Preparar
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                Escenario
+              </strong>
+
+              <span>
+                Compartir
+              </span>
+            </div>
+          </div>
+
+          <RouterLink
+            to="/musicales"
+            class="academy-text-link"
           >
-            <span class="value-card__number">
-              {{ value.number }}
+            Ver nuestras experiencias
+
+            <span aria-hidden="true">
+              →
             </span>
-
-            <h3>
-              {{ value.title }}
-            </h3>
-
-            <p>
-              {{ value.description }}
-            </p>
-          </article>
+          </RouterLink>
         </div>
       </div>
     </section>
 
     <!-- =====================================================
-         COMUNIDAD
-         ALUMNO 12
+         PARA TODAS LAS EDADES
     ====================================================== -->
-    <section class="community">
-      <div class="container community__grid">
-        <div class="community__content">
-          <span class="eyebrow eyebrow--simple">
-            COMUNIDAD
+    <section class="academy-people section">
+      <div class="container academy-people__layout">
+        <div class="academy-people__content">
+          <span class="academy-eyebrow">
+            Una academia para crecer
           </span>
 
-          <h2 class="display-title">
-            Crecer también
-            <em>es escuchar a otros.</em>
+          <h2>
+            Cada persona aprende
+            <em>a su ritmo.</em>
           </h2>
 
           <p>
-            Cantar junto a otras personas transforma
-            la manera en que entendemos la música.
+            Trabajamos con niños, jóvenes y adultos,
+            respetando la experiencia, los objetivos
+            y el proceso de cada estudiante.
           </p>
 
-          <p>
-            El trabajo grupal desarrolla escucha,
-            responsabilidad, empatía, independencia,
-            colaboración y conciencia del lugar que
-            cada voz ocupa dentro de un conjunto.
-          </p>
+          <div class="academy-people__audiences">
+            <span>
+              Niños
+            </span>
 
-          <div class="community__tags">
-            <span>Escucha</span>
-            <span>Respeto</span>
-            <span>Colaboración</span>
-            <span>Responsabilidad</span>
-            <span>Confianza</span>
+            <span>
+              Jóvenes
+            </span>
+
+            <span>
+              Adultos
+            </span>
           </div>
         </div>
 
-        <figure class="community__photo">
+        <figure class="academy-people__image">
           <img
             :src="student12"
-            alt="Estudiante de la comunidad artística Amo Mi Voz"
+            alt="Comunidad de estudiantes de Amo Mi Voz"
+            loading="lazy"
           />
 
-          <div class="community__photo-overlay"></div>
+          <div class="academy-people__overlay"></div>
 
           <figcaption>
-            <small>
-              CRECER JUNTOS
-            </small>
-
-            <strong>
-              Cada voz tiene
-              <em>un lugar.</em>
-            </strong>
+            Cada voz tiene
+            <strong>su propio camino.</strong>
           </figcaption>
         </figure>
       </div>
     </section>
 
     <!-- =====================================================
-         FORMACIÓN
-    ====================================================== -->
-    <section class="formation">
-      <div class="formation__grid-background"></div>
-
-      <div class="container formation__content">
-        <span class="eyebrow eyebrow--simple">
-          FORMACIÓN INTEGRAL
-        </span>
-
-        <h2>
-          Técnica.
-          <span>Música.</span>
-          Interpretación.
-          <em>Experiencia.</em>
-        </h2>
-
-        <p>
-          Cuatro dimensiones que se conectan
-          constantemente durante el proceso.
-        </p>
-
-        <div class="formation__areas">
-          <article>
-            <span>01</span>
-
-            <strong>
-              Técnica vocal
-            </strong>
-
-            <small>
-              Respiración · Resonancia · Afinación
-            </small>
-          </article>
-
-          <article>
-            <span>02</span>
-
-            <strong>
-              Formación musical
-            </strong>
-
-            <small>
-              Ritmo · Oído · Lectura · Teoría
-            </small>
-          </article>
-
-          <article>
-            <span>03</span>
-
-            <strong>
-              Interpretación
-            </strong>
-
-            <small>
-              Texto · Emoción · Presencia
-            </small>
-          </article>
-
-          <article>
-            <span>04</span>
-
-            <strong>
-              Escenario
-            </strong>
-
-            <small>
-              Ensayos · Conciertos · Musicales
-            </small>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- =====================================================
          DIRECCIÓN
     ====================================================== -->
-    <section class="director">
-      <div class="container director__grid">
-        <div class="director__identity">
-          <div class="director__monogram">
-            <span>
-              MZ
-            </span>
-
-            <div class="director__monogram-ring"></div>
-          </div>
-
-          <div class="director__identity-copy">
-            <small>
-              DIRECCIÓN MUSICAL
-            </small>
-
-            <strong>
-              Matías Zúñiga
-            </strong>
-
-            <span>
-              Academia de Talentos Amo Mi Voz
-            </span>
-          </div>
+    <section class="academy-director section">
+      <div class="container academy-director__layout">
+        <div
+          class="academy-director__identity"
+          aria-hidden="true"
+        >
+          <span>
+            MZ
+          </span>
         </div>
 
-        <div class="director__content">
-          <span class="eyebrow eyebrow--simple">
-            DIRECCIÓN ARTÍSTICA Y MUSICAL
+        <div class="academy-director__content">
+          <span class="academy-eyebrow">
+            Dirección artística y musical
           </span>
 
-          <h2 class="display-title">
-            Una mirada que conecta
-            <em>música, educación y escenario.</em>
+          <h2>
+            Matías Zúñiga
           </h2>
 
           <p>
-            La dirección de la academia integra planificación
-            formativa, preparación vocal, trabajo de repertorio,
-            ensayos, producción escénica y desarrollo técnico
-            de las presentaciones.
-          </p>
-
-          <p>
-            Esto permite que el aprendizaje no quede separado
-            de la experiencia artística, sino que cada proyecto
-            se convierta en una oportunidad concreta para
-            aplicar lo trabajado durante las clases.
+            Dirección formativa, preparación vocal,
+            repertorio, producción musical
+            y experiencia escénica.
           </p>
 
           <blockquote>
-            <span>“</span>
-
-            <p>
-              Cada voz tiene una historia.
-              Nuestro trabajo es ayudarla
-              a ser escuchada.
-            </p>
+            “Cada voz tiene una historia.
+            Nuestro trabajo es ayudarla
+            a ser escuchada.”
           </blockquote>
-        </div>
-      </div>
-    </section>
 
-    <!-- =====================================================
-         DIFERENCIAS
-    ====================================================== -->
-    <section class="difference">
-      <div class="container">
-        <header class="section-header">
-          <div>
-            <span class="eyebrow eyebrow--simple">
-              NUESTRA PROPUESTA
-            </span>
-
-            <h2 class="display-title">
-              ¿Qué hace diferente
-              <em>nuestro proceso?</em>
-            </h2>
-          </div>
-        </header>
-
-        <div class="difference__grid">
-          <article
-            v-for="item in differences"
-            :key="item.number"
+          <RouterLink
+            to="/contacto"
+            class="academy-text-link"
           >
-            <span>
-              {{ item.number }}
+            Contactar con la academia
+
+            <span aria-hidden="true">
+              →
             </span>
-
-            <div>
-              <h3>
-                {{ item.title }}
-              </h3>
-
-              <p>
-                {{ item.description }}
-              </p>
-            </div>
-          </article>
+          </RouterLink>
         </div>
-      </div>
-    </section>
-
-    <!-- =====================================================
-         CIERRE
-    ====================================================== -->
-    <section class="manifesto">
-      <div class="manifesto__grid"></div>
-      <div class="manifesto__glow"></div>
-
-      <div class="container manifesto__content">
-        <span class="eyebrow eyebrow--simple">
-          ACADEMIA DE TALENTOS AMO MI VOZ
-        </span>
-
-        <h2>
-          No buscamos
-          voces iguales.
-          <em>
-            Buscamos voces conscientes,
-            preparadas y auténticas.
-          </em>
-        </h2>
-
-        <p>
-          Porque encontrar una voz propia
-          también significa aprender a confiar
-          en lo que tenemos para comunicar.
-        </p>
       </div>
     </section>
 
     <!-- =====================================================
          CTA FINAL
     ====================================================== -->
-    <section class="cta">
-      <div class="cta__glow"></div>
-
-      <div class="container cta__content">
-        <span class="eyebrow eyebrow--simple">
-          TU PROCESO PUEDE COMENZAR AQUÍ
+    <section class="academy-cta">
+      <div class="container academy-cta__content">
+        <span class="academy-eyebrow">
+          Tu proceso puede comenzar aquí
         </span>
 
         <h2>
-          Tu voz merece
-          <em>ser descubierta.</em>
+          ¿Quieres descubrir
+          <em>hasta dónde puede llegar tu voz?</em>
         </h2>
 
         <p>
-          Cuéntanos sobre ti y conoce
-          cómo podemos acompañar tu proceso artístico.
+          Cuéntanos sobre ti.
+          Te orientaremos para comenzar.
         </p>
 
-        <div class="cta__actions">
+        <div class="academy-cta__actions">
           <RouterLink
             to="/inscripcion"
-            class="button button--primary button--large"
+            class="academy-button academy-button--primary academy-button--large"
           >
-            Solicitar inscripción
-            <span>→</span>
+            Inscribirme
+
+            <span aria-hidden="true">
+              →
+            </span>
           </RouterLink>
 
           <RouterLink
-            to="/formacion"
-            class="button button--secondary button--large"
+            to="/contacto"
+            class="academy-button academy-button--secondary academy-button--large"
           >
-            Ver programa formativo
+            Tengo una consulta
           </RouterLink>
         </div>
-
-        <small>
-          Academia de Talentos Amo Mi Voz · La Calera
-        </small>
       </div>
     </section>
   </main>
@@ -764,176 +430,61 @@ import student10 from '@/assets/images/alumno-2.png'
 import student11 from '@/assets/images/alumno-11.png'
 import student12 from '@/assets/images/alumno-12.png'
 
-const principles = [
+const areas = [
   {
     number: '01',
-    symbol: '◌',
+    symbol: '♪',
+    title: 'Voz',
+    description:
+      'Respiración, resonancia, afinación y confianza vocal.'
+  },
+  {
+    number: '02',
+    symbol: '♬',
+    title: 'Música',
+    description:
+      'Ritmo, oído, teoría y comprensión musical.'
+  },
+  {
+    number: '03',
+    symbol: '◇',
+    title: 'Interpretación',
+    description:
+      'Emoción, intención, presencia y comunicación.'
+  },
+  {
+    number: '04',
+    symbol: '↗',
+    title: 'Escenario',
+    description:
+      'Ensayos, conciertos y experiencias frente al público.'
+  }
+]
+
+const methodSteps = [
+  {
+    number: '01',
     title: 'Comprender',
     description:
-      'Explicamos los contenidos para que el estudiante entienda qué está haciendo y por qué.',
-    detail:
-      'CONOCIMIENTO · CONCIENCIA'
+      'Entendemos qué hacemos y por qué.'
   },
   {
     number: '02',
-    symbol: '♪',
     title: 'Experimentar',
     description:
-      'Cada concepto pasa rápidamente del lenguaje teórico a la voz, al cuerpo y a la escucha.',
-    detail:
-      'CUERPO · VOZ · OÍDO'
+      'Llevamos los conceptos a la voz, el cuerpo y el oído.'
   },
   {
     number: '03',
-    symbol: '↗',
-    title: 'Aplicar',
+    title: 'Practicar',
     description:
-      'Las herramientas se utilizan dentro del repertorio y situaciones musicales reales.',
-    detail:
-      'REPERTORIO · PRÁCTICA'
+      'Aplicamos las herramientas dentro del repertorio.'
   },
   {
     number: '04',
-    symbol: '◆',
-    title: 'Interpretar',
-    description:
-      'Trabajamos intención, texto, emoción y presencia para transformar sonido en comunicación.',
-    detail:
-      'EMOCIÓN · IDENTIDAD'
-  },
-  {
-    number: '05',
-    symbol: '◎',
     title: 'Compartir',
     description:
-      'El aprendizaje se fortalece mediante ensambles, presentaciones y experiencias colectivas.',
-    detail:
-      'COMUNIDAD · ESCENA'
-  },
-  {
-    number: '06',
-    symbol: '▰',
-    title: 'Reflexionar',
-    description:
-      'Revisamos el proceso para reconocer avances, dificultades y nuevos objetivos.',
-    detail:
-      'PROGRESO · AUTONOMÍA'
-  }
-]
-
-const experienceSteps = [
-  {
-    number: '01',
-    label: 'AULA',
-    title: 'Construimos herramientas',
-    description:
-      'Técnica vocal, teoría, ritmo, entrenamiento auditivo y comprensión musical.'
-  },
-  {
-    number: '02',
-    label: 'REPERTORIO',
-    title: 'Aplicamos lo aprendido',
-    description:
-      'El estudiante comienza a utilizar las herramientas dentro de canciones.'
-  },
-  {
-    number: '03',
-    label: 'ENSAMBLE',
-    title: 'Aprendemos a escuchar',
-    description:
-      'Trabajamos voces, coordinación, afinación colectiva y responsabilidad musical.'
-  },
-  {
-    number: '04',
-    label: 'ENSAYO',
-    title: 'Preparamos la experiencia',
-    description:
-      'Integramos música, interpretación, movimiento y aspectos técnicos.'
-  },
-  {
-    number: '05',
-    label: 'ESCENARIO',
-    title: 'Compartimos el proceso',
-    description:
-      'El aprendizaje se convierte en una experiencia artística frente a público.'
-  }
-]
-
-const values = [
-  {
-    number: '01',
-    title: 'Confianza',
-    description:
-      'Acompañamos al estudiante para desarrollar seguridad en su voz y en su capacidad de expresarse.'
-  },
-  {
-    number: '02',
-    title: 'Disciplina',
-    description:
-      'El crecimiento artístico requiere práctica, constancia y compromiso con el proceso.'
-  },
-  {
-    number: '03',
-    title: 'Identidad',
-    description:
-      'No buscamos uniformar voces. Queremos que cada estudiante descubra qué quiere comunicar.'
-  },
-  {
-    number: '04',
-    title: 'Comunidad',
-    description:
-      'La música también se aprende escuchando, colaborando y construyendo junto a otros.'
-  },
-  {
-    number: '05',
-    title: 'Respeto',
-    description:
-      'Cada proceso, voz y ritmo de aprendizaje merece un espacio seguro para desarrollarse.'
-  },
-  {
-    number: '06',
-    title: 'Curiosidad',
-    description:
-      'Promovemos preguntas, exploración y comprensión en lugar de una práctica puramente mecánica.'
-  }
-]
-
-const differences = [
-  {
-    number: '01',
-    title: 'Formación conectada',
-    description:
-      'La técnica vocal, la teoría musical y la interpretación no funcionan como áreas aisladas.'
-  },
-  {
-    number: '02',
-    title: 'Experiencia escénica',
-    description:
-      'El estudiante puede aplicar progresivamente lo aprendido mediante ensayos y presentaciones.'
-  },
-  {
-    number: '03',
-    title: 'Seguimiento del proceso',
-    description:
-      'Observamos avances, necesidades y objetivos para orientar mejor el trabajo.'
-  },
-  {
-    number: '04',
-    title: 'Tecnología educativa',
-    description:
-      'El Aula Virtual complementa la formación presencial con materiales, tareas y seguimiento.'
-  },
-  {
-    number: '05',
-    title: 'Producciones propias',
-    description:
-      'Conciertos y experiencias escénico-musicales permiten integrar múltiples habilidades.'
-  },
-  {
-    number: '06',
-    title: 'Identidad artística',
-    description:
-      'Buscamos entregar herramientas para que cada estudiante desarrolle una expresión propia.'
+      'Transformamos el aprendizaje en experiencia artística.'
   }
 ]
 </script>
@@ -947,1608 +498,1561 @@ const differences = [
 ========================================================= */
 
 .academy-page {
-  --surface: #0d0d0d;
-  --surface-soft: #111;
-  --border: #292929;
-  --muted: #797979;
-
   min-height: 100vh;
+
   overflow: hidden;
-  color: #f5f5f5;
-  background: #080808;
+
+  background:
+    variables.$color-background;
+
+  color:
+    variables.$color-text-primary;
 }
 
-.container {
-  width: min(1200px, 100%);
-  margin: 0 auto;
-}
+/* =========================================================
+   ELEMENTOS COMPARTIDOS
+========================================================= */
 
-.eyebrow {
-  display: flex;
-  gap: 9px;
-  align-items: center;
-  color: variables.$color-primary;
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.19em;
-  text-transform: uppercase;
-}
-
-.eyebrow > span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: variables.$color-primary;
-  box-shadow:
-    0 0 15px rgba(212, 175, 55, 0.6);
-}
-
-.eyebrow--simple {
+.academy-eyebrow {
   display: block;
-}
 
-.display-title {
-  margin: 17px 0 0;
+  color:
+    variables.$color-primary;
+
+  font-family:
+    variables.$font-family-primary;
+
   font-size:
-    clamp(
-      2.9rem,
-      5.4vw,
-      5.4rem
-    );
-  line-height: 0.94;
-  letter-spacing: -0.06em;
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    0.13em;
+
+  line-height: 1.4;
+
+  text-transform:
+    uppercase;
 }
 
-.display-title em {
-  display: block;
-  color: variables.$color-primary;
-  font-style: normal;
-}
-
-.button {
+.academy-button {
   display: inline-flex;
-  gap: 10px;
-  min-height: 49px;
+
+  min-height:
+    variables.$control-height-lg;
+
+  gap:
+    0.75rem;
+
   align-items: center;
   justify-content: center;
+
   padding:
-    13px
-    21px;
-  border-radius: 10px;
-  font-size: 0.71rem;
-  font-weight: 900;
-  text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-}
+    0 1.4rem;
 
-.button:hover {
-  transform: translateY(-2px);
-}
-
-.button--primary {
   border:
-    1px solid
+    1px solid transparent;
+
+  border-radius:
+    variables.$radius-md;
+
+  font-family:
+    variables.$font-family-primary;
+
+  font-size:
+    0.9rem;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  line-height: 1;
+
+  transition:
+    transform
+      variables.$transition-fast,
+    background-color
+      variables.$transition-fast,
+    border-color
+      variables.$transition-fast,
+    color
+      variables.$transition-fast,
+    box-shadow
+      variables.$transition-fast;
+}
+
+.academy-button:hover {
+  transform:
+    translateY(-2px);
+}
+
+.academy-button--primary {
+  color:
+    variables.$color-black;
+
+  background:
     variables.$color-primary;
-  color: #080808;
-  background: variables.$color-primary;
-}
 
-.button--primary:hover {
   box-shadow:
-    0 18px 45px
-    rgba(212, 175, 55, 0.16);
+    variables.$shadow-primary;
 }
 
-.button--secondary {
-  border: 1px solid #363636;
-  color: #bbb;
-  background: transparent;
+.academy-button--primary:hover {
+  background:
+    variables.$color-primary-light;
 }
 
-.button--secondary:hover {
-  color: #fff;
-  border-color: #575757;
+.academy-button--secondary {
+  border-color:
+    variables.$color-border;
+
+  color:
+    variables.$color-text-primary;
+
+  background:
+    rgba(
+      variables.$color-white,
+      0.025
+    );
 }
 
-.button--large {
-  min-height: 57px;
-  padding-right: 27px;
-  padding-left: 27px;
+.academy-button--secondary:hover {
+  border-color:
+    variables.$color-border-strong;
+
+  background:
+    rgba(
+      variables.$color-white,
+      0.05
+    );
+}
+
+.academy-button--large {
+  min-height: 60px;
+
+  padding-inline:
+    1.7rem;
+}
+
+.academy-text-link {
+  display: inline-flex;
+
+  width: fit-content;
+
+  gap:
+    0.7rem;
+
+  align-items: center;
+
+  margin-top:
+    1.75rem;
+
+  color:
+    variables.$color-text-primary;
+
+  font-size:
+    0.9rem;
+
+  font-weight:
+    variables.$font-weight-semibold;
+}
+
+.academy-text-link span {
+  color:
+    variables.$color-primary;
+
+  transition:
+    transform
+      variables.$transition-fast;
+}
+
+.academy-text-link:hover span {
+  transform:
+    translateX(4px);
 }
 
 /* =========================================================
    HERO
 ========================================================= */
 
-.hero {
+.academy-hero {
   position: relative;
+
   padding:
-    165px
-    24px
-    120px;
-  overflow: hidden;
-  background: #090909;
-}
-
-.hero__grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.013) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      rgba(255, 255, 255, 0.013) 1px,
-      transparent 1px
-    );
-  background-size: 72px 72px;
-  mask-image:
-    linear-gradient(
-      to bottom,
-      black,
-      transparent 95%
-    );
-}
-
-.hero__glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(150px);
-}
-
-.hero__glow--top {
-  top: -170px;
-  right: -150px;
-  width: 650px;
-  height: 650px;
-  background:
-    rgba(212, 175, 55, 0.08);
-}
-
-.hero__glow--bottom {
-  bottom: -300px;
-  left: -220px;
-  width: 550px;
-  height: 550px;
-  background:
-    rgba(212, 175, 55, 0.035);
-}
-
-.hero__layout {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  gap: 75px;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      minmax(0, 1.08fr)
-      minmax(400px, 0.92fr);
-    align-items: center;
-  }
-}
-
-.hero h1 {
-  max-width: 850px;
-  margin: 22px 0 0;
-  font-size:
     clamp(
-      3.7rem,
-      7vw,
-      7rem
-    );
-  line-height: 0.88;
-  letter-spacing: -0.07em;
-}
-
-.hero h1 em {
-  display: block;
-  color: variables.$color-primary;
-  font-style: normal;
-}
-
-.hero__lead {
-  max-width: 690px;
-  margin: 31px 0 0;
-  color: #959595;
-  font-size: 0.98rem;
-  line-height: 1.85;
-}
-
-.hero__actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 34px;
-}
-
-.hero__facts {
-  display: grid;
-  gap: 1px;
-  overflow: hidden;
-  margin-top: 43px;
-  border: 1px solid #292929;
-  border-radius: 12px;
-  background: #292929;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(3, 1fr);
-  }
-}
-
-.hero__facts article {
-  padding: 15px;
-  background: #0c0c0c;
-}
-
-.hero__facts small,
-.hero__facts strong {
-  display: block;
-}
-
-.hero__facts small {
-  margin-bottom: 5px;
-  color: #575757;
-  font-size: 0.45rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-}
-
-.hero__facts strong {
-  color: #ccc;
-  font-size: 0.65rem;
-}
-
-/* =========================================================
-   HERO PHOTO
-========================================================= */
-
-.hero__visual {
-  position: relative;
-  min-height: 620px;
-}
-
-.hero-photo {
-  position: absolute;
-  overflow: hidden;
-  inset:
+      8.5rem,
+      13vw,
+      11rem
+    )
     0
-    25px
-    25px
-    0;
-  margin: 0;
-  border: 1px solid #303030;
-  border-radius: 26px;
-  background: #111;
-  box-shadow:
-    0 50px 110px
-    rgba(0, 0, 0, 0.52);
-}
-
-.hero-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition:
-    transform 0.8s ease;
-}
-
-.hero-photo:hover img {
-  transform: scale(1.025);
-}
-
-.hero-photo__overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.94),
-      rgba(0, 0, 0, 0.03) 63%
-    );
-}
-
-.hero-photo figcaption {
-  position: absolute;
-  z-index: 2;
-  right: 29px;
-  bottom: 30px;
-  left: 29px;
-}
-
-.hero-photo figcaption small {
-  color: variables.$color-primary;
-  font-size: 0.5rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-.hero-photo figcaption strong {
-  display: block;
-  margin-top: 9px;
-  font-size:
     clamp(
-      2rem,
-      4vw,
-      3.5rem
-    );
-  line-height: 0.98;
-}
-
-.hero-photo figcaption strong span {
-  display: block;
-  color: variables.$color-primary;
-}
-
-.hero-badge {
-  position: absolute;
-  z-index: 4;
-  display: flex;
-  gap: 11px;
-  align-items: center;
-  padding:
-    12px
-    15px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.23);
-  border-radius: 12px;
-  background:
-    rgba(10, 10, 10, 0.9);
-  backdrop-filter: blur(14px);
-}
-
-.hero-badge > span {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: 50%;
-  color: #080808;
-  background: variables.$color-primary;
-  font-size: 0.55rem;
-  font-weight: 900;
-}
-
-.hero-badge small,
-.hero-badge strong {
-  display: block;
-}
-
-.hero-badge small {
-  color: #626262;
-  font-size: 0.43rem;
-  font-weight: 900;
-  letter-spacing: 0.11em;
-}
-
-.hero-badge strong {
-  margin-top: 2px;
-  font-size: 0.64rem;
-}
-
-.hero-badge--top {
-  top: 35px;
-  left: -30px;
-}
-
-.hero-badge--bottom {
-  right: 0;
-  bottom: 0;
-}
-
-/* =========================================================
-   IDENTITY
-========================================================= */
-
-.identity {
-  padding:
-    130px
-    24px;
-}
-
-.identity__grid {
-  display: grid;
-  gap: 70px;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      0.9fr
-      1.1fr;
-  }
-}
-
-.identity__copy {
-  max-width: 690px;
-}
-
-.identity__copy p {
-  color: #7b7b7b;
-  font-size: 0.86rem;
-  line-height: 1.85;
-}
-
-.identity__lead {
-  margin-top: 0;
-  color: #cacaca !important;
-  font-size: 1.04rem !important;
-}
-
-.identity__statement {
-  display: flex;
-  gap: 15px;
-  align-items: flex-start;
-  margin-top: 30px;
-}
-
-.identity__statement > span {
-  width: 45px;
-  height: 1px;
-  flex: 0 0 auto;
-  margin-top: 8px;
-  background: variables.$color-primary;
-}
-
-.identity__statement strong {
-  max-width: 550px;
-  color: variables.$color-primary;
-  font-size: 0.71rem;
-  line-height: 1.6;
-}
-
-/* =========================================================
-   STORY
-========================================================= */
-
-.story {
-  padding:
-    130px
-    24px;
-  background: #0b0b0b;
-}
-
-.story__grid {
-  display: grid;
-  gap: 75px;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      0.95fr
-      1.05fr;
-    align-items: center;
-  }
-}
-
-.story__visual {
-  position: relative;
-}
-
-.story__visual figure {
-  position: relative;
-  overflow: hidden;
-  min-height: 700px;
-  margin: 0;
-  border: 1px solid #292929;
-  border-radius: 24px;
-}
-
-.story__visual img {
-  width: 100%;
-  height: 100%;
-  min-height: 700px;
-  object-fit: cover;
-}
-
-.story__overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.94),
-      rgba(0, 0, 0, 0.05) 63%
-    );
-}
-
-.story__visual figcaption {
-  position: absolute;
-  z-index: 2;
-  right: 30px;
-  bottom: 31px;
-  left: 30px;
-}
-
-.story__visual figcaption small {
-  color: variables.$color-primary;
-  font-size: 0.49rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-.story__visual figcaption strong {
-  display: block;
-  margin-top: 10px;
-  font-size:
-    clamp(
-      2rem,
-      4vw,
-      3.6rem
-    );
-  line-height: 0.98;
-}
-
-.story__visual figcaption em {
-  display: block;
-  color: variables.$color-primary;
-  font-style: normal;
-}
-
-.story__floating {
-  position: absolute;
-  top: 30px;
-  right: -20px;
-  width: 155px;
-  padding: 17px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.25);
-  border-radius: 14px;
-  background:
-    rgba(9, 9, 9, 0.9);
-  backdrop-filter: blur(15px);
-}
-
-.story__floating > span {
-  display: block;
-  color: variables.$color-primary;
-  font-size: 1.2rem;
-  font-weight: 950;
-}
-
-.story__floating p {
-  margin: 7px 0 0;
-  color: #707070;
-  font-size: 0.57rem;
-  line-height: 1.5;
-}
-
-.story__content > p {
-  max-width: 580px;
-  color: #7b7b7b;
-  font-size: 0.8rem;
-  line-height: 1.8;
-}
-
-.story__milestones {
-  display: grid;
-  gap: 9px;
-  margin-top: 29px;
-}
-
-.story__milestones article {
-  display: flex;
-  gap: 15px;
-  padding: 17px;
-  border: 1px solid #292929;
-  border-radius: 12px;
-  background: #0d0d0d;
-}
-
-.story__milestones article > span {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.24);
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: 0.49rem;
-  font-weight: 900;
-}
-
-.story__milestones strong {
-  display: block;
-  font-size: 0.75rem;
-}
-
-.story__milestones p {
-  margin: 4px 0 0;
-  color: #696969;
-  font-size: 0.62rem;
-  line-height: 1.5;
-}
-
-/* =========================================================
-   HEADERS
-========================================================= */
-
-.section-header {
-  display: grid;
-  gap: 30px;
-  margin-bottom: 52px;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      1fr
-      0.42fr;
-    align-items: end;
-  }
-}
-
-.section-header > p {
-  margin: 0;
-  color: #777;
-  font-size: 0.78rem;
-  line-height: 1.75;
-}
-
-.section-header--center {
-  grid-template-columns: 1fr;
-  justify-items: center;
-  text-align: center;
-}
-
-.section-header--center > p {
-  max-width: 550px;
-}
-
-/* =========================================================
-   PRINCIPLES
-========================================================= */
-
-.principles {
-  padding:
-    130px
-    24px;
-}
-
-.principles__grid {
-  display: grid;
-  gap: 12px;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      repeat(3, 1fr);
-  }
-}
-
-.principle-card {
-  padding: 27px;
-  border: 1px solid #292929;
-  border-radius: 17px;
-  background: #0d0d0d;
-  transition:
-    transform 0.24s ease,
-    border-color 0.24s ease;
-}
-
-.principle-card:hover {
-  transform: translateY(-4px);
-  border-color:
-    rgba(212, 175, 55, 0.29);
-}
-
-.principle-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.principle-card__top > span {
-  color: variables.$color-primary;
-  font-size: 0.52rem;
-  font-weight: 900;
-}
-
-.principle-card__top > strong {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.23);
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: 0.6rem;
-}
-
-.principle-card h3 {
-  margin: 24px 0 11px;
-  font-size: 1.08rem;
-}
-
-.principle-card p {
-  min-height: 68px;
-  margin: 0;
-  color: #777;
-  font-size: 0.69rem;
-  line-height: 1.65;
-}
-
-.principle-card > small {
-  display: block;
-  margin-top: 21px;
-  padding-top: 17px;
-  border-top: 1px solid #262626;
-  color: #505050;
-  font-size: 0.47rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-/* =========================================================
-   EXPERIENCE
-========================================================= */
-
-.experience {
-  padding:
-    130px
-    24px;
-  background: #0b0b0b;
-}
-
-.experience__grid {
-  display: grid;
-  gap: 70px;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      0.78fr
-      1.22fr;
-  }
-}
-
-.experience__heading {
-  @include mixins.respond-to(lg) {
-    position: sticky;
-    top: 120px;
-    align-self: start;
-  }
-}
-
-.experience__heading > p {
-  max-width: 460px;
-  margin-top: 24px;
-  color: #777;
-  font-size: 0.78rem;
-  line-height: 1.75;
-}
-
-.experience__steps {
-  display: grid;
-  gap: 10px;
-}
-
-.experience__steps article {
-  display: flex;
-  gap: 18px;
-  padding: 21px;
-  border: 1px solid #292929;
-  border-radius: 14px;
-  background: #101010;
-}
-
-.experience__number {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  flex: 0 0 auto;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.25);
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-size: 0.52rem;
-  font-weight: 900;
-}
-
-.experience__steps small {
-  color: variables.$color-primary;
-  font-size: 0.45rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-}
-
-.experience__steps h3 {
-  margin: 5px 0;
-  font-size: 0.86rem;
-}
-
-.experience__steps p {
-  margin: 0;
-  color: #6d6d6d;
-  font-size: 0.63rem;
-  line-height: 1.55;
-}
-
-/* =========================================================
-   VALUES
-========================================================= */
-
-.values {
-  padding:
-    130px
-    24px;
-}
-
-.values__grid {
-  display: grid;
-  gap: 11px;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      repeat(3, 1fr);
-  }
-}
-
-.value-card {
-  padding: 26px;
-  border: 1px solid #292929;
-  border-radius: 16px;
-  background: #0d0d0d;
-}
-
-.value-card__number {
-  color: variables.$color-primary;
-  font-size: 0.5rem;
-  font-weight: 900;
-}
-
-.value-card h3 {
-  margin: 21px 0 9px;
-  font-size: 0.95rem;
-}
-
-.value-card p {
-  margin: 0;
-  color: #707070;
-  font-size: 0.66rem;
-  line-height: 1.6;
-}
-
-/* =========================================================
-   COMMUNITY
-========================================================= */
-
-.community {
-  padding:
-    135px
-    24px;
-  background: #0b0b0b;
-}
-
-.community__grid {
-  display: grid;
-  gap: 75px;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      0.9fr
-      1.1fr;
-    align-items: center;
-  }
-}
-
-.community__content > p {
-  max-width: 570px;
-  color: #7b7b7b;
-  font-size: 0.8rem;
-  line-height: 1.8;
-}
-
-.community__tags {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-  margin-top: 25px;
-}
-
-.community__tags span {
-  padding:
-    8px
-    11px;
-  border: 1px solid #303030;
-  border-radius: 999px;
-  color: #858585;
-  font-size: 0.56rem;
-  font-weight: 800;
-}
-
-.community__photo {
-  position: relative;
-  overflow: hidden;
-  min-height: 650px;
-  margin: 0;
-  border: 1px solid #292929;
-  border-radius: 24px;
-}
-
-.community__photo img {
-  width: 100%;
-  height: 100%;
-  min-height: 650px;
-  object-fit: cover;
-  transition:
-    transform 0.8s ease;
-}
-
-.community__photo:hover img {
-  transform: scale(1.025);
-}
-
-.community__photo-overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.94),
-      rgba(0, 0, 0, 0.04) 65%
-    );
-}
-
-.community__photo figcaption {
-  position: absolute;
-  z-index: 2;
-  right: 30px;
-  bottom: 31px;
-  left: 30px;
-}
-
-.community__photo figcaption small {
-  color: variables.$color-primary;
-  font-size: 0.49rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-.community__photo figcaption strong {
-  display: block;
-  margin-top: 9px;
-  font-size:
-    clamp(
-      2rem,
-      4vw,
-      3.5rem
-    );
-  line-height: 0.98;
-}
-
-.community__photo figcaption em {
-  display: block;
-  color: variables.$color-primary;
-  font-style: normal;
-}
-
-/* =========================================================
-   FORMATION
-========================================================= */
-
-.formation {
-  position: relative;
-  overflow: hidden;
-  padding:
-    145px
-    24px;
-}
-
-.formation__grid-background {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px
-    );
-  background-size:
-    70px
-    70px;
-}
-
-.formation__content {
-  position: relative;
-  z-index: 2;
-}
-
-.formation h2 {
-  max-width: 1000px;
-  margin: 21px 0 0;
-  font-size:
-    clamp(
-      4rem,
-      8vw,
+      5rem,
+      9vw,
       8rem
     );
-  line-height: 0.85;
-  letter-spacing: -0.075em;
+
+  border-bottom:
+    1px solid
+    variables.$color-border-soft;
 }
 
-.formation h2 span {
-  color: variables.$color-primary;
+.academy-hero::before {
+  position: absolute;
+
+  top: -25rem;
+  right: -18rem;
+
+  width: 45rem;
+  height: 45rem;
+
+  content: '';
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  background:
+    rgba(
+      variables.$color-primary,
+      0.045
+    );
+
+  filter:
+    blur(150px);
 }
 
-.formation h2 em {
+.academy-hero__layout {
+  position: relative;
+
+  display: grid;
+
+  gap:
+    clamp(
+      3rem,
+      7vw,
+      6rem
+    );
+
+  align-items: center;
+}
+
+.academy-hero__content {
+  position: relative;
+
+  z-index: 2;
+}
+
+.academy-hero h1 {
+  max-width:
+    760px;
+
+  margin-top:
+    1.25rem;
+
+  font-size:
+    clamp(
+      3.2rem,
+      7vw,
+      6.8rem
+    );
+
+  line-height:
+    0.92;
+
+  letter-spacing:
+    -0.055em;
+}
+
+.academy-hero h1 em {
   display: block;
-  color: variables.$color-primary;
+
+  color:
+    variables.$color-primary;
+
   font-style: normal;
 }
 
-.formation__content > p {
-  max-width: 570px;
-  margin-top: 29px;
-  color: #818181;
-  font-size: 0.8rem;
-  line-height: 1.7;
+.academy-hero__content > p {
+  max-width:
+    560px;
+
+  margin-top:
+    1.75rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    clamp(
+      1rem,
+      1.7vw,
+      1.15rem
+    );
+
+  line-height:
+    1.75;
 }
 
-.formation__areas {
-  display: grid;
-  gap: 1px;
+.academy-hero__actions {
+  display: flex;
+
+  gap:
+    0.75rem;
+
+  flex-wrap: wrap;
+
+  margin-top:
+    2rem;
+}
+
+.academy-hero__trust {
+  display: flex;
+
+  gap:
+    0.85rem;
+
+  flex-wrap: wrap;
+
+  align-items: center;
+
+  margin-top:
+    2.25rem;
+
+  color:
+    variables.$color-text-muted;
+
+  font-size:
+    0.825rem;
+
+  font-weight:
+    variables.$font-weight-medium;
+}
+
+.academy-hero__trust i {
+  width: 4px;
+  height: 4px;
+
+  border-radius: 50%;
+
+  background:
+    variables.$color-primary;
+}
+
+.academy-hero__visual {
+  position: relative;
+
   overflow: hidden;
-  margin-top: 50px;
-  border: 1px solid #292929;
-  border-radius: 15px;
-  background: #292929;
 
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
+  min-height:
+    clamp(
+      480px,
+      58vw,
+      650px
+    );
 
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      repeat(4, 1fr);
-  }
+  margin: 0;
+
+  border:
+    1px solid
+    variables.$color-border;
+
+  border-radius:
+    variables.$radius-xl;
+
+  background:
+    variables.$color-surface;
+
+  box-shadow:
+    variables.$shadow-lg;
 }
 
-.formation__areas article {
-  padding: 20px;
-  background: #0d0d0d;
+.academy-hero__visual img {
+  width: 100%;
+  height: 100%;
+
+  min-height: inherit;
+
+  object-fit: cover;
+
+  transition:
+    transform
+      variables.$transition-slow;
 }
 
-.formation__areas article > span {
-  color: variables.$color-primary;
-  font-size: 0.48rem;
-  font-weight: 900;
+.academy-hero__visual:hover img {
+  transform:
+    scale(1.02);
 }
 
-.formation__areas strong,
-.formation__areas small {
+.academy-hero__overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(
+        variables.$color-black,
+        0.88
+      ),
+      rgba(
+        variables.$color-black,
+        0.02
+      )
+      65%
+    );
+}
+
+.academy-hero__visual figcaption {
+  position: absolute;
+
+  right: 2rem;
+  bottom: 2rem;
+  left: 2rem;
+}
+
+.academy-hero__visual figcaption span {
   display: block;
+
+  margin-bottom:
+    0.6rem;
+
+  color:
+    variables.$color-primary;
+
+  font-size:
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    0.12em;
+
+  text-transform:
+    uppercase;
 }
 
-.formation__areas strong {
-  margin-top: 13px;
-  font-size: 0.78rem;
+.academy-hero__visual figcaption strong {
+  display: block;
+
+  max-width:
+    400px;
+
+  color:
+    variables.$color-white;
+
+  font-family:
+    variables.$font-family-heading;
+
+  font-size:
+    clamp(
+      2rem,
+      4vw,
+      3.5rem
+    );
+
+  line-height:
+    1;
 }
 
-.formation__areas small {
-  margin-top: 5px;
-  color: #595959;
-  font-size: 0.53rem;
-  line-height: 1.45;
+@include mixins.respond-to(lg) {
+  .academy-hero__layout {
+    grid-template-columns:
+      minmax(0, 1.05fr)
+      minmax(390px, 0.95fr);
+  }
 }
 
 /* =========================================================
-   DIRECTOR
+   SECTION HEADING
 ========================================================= */
 
-.director {
-  padding:
-    135px
-    24px;
-  background: #0b0b0b;
-}
-
-.director__grid {
+.academy-section-heading {
   display: grid;
-  gap: 75px;
 
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      0.65fr
-      1.35fr;
-    align-items: center;
-  }
+  gap:
+    2rem;
+
+  align-items: end;
+
+  margin-bottom:
+    clamp(
+      2.5rem,
+      5vw,
+      4.5rem
+    );
 }
 
-.director__identity {
-  display: grid;
-  justify-items: center;
-  padding: 45px 30px;
-  border: 1px solid #292929;
-  border-radius: 22px;
-  text-align: center;
-  background:
-    radial-gradient(
-      circle at center,
-      rgba(212, 175, 55, 0.065),
-      transparent 55%
-    ),
-    #0d0d0d;
+.academy-section-heading h2,
+.academy-method h2,
+.academy-stage h2,
+.academy-people h2 {
+  margin-top:
+    0.9rem;
+
+  font-size:
+    clamp(
+      2.5rem,
+      5vw,
+      4.8rem
+    );
+
+  line-height:
+    0.98;
+
+  letter-spacing:
+    -0.045em;
 }
 
-.director__monogram {
-  position: relative;
-  display: grid;
-  width: 165px;
-  height: 165px;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.3);
-  border-radius: 50%;
+.academy-section-heading h2 em,
+.academy-method h2 em,
+.academy-stage h2 em,
+.academy-people h2 em {
+  color:
+    variables.$color-primary;
+
+  font-style: normal;
 }
 
-.director__monogram > span {
-  color: variables.$color-primary;
-  font-size: 3rem;
-  font-weight: 950;
-}
-
-.director__monogram-ring {
-  position: absolute;
-  inset: 12px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.08);
-  border-radius: 50%;
-}
-
-.director__identity-copy {
-  margin-top: 27px;
-}
-
-.director__identity-copy small,
-.director__identity-copy strong,
-.director__identity-copy span {
+.academy-section-heading h2 em {
   display: block;
 }
 
-.director__identity-copy small {
-  color: variables.$color-primary;
-  font-size: 0.46rem;
-  font-weight: 900;
-  letter-spacing: 0.14em;
+.academy-section-heading > p {
+  max-width:
+    430px;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.7;
 }
 
-.director__identity-copy strong {
-  margin-top: 8px;
-  font-size: 1.25rem;
+@include mixins.respond-to(md) {
+  .academy-section-heading {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(260px, 0.42fr);
+  }
 }
 
-.director__identity-copy span {
-  margin-top: 5px;
-  color: #676767;
-  font-size: 0.61rem;
+/* =========================================================
+   FOCUS
+========================================================= */
+
+.academy-focus {
+  background:
+    variables.$color-background;
 }
 
-.director__content > p {
-  max-width: 680px;
-  color: #797979;
-  font-size: 0.78rem;
-  line-height: 1.8;
+.academy-focus__grid {
+  display: grid;
+
+  gap:
+    1rem;
 }
 
-.director blockquote {
+.academy-focus__card {
+  position: relative;
+
+  min-height:
+    250px;
+
+  padding:
+    clamp(
+      1.5rem,
+      3vw,
+      2rem
+    );
+
+  border:
+    1px solid
+    variables.$color-border-soft;
+
+  border-radius:
+    variables.$radius-lg;
+
+  background:
+    variables.$color-surface;
+
+  transition:
+    transform
+      variables.$transition-normal,
+    border-color
+      variables.$transition-normal,
+    background-color
+      variables.$transition-normal;
+}
+
+.academy-focus__card:hover {
+  border-color:
+    variables.$color-border-strong;
+
+  background:
+    variables.$color-surface-elevated;
+
+  transform:
+    translateY(-3px);
+}
+
+.academy-focus__number {
+  color:
+    variables.$color-text-muted;
+
+  font-size:
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-semibold;
+}
+
+.academy-focus__icon {
+  display: grid;
+
+  width: 48px;
+  height: 48px;
+
+  place-items: center;
+
+  margin-top:
+    2rem;
+
+  border-radius: 50%;
+
+  color:
+    variables.$color-primary;
+
+  background:
+    rgba(
+      variables.$color-primary,
+      0.09
+    );
+
+  font-size:
+    1.1rem;
+}
+
+.academy-focus__card h3 {
+  margin-top:
+    1.35rem;
+
+  font-family:
+    variables.$font-family-primary;
+
+  font-size:
+    1.15rem;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    -0.02em;
+}
+
+.academy-focus__card p {
+  margin-top:
+    0.65rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    0.9rem;
+
+  line-height:
+    1.65;
+}
+
+@include mixins.respond-to(md) {
+  .academy-focus__grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@include mixins.respond-to(lg) {
+  .academy-focus__grid {
+    grid-template-columns:
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+/* =========================================================
+   MÉTODO
+========================================================= */
+
+.academy-method {
+  border-block:
+    1px solid
+    variables.$color-border-soft;
+
+  background:
+    variables.$color-surface;
+}
+
+.academy-method__layout {
+  display: grid;
+
+  gap:
+    clamp(
+      3rem,
+      7vw,
+      6rem
+    );
+}
+
+.academy-method__content > p {
+  max-width:
+    500px;
+
+  margin-top:
+    1.5rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.75;
+}
+
+.academy-method__steps {
+  display: grid;
+
+  border-top:
+    1px solid
+    variables.$color-border;
+}
+
+.academy-method__steps article {
+  display: grid;
+
+  gap:
+    1rem;
+
+  padding:
+    1.5rem
+    0;
+
+  border-bottom:
+    1px solid
+    variables.$color-border;
+
+  grid-template-columns:
+    42px
+    minmax(
+      0,
+      1fr
+    );
+}
+
+.academy-method__steps article > span {
+  color:
+    variables.$color-primary;
+
+  font-size:
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+.academy-method__steps h3 {
+  font-family:
+    variables.$font-family-primary;
+
+  font-size:
+    1.05rem;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    -0.015em;
+}
+
+.academy-method__steps p {
+  margin-top:
+    0.4rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    0.9rem;
+
+  line-height:
+    1.6;
+}
+
+@include mixins.respond-to(lg) {
+  .academy-method__layout {
+    grid-template-columns:
+      minmax(0, 0.85fr)
+      minmax(420px, 1.15fr);
+  }
+}
+
+/* =========================================================
+   ESCENARIO
+========================================================= */
+
+.academy-stage__layout {
+  display: grid;
+
+  gap:
+    clamp(
+      3rem,
+      7vw,
+      6rem
+    );
+
+  align-items: center;
+}
+
+.academy-stage__image {
+  position: relative;
+
+  overflow: hidden;
+
+  min-height:
+    clamp(
+      460px,
+      55vw,
+      650px
+    );
+
+  margin: 0;
+
+  border-radius:
+    variables.$radius-xl;
+
+  background:
+    variables.$color-surface;
+}
+
+.academy-stage__image img {
+  width: 100%;
+  height: 100%;
+
+  min-height: inherit;
+
+  object-fit: cover;
+}
+
+.academy-stage__overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(
+        variables.$color-black,
+        0.9
+      ),
+      transparent
+      65%
+    );
+}
+
+.academy-stage__image figcaption {
+  position: absolute;
+
+  right: 2rem;
+  bottom: 2rem;
+  left: 2rem;
+}
+
+.academy-stage__image figcaption span {
+  display: block;
+
+  color:
+    variables.$color-primary;
+
+  font-size:
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    0.1em;
+
+  text-transform:
+    uppercase;
+}
+
+.academy-stage__image figcaption strong {
+  display: block;
+
+  max-width:
+    420px;
+
+  margin-top:
+    0.6rem;
+
+  color:
+    variables.$color-white;
+
+  font-family:
+    variables.$font-family-heading;
+
+  font-size:
+    clamp(
+      2rem,
+      4vw,
+      3.5rem
+    );
+
+  line-height:
+    1;
+}
+
+.academy-stage__content > p {
+  max-width:
+    520px;
+
+  margin-top:
+    1.5rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.75;
+}
+
+.academy-stage__highlights {
+  display: grid;
+
+  gap:
+    1px;
+
+  overflow: hidden;
+
+  margin-top:
+    2rem;
+
+  border:
+    1px solid
+    variables.$color-border;
+
+  border-radius:
+    variables.$radius-lg;
+
+  background:
+    variables.$color-border;
+}
+
+.academy-stage__highlights div {
+  padding:
+    1.25rem;
+
+  background:
+    variables.$color-surface;
+}
+
+.academy-stage__highlights strong,
+.academy-stage__highlights span {
+  display: block;
+}
+
+.academy-stage__highlights strong {
+  color:
+    variables.$color-text-primary;
+
+  font-size:
+    0.95rem;
+}
+
+.academy-stage__highlights span {
+  margin-top:
+    0.3rem;
+
+  color:
+    variables.$color-text-muted;
+
+  font-size:
+    0.825rem;
+}
+
+@include mixins.respond-to(sm) {
+  .academy-stage__highlights {
+    grid-template-columns:
+      repeat(
+        3,
+        1fr
+      );
+  }
+}
+
+@include mixins.respond-to(lg) {
+  .academy-stage__layout {
+    grid-template-columns:
+      minmax(390px, 1fr)
+      minmax(0, 0.9fr);
+  }
+}
+
+/* =========================================================
+   EDADES
+========================================================= */
+
+.academy-people {
+  background:
+    variables.$color-surface;
+}
+
+.academy-people__layout {
+  display: grid;
+
+  gap:
+    clamp(
+      3rem,
+      7vw,
+      6rem
+    );
+
+  align-items: center;
+}
+
+.academy-people__content > p {
+  max-width:
+    530px;
+
+  margin-top:
+    1.5rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.75;
+}
+
+.academy-people__audiences {
   display: flex;
-  gap: 14px;
+
+  gap:
+    0.65rem;
+
+  flex-wrap: wrap;
+
+  margin-top:
+    2rem;
+}
+
+.academy-people__audiences span {
+  padding:
+    0.7rem
+    1rem;
+
+  border:
+    1px solid
+    variables.$color-border;
+
+  border-radius:
+    variables.$radius-pill;
+
+  color:
+    variables.$color-text-primary;
+
+  background:
+    rgba(
+      variables.$color-white,
+      0.02
+    );
+
+  font-size:
+    0.875rem;
+
+  font-weight:
+    variables.$font-weight-medium;
+}
+
+.academy-people__image {
+  position: relative;
+
+  overflow: hidden;
+
+  min-height:
+    clamp(
+      420px,
+      52vw,
+      600px
+    );
+
+  margin: 0;
+
+  border-radius:
+    variables.$radius-xl;
+
+  background:
+    variables.$color-surface-light;
+}
+
+.academy-people__image img {
+  width: 100%;
+  height: 100%;
+
+  min-height: inherit;
+
+  object-fit: cover;
+}
+
+.academy-people__overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(
+        variables.$color-black,
+        0.9
+      ),
+      transparent
+      65%
+    );
+}
+
+.academy-people__image figcaption {
+  position: absolute;
+
+  right: 2rem;
+  bottom: 2rem;
+  left: 2rem;
+
+  max-width:
+    360px;
+
+  color:
+    variables.$color-white;
+
+  font-family:
+    variables.$font-family-heading;
+
+  font-size:
+    clamp(
+      1.8rem,
+      4vw,
+      3rem
+    );
+
+  line-height:
+    1.05;
+}
+
+.academy-people__image
+figcaption strong {
+  display: block;
+
+  color:
+    variables.$color-primary;
+}
+
+@include mixins.respond-to(lg) {
+  .academy-people__layout {
+    grid-template-columns:
+      minmax(0, 0.9fr)
+      minmax(390px, 1fr);
+  }
+}
+
+/* =========================================================
+   DIRECCIÓN
+========================================================= */
+
+.academy-director {
+  border-bottom:
+    1px solid
+    variables.$color-border-soft;
+}
+
+.academy-director__layout {
+  display: grid;
+
+  gap:
+    clamp(
+      2.5rem,
+      6vw,
+      5rem
+    );
+
+  align-items: center;
+}
+
+.academy-director__identity {
+  display: grid;
+
+  width:
+    clamp(
+      150px,
+      22vw,
+      220px
+    );
+
+  aspect-ratio: 1;
+
+  place-items: center;
+
+  border:
+    1px solid
+    variables.$color-border-primary;
+
+  border-radius:
+    50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(
+        variables.$color-primary,
+        0.08
+      ),
+      transparent
+      70%
+    );
+}
+
+.academy-director__identity span {
+  color:
+    variables.$color-primary;
+
+  font-family:
+    variables.$font-family-primary;
+
+  font-size:
+    clamp(
+      2.5rem,
+      5vw,
+      4rem
+    );
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    -0.05em;
+}
+
+.academy-director__content h2 {
+  margin-top:
+    0.8rem;
+
+  font-size:
+    clamp(
+      2.5rem,
+      5vw,
+      4.5rem
+    );
+
+  line-height:
+    1;
+}
+
+.academy-director__content > p {
+  max-width:
+    600px;
+
+  margin-top:
+    1.25rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.7;
+}
+
+.academy-director blockquote {
+  max-width:
+    620px;
+
   margin:
-    29px
+    1.75rem
     0
     0;
-  padding: 20px;
-  border: 0;
+
+  padding:
+    1.25rem
+    1.5rem;
+
   border-left:
     2px solid
     variables.$color-primary;
+
+  color:
+    variables.$color-text-primary;
+
   background:
-    rgba(212, 175, 55, 0.025);
-}
-
-.director blockquote > span {
-  color: variables.$color-primary;
-  font-size: 2rem;
-  line-height: 0.8;
-}
-
-.director blockquote p {
-  margin: 0;
-  color: #aaa;
-  font-size: 0.8rem;
-  font-style: italic;
-  line-height: 1.65;
-}
-
-/* =========================================================
-   DIFFERENCE
-========================================================= */
-
-.difference {
-  padding:
-    135px
-    24px;
-}
-
-.difference__grid {
-  display: grid;
-  gap: 11px;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
-}
-
-.difference__grid article {
-  display: flex;
-  gap: 18px;
-  padding: 22px;
-  border: 1px solid #292929;
-  border-radius: 14px;
-  background: #0d0d0d;
-}
-
-.difference__grid article > span {
-  color: variables.$color-primary;
-  font-size: 0.5rem;
-  font-weight: 900;
-}
-
-.difference__grid h3 {
-  margin: 0;
-  font-size: 0.84rem;
-}
-
-.difference__grid p {
-  margin: 6px 0 0;
-  color: #6d6d6d;
-  font-size: 0.64rem;
-  line-height: 1.6;
-}
-
-/* =========================================================
-   MANIFESTO
-========================================================= */
-
-.manifesto {
-  position: relative;
-  overflow: hidden;
-  padding:
-    150px
-    24px;
-  border-top: 1px solid #222;
-  border-bottom: 1px solid #222;
-}
-
-.manifesto__grid {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px
+    rgba(
+      variables.$color-primary,
+      0.035
     );
-  background-size:
-    70px
-    70px;
-}
 
-.manifesto__glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 850px;
-  height: 550px;
-  border-radius: 50%;
-  background:
-    rgba(212, 175, 55, 0.065);
-  transform:
-    translate(-50%, -50%);
-  filter: blur(170px);
-}
+  font-family:
+    variables.$font-family-heading;
 
-.manifesto__content {
-  position: relative;
-  z-index: 2;
-}
-
-.manifesto h2 {
-  max-width: 1050px;
-  margin: 21px 0 0;
   font-size:
     clamp(
-      3.6rem,
-      7.5vw,
-      7.5rem
+      1.2rem,
+      2vw,
+      1.55rem
     );
-  line-height: 0.87;
-  letter-spacing: -0.075em;
+
+  font-style: italic;
+
+  line-height:
+    1.45;
 }
 
-.manifesto h2 em {
-  display: block;
-  color: variables.$color-primary;
-  font-style: normal;
-}
-
-.manifesto p {
-  max-width: 590px;
-  margin-top: 28px;
-  color: #7d7d7d;
-  font-size: 0.8rem;
-  line-height: 1.75;
+@include mixins.respond-to(md) {
+  .academy-director__layout {
+    grid-template-columns:
+      auto
+      minmax(
+        0,
+        1fr
+      );
+  }
 }
 
 /* =========================================================
    CTA
 ========================================================= */
 
-.cta {
+.academy-cta {
   position: relative;
+
+  padding-block:
+    clamp(
+      6rem,
+      11vw,
+      10rem
+    );
+
   overflow: hidden;
-  padding:
-    145px
-    24px;
-  background: #090909;
+
+  background:
+    variables.$color-background;
 }
 
-.cta__glow {
+.academy-cta::before {
   position: absolute;
+
   top: 50%;
   left: 50%;
-  width: 800px;
-  height: 500px;
-  border-radius: 50%;
+
+  width:
+    min(
+      850px,
+      95vw
+    );
+
+  height:
+    500px;
+
+  content: '';
+
+  border-radius:
+    50%;
+
+  pointer-events: none;
+
   background:
-    rgba(212, 175, 55, 0.07);
+    rgba(
+      variables.$color-primary,
+      0.055
+    );
+
   transform:
-    translate(-50%, -50%);
-  filter: blur(160px);
+    translate(
+      -50%,
+      -50%
+    );
+
+  filter:
+    blur(160px);
 }
 
-.cta__content {
+.academy-cta__content {
   position: relative;
+
   z-index: 2;
+
   display: grid;
+
   justify-items: center;
+
   text-align: center;
 }
 
-.cta h2 {
-  max-width: 950px;
-  margin: 19px 0 0;
+.academy-cta h2 {
+  max-width:
+    950px;
+
+  margin-top:
+    1rem;
+
   font-size:
     clamp(
-      3.3rem,
+      3rem,
       7vw,
-      6.8rem
+      6.5rem
     );
-  line-height: 0.89;
-  letter-spacing: -0.07em;
+
+  line-height:
+    0.92;
+
+  letter-spacing:
+    -0.055em;
 }
 
-.cta h2 em {
+.academy-cta h2 em {
   display: block;
-  color: variables.$color-primary;
+
+  color:
+    variables.$color-primary;
+
   font-style: normal;
 }
 
-.cta p {
-  max-width: 560px;
-  margin:
-    25px
-    0
-    30px;
-  color: #818181;
-  font-size: 0.82rem;
-  line-height: 1.7;
+.academy-cta p {
+  max-width:
+    510px;
+
+  margin-top:
+    1.5rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.7;
 }
 
-.cta__actions {
+.academy-cta__actions {
   display: flex;
-  gap: 10px;
+
+  gap:
+    0.75rem;
+
   flex-wrap: wrap;
   justify-content: center;
-}
 
-.cta__content > small {
-  margin-top: 21px;
-  color: #4d4d4d;
-  font-size: 0.48rem;
-  font-weight: 800;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
+  margin-top:
+    2rem;
 }
 
 /* =========================================================
-   RESPONSIVE
+   MOBILE
 ========================================================= */
 
-@media (max-width: 1000px) {
-  .hero__visual {
-    min-height: 610px;
-  }
-
-  .story__visual figure,
-  .story__visual img {
-    min-height: 600px;
-  }
-}
-
-@media (max-width: 900px) {
-  .hero {
-    padding:
-      145px
-      20px
-      95px;
-  }
-
-  .identity,
-  .story,
-  .principles,
-  .experience,
-  .values,
-  .community,
-  .formation,
-  .director,
-  .difference,
-  .manifesto,
-  .cta {
-    padding:
-      95px
-      20px;
-  }
-}
-
 @media (max-width: 700px) {
-  .hero {
-    padding:
-      130px
-      17px
-      78px;
-  }
+  .academy-hero__actions,
+  .academy-cta__actions {
+    width: 100%;
 
-  .hero h1 {
-    font-size:
-      clamp(
-        3.1rem,
-        14vw,
-        5.1rem
-      );
-  }
-
-  .hero__actions {
     flex-direction: column;
   }
 
-  .hero__actions .button {
+  .academy-hero__actions
+  .academy-button,
+  .academy-cta__actions
+  .academy-button {
     width: 100%;
   }
 
-  .hero__visual {
-    min-height: 500px;
-  }
+  .academy-hero__trust {
+    gap:
+      0.6rem;
 
-  .hero-photo {
-    inset: 0;
-  }
-
-  .hero-badge--top {
-    top: 15px;
-    left: 14px;
-  }
-
-  .hero-badge--bottom {
-    right: 14px;
-    bottom: 14px;
-  }
-
-  .story__floating {
-    top: 15px;
-    right: 14px;
-  }
-
-  .story__visual figure,
-  .story__visual img,
-  .community__photo,
-  .community__photo img {
-    min-height: 500px;
-  }
-
-  .formation h2 {
     font-size:
-      clamp(
-        3.2rem,
-        15vw,
-        5.4rem
-      );
+      0.78rem;
+  }
+
+  .academy-hero__visual {
+    min-height:
+      470px;
+  }
+
+  .academy-hero__visual figcaption,
+  .academy-stage__image figcaption,
+  .academy-people__image figcaption {
+    right:
+      1.35rem;
+
+    bottom:
+      1.35rem;
+
+    left:
+      1.35rem;
+  }
+
+  .academy-stage__image,
+  .academy-people__image {
+    min-height:
+      460px;
+  }
+
+  .academy-director__identity {
+    width:
+      145px;
   }
 }
 
-@media (max-width: 520px) {
-  .hero__facts {
-    grid-template-columns: 1fr;
+@media (max-width: 420px) {
+  .academy-hero__trust i {
+    display: none;
   }
 
-  .hero__visual {
-    min-height: 430px;
+  .academy-hero__trust {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
   }
 
-  .hero-badge {
-    padding:
-      9px
-      10px;
-  }
-
-  .hero-badge > span {
-    width: 29px;
-    height: 29px;
-  }
-
-  .story__visual figure,
-  .story__visual img,
-  .community__photo,
-  .community__photo img {
-    min-height: 440px;
-  }
-
-  .principle-card {
-    padding: 22px;
-  }
-
-  .director__identity {
-    padding:
-      35px
-      20px;
-  }
-
-  .director__monogram {
-    width: 135px;
-    height: 135px;
-  }
-
-  .cta__actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .cta__actions .button {
-    width: 100%;
+  .academy-hero__visual,
+  .academy-stage__image,
+  .academy-people__image {
+    min-height:
+      410px;
   }
 }
 </style>
