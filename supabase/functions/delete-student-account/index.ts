@@ -3,11 +3,12 @@ import {
 } from 'jsr:@supabase/supabase-js@2'
 
 /* =========================================================
-   CORS
+   CONFIGURACIÓN
 ========================================================= */
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin':
+    '*',
 
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type',
@@ -16,6 +17,29 @@ const corsHeaders = {
     'POST, OPTIONS',
 }
 
+const TEACHER_ROLE =
+  'teacher'
+
+const STUDENT_ROLE =
+  'student'
+
+const SUBMISSIONS_BUCKET =
+  'entregas-alumnos'
+
+/* =========================================================
+   TIPOS
+========================================================= */
+
+type RequestBody = {
+  studentId?: unknown
+  deleteInscription?: unknown
+}
+
+type AdminClient =
+  ReturnType<
+    typeof createClient
+  >
+
 /* =========================================================
    EDGE FUNCTION
 ========================================================= */
@@ -23,6 +47,9 @@ const corsHeaders = {
 Deno.serve(async req => {
   const requestId =
     crypto.randomUUID()
+
+  const startedAt =
+    Date.now()
 
   /* =======================================================
      CORS
@@ -47,6 +74,9 @@ Deno.serve(async req => {
   ) {
     return jsonResponse(
       {
+        success:
+          false,
+
         error:
           'Método no permitido.',
 
@@ -88,6 +118,9 @@ Deno.serve(async req => {
 
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'La función no está configurada correctamente.',
 
@@ -110,6 +143,9 @@ Deno.serve(async req => {
     if (!authorization) {
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'No existe una sesión válida.',
 
@@ -155,7 +191,8 @@ Deno.serve(async req => {
         user,
       },
 
-      error: userError,
+      error:
+        userError,
     } =
       await userClient.auth
         .getUser()
@@ -171,6 +208,9 @@ Deno.serve(async req => {
 
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'No fue posible validar tu sesión. Vuelve a iniciar sesión.',
 
@@ -201,7 +241,7 @@ Deno.serve(async req => {
       )
 
     /* =====================================================
-       COMPROBAR ROL PROFESOR
+       COMPROBAR PROFESOR
     ====================================================== */
 
     const {
@@ -215,9 +255,11 @@ Deno.serve(async req => {
         .from(
           'profiles',
         )
-        .select(
-          'id, role, display_name',
-        )
+        .select(`
+          id,
+          role,
+          display_name
+        `)
         .eq(
           'id',
           user.id,
@@ -232,8 +274,11 @@ Deno.serve(async req => {
 
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
-            'No pudimos comprobar los permisos del usuario.',
+            'No pudimos comprobar tus permisos.',
 
           requestId,
         },
@@ -245,10 +290,25 @@ Deno.serve(async req => {
     if (
       !teacherProfile ||
       teacherProfile.role !==
-        'teacher'
+        TEACHER_ROLE
     ) {
+      console.warn(
+        `[${requestId}] Usuario sin permisos de eliminación`,
+        {
+          userId:
+            user.id,
+
+          role:
+            teacherProfile?.role ||
+            null,
+        },
+      )
+
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'Solo un profesor puede eliminar estudiantes.',
 
@@ -264,7 +324,7 @@ Deno.serve(async req => {
     ====================================================== */
 
     let body:
-      Record<string, unknown>
+      RequestBody
 
     try {
       body =
@@ -272,6 +332,9 @@ Deno.serve(async req => {
     } catch {
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'Los datos enviados no son válidos.',
 
@@ -287,6 +350,25 @@ Deno.serve(async req => {
         body.studentId,
       )
 
+    /*
+     * IMPORTANTE:
+     *
+     * El borrado definitivo elimina también la inscripción
+     * POR DEFECTO.
+     *
+     * Solamente se conservará si explícitamente recibimos:
+     *
+     * deleteInscription: false
+     */
+
+    const deleteInscription =
+      body.deleteInscription !==
+      false
+
+    /* =====================================================
+       VALIDAR ID
+    ====================================================== */
+
     if (
       !Number.isSafeInteger(
         studentId,
@@ -295,6 +377,9 @@ Deno.serve(async req => {
     ) {
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'El estudiante seleccionado no es válido.',
 
@@ -305,21 +390,40 @@ Deno.serve(async req => {
       )
     }
 
+    console.log(
+      `[${requestId}] Solicitud de eliminación`,
+      {
+        teacherId:
+          user.id,
+
+        studentId,
+
+        deleteInscription,
+      },
+    )
+
     /* =====================================================
        BUSCAR ESTUDIANTE
     ====================================================== */
 
     const {
-      data: student,
-      error: studentError,
+      data:
+        student,
+
+      error:
+        studentError,
     } =
       await admin
         .from(
           'students',
         )
-        .select(
-          'id, name, voice, active, created_at',
-        )
+        .select(`
+          id,
+          name,
+          voice,
+          active,
+          created_at
+        `)
         .eq(
           'id',
           studentId,
@@ -334,6 +438,9 @@ Deno.serve(async req => {
 
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'No pudimos consultar el estudiante.',
 
@@ -347,6 +454,9 @@ Deno.serve(async req => {
     if (!student) {
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'El estudiante ya no existe.',
 
@@ -385,18 +495,21 @@ Deno.serve(async req => {
         )
         .eq(
           'role',
-          'student',
+          STUDENT_ROLE,
         )
         .maybeSingle()
 
     if (profileError) {
       console.error(
-        `[${requestId}] Error consultando perfil del estudiante:`,
+        `[${requestId}] Error consultando perfil:`,
         profileError,
       )
 
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'No pudimos consultar la cuenta del estudiante.',
 
@@ -408,7 +521,34 @@ Deno.serve(async req => {
     }
 
     /* =====================================================
-       OBTENER CORREO AUTH
+       PROTECCIÓN CONTRA AUTOELIMINACIÓN
+    ====================================================== */
+
+    if (
+      studentProfile?.id ===
+      user.id
+    ) {
+      console.error(
+        `[${requestId}] Intento de autoeliminación bloqueado`,
+      )
+
+      return jsonResponse(
+        {
+          success:
+            false,
+
+          error:
+            'No puedes eliminar tu propia cuenta desde esta operación.',
+
+          requestId,
+        },
+
+        403,
+      )
+    }
+
+    /* =====================================================
+       OBTENER EMAIL AUTH
     ====================================================== */
 
     let studentEmail =
@@ -431,24 +571,145 @@ Deno.serve(async req => {
 
       if (authUserError) {
         console.warn(
-          `[${requestId}] No se pudo obtener el usuario Auth:`,
+          `[${requestId}] No pudimos obtener el usuario Auth`,
           authUserError,
         )
       }
 
       studentEmail =
-        String(
+        normalizeEmail(
           authUserData
             ?.user
-            ?.email ||
-          '',
+            ?.email,
         )
-          .trim()
-          .toLowerCase()
     }
 
     /* =====================================================
-       ELIMINAR RESPUESTAS / INTENTOS DE QUIZ
+       BUSCAR INSCRIPCIONES RELACIONADAS
+
+       Las guardamos antes de eliminar Auth.
+    ====================================================== */
+
+    let relatedInscriptionIds:
+      number[] =
+      []
+
+    if (studentEmail) {
+      const {
+        data:
+          inscriptions,
+
+        error:
+          inscriptionLookupError,
+      } =
+        await admin
+          .from(
+            'inscriptions',
+          )
+          .select(
+            'id',
+          )
+          .eq(
+            'email',
+            studentEmail,
+          )
+
+      if (
+        inscriptionLookupError
+      ) {
+        console.error(
+          `[${requestId}] Error consultando inscripciones:`,
+          inscriptionLookupError,
+        )
+
+        return jsonResponse(
+          {
+            success:
+              false,
+
+            error:
+              'No pudimos comprobar la inscripción vinculada al estudiante.',
+
+            requestId,
+          },
+
+          500,
+        )
+      }
+
+      relatedInscriptionIds =
+        (
+          inscriptions ||
+          []
+        )
+          .map(
+            inscription =>
+              Number(
+                inscription.id,
+              ),
+          )
+          .filter(
+            id =>
+              Number.isSafeInteger(
+                id,
+              ),
+          )
+    }
+
+    /* =====================================================
+       OBTENER ARCHIVOS DE ENTREGAS
+
+       Esto evita dejar archivos huérfanos en Storage.
+    ====================================================== */
+
+    const submissionPaths =
+      await getSubmissionStoragePaths(
+        admin,
+        studentId,
+        requestId,
+      )
+
+    /* =====================================================
+       LIMPIAR STORAGE
+
+       No bloqueamos toda la eliminación si solamente
+       falla la limpieza del archivo.
+    ====================================================== */
+
+    const warnings:
+      string[] =
+      []
+
+    if (
+      submissionPaths.length >
+      0
+    ) {
+      const {
+        error:
+          storageError,
+      } =
+        await admin.storage
+          .from(
+            SUBMISSIONS_BUCKET,
+          )
+          .remove(
+            submissionPaths,
+          )
+
+      if (storageError) {
+        console.error(
+          `[${requestId}] Error limpiando Storage:`,
+          storageError,
+        )
+
+        warnings.push(
+          'No pudimos eliminar uno o más archivos privados de entregas. Revisa Storage.',
+        )
+      }
+    }
+
+    /* =====================================================
+       QUIZZES
     ====================================================== */
 
     await deleteQuizData(
@@ -458,7 +719,7 @@ Deno.serve(async req => {
     )
 
     /* =====================================================
-       ELIMINAR PROGRESO
+       PROGRESO GRANULAR
     ====================================================== */
 
     await deleteByStudentId(
@@ -468,6 +729,10 @@ Deno.serve(async req => {
       requestId,
     )
 
+    /* =====================================================
+       PROGRESO DE CLASE
+    ====================================================== */
+
     await deleteByStudentId(
       admin,
       'lesson_progress',
@@ -476,7 +741,7 @@ Deno.serve(async req => {
     )
 
     /* =====================================================
-       ELIMINAR ENTREGAS
+       ENTREGAS
     ====================================================== */
 
     await deleteByStudentId(
@@ -487,7 +752,7 @@ Deno.serve(async req => {
     )
 
     /* =====================================================
-       ELIMINAR ASISTENCIA
+       ASISTENCIA
     ====================================================== */
 
     await deleteByStudentId(
@@ -498,7 +763,7 @@ Deno.serve(async req => {
     )
 
     /* =====================================================
-       ELIMINAR PERFIL VOCAL
+       PERFIL VOCAL
     ====================================================== */
 
     await deleteByStudentId(
@@ -509,77 +774,11 @@ Deno.serve(async req => {
     )
 
     /* =====================================================
-       RESTABLECER INSCRIPCIÓN
-
-       Si estaba matriculada, vuelve a approved.
+       PROFILE
     ====================================================== */
 
-    let inscriptionReset =
+    let profileDeleted =
       false
-
-    if (studentEmail) {
-      const {
-        data:
-          resetInscriptions,
-
-        error:
-          inscriptionError,
-      } =
-        await admin
-          .from(
-            'inscriptions',
-          )
-          .update({
-            status:
-              'approved',
-
-            enrolled_at:
-              null,
-
-            updated_at:
-              new Date()
-                .toISOString(),
-          })
-          .eq(
-            'email',
-            studentEmail,
-          )
-          .eq(
-            'status',
-            'enrolled',
-          )
-          .select(
-            'id, status',
-          )
-
-      if (inscriptionError) {
-        console.error(
-          `[${requestId}] Error restableciendo inscripción:`,
-          inscriptionError,
-        )
-
-        return jsonResponse(
-          {
-            error:
-              'No pudimos restablecer la inscripción del estudiante.',
-
-            requestId,
-          },
-
-          500,
-        )
-      }
-
-      inscriptionReset =
-        Boolean(
-          resetInscriptions
-            ?.length,
-        )
-    }
-
-    /* =====================================================
-       ELIMINAR PROFILE
-    ====================================================== */
 
     if (
       studentProfile?.id
@@ -599,7 +798,7 @@ Deno.serve(async req => {
           )
           .eq(
             'role',
-            'student',
+            STUDENT_ROLE,
           )
 
       if (
@@ -612,6 +811,9 @@ Deno.serve(async req => {
 
         return jsonResponse(
           {
+            success:
+              false,
+
             error:
               'No pudimos eliminar el perfil del estudiante.',
 
@@ -621,10 +823,13 @@ Deno.serve(async req => {
           500,
         )
       }
+
+      profileDeleted =
+        true
     }
 
     /* =====================================================
-       ELIMINAR STUDENT
+       STUDENT
     ====================================================== */
 
     const {
@@ -651,6 +856,9 @@ Deno.serve(async req => {
 
       return jsonResponse(
         {
+          success:
+            false,
+
           error:
             'No pudimos eliminar el registro académico del estudiante.',
 
@@ -662,10 +870,13 @@ Deno.serve(async req => {
     }
 
     /* =====================================================
-       ELIMINAR AUTH
+       AUTH
 
-       Va al final porque es la parte más sensible.
+       Va después de eliminar la información académica.
     ====================================================== */
+
+    let authDeleted =
+      false
 
     if (
       studentProfile?.id
@@ -689,8 +900,14 @@ Deno.serve(async req => {
 
         return jsonResponse(
           {
+            success:
+              false,
+
+            partial:
+              true,
+
             error:
-              'El alumno académico fue eliminado, pero no pudimos eliminar su cuenta de acceso.',
+              'Los datos académicos fueron eliminados, pero no pudimos eliminar la cuenta de acceso.',
 
             requestId,
           },
@@ -698,15 +915,133 @@ Deno.serve(async req => {
           500,
         )
       }
+
+      authDeleted =
+        true
     }
 
     /* =====================================================
-       ÉXITO
+       INSCRIPCIÓN
+
+       ELIMINACIÓN DEFINITIVA:
+       también desaparece de Inscripciones.
+
+       Si en el futuro enviamos:
+       deleteInscription: false
+
+       volverá a Aprobada.
     ====================================================== */
 
+    let inscriptionAction:
+      'deleted' |
+      'restored' |
+      'not_found' |
+      'failed' =
+      'not_found'
+
+    if (
+      relatedInscriptionIds.length >
+      0
+    ) {
+      if (
+        deleteInscription
+      ) {
+        const {
+          error:
+            deleteInscriptionError,
+        } =
+          await admin
+            .from(
+              'inscriptions',
+            )
+            .delete()
+            .in(
+              'id',
+              relatedInscriptionIds,
+            )
+
+        if (
+          deleteInscriptionError
+        ) {
+          inscriptionAction =
+            'failed'
+
+          warnings.push(
+            'El alumno fue eliminado, pero no pudimos borrar su inscripción.',
+          )
+
+          console.error(
+            `[${requestId}] Error eliminando inscripción:`,
+            deleteInscriptionError,
+          )
+        } else {
+          inscriptionAction =
+            'deleted'
+        }
+      } else {
+        const {
+          error:
+            restoreInscriptionError,
+        } =
+          await admin
+            .from(
+              'inscriptions',
+            )
+            .update({
+              status:
+                'approved',
+
+              enrolled_at:
+                null,
+
+              updated_at:
+                new Date()
+                  .toISOString(),
+            })
+            .in(
+              'id',
+              relatedInscriptionIds,
+            )
+
+        if (
+          restoreInscriptionError
+        ) {
+          inscriptionAction =
+            'failed'
+
+          warnings.push(
+            'El alumno fue eliminado, pero no pudimos restablecer su inscripción.',
+          )
+
+          console.error(
+            `[${requestId}] Error restableciendo inscripción:`,
+            restoreInscriptionError,
+          )
+        } else {
+          inscriptionAction =
+            'restored'
+        }
+      }
+    }
+
+    /* =====================================================
+       AUDITORÍA
+    ====================================================== */
+
+    const durationMs =
+      Date.now() -
+      startedAt
+
     console.log(
-      `[${requestId}] Estudiante eliminado definitivamente`,
+      `[${requestId}] Eliminación completada`,
       {
+        teacherId:
+          user.id,
+
+        teacherName:
+          teacherProfile.display_name ||
+          null,
+
         studentId:
           student.id,
 
@@ -717,9 +1052,29 @@ Deno.serve(async req => {
           studentProfile?.id ||
           null,
 
-        inscriptionReset,
+        authDeleted,
+
+        profileDeleted,
+
+        deleteInscription,
+
+        inscriptionAction,
+
+        inscriptionsAffected:
+          relatedInscriptionIds.length,
+
+        storageFiles:
+          submissionPaths.length,
+
+        warnings,
+
+        durationMs,
       },
     )
+
+    /* =====================================================
+       RESPUESTA
+    ====================================================== */
 
     return jsonResponse(
       {
@@ -727,7 +1082,10 @@ Deno.serve(async req => {
           true,
 
         message:
-          `${student.name} fue eliminado definitivamente.`,
+          buildSuccessMessage(
+            student.name,
+            inscriptionAction,
+          ),
 
         student: {
           id:
@@ -740,9 +1098,34 @@ Deno.serve(async req => {
             student.voice,
         },
 
-        inscriptionReset,
+        deletion: {
+          academicDataDeleted:
+            true,
+
+          profileDeleted,
+
+          authDeleted,
+
+          storageFilesProcessed:
+            submissionPaths.length,
+
+          inscription: {
+            requestedDeletion:
+              deleteInscription,
+
+            action:
+              inscriptionAction,
+
+            affected:
+              relatedInscriptionIds.length,
+          },
+        },
+
+        warnings,
 
         requestId,
+
+        durationMs,
       },
 
       200,
@@ -755,6 +1138,9 @@ Deno.serve(async req => {
 
     return jsonResponse(
       {
+        success:
+          false,
+
         error:
           'Ocurrió un error interno eliminando al estudiante.',
 
@@ -767,14 +1153,69 @@ Deno.serve(async req => {
 })
 
 /* =========================================================
+   OBTENER ARCHIVOS DE ENTREGAS
+========================================================= */
+
+async function getSubmissionStoragePaths(
+  admin:
+    AdminClient,
+
+  studentId:
+    number,
+
+  requestId:
+    string,
+) {
+  const {
+    data,
+    error,
+  } =
+    await admin
+      .from(
+        'submissions',
+      )
+      .select(
+        'storage_path',
+      )
+      .eq(
+        'student_id',
+        studentId,
+      )
+
+  if (error) {
+    console.warn(
+      `[${requestId}] No pudimos consultar archivos de entregas:`,
+      error,
+    )
+
+    return []
+  }
+
+  return [
+    ...new Set(
+      (
+        data ||
+        []
+      )
+        .map(
+          submission =>
+            String(
+              submission.storage_path ||
+              '',
+            ).trim(),
+        )
+        .filter(Boolean),
+    ),
+  ]
+}
+
+/* =========================================================
    BORRAR REGISTROS POR student_id
 ========================================================= */
 
 async function deleteByStudentId(
   admin:
-    ReturnType<
-      typeof createClient
-    >,
+    AdminClient,
 
   table:
     string,
@@ -802,23 +1243,17 @@ async function deleteByStudentId(
       error,
     )
 
-    throw new Error(
-      `No pudimos limpiar los datos de ${table}.`,
-    )
+    throw error
   }
 }
 
 /* =========================================================
    QUIZZES
-
-   quiz_answers depende de quiz_attempts.
 ========================================================= */
 
 async function deleteQuizData(
   admin:
-    ReturnType<
-      typeof createClient
-    >,
+    AdminClient,
 
   studentId:
     number,
@@ -827,8 +1262,11 @@ async function deleteQuizData(
     string,
 ) {
   const {
-    data: attempts,
-    error: attemptsError,
+    data:
+      attempts,
+
+    error:
+      attemptsError,
   } =
     await admin
       .from(
@@ -855,7 +1293,8 @@ async function deleteQuizData(
 
   const attemptIds =
     (
-      attempts || []
+      attempts ||
+      []
     )
       .map(
         attempt =>
@@ -863,7 +1302,8 @@ async function deleteQuizData(
       )
 
   if (
-    attemptIds.length > 0
+    attemptIds.length >
+    0
   ) {
     const {
       error:
@@ -918,6 +1358,60 @@ async function deleteQuizData(
 }
 
 /* =========================================================
+   NORMALIZAR EMAIL
+========================================================= */
+
+function normalizeEmail(
+  value:
+    unknown,
+) {
+  return String(
+    value ??
+    '',
+  )
+    .trim()
+    .toLowerCase()
+}
+
+/* =========================================================
+   MENSAJE DE ÉXITO
+========================================================= */
+
+function buildSuccessMessage(
+  studentName:
+    string,
+
+  inscriptionAction:
+    'deleted' |
+    'restored' |
+    'not_found' |
+    'failed',
+) {
+  if (
+    inscriptionAction ===
+    'deleted'
+  ) {
+    return `${studentName} y su inscripción fueron eliminados definitivamente.`
+  }
+
+  if (
+    inscriptionAction ===
+    'restored'
+  ) {
+    return `${studentName} fue eliminado y su inscripción volvió al estado Aprobada.`
+  }
+
+  if (
+    inscriptionAction ===
+    'failed'
+  ) {
+    return `${studentName} fue eliminado, pero su inscripción requiere revisión.`
+  }
+
+  return `${studentName} fue eliminado definitivamente.`
+}
+
+/* =========================================================
    RESPUESTA JSON
 ========================================================= */
 
@@ -947,6 +1441,12 @@ function jsonResponse(
 
         'Cache-Control':
           'no-store',
+
+        'X-Request-Id':
+          String(
+            body.requestId ??
+            '',
+          ),
       },
     },
   )
