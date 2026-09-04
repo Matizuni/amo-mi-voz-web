@@ -178,15 +178,12 @@
             </option>
 
             <option
-              v-for="lesson in lessons"
-              :key="lesson.id"
-              :value="lesson.id"
-            >
-              Clase
-              {{ lesson.id }}
-              ·
-              {{ lesson.title }}
-            </option>
+  v-for="lesson in lessons"
+  :key="lesson.id"
+  :value="lesson.id"
+>
+  {{ getLessonOptionLabel(lesson) }}
+</option>
           </select>
         </div>
       </section>
@@ -431,12 +428,8 @@
 
         <div class="resource-preview__meta">
           <span>
-            Clase
-            {{
-              form.lessonId ||
-              '—'
-            }}
-          </span>
+  {{ selectedLessonLabel }}
+</span>
 
           <span>
             {{
@@ -704,6 +697,102 @@ const loadLessons =
         false
     }
   }
+
+  /* =========================================================
+   NUMERACIÓN ACADÉMICA DE CLASES
+========================================================= */
+
+const getLessonUnitId = lesson => {
+  return (
+    lesson?.unitId ??
+    lesson?.unit_id ??
+    null
+  )
+}
+
+const getLessonPosition = lesson => {
+  if (!lesson) {
+    return null
+  }
+
+  const unitId =
+    getLessonUnitId(lesson)
+
+  const unitLessons =
+    lessons.value.filter(item => {
+      return (
+        String(
+          getLessonUnitId(item)
+        ) ===
+        String(unitId)
+      )
+    })
+
+  const index =
+    unitLessons.findIndex(item => {
+      return (
+        Number(item.id) ===
+        Number(lesson.id)
+      )
+    })
+
+  return index >= 0
+    ? index + 1
+    : null
+}
+
+const cleanLessonTitle = title => {
+  return String(title || '')
+    .replace(
+      /^\s*clase\s+\d+\s*[·\-:]\s*/i,
+      ''
+    )
+    .trim()
+}
+
+const getLessonOptionLabel = lesson => {
+  const position =
+    getLessonPosition(lesson)
+
+  const title =
+    cleanLessonTitle(
+      lesson?.title
+    )
+
+  if (!position) {
+    return title || 'Clase'
+  }
+
+  return title
+    ? `Clase ${position} · ${title}`
+    : `Clase ${position}`
+}
+
+const selectedLesson =
+  computed(() => {
+    if (!form.lessonId) {
+      return null
+    }
+
+    return (
+      lessons.value.find(
+        lesson =>
+          Number(lesson.id) ===
+          Number(form.lessonId)
+      ) || null
+    )
+  })
+
+const selectedLessonLabel =
+  computed(() => {
+    if (!selectedLesson.value) {
+      return 'Clase no seleccionada'
+    }
+
+    return getLessonOptionLabel(
+      selectedLesson.value
+    )
+  })
 
 /* =========================================================
    ARCHIVO
