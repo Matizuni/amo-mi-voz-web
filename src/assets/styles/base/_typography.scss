@@ -1,12 +1,24 @@
 @use '../abstracts/variables' as variables;
 
+/* ==============================
+   BODY
+============================== */
+
 body {
   font-family: variables.$font-family-primary;
+
   font-size: variables.$font-size-base;
+
   font-weight: variables.$font-weight-regular;
-  line-height: 1.6;
+
+  line-height: variables.$line-height-normal;
+
   color: variables.$color-text-primary;
 }
+
+/* ==============================
+   HEADINGS
+============================== */
 
 h1,
 h2,
@@ -14,13 +26,183 @@ h3,
 h4,
 h5,
 h6 {
+  margin-top: 0;
+
   font-family: variables.$font-family-heading;
+
   font-weight: variables.$font-weight-bold;
-  line-height: 1.1;
+
+  line-height: variables.$line-height-heading;
+
+  letter-spacing: -0.025em;
+
+  color: variables.$color-text-primary;
+
   text-wrap: balance;
 }
 
+h1 {
+  font-size: clamp(2.75rem, 6vw, 5.5rem);
+
+  letter-spacing: -0.045em;
+}
+
+h2 {
+  font-size: clamp(2.15rem, 4.5vw, 4rem);
+
+  letter-spacing: -0.035em;
+}
+
+h3 {
+  font-size: clamp(1.55rem, 2.8vw, 2.35rem);
+}
+
+h4 {
+  font-size: variables.$font-size-xl;
+}
+
+h5 {
+  font-size: variables.$font-size-lg;
+}
+
+h6 {
+  font-size: variables.$font-size-md;
+}
+
+/* ==============================
+   PÁRRAFOS
+============================== */
+
 p {
+  margin-top: 0;
+
   color: variables.$color-text-secondary;
+
+  line-height: variables.$line-height-normal;
+
   text-wrap: pretty;
+}
+
+/* ==============================
+   TEXTO SECUNDARIO
+============================== */
+
+small {
+  font-size: variables.$font-size-sm;
+
+  line-height: 1.5;
+
+  color: variables.$color-text-muted;
+}
+
+/* ==============================
+   LINKS DE TEXTO
+============================== */
+
+a {
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+
+/* ==============================
+   ÉNFASIS
+============================== */
+
+strong,
+b {
+  font-weight: variables.$font-weight-semibold;
+
+  color: variables.$color-text-primary;
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+/* ==============================
+   LABELS / EYEBROWS
+============================== */
+
+.eyebrow,
+.label,
+.overline {
+  font-family: variables.$font-family-primary;
+
+  font-size: variables.$font-size-xs;
+
+  font-weight: variables.$font-weight-bold;
+
+  line-height: 1.4;
+
+  letter-spacing: 0.14em;
+
+  text-transform: uppercase;
+
+  color: variables.$color-primary;
+}
+
+/* ==============================
+   TEXTO DE INTERFAZ
+============================== */
+
+button,
+input,
+textarea,
+select,
+label,
+nav {
+  font-family: variables.$font-family-primary;
+}
+
+/* ==============================
+   TEXTO FUNCIONAL
+============================== */
+
+.ui-title,
+.card-title,
+.form-title,
+.table-title {
+  font-family: variables.$font-family-primary;
+
+  font-weight: variables.$font-weight-semibold;
+
+  letter-spacing: -0.015em;
+
+  color: variables.$color-text-primary;
+}
+
+/* ==============================
+   TEXTO MUTED
+============================== */
+
+.text-muted {
+  color: variables.$color-text-muted;
+}
+
+/* ==============================
+   TEXTO DORADO
+============================== */
+
+.text-primary {
+  color: variables.$color-primary;
+}
+
+/* ==============================
+   RESPONSIVE
+============================== */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 0.975rem;
+  }
+
+  h1 {
+    line-height: 1.02;
+  }
+
+  h2,
+  h3 {
+    line-height: 1.08;
+  }
 }

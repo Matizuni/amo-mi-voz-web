@@ -1,7 +1,4 @@
 <template>
-  <!-- =====================================================
-       NAVBAR PRINCIPAL
-  ====================================================== -->
   <header
     class="navbar"
     :class="{
@@ -9,51 +6,52 @@
       'navbar--menu-open': isMenuOpen
     }"
   >
-    <div class="navbar__ambient"></div>
-
     <div class="container navbar__container">
-      <!-- =================================================
-           LOGO
-      ================================================== -->
+      <!-- =====================================================
+           MARCA
+      ====================================================== -->
       <RouterLink
         to="/"
-        class="navbar__logo"
+        class="navbar__brand"
         aria-label="Ir al inicio de Amo Mi Voz"
         @click="closeMenu"
       >
-        <span class="navbar__logo-glow"></span>
-
         <img
           :src="logo"
           alt="Academia de Talentos Amo Mi Voz"
+          class="navbar__logo"
         />
       </RouterLink>
 
-      <!-- =================================================
+      <!-- =====================================================
            NAVEGACIÓN DESKTOP
-      ================================================== -->
+      ====================================================== -->
       <nav
-        class="navbar__desktop-nav"
+        class="navbar__navigation"
         aria-label="Navegación principal"
       >
         <RouterLink
           v-for="item in navigation"
           :key="item.path"
           :to="item.path"
+          class="navbar__link"
         >
           {{ item.label }}
         </RouterLink>
       </nav>
 
-      <!-- =================================================
+      <!-- =====================================================
            ACCIONES DESKTOP
-      ================================================== -->
+      ====================================================== -->
       <div class="navbar__actions">
         <RouterLink
           to="/aula"
-          class="navbar__aula"
+          class="navbar__action navbar__action--secondary"
         >
-          <span class="navbar__aula-icon">
+          <span
+            class="navbar__action-icon"
+            aria-hidden="true"
+          >
             ♪
           </span>
 
@@ -64,27 +62,29 @@
 
         <RouterLink
           to="/inscripcion"
-          class="navbar__cta"
+          class="navbar__action navbar__action--primary"
         >
           <span>
             Inscríbete
           </span>
 
-          <span class="navbar__cta-arrow">
+          <span
+            class="navbar__action-arrow"
+            aria-hidden="true"
+          >
             →
           </span>
         </RouterLink>
       </div>
 
-      <!-- =================================================
-           HAMBURGUESA MOBILE
-      ================================================== -->
+      <!-- =====================================================
+           BOTÓN MOBILE
+      ====================================================== -->
       <button
         type="button"
         class="navbar__toggle"
         :class="{
-          'navbar__toggle--active':
-            isMenuOpen
+          'navbar__toggle--active': isMenuOpen
         }"
         :aria-expanded="isMenuOpen"
         aria-controls="mobile-navigation"
@@ -95,26 +95,21 @@
         "
         @click="toggleMenu"
       >
-        <span class="navbar__toggle-glow"></span>
-
         <span class="navbar__toggle-lines">
-          <i></i>
-          <i></i>
-          <i></i>
+          <span></span>
+          <span></span>
+          <span></span>
         </span>
       </button>
     </div>
-
-    <div class="navbar__bottom-line"></div>
   </header>
 
-  <!-- =====================================================
+  <!-- =========================================================
        MENÚ MOBILE
 
-       IMPORTANTE:
-       Teleport lo saca completamente del navbar
-       y lo lleva directamente a <body>.
-  ====================================================== -->
+       Se mantiene Teleport para evitar problemas con:
+       z-index, overflow y stacking contexts del navbar.
+  ========================================================== -->
   <Teleport to="body">
     <Transition name="mobile-menu">
       <div
@@ -125,24 +120,20 @@
         aria-modal="true"
         aria-label="Menú principal"
       >
-        <!-- FONDO -->
-        <div
+        <button
+          type="button"
           class="mobile-menu__backdrop"
+          aria-label="Cerrar menú"
           @click="closeMenu"
-        ></div>
+        ></button>
 
-        <div class="mobile-menu__grid"></div>
-        <div class="mobile-menu__glow mobile-menu__glow--top"></div>
-        <div class="mobile-menu__glow mobile-menu__glow--bottom"></div>
-
-        <!-- PANEL -->
         <div
           class="mobile-menu__panel"
           @click.stop
         >
-          <!-- =============================================
+          <!-- ===============================================
                CABECERA
-          ============================================== -->
+          ================================================ -->
           <header class="mobile-menu__header">
             <RouterLink
               to="/"
@@ -155,9 +146,9 @@
               />
 
               <div class="mobile-menu__brand-copy">
-                <small>
-                  ACADEMIA DE TALENTOS
-                </small>
+                <span>
+                  Academia de Talentos
+                </span>
 
                 <strong>
                   Amo Mi Voz
@@ -176,37 +167,33 @@
             </button>
           </header>
 
-          <!-- =============================================
-               CONTENIDO SCROLLEABLE
-          ============================================== -->
-          <div class="mobile-menu__scroll">
-            <!-- STATUS -->
-            <div class="mobile-menu__status">
-              <span class="mobile-menu__status-dot"></span>
-
-              <span>
-                NAVEGACIÓN · AMO MI VOZ
+          <!-- ===============================================
+               CONTENIDO
+          ================================================ -->
+          <div class="mobile-menu__content">
+            <div class="mobile-menu__intro">
+              <span class="mobile-menu__eyebrow">
+                Navegación
               </span>
 
-              <small>
-                2026
-              </small>
+              <p>
+                Formación musical,
+                expresión y escenario.
+              </p>
             </div>
 
-            <!-- ===========================================
-                 ENLACES
-            ============================================ -->
+            <!-- =============================================
+                 NAVEGACIÓN
+            ============================================== -->
             <nav
               class="mobile-menu__navigation"
               aria-label="Navegación móvil"
             >
               <RouterLink
-                v-for="(
-                  item,
-                  index
-                ) in navigation"
+                v-for="(item, index) in navigation"
                 :key="item.path"
                 :to="item.path"
+                class="mobile-menu__link"
                 @click="closeMenu"
               >
                 <span class="mobile-menu__index">
@@ -220,118 +207,116 @@
                   {{ item.label }}
                 </span>
 
-                <span class="mobile-menu__arrow">
+                <span
+                  class="mobile-menu__arrow"
+                  aria-hidden="true"
+                >
                   →
                 </span>
               </RouterLink>
             </nav>
 
-            <!-- ===========================================
-                 DIVISOR
-            ============================================ -->
-            <div class="mobile-menu__divider">
-              <span></span>
-
-              <small>
-                ACCESOS
-              </small>
-
-              <span></span>
-            </div>
-
-            <!-- ===========================================
-                 AULA VIRTUAL
-            ============================================ -->
-            <RouterLink
-              to="/aula"
-              class="mobile-menu__aula"
-              @click="closeMenu"
-            >
-              <div class="mobile-menu__aula-icon">
-                ♪
-              </div>
-
-              <div class="mobile-menu__aula-copy">
-                <small>
-                  ACCESO ESTUDIANTES
-                </small>
-
-                <strong>
-                  Aula Virtual
-                </strong>
-
-                <span>
-                  Clases, material y progreso
-                </span>
-              </div>
-
-              <div class="mobile-menu__aula-arrow">
-                →
-              </div>
-            </RouterLink>
-
-            <!-- ===========================================
-                 INSCRIPCIÓN
-            ============================================ -->
-            <RouterLink
-              to="/inscripcion"
-              class="mobile-menu__cta"
-              @click="closeMenu"
-            >
-              <div>
-                <small>
-                  QUIERO SER PARTE
-                </small>
-
-                <strong>
-                  Inscríbete
-                </strong>
-              </div>
-
-              <span>
-                →
+            <!-- =============================================
+                 ACCESOS
+            ============================================== -->
+            <section class="mobile-menu__access">
+              <span class="mobile-menu__eyebrow">
+                Accesos
               </span>
-            </RouterLink>
 
-            <!-- ===========================================
+              <RouterLink
+                to="/aula"
+                class="mobile-menu__aula"
+                @click="closeMenu"
+              >
+                <span
+                  class="mobile-menu__aula-icon"
+                  aria-hidden="true"
+                >
+                  ♪
+                </span>
+
+                <span class="mobile-menu__aula-copy">
+                  <strong>
+                    Aula Virtual
+                  </strong>
+
+                  <span>
+                    Clases, materiales y progreso
+                  </span>
+                </span>
+
+                <span
+                  class="mobile-menu__access-arrow"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
+              </RouterLink>
+
+              <RouterLink
+                to="/inscripcion"
+                class="mobile-menu__cta"
+                @click="closeMenu"
+              >
+                <span>
+                  <small>
+                    Quiero ser parte
+                  </small>
+
+                  <strong>
+                    Inscríbete
+                  </strong>
+                </span>
+
+                <span
+                  class="mobile-menu__cta-arrow"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
+              </RouterLink>
+            </section>
+
+            <!-- =============================================
                  INFORMACIÓN
-            ============================================ -->
-            <div class="mobile-menu__info">
-              <article>
-                <small>
-                  FORMACIÓN
-                </small>
+            ============================================== -->
+            <div class="mobile-menu__meta">
+              <div>
+                <span>
+                  Formación
+                </span>
 
                 <strong>
                   Voz · Música · Escenario
                 </strong>
-              </article>
+              </div>
 
-              <article>
-                <small>
-                  UBICACIÓN
-                </small>
+              <div>
+                <span>
+                  Ubicación
+                </span>
 
                 <strong>
                   La Calera · Chile
                 </strong>
-              </article>
+              </div>
             </div>
           </div>
 
-          <!-- =============================================
-               FOOTER FIJO
-          ============================================== -->
+          <!-- ===============================================
+               PIE
+          ================================================ -->
           <footer class="mobile-menu__footer">
             <span>
-              AMO MI VOZ
+              Amo Mi Voz
             </span>
 
-            <div></div>
+            <span class="mobile-menu__footer-line"></span>
 
-            <small>
-              ACADEMIA DE TALENTOS
-            </small>
+            <span>
+              Academia de Talentos
+            </span>
           </footer>
         </div>
       </div>
@@ -353,22 +338,10 @@ import {
 
 import logo from '@/assets/images/logo.png'
 
-/* =========================================================
-   ROUTER
-========================================================= */
-
 const route = useRoute()
-
-/* =========================================================
-   ESTADO
-========================================================= */
 
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
-
-/* =========================================================
-   NAVEGACIÓN
-========================================================= */
 
 const navigation = [
   {
@@ -393,10 +366,6 @@ const navigation = [
   }
 ]
 
-/* =========================================================
-   MENÚ
-========================================================= */
-
 function toggleMenu() {
   isMenuOpen.value =
     !isMenuOpen.value
@@ -406,18 +375,10 @@ function closeMenu() {
   isMenuOpen.value = false
 }
 
-/* =========================================================
-   SCROLL NAVBAR
-========================================================= */
-
 function handleScroll() {
   isScrolled.value =
-    window.scrollY > 30
+    window.scrollY > 24
 }
-
-/* =========================================================
-   TECLADO
-========================================================= */
 
 function handleKeydown(event) {
   if (
@@ -427,10 +388,6 @@ function handleKeydown(event) {
     closeMenu()
   }
 }
-
-/* =========================================================
-   BLOQUEAR PÁGINA DETRÁS DEL MENÚ
-========================================================= */
 
 watch(
   isMenuOpen,
@@ -447,16 +404,14 @@ watch(
         document.body.style.paddingRight =
           `${scrollbarWidth}px`
       }
-    } else {
-      document.body.style.overflow = ''
-      document.body.style.paddingRight = ''
+
+      return
     }
+
+    document.body.style.overflow = ''
+    document.body.style.paddingRight = ''
   }
 )
-
-/* =========================================================
-   CERRAR AL CAMBIAR RUTA
-========================================================= */
 
 watch(
   () => route.fullPath,
@@ -464,10 +419,6 @@ watch(
     closeMenu()
   }
 )
-
-/* =========================================================
-   CICLO DE VIDA
-========================================================= */
 
 onMounted(() => {
   handleScroll()
@@ -512,355 +463,340 @@ onUnmounted(() => {
 
 .navbar {
   position: fixed;
-  z-index: 9000;
+  z-index: variables.$z-header;
   top: 0;
   right: 0;
   left: 0;
-  isolation: isolate;
 
   border-bottom:
     1px solid
-    rgba(255, 255, 255, 0.04);
+    transparent;
 
   background:
-    rgba(6, 6, 6, 0.58);
+    rgba(
+      variables.$color-background,
+      0.62
+    );
 
   backdrop-filter:
     blur(18px)
-    saturate(145%);
+    saturate(120%);
 
   -webkit-backdrop-filter:
     blur(18px)
-    saturate(145%);
+    saturate(120%);
 
   transition:
-    background 0.35s ease,
-    border-color 0.35s ease,
-    box-shadow 0.35s ease;
+    background-color
+      variables.$transition-normal,
+    border-color
+      variables.$transition-normal,
+    box-shadow
+      variables.$transition-normal;
 }
 
 .navbar--scrolled {
   border-bottom-color:
-    rgba(212, 175, 55, 0.1);
+    variables.$color-border-soft;
 
   background:
-    rgba(6, 6, 6, 0.94);
+    rgba(
+      variables.$color-background,
+      0.94
+    );
 
   box-shadow:
-    0 15px 50px
-    rgba(0, 0, 0, 0.42);
+    0 12px 35px
+    rgba(
+      variables.$color-black,
+      0.22
+    );
 }
 
-.navbar__ambient {
-  position: absolute;
-  z-index: -1;
-  top: -140px;
-  left: 50%;
-
-  width: 600px;
-  height: 200px;
-
-  border-radius: 50%;
-
-  pointer-events: none;
-
-  background:
-    rgba(212, 175, 55, 0.04);
-
-  transform:
-    translateX(-50%);
-
-  filter: blur(90px);
-}
+/* =========================================================
+   CONTENEDOR
+========================================================= */
 
 .navbar__container {
-  position: relative;
-
   display: flex;
+  min-height: 88px;
 
-  min-height: 92px;
-
-  gap: 28px;
+  gap:
+    clamp(
+      1rem,
+      2vw,
+      2rem
+    );
 
   align-items: center;
   justify-content: space-between;
 }
 
 /* =========================================================
-   LOGO
+   MARCA
 ========================================================= */
 
-.navbar__logo {
-  position: relative;
-
+.navbar__brand {
   display: flex;
-
   flex: 0 0 auto;
-
   align-items: center;
 
-  text-decoration: none;
+  border-radius:
+    variables.$radius-sm;
 }
 
-.navbar__logo img {
-  position: relative;
-  z-index: 2;
-
-  display: block;
-
+.navbar__logo {
   width: auto;
-  height: 72px;
+  height: 68px;
 
   object-fit: contain;
 
   transition:
-    transform 0.28s ease,
-    filter 0.28s ease;
+    transform
+      variables.$transition-normal,
+    opacity
+      variables.$transition-normal;
 }
 
-.navbar__logo:hover img {
-  transform: scale(1.035);
-
-  filter:
-    drop-shadow(
-      0 0 13px
-      rgba(212, 175, 55, 0.15)
-    );
-}
-
-.navbar__logo-glow {
-  position: absolute;
-
-  top: 50%;
-  left: 50%;
-
-  width: 80px;
-  height: 80px;
-
-  border-radius: 50%;
-
-  pointer-events: none;
-
-  background:
-    rgba(212, 175, 55, 0.06);
-
+.navbar__brand:hover
+.navbar__logo {
   transform:
-    translate(-50%, -50%);
+    translateY(-1px);
 
-  filter: blur(24px);
+  opacity: 0.92;
 }
 
 /* =========================================================
-   DESKTOP NAV
+   NAVEGACIÓN DESKTOP
 ========================================================= */
 
-.navbar__desktop-nav {
+.navbar__navigation {
   display: none;
-
   flex: 1;
-
-  align-items: center;
-  justify-content: center;
 
   gap:
     clamp(
-      20px,
-      2.2vw,
-      37px
+      1.2rem,
+      2vw,
+      2.25rem
     );
-
-  @include mixins.respond-to(lg) {
-    display: flex;
-  }
-}
-
-.navbar__desktop-nav a {
-  position: relative;
-
-  padding: 9px 0;
-
-  color: #d7d7d7;
-
-  font-size: 0.86rem;
-  font-weight: 650;
-
-  text-decoration: none;
-
-  transition:
-    color 0.22s ease;
-}
-
-.navbar__desktop-nav a::after {
-  position: absolute;
-
-  right: 0;
-  bottom: -7px;
-  left: 0;
-
-  width: 0;
-  height: 2px;
-
-  margin: auto;
-
-  content: '';
-
-  border-radius: 999px;
-
-  background:
-    variables.$color-primary;
-
-  box-shadow:
-    0 0 12px
-    rgba(212, 175, 55, 0.3);
-
-  transition:
-    width 0.25s ease;
-}
-
-.navbar__desktop-nav a:hover,
-.navbar__desktop-nav a.router-link-active {
-  color:
-    variables.$color-primary;
-}
-
-.navbar__desktop-nav a:hover::after,
-.navbar__desktop-nav
-a.router-link-active::after {
-  width: 100%;
-}
-
-/* =========================================================
-   DESKTOP ACTIONS
-========================================================= */
-
-.navbar__actions {
-  display: none;
-
-  flex: 0 0 auto;
-
-  gap: 9px;
-
-  align-items: center;
-
-  @include mixins.respond-to(lg) {
-    display: flex;
-  }
-}
-
-.navbar__aula,
-.navbar__cta {
-  display: flex;
-
-  min-height: 45px;
 
   align-items: center;
   justify-content: center;
 
-  border-radius: 10px;
+  @include mixins.respond-to(lg) {
+    display: flex;
+  }
+}
 
-  font-size: 0.71rem;
-  font-weight: 850;
+.navbar__link {
+  position: relative;
 
-  text-decoration: none;
+  padding:
+    0.7rem
+    0;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-family:
+    variables.$font-family-primary;
+
+  font-size:
+    0.875rem;
+
+  font-weight:
+    variables.$font-weight-medium;
+
+  line-height: 1;
 
   white-space: nowrap;
 
   transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
+    color
+      variables.$transition-fast;
 }
 
-.navbar__aula {
-  gap: 8px;
+.navbar__link::after {
+  position: absolute;
+
+  right: 50%;
+  bottom: 0.15rem;
+  left: 50%;
+
+  height: 2px;
+
+  content: '';
+
+  border-radius:
+    variables.$radius-pill;
+
+  background:
+    variables.$color-primary;
+
+  transition:
+    right
+      variables.$transition-normal,
+    left
+      variables.$transition-normal;
+}
+
+.navbar__link:hover,
+.navbar__link.router-link-active {
+  color:
+    variables.$color-text-primary;
+}
+
+.navbar__link:hover::after,
+.navbar__link.router-link-active::after {
+  right: 0;
+  left: 0;
+}
+
+/* =========================================================
+   ACCIONES DESKTOP
+========================================================= */
+
+.navbar__actions {
+  display: none;
+  flex: 0 0 auto;
+
+  gap:
+    variables.$spacing-sm;
+
+  align-items: center;
+
+  @include mixins.respond-to(lg) {
+    display: flex;
+  }
+}
+
+.navbar__action {
+  display: inline-flex;
+
+  min-height:
+    variables.$control-height-md;
+
+  gap:
+    0.65rem;
+
+  align-items: center;
+  justify-content: center;
 
   padding:
     0
-    15px;
+    1rem;
 
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.28);
+  border-radius:
+    variables.$radius-md;
 
-  color: #d6d6d6;
+  font-family:
+    variables.$font-family-primary;
 
-  background:
-    rgba(212, 175, 55, 0.025);
+  font-size:
+    0.825rem;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  line-height: 1;
+
+  white-space: nowrap;
 }
 
-.navbar__aula:hover {
+.navbar__action--secondary {
+  border:
+    1px solid
+    variables.$color-border;
+
+  color:
+    variables.$color-text-primary;
+
+  background:
+    rgba(
+      variables.$color-white,
+      0.025
+    );
+}
+
+.navbar__action--secondary:hover {
+  border-color:
+    variables.$color-border-strong;
+
+  background:
+    rgba(
+      variables.$color-white,
+      0.05
+    );
+
   transform:
-    translateY(-2px);
+    translateY(-1px);
+}
+
+.navbar__action-icon {
+  display: grid;
+
+  width: 28px;
+  height: 28px;
+
+  place-items: center;
+
+  border-radius:
+    50%;
 
   color:
     variables.$color-primary;
 
-  border-color:
-    variables.$color-primary;
-
   background:
-    rgba(212, 175, 55, 0.055);
+    rgba(
+      variables.$color-primary,
+      0.1
+    );
+
+  font-size:
+    0.9rem;
 }
 
-.navbar__aula-icon {
-  display: grid;
-
-  width: 25px;
-  height: 25px;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color: #080808;
-
-  background:
-    variables.$color-primary;
-}
-
-.navbar__cta {
-  gap: 9px;
-
-  padding:
-    0
-    17px;
-
-  color: #080808;
+.navbar__action--primary {
+  color:
+    variables.$color-black;
 
   background:
     variables.$color-primary;
 
   box-shadow:
-    0 8px 25px
-    rgba(212, 175, 55, 0.1);
+    variables.$shadow-primary;
 }
 
-.navbar__cta:hover {
+.navbar__action--primary:hover {
+  background:
+    variables.$color-primary-light;
+
   transform:
-    translateY(-2px);
-
-  box-shadow:
-    0 14px 35px
-    rgba(212, 175, 55, 0.17);
+    translateY(-1px);
 }
 
-.navbar__cta-arrow {
-  font-size: 0.9rem;
+.navbar__action-arrow {
+  transition:
+    transform
+      variables.$transition-fast;
+}
+
+.navbar__action--primary:hover
+.navbar__action-arrow {
+  transform:
+    translateX(3px);
 }
 
 /* =========================================================
-   HAMBURGER
+   BOTÓN MOBILE
 ========================================================= */
 
 .navbar__toggle {
-  position: relative;
-
   display: grid;
 
-  width: 47px;
-  height: 47px;
+  width: 48px;
+  height: 48px;
 
   flex: 0 0 auto;
 
@@ -870,181 +806,99 @@ a.router-link-active::after {
 
   border:
     1px solid
-    rgba(255, 255, 255, 0.11);
+    variables.$color-border;
 
-  border-radius: 12px;
+  border-radius:
+    variables.$radius-md;
 
-  outline: none;
+  color:
+    variables.$color-text-primary;
 
   background:
-    rgba(255, 255, 255, 0.025);
+    rgba(
+      variables.$color-white,
+      0.025
+    );
 
   cursor: pointer;
-
-  transition:
-    transform 0.22s ease,
-    border-color 0.22s ease,
-    background 0.22s ease;
 
   @include mixins.respond-to(lg) {
     display: none;
   }
 }
 
-.navbar__toggle:hover {
+.navbar__toggle:hover,
+.navbar__toggle--active {
   border-color:
-    rgba(212, 175, 55, 0.4);
+    variables.$color-border-strong;
 
   background:
-    rgba(212, 175, 55, 0.035);
-}
-
-.navbar__toggle-glow {
-  position: absolute;
-
-  width: 35px;
-  height: 35px;
-
-  border-radius: 50%;
-
-  background:
-    rgba(212, 175, 55, 0.08);
-
-  opacity: 0;
-
-  filter: blur(12px);
-
-  transition:
-    opacity 0.25s ease;
-}
-
-.navbar__toggle--active
-.navbar__toggle-glow {
-  opacity: 1;
+    rgba(
+      variables.$color-white,
+      0.05
+    );
 }
 
 .navbar__toggle-lines {
-  position: relative;
-
   display: flex;
 
-  width: 23px;
-  height: 18px;
+  width: 22px;
+  height: 16px;
 
   flex-direction: column;
-
   justify-content: space-between;
 }
 
-.navbar__toggle-lines i {
+.navbar__toggle-lines span {
   display: block;
 
   width: 100%;
   height: 2px;
 
-  border-radius: 999px;
+  border-radius:
+    variables.$radius-pill;
 
-  background: #f1f1f1;
+  background:
+    currentColor;
 
   transition:
-    width 0.25s ease,
-    background 0.25s ease;
+    transform
+      variables.$transition-normal,
+    opacity
+      variables.$transition-fast;
 }
 
-.navbar__toggle-lines i:nth-child(2) {
-  width: 68%;
-
-  margin-left: auto;
+.navbar__toggle--active
+.navbar__toggle-lines
+span:nth-child(1) {
+  transform:
+    translateY(7px)
+    rotate(45deg);
 }
 
-.navbar__toggle:hover
-.navbar__toggle-lines i {
-  background:
-    variables.$color-primary;
-}
-
-/* =========================================================
-   BOTTOM LINE
-========================================================= */
-
-.navbar__bottom-line {
-  position: absolute;
-
-  right: 0;
-  bottom: -1px;
-  left: 0;
-
-  width: 0;
-  height: 1px;
-
-  margin: auto;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      variables.$color-primary,
-      transparent
-    );
-
+.navbar__toggle--active
+.navbar__toggle-lines
+span:nth-child(2) {
   opacity: 0;
-
-  transition:
-    width 0.4s ease,
-    opacity 0.4s ease;
 }
 
-.navbar--scrolled
-.navbar__bottom-line {
-  width: 65%;
-
-  opacity: 0.35;
+.navbar__toggle--active
+.navbar__toggle-lines
+span:nth-child(3) {
+  transform:
+    translateY(-7px)
+    rotate(-45deg);
 }
 
 /* =========================================================
-   DESKTOP MEDIO
-========================================================= */
-
-@media (
-  min-width: 1024px
-) and (
-  max-width: 1190px
-) {
-  .navbar__container {
-    gap: 15px;
-  }
-
-  .navbar__logo img {
-    height: 61px;
-  }
-
-  .navbar__desktop-nav {
-    gap: 16px;
-  }
-
-  .navbar__desktop-nav a {
-    font-size: 0.75rem;
-  }
-
-  .navbar__aula,
-  .navbar__cta {
-    padding:
-      0
-      12px;
-
-    font-size: 0.64rem;
-  }
-}
-
-/* =========================================================
-   MOBILE NAVBAR
+   TABLET / MOBILE
 ========================================================= */
 
 @media (max-width: 1023px) {
   .navbar__container {
     min-height:
       calc(
-        82px +
+        80px +
         env(safe-area-inset-top)
       );
 
@@ -1052,16 +906,8 @@ a.router-link-active::after {
       env(safe-area-inset-top);
   }
 
-  .navbar__logo img {
-    height: 63px;
-  }
-
-  .navbar__toggle {
-    /*
-     * Un poco de aire respecto
-     * del borde superior.
-     */
-    margin-top: 4px;
+  .navbar__logo {
+    height: 60px;
   }
 }
 
@@ -1069,56 +915,50 @@ a.router-link-active::after {
   .navbar__container {
     min-height:
       calc(
-        78px +
+        76px +
         env(safe-area-inset-top)
       );
   }
 
-  .navbar__logo img {
-    height: 57px;
+  .navbar__logo {
+    height: 54px;
   }
 
   .navbar__toggle {
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
   }
 }
 </style>
 
 <!-- =========================================================
-     IMPORTANTE:
-     Estos estilos NO pueden estar scoped porque el menú
-     está teletransportado fuera del componente.
+     MENÚ MOBILE
+
+     No puede ser scoped porque está dentro de Teleport.
 ========================================================== -->
 
 <style lang="scss">
 @use '@/assets/styles/abstracts/variables' as variables;
 
 /* =========================================================
-   MOBILE FULLSCREEN
+   CONTENEDOR GENERAL
 ========================================================= */
 
 .mobile-menu {
   position: fixed;
-
   z-index: 50000;
 
   inset: 0;
 
   width: 100%;
 
-  /*
-   * dvh responde mucho mejor
-   * a las barras móviles de Chrome/Safari.
-   */
   height: 100vh;
   height: 100dvh;
 
   overflow: hidden;
 
-  color: #f5f5f5;
-
-  background: #060606;
+  color:
+    variables.$color-text-primary;
 
   isolation: isolate;
 }
@@ -1130,91 +970,30 @@ a.router-link-active::after {
 .mobile-menu__backdrop {
   position: absolute;
 
-  inset: 0;
-
-  z-index: -4;
-
-  background:
-    rgba(0, 0, 0, 0.95);
-}
-
-/* =========================================================
-   CYBER GRID
-========================================================= */
-
-.mobile-menu__grid {
-  position: absolute;
-
-  z-index: -3;
+  z-index: -1;
 
   inset: 0;
 
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
 
-  opacity: 0.55;
+  padding: 0;
+
+  border: 0;
 
   background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.014) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      rgba(255, 255, 255, 0.014) 1px,
-      transparent 1px
+    rgba(
+      variables.$color-black,
+      0.78
     );
 
-  background-size:
-    52px
-    52px;
+  backdrop-filter:
+    blur(8px);
 
-  mask-image:
-    radial-gradient(
-      circle at 50% 25%,
-      black,
-      transparent 78%
-    );
-}
+  -webkit-backdrop-filter:
+    blur(8px);
 
-/* =========================================================
-   GLOWS
-========================================================= */
-
-.mobile-menu__glow {
-  position: absolute;
-
-  z-index: -2;
-
-  border-radius: 50%;
-
-  pointer-events: none;
-
-  filter: blur(130px);
-}
-
-.mobile-menu__glow--top {
-  top: -250px;
-  left: 50%;
-
-  width: 600px;
-  height: 600px;
-
-  background:
-    rgba(212, 175, 55, 0.13);
-
-  transform:
-    translateX(-50%);
-}
-
-.mobile-menu__glow--bottom {
-  right: -250px;
-  bottom: -300px;
-
-  width: 550px;
-  height: 550px;
-
-  background:
-    rgba(212, 175, 55, 0.04);
+  cursor: default;
 }
 
 /* =========================================================
@@ -1226,20 +1005,33 @@ a.router-link-active::after {
 
   display: flex;
 
-  width: 100%;
+  width: min(
+    100%,
+    560px
+  );
+
   height: 100%;
+
+  margin-left: auto;
 
   flex-direction: column;
 
+  background:
+    variables.$color-background;
+
+  border-left:
+    1px solid
+    variables.$color-border-soft;
+
+  box-shadow:
+    -30px 0 80px
+    rgba(
+      variables.$color-black,
+      0.35
+    );
+
   padding-top:
     env(safe-area-inset-top);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(212, 175, 55, 0.025),
-      transparent 24%
-    );
 }
 
 /* =========================================================
@@ -1247,43 +1039,33 @@ a.router-link-active::after {
 ========================================================= */
 
 .mobile-menu__header {
-  position: relative;
-
   display: flex;
 
-  min-height: 102px;
+  min-height: 96px;
 
   flex: 0 0 auto;
 
-  gap: 20px;
+  gap:
+    variables.$spacing-lg;
 
   align-items: center;
   justify-content: space-between;
 
   padding:
-    18px
+    1rem
     max(
-      22px,
+      1.25rem,
       env(safe-area-inset-right)
     )
-    17px
+    1rem
     max(
-      22px,
+      1.25rem,
       env(safe-area-inset-left)
     );
 
   border-bottom:
     1px solid
-    rgba(255, 255, 255, 0.07);
-
-  background:
-    rgba(5, 5, 5, 0.55);
-
-  backdrop-filter:
-    blur(18px);
-
-  -webkit-backdrop-filter:
-    blur(18px);
+    variables.$color-border-soft;
 }
 
 .mobile-menu__brand {
@@ -1291,18 +1073,13 @@ a.router-link-active::after {
 
   min-width: 0;
 
-  gap: 13px;
+  gap:
+    0.85rem;
 
   align-items: center;
-
-  color: #fff;
-
-  text-decoration: none;
 }
 
 .mobile-menu__brand img {
-  display: block;
-
   width: auto;
   height: 58px;
 
@@ -1312,38 +1089,49 @@ a.router-link-active::after {
 }
 
 .mobile-menu__brand-copy {
+  display: flex;
+
   min-width: 0;
+
+  flex-direction: column;
+
+  gap:
+    0.15rem;
 }
 
-.mobile-menu__brand-copy small,
+.mobile-menu__brand-copy span {
+  color:
+    variables.$color-text-muted;
+
+  font-size:
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-medium;
+
+  letter-spacing:
+    0.08em;
+
+  text-transform:
+    uppercase;
+}
+
 .mobile-menu__brand-copy strong {
-  display: block;
-}
+  color:
+    variables.$color-text-primary;
 
-.mobile-menu__brand-copy small {
-  overflow: hidden;
+  font-family:
+    variables.$font-family-heading;
 
-  margin-bottom: 3px;
+  font-size:
+    1.1rem;
 
-  color: #5d5d5d;
-
-  font-size: 0.42rem;
-  font-weight: 900;
-
-  letter-spacing: 0.15em;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mobile-menu__brand-copy strong {
-  color: #ddd;
-
-  font-size: 0.72rem;
+  line-height:
+    1.1;
 }
 
 /* =========================================================
-   CLOSE BUTTON
+   CERRAR
 ========================================================= */
 
 .mobile-menu__close {
@@ -1351,294 +1139,227 @@ a.router-link-active::after {
 
   display: grid;
 
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
 
   flex: 0 0 auto;
 
   place-items: center;
 
+  padding: 0;
+
   border:
     1px solid
-    rgba(212, 175, 55, 0.26);
+    variables.$color-border;
 
-  border-radius: 14px;
+  border-radius:
+    variables.$radius-md;
 
   background:
-    rgba(212, 175, 55, 0.04);
+    rgba(
+      variables.$color-white,
+      0.025
+    );
 
   cursor: pointer;
-
-  transition:
-    transform 0.22s ease,
-    border-color 0.22s ease,
-    background 0.22s ease;
 }
 
 .mobile-menu__close:hover {
-  transform:
-    rotate(3deg);
-
   border-color:
-    variables.$color-primary;
+    variables.$color-border-strong;
 
   background:
-    rgba(212, 175, 55, 0.075);
+    rgba(
+      variables.$color-white,
+      0.05
+    );
 }
 
 .mobile-menu__close span {
   position: absolute;
 
-  width: 25px;
+  width: 22px;
   height: 2px;
 
-  border-radius: 999px;
+  border-radius:
+    variables.$radius-pill;
 
   background:
-    variables.$color-primary;
-
-  box-shadow:
-    0 0 10px
-    rgba(212, 175, 55, 0.25);
+    variables.$color-text-primary;
 }
 
-.mobile-menu__close span:first-child {
+.mobile-menu__close
+span:first-child {
   transform:
     rotate(45deg);
 }
 
-.mobile-menu__close span:last-child {
+.mobile-menu__close
+span:last-child {
   transform:
     rotate(-45deg);
 }
 
 /* =========================================================
-   SCROLL AREA
+   CONTENIDO
 ========================================================= */
 
-.mobile-menu__scroll {
-  width: min(620px, 100%);
+.mobile-menu__content {
+  width: min(
+    100%,
+    480px
+  );
 
   flex: 1;
 
-  margin: 0 auto;
+  margin:
+    0
+    auto;
 
   overflow-x: hidden;
   overflow-y: auto;
 
   padding:
-    27px
-    22px
-    34px;
+    2rem
+    1.5rem
+    2.5rem;
 
-  scrollbar-width: thin;
-
-  scrollbar-color:
-    rgba(212, 175, 55, 0.38)
-    transparent;
-
-  overscroll-behavior: contain;
+  overscroll-behavior:
+    contain;
 }
 
-.mobile-menu__scroll::-webkit-scrollbar {
-  width: 4px;
+.mobile-menu__intro {
+  margin-bottom:
+    1.75rem;
 }
 
-.mobile-menu__scroll::-webkit-scrollbar-track {
-  background: transparent;
+.mobile-menu__intro p {
+  max-width:
+    23rem;
+
+  margin-top:
+    0.65rem;
+
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.65;
 }
 
-.mobile-menu__scroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-
-  background:
-    rgba(212, 175, 55, 0.38);
-}
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-.mobile-menu__status {
-  display: flex;
-
-  gap: 9px;
-
-  align-items: center;
-
-  margin-bottom: 23px;
-
-  color: #555;
-
-  font-size: 0.45rem;
-  font-weight: 900;
-
-  letter-spacing: 0.13em;
-}
-
-.mobile-menu__status-dot {
-  width: 7px;
-  height: 7px;
-
-  border-radius: 50%;
-
-  background:
+.mobile-menu__eyebrow {
+  color:
     variables.$color-primary;
 
-  box-shadow:
-    0 0 14px
-    rgba(212, 175, 55, 0.6);
-}
+  font-size:
+    variables.$font-size-xs;
 
-.mobile-menu__status > span:nth-child(2) {
-  flex: 1;
-}
+  font-weight:
+    variables.$font-weight-semibold;
 
-.mobile-menu__status small {
-  color: #383838;
+  letter-spacing:
+    0.12em;
+
+  text-transform:
+    uppercase;
 }
 
 /* =========================================================
-   NAV LINKS
+   LINKS
 ========================================================= */
 
 .mobile-menu__navigation {
   border-top:
     1px solid
-    rgba(255, 255, 255, 0.075);
+    variables.$color-border-soft;
 }
 
-.mobile-menu__navigation a {
+.mobile-menu__link {
   position: relative;
 
   display: flex;
 
-  min-height: 72px;
+  min-height: 70px;
 
-  gap: 17px;
+  gap:
+    1rem;
 
   align-items: center;
 
   border-bottom:
     1px solid
-    rgba(255, 255, 255, 0.075);
-
-  color: #dadada;
-
-  text-decoration: none;
-
-  transition:
-    color 0.22s ease,
-    padding-left 0.22s ease,
-    background 0.22s ease;
-}
-
-.mobile-menu__navigation a::before {
-  position: absolute;
-
-  top: 50%;
-  left: -22px;
-
-  width: 4px;
-  height: 0;
-
-  border-radius:
-    0
-    999px
-    999px
-    0;
-
-  content: '';
-
-  background:
-    variables.$color-primary;
-
-  transform:
-    translateY(-50%);
-
-  box-shadow:
-    0 0 14px
-    rgba(212, 175, 55, 0.38);
-
-  transition:
-    height 0.22s ease;
-}
-
-.mobile-menu__navigation
-a.router-link-active {
-  color:
-    variables.$color-primary;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(212, 175, 55, 0.035),
-      transparent
-    );
-}
-
-.mobile-menu__navigation
-a.router-link-active::before {
-  height: 31px;
-}
-
-.mobile-menu__navigation a:hover {
-  padding-left: 6px;
+    variables.$color-border-soft;
 
   color:
-    variables.$color-primary;
+    variables.$color-text-secondary;
+}
+
+.mobile-menu__link:hover,
+.mobile-menu__link.router-link-active {
+  color:
+    variables.$color-text-primary;
 }
 
 .mobile-menu__index {
-  width: 27px;
+  width:
+    2rem;
 
-  flex: 0 0 auto;
+  flex:
+    0 0 auto;
 
-  color: #4c4c4c;
-
-  font-size: 0.49rem;
-  font-weight: 900;
-
-  letter-spacing: 0.06em;
-}
-
-.mobile-menu__navigation
-a.router-link-active
-.mobile-menu__index {
   color:
-    variables.$color-primary;
+    variables.$color-text-muted;
+
+  font-size:
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  font-variant-numeric:
+    tabular-nums;
 }
 
 .mobile-menu__label {
   flex: 1;
 
+  font-family:
+    variables.$font-family-heading;
+
   font-size:
     clamp(
-      1.15rem,
+      1.35rem,
       5vw,
-      1.45rem
+      1.8rem
     );
 
-  font-weight: 750;
+  font-weight:
+    variables.$font-weight-bold;
 
-  letter-spacing: -0.025em;
+  line-height:
+    1.1;
 }
 
 .mobile-menu__arrow {
-  color: #414141;
+  color:
+    variables.$color-text-muted;
 
-  font-size: 1rem;
+  font-size:
+    1.1rem;
 
   transition:
-    color 0.22s ease,
-    transform 0.22s ease;
+    color
+      variables.$transition-fast,
+    transform
+      variables.$transition-fast;
 }
 
-.mobile-menu__navigation
-a:hover
+.mobile-menu__link:hover
 .mobile-menu__arrow,
-.mobile-menu__navigation
-a.router-link-active
+.mobile-menu__link.router-link-active
 .mobile-menu__arrow {
   color:
     variables.$color-primary;
@@ -1647,169 +1368,128 @@ a.router-link-active
     translateX(4px);
 }
 
-/* =========================================================
-   DIVIDER
-========================================================= */
-
-.mobile-menu__divider {
-  display: flex;
-
-  gap: 12px;
-
-  align-items: center;
-
-  margin:
-    31px
-    0
-    18px;
-}
-
-.mobile-menu__divider > span {
-  height: 1px;
-
-  flex: 1;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      #292929
-    );
-}
-
-.mobile-menu__divider > span:last-child {
-  background:
-    linear-gradient(
-      90deg,
-      #292929,
-      transparent
-    );
-}
-
-.mobile-menu__divider small {
-  color: #4d4d4d;
-
-  font-size: 0.43rem;
-  font-weight: 900;
-
-  letter-spacing: 0.16em;
+.mobile-menu__link.router-link-active
+.mobile-menu__index {
+  color:
+    variables.$color-primary;
 }
 
 /* =========================================================
-   AULA
+   ACCESOS
 ========================================================= */
+
+.mobile-menu__access {
+  margin-top:
+    2.5rem;
+}
 
 .mobile-menu__aula {
   display: flex;
 
-  gap: 14px;
+  min-height:
+    84px;
+
+  gap:
+    0.9rem;
 
   align-items: center;
 
-  min-height: 83px;
+  margin-top:
+    1rem;
 
   padding:
-    14px
-    16px;
+    1rem;
 
   border:
     1px solid
-    rgba(212, 175, 55, 0.22);
+    variables.$color-border;
 
-  border-radius: 15px;
-
-  color: #eee;
+  border-radius:
+    variables.$radius-lg;
 
   background:
-    linear-gradient(
-      135deg,
-      rgba(212, 175, 55, 0.055),
-      rgba(255, 255, 255, 0.012)
-    );
-
-  text-decoration: none;
-
-  transition:
-    transform 0.22s ease,
-    border-color 0.22s ease,
-    background 0.22s ease;
+    variables.$color-surface-elevated;
 }
 
 .mobile-menu__aula:hover {
-  transform:
-    translateY(-2px);
-
   border-color:
-    rgba(212, 175, 55, 0.46);
+    variables.$color-border-strong;
 
   background:
-    rgba(212, 175, 55, 0.06);
+    variables.$color-surface-light;
 }
 
 .mobile-menu__aula-icon {
   display: grid;
 
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
 
-  flex: 0 0 auto;
+  flex:
+    0 0 auto;
 
   place-items: center;
 
-  border-radius: 50%;
+  border-radius:
+    50%;
 
-  color: #080808;
-
-  background:
-    variables.$color-primary;
-
-  font-size: 1rem;
-
-  box-shadow:
-    0 0 22px
-    rgba(212, 175, 55, 0.13);
-}
-
-.mobile-menu__aula-copy {
-  min-width: 0;
-
-  flex: 1;
-}
-
-.mobile-menu__aula-copy small,
-.mobile-menu__aula-copy strong,
-.mobile-menu__aula-copy span {
-  display: block;
-}
-
-.mobile-menu__aula-copy small {
-  color: #646464;
-
-  font-size: 0.43rem;
-  font-weight: 900;
-
-  letter-spacing: 0.12em;
-}
-
-.mobile-menu__aula-copy strong {
-  margin-top: 3px;
-
-  font-size: 0.82rem;
-}
-
-.mobile-menu__aula-copy span {
-  margin-top: 3px;
-
-  color: #5f5f5f;
-
-  font-size: 0.56rem;
-}
-
-.mobile-menu__aula-arrow {
   color:
     variables.$color-primary;
 
-  font-size: 1.05rem;
+  background:
+    rgba(
+      variables.$color-primary,
+      0.1
+    );
+
+  font-size:
+    1.05rem;
+}
+
+.mobile-menu__aula-copy {
+  display: flex;
+
+  min-width: 0;
+
+  flex: 1;
+
+  flex-direction: column;
+
+  gap:
+    0.25rem;
+}
+
+.mobile-menu__aula-copy strong {
+  font-family:
+    variables.$font-family-primary;
+
+  font-size:
+    1rem;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  color:
+    variables.$color-text-primary;
+}
+
+.mobile-menu__aula-copy span {
+  color:
+    variables.$color-text-secondary;
+
+  font-size:
+    0.825rem;
+
+  line-height:
+    1.4;
+}
+
+.mobile-menu__access-arrow {
+  color:
+    variables.$color-primary;
+
+  font-size:
+    1.1rem;
 }
 
 /* =========================================================
@@ -1819,42 +1499,38 @@ a.router-link-active
 .mobile-menu__cta {
   display: flex;
 
-  min-height: 69px;
+  min-height:
+    74px;
 
   align-items: center;
   justify-content: space-between;
 
-  margin-top: 10px;
+  margin-top:
+    0.75rem;
 
   padding:
     0
-    20px;
+    1.25rem;
 
-  border-radius: 15px;
+  border-radius:
+    variables.$radius-lg;
 
-  color: #080808;
+  color:
+    variables.$color-black;
 
   background:
     variables.$color-primary;
 
-  text-decoration: none;
-
   box-shadow:
-    0 17px 40px
-    rgba(212, 175, 55, 0.1);
-
-  transition:
-    transform 0.22s ease,
-    box-shadow 0.22s ease;
+    variables.$shadow-primary;
 }
 
 .mobile-menu__cta:hover {
-  transform:
-    translateY(-2px);
+  background:
+    variables.$color-primary-light;
 
-  box-shadow:
-    0 22px 50px
-    rgba(212, 175, 55, 0.16);
+  transform:
+    translateY(-1px);
 }
 
 .mobile-menu__cta small,
@@ -1863,78 +1539,124 @@ a.router-link-active
 }
 
 .mobile-menu__cta small {
-  margin-bottom: 2px;
+  margin-bottom:
+    0.15rem;
 
   color:
-    rgba(0, 0, 0, 0.52);
+    rgba(
+      variables.$color-black,
+      0.62
+    );
 
-  font-size: 0.42rem;
-  font-weight: 950;
+  font-size:
+    variables.$font-size-xs;
 
-  letter-spacing: 0.12em;
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    0.08em;
+
+  text-transform:
+    uppercase;
 }
 
 .mobile-menu__cta strong {
-  font-size: 1rem;
+  color:
+    variables.$color-black;
+
+  font-family:
+    variables.$font-family-primary;
+
+  font-size:
+    1rem;
+
+  font-weight:
+    variables.$font-weight-bold;
 }
 
-.mobile-menu__cta > span {
-  font-size: 1.3rem;
+.mobile-menu__cta-arrow {
+  font-size:
+    1.35rem;
+
+  transition:
+    transform
+      variables.$transition-fast;
+}
+
+.mobile-menu__cta:hover
+.mobile-menu__cta-arrow {
+  transform:
+    translateX(4px);
 }
 
 /* =========================================================
-   INFO
+   INFORMACIÓN
 ========================================================= */
 
-.mobile-menu__info {
+.mobile-menu__meta {
   display: grid;
 
-  gap: 1px;
+  gap:
+    1rem;
 
-  overflow: hidden;
+  margin-top:
+    1.5rem;
 
-  margin-top: 15px;
+  padding-top:
+    1.5rem;
 
-  border:
+  border-top:
     1px solid
-    rgba(255, 255, 255, 0.065);
-
-  border-radius: 12px;
-
-  background:
-    rgba(255, 255, 255, 0.065);
+    variables.$color-border-soft;
 
   grid-template-columns:
-    repeat(2, 1fr);
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 }
 
-.mobile-menu__info article {
-  padding: 13px;
+.mobile-menu__meta div {
+  display: flex;
 
-  background:
-    rgba(8, 8, 8, 0.92);
+  min-width: 0;
+
+  flex-direction: column;
+
+  gap:
+    0.35rem;
 }
 
-.mobile-menu__info small,
-.mobile-menu__info strong {
-  display: block;
+.mobile-menu__meta span {
+  color:
+    variables.$color-text-muted;
+
+  font-size:
+    variables.$font-size-xs;
+
+  font-weight:
+    variables.$font-weight-semibold;
+
+  letter-spacing:
+    0.08em;
+
+  text-transform:
+    uppercase;
 }
 
-.mobile-menu__info small {
-  margin-bottom: 5px;
+.mobile-menu__meta strong {
+  color:
+    variables.$color-text-secondary;
 
-  color: #4f4f4f;
+  font-size:
+    0.825rem;
 
-  font-size: 0.39rem;
-  font-weight: 900;
+  font-weight:
+    variables.$font-weight-medium;
 
-  letter-spacing: 0.11em;
-}
-
-.mobile-menu__info strong {
-  color: #888;
-
-  font-size: 0.55rem;
+  line-height:
+    1.5;
 }
 
 /* =========================================================
@@ -1946,69 +1668,66 @@ a.router-link-active
 
   min-height:
     calc(
-      57px +
+      58px +
       env(safe-area-inset-bottom)
     );
 
-  flex: 0 0 auto;
+  flex:
+    0 0 auto;
 
-  gap: 11px;
+  gap:
+    0.75rem;
 
   align-items: center;
 
   padding:
-    13px
-    22px
+    0.9rem
+    1.5rem
     calc(
-      13px +
+      0.9rem +
       env(safe-area-inset-bottom)
     );
 
   border-top:
     1px solid
-    rgba(255, 255, 255, 0.06);
+    variables.$color-border-soft;
 
-  background:
-    rgba(5, 5, 5, 0.82);
+  color:
+    variables.$color-text-muted;
 
-  backdrop-filter:
-    blur(18px);
+  font-size:
+    variables.$font-size-xs;
 
-  -webkit-backdrop-filter:
-    blur(18px);
+  font-weight:
+    variables.$font-weight-medium;
+
+  letter-spacing:
+    0.06em;
+
+  text-transform:
+    uppercase;
 }
 
-.mobile-menu__footer > span,
-.mobile-menu__footer small {
-  color: #454545;
+.mobile-menu__footer-line {
+  height:
+    1px;
 
-  font-size: 0.4rem;
-  font-weight: 900;
-
-  letter-spacing: 0.14em;
-}
-
-.mobile-menu__footer > div {
-  height: 1px;
-
-  flex: 1;
+  flex:
+    1;
 
   background:
-    linear-gradient(
-      90deg,
-      rgba(212, 175, 55, 0.23),
-      transparent
-    );
+    variables.$color-border;
 }
 
 /* =========================================================
-   TRANSITION
+   TRANSICIÓN
 ========================================================= */
 
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
   transition:
-    opacity 0.28s ease;
+    opacity
+      0.25s ease;
 }
 
 .mobile-menu-enter-active
@@ -2016,13 +1735,14 @@ a.router-link-active
 .mobile-menu-leave-active
 .mobile-menu__panel {
   transition:
-    transform 0.35s
-    cubic-bezier(
-      0.22,
-      1,
-      0.36,
-      1
-    );
+    transform
+      0.35s
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      );
 }
 
 .mobile-menu-enter-from,
@@ -2031,79 +1751,86 @@ a.router-link-active
 }
 
 .mobile-menu-enter-from
-.mobile-menu__panel {
-  transform:
-    translateY(-18px)
-    scale(0.99);
-}
-
+.mobile-menu__panel,
 .mobile-menu-leave-to
 .mobile-menu__panel {
   transform:
-    translateY(-12px)
-    scale(0.995);
+    translateX(32px);
 }
 
 /* =========================================================
    MOBILE PEQUEÑO
 ========================================================= */
 
-@media (max-width: 500px) {
+@media (max-width: 520px) {
   .mobile-menu__header {
-    min-height: 92px;
+    min-height:
+      86px;
 
-    padding-right: 17px;
-    padding-left: 17px;
+    padding-right:
+      1rem;
+
+    padding-left:
+      1rem;
   }
 
   .mobile-menu__brand img {
-    height: 51px;
+    height:
+      52px;
   }
 
-  .mobile-menu__brand-copy {
+  .mobile-menu__brand-copy span {
     display: none;
   }
 
-  .mobile-menu__close {
-    width: 48px;
-    height: 48px;
+  .mobile-menu__brand-copy strong {
+    font-size:
+      1rem;
   }
 
-  .mobile-menu__scroll {
+  .mobile-menu__content {
     padding:
-      22px
-      17px
-      28px;
+      1.5rem
+      1rem
+      2rem;
   }
 
-  .mobile-menu__navigation a {
-    min-height: 65px;
+  .mobile-menu__intro {
+    margin-bottom:
+      1.25rem;
+  }
+
+  .mobile-menu__link {
+    min-height:
+      66px;
   }
 
   .mobile-menu__label {
-    font-size: 1.15rem;
+    font-size:
+      1.3rem;
   }
 
-  .mobile-menu__aula {
-    min-height: 76px;
-  }
-
-  .mobile-menu__cta {
-    min-height: 63px;
-  }
-
-  .mobile-menu__info {
-    grid-template-columns: 1fr;
+  .mobile-menu__meta {
+    grid-template-columns:
+      1fr;
   }
 
   .mobile-menu__footer {
-    padding-right: 17px;
-    padding-left: 17px;
+    padding-right:
+      1rem;
+
+    padding-left:
+      1rem;
+  }
+
+  .mobile-menu__footer
+  span:last-child {
+    display: none;
   }
 }
 
 /* =========================================================
-   PANTALLA BAJA
+   PANTALLAS BAJAS
 ========================================================= */
 
 @media (
@@ -2112,50 +1839,32 @@ a.router-link-active
   max-height: 700px
 ) {
   .mobile-menu__header {
-    min-height: 80px;
+    min-height:
+      76px;
   }
 
   .mobile-menu__brand img {
-    height: 47px;
+    height:
+      46px;
   }
 
-  .mobile-menu__close {
-    width: 44px;
-    height: 44px;
+  .mobile-menu__content {
+    padding-top:
+      1rem;
   }
 
-  .mobile-menu__scroll {
-    padding-top: 16px;
+  .mobile-menu__intro {
+    display: none;
   }
 
-  .mobile-menu__status {
-    margin-bottom: 14px;
+  .mobile-menu__link {
+    min-height:
+      58px;
   }
 
-  .mobile-menu__navigation a {
-    min-height: 56px;
-  }
-
-  .mobile-menu__divider {
-    margin-top: 21px;
-  }
-}
-
-/* =========================================================
-   REDUCED MOTION
-========================================================= */
-
-@media (
-  prefers-reduced-motion: reduce
-) {
-  .mobile-menu *,
-  .mobile-menu *::before,
-  .mobile-menu *::after {
-    transition-duration:
-      0.01ms !important;
-
-    animation-duration:
-      0.01ms !important;
+  .mobile-menu__access {
+    margin-top:
+      1.5rem;
   }
 }
 </style>

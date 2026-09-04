@@ -1,10 +1,90 @@
 @use '../abstracts/variables' as variables;
 
+/* ==============================
+   CONTENEDOR PRINCIPAL
+============================== */
+
 .container {
-  width: min(
-    calc(100% - (variables.$container-padding * 2)),
-    variables.$container-max-width
-  );
+  width: min(calc(100% - (variables.$container-padding * 2)), variables.$container-max-width);
 
   margin-inline: auto;
+}
+
+/* ==============================
+   CONTENEDOR AMPLIO
+============================== */
+
+.container--wide {
+  width: min(calc(100% - (variables.$container-padding * 2)), 1440px);
+
+  margin-inline: auto;
+}
+
+/* ==============================
+   CONTENEDOR ESTRECHO
+============================== */
+
+.container--narrow {
+  width: min(calc(100% - (variables.$container-padding * 2)), 880px);
+
+  margin-inline: auto;
+}
+
+/* ==============================
+   CONTENEDOR DE LECTURA
+============================== */
+
+.container--reading {
+  width: min(calc(100% - (variables.$container-padding * 2)), 720px);
+
+  margin-inline: auto;
+}
+
+/* ==============================
+   SECCIÓN BASE
+============================== */
+
+.section {
+  padding-block: clamp(4.5rem, 9vw, 8rem);
+}
+
+/* ==============================
+   SECCIÓN COMPACTA
+============================== */
+
+.section--compact {
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+
+/* ==============================
+   SECCIÓN AMPLIA
+============================== */
+
+.section--large {
+  padding-block: clamp(6rem, 11vw, 10rem);
+}
+
+/* ==============================
+   RESPONSIVE
+============================== */
+
+@media (max-width: 768px) {
+  .container,
+  .container--wide,
+  .container--narrow,
+  .container--reading {
+    width: min(calc(100% - 2rem), 100%);
+  }
+
+  .section {
+    padding-block: 4rem;
+  }
+
+  .section--compact {
+    padding-block: 3rem;
+  }
+
+  .section--large {
+    padding-block: 5rem;
+  }
 }

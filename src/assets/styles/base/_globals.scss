@@ -1,19 +1,178 @@
 @use '../abstracts/variables' as variables;
 
+/* ==============================
+   ROOT
+============================== */
+
 :root {
   color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==============================
+   DOCUMENTO
+============================== */
+
+html {
+  min-height: 100%;
+  background-color: variables.$color-background;
+  scroll-behavior: smooth;
+  scrollbar-color: rgba(variables.$color-primary, 0.35) variables.$color-background;
+  scrollbar-width: thin;
 }
 
 body {
-  background-color: variables.$color-background;
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
   overflow-x: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(variables.$color-primary, 0.035), transparent 28rem),
+    variables.$color-background;
+  color: variables.$color-text-primary;
 }
+
+/* ==============================
+   APP
+============================== */
 
 #app {
   min-height: 100vh;
+  isolation: isolate;
 }
+
+/* ==============================
+   ELEMENTOS BASE
+============================== */
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ==============================
+   LINKS
+============================== */
+
+a {
+  color: inherit;
+}
+
+a,
+button {
+  transition:
+    color variables.$transition-fast,
+    background-color variables.$transition-fast,
+    border-color variables.$transition-fast,
+    opacity variables.$transition-fast,
+    transform variables.$transition-fast;
+}
+
+/* ==============================
+   FOCUS ACCESIBLE
+============================== */
+
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid variables.$color-primary;
+  outline-offset: 4px;
+}
+
+/* ==============================
+   SELECCIÓN
+============================== */
 
 ::selection {
   color: variables.$color-black;
   background-color: variables.$color-primary;
+}
+
+/* ==============================
+   SCROLLBAR
+============================== */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: variables.$color-background;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid variables.$color-background;
+  border-radius: variables.$radius-pill;
+  background: rgba(variables.$color-primary, 0.28);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(variables.$color-primary, 0.45);
+}
+
+/* ==============================
+   TEXTO
+============================== */
+
+strong {
+  font-weight: variables.$font-weight-semibold;
+}
+
+small {
+  color: variables.$color-text-muted;
+}
+
+/* ==============================
+   HR
+============================== */
+
+hr {
+  height: 1px;
+  margin: variables.$spacing-xl 0;
+  border: 0;
+  background: variables.$color-border-soft;
+}
+
+/* ==============================
+   REDUCED MOTION
+============================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
