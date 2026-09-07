@@ -2936,3 +2936,131 @@ onMounted(
   }
 }
 </style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   V5.1 · LIGHT LMS PATCH
+========================================================= */
+.gradebook {
+  --amv-surface: #ffffff;
+  --amv-soft: #f8fafc;
+  --amv-ink: #172033;
+  --amv-muted: #667085;
+  --amv-border: #dbe3ee;
+  --amv-wine: #9f1d4a;
+  --amv-gold: #c99424;
+  --amv-gold-soft: #fff4d6;
+  --amv-green: #1f8a62;
+  color: var(--amv-ink);
+}
+
+.gradebook__enrollment,
+.gradebook__summary article,
+.gradebook-toolbar,
+.gradebook__section,
+.gradebook-table-wrapper,
+.student-grade-card,
+.state-card,
+.empty-state {
+  background: var(--amv-surface) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+  box-shadow: 0 12px 30px rgba(23, 32, 51, 0.055) !important;
+}
+
+.summary-card--primary {
+  background: linear-gradient(145deg, var(--amv-gold-soft), #ffffff 74%) !important;
+  border-color: #ead59a !important;
+}
+
+.summary-card--attention {
+  background: #fff7ed !important;
+  border-color: #fed7aa !important;
+}
+
+.gradebook__summary span,
+.gradebook__summary small,
+.gradebook__enrollment span,
+.gradebook__enrollment small,
+.gradebook-toolbar label,
+.gradebook-toolbar__meta span,
+.gradebook__section-description,
+.student-grade-card__stats span,
+.student-grade-card__progress-info,
+.grade-status--empty {
+  color: var(--amv-muted) !important;
+}
+
+.gradebook__summary strong,
+.gradebook__enrollment strong,
+.gradebook-toolbar__meta strong,
+.student-grade-card__identity strong,
+.gradebook__section h2 {
+  color: var(--amv-ink) !important;
+}
+
+.gradebook-search,
+.gradebook-search input {
+  background: var(--amv-soft) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+}
+
+.gradebook-search input::placeholder { color: #98a2b3 !important; }
+
+.gradebook-table {
+  background: #ffffff !important;
+  color: var(--amv-ink) !important;
+}
+
+.gradebook-table th {
+  background: #f2f5f9 !important;
+  color: #475467 !important;
+  border-color: var(--amv-border) !important;
+}
+
+.gradebook-table td {
+  background: #ffffff !important;
+  color: var(--amv-ink) !important;
+  border-color: #e8edf3 !important;
+}
+
+.gradebook-table tr:hover td { background: #fafcff !important; }
+.gradebook-table__sticky { background: inherit !important; }
+
+.gradebook-table__avatar,
+.student-grade-card__avatar {
+  background: #eef3f8 !important;
+  color: #365f91 !important;
+}
+
+.grade-pill,
+.grade-status,
+.voice-badge {
+  background: #f2f5f9 !important;
+  color: #475467 !important;
+  border-color: var(--amv-border) !important;
+}
+
+.grade-pill--graded,
+.grade-status--submitted {
+  background: #eef9f4 !important;
+  color: var(--amv-green) !important;
+  border-color: #b8e2d1 !important;
+}
+
+.student-grade-card__stats > div {
+  background: var(--amv-soft) !important;
+  border-color: #e5eaf1 !important;
+}
+
+.student-grade-card__bar { background: #e7edf4 !important; }
+.student-grade-card__fill { background: var(--amv-green) !important; }
+
+.student-grade-card__footer,
+.student-grade-card__arrow { color: var(--amv-wine) !important; }
+
+@media (max-width: 760px) {
+  .gradebook__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>

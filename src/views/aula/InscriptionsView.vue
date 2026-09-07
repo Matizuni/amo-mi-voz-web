@@ -359,9 +359,27 @@
               </button>
 
               <button
+                v-if="inscription.status !== 'enrolled'"
+                type="button"
+                class="button button--delete"
+                :disabled="
+                  updatingId === inscription.id ||
+                  deletingId === inscription.id
+                "
+                @click="removeInscription(inscription)"
+              >
+                {{
+                  deletingId === inscription.id
+                    ? 'Eliminando...'
+                    : 'Eliminar solicitud'
+                }}
+              </button>
+
+              <button
                 v-if="inscription.status === 'approved'"
                 type="button"
                 class="button button--primary"
+                :disabled="deletingId === inscription.id"
                 @click="openEnrollment(inscription)"
               >
                 Matricular estudiante
@@ -656,6 +674,7 @@ import {
 } from 'vue'
 
 import {
+  deleteInscription,
   enrollInscription,
   fetchInscriptions,
   updateInscriptionStatus
@@ -675,6 +694,7 @@ const activeFilter = ref('all')
 const searchQuery = ref('')
 
 const updatingId = ref(null)
+const deletingId = ref(null)
 
 /* =========================================================
    MATRÍCULA
@@ -909,6 +929,56 @@ async function rejectInscription(inscription) {
   if (updated) {
     pageSuccess.value =
       `La solicitud de ${inscription.name} fue rechazada.`
+  }
+}
+
+/* =========================================================
+   ELIMINAR SOLICITUD
+========================================================= */
+
+async function removeInscription(inscription) {
+  if (
+    !inscription?.id ||
+    deletingId.value ||
+    inscription.status === 'enrolled'
+  ) {
+    return
+  }
+
+  const accepted = window.confirm(
+    `¿Eliminar la solicitud de ${inscription.name}?\n\n` +
+    'Esta acción eliminará solamente esta solicitud de inscripción. ' +
+    'No eliminará a un estudiante que ya haya sido matriculado mediante otra solicitud.\n\n' +
+    'Esta acción no se puede deshacer.'
+  )
+
+  if (!accepted) {
+    return
+  }
+
+  deletingId.value = inscription.id
+  errorMessage.value = ''
+  pageSuccess.value = ''
+
+  try {
+    await deleteInscription(inscription.id)
+
+    inscriptions.value = inscriptions.value.filter(
+      item => item.id !== inscription.id
+    )
+
+    pageSuccess.value =
+      `La solicitud de ${inscription.name} fue eliminada correctamente.`
+  } catch (error) {
+    console.error(
+      'Error eliminando inscripción:',
+      error
+    )
+
+    errorMessage.value =
+      'No pudimos eliminar la solicitud. Revisa tus permisos de Supabase e inténtalo nuevamente.'
+  } finally {
+    deletingId.value = null
   }
 }
 
@@ -1886,6 +1956,18 @@ onBeforeUnmount(() => {
     rgba(180, 60, 60, 0.06);
 }
 
+.button--delete {
+  border: 1px solid #e8c9cf;
+  color: #a51f43;
+  background: #fff7f8;
+}
+
+.button--delete:hover:not(:disabled) {
+  border-color: #c85a72;
+  color: #851633;
+  background: #fff0f3;
+}
+
 .button--primary {
   border: 1px solid
     variables.$color-primary;
@@ -2539,4 +2621,221 @@ onBeforeUnmount(() => {
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   SAAS LIGHT THEME OVERRIDES
+   Sustituye los bloques negros por superficies claras.
+========================================================= */
+.page-header {
+  border-bottom-color: #dfe4ea;
+}
+
+.page-header p {
+  color: #667085;
+}
+
+.summary-card {
+  border-color: #e0e5eb;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.summary-card:nth-child(1) {
+  background: linear-gradient(145deg, #fffdf6, #ffffff);
+}
+
+.summary-card:nth-child(2) {
+  background: linear-gradient(145deg, #fff8fa, #ffffff);
+}
+
+.summary-card:nth-child(3) {
+  background: linear-gradient(145deg, #f6fbf8, #ffffff);
+}
+
+.summary-card--highlight {
+  border-color: #ead79a;
+  background: linear-gradient(145deg, #fff9e8, #ffffff);
+}
+
+.summary-card span,
+.summary-card small {
+  color: #737e8f;
+}
+
+.search-box input {
+  border-color: #dce2e9;
+  color: #17202a;
+  background: #ffffff;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.035);
+}
+
+.search-box input::placeholder {
+  color: #98a2b3;
+}
+
+.search-box__icon,
+.search-box__clear {
+  color: #7b8798;
+}
+
+.refresh-button {
+  border-color: #dce2e9;
+  color: #475467;
+  background: #ffffff;
+}
+
+.refresh-button:hover:not(:disabled) {
+  color: #17202a;
+  border-color: #bfc8d4;
+  background: #f8fafc;
+}
+
+.filter-tabs button {
+  border-color: #dfe4ea;
+  color: #596579;
+  background: #ffffff;
+}
+
+.filter-tabs button span {
+  color: #596579;
+  background: #eef1f5;
+}
+
+.filter-tabs button:hover {
+  color: #17202a;
+  border-color: #c3ccd7;
+  background: #f8fafc;
+}
+
+.filter-tabs button.active {
+  color: #5d4600;
+  border-color: #e0b327;
+  background: #f8d866;
+  box-shadow: 0 5px 14px rgba(207, 163, 31, 0.16);
+}
+
+.filter-tabs button.active span {
+  color: #5d4600;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.inscription-card {
+  border-color: #e0e5eb;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+}
+
+.inscription-card:hover {
+  border-color: #cbd4df;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+}
+
+.inscription-card__header,
+.inscription-card__body,
+.inscription-card__footer {
+  border-color: #e8ecf1;
+}
+
+.student-avatar {
+  color: #8a6811;
+  border-color: #ead79a;
+  background: #fff8df;
+}
+
+.student-identity h2,
+.info-item strong,
+.detail-section h3,
+.enrollment-process__title,
+.student-preview__data strong {
+  color: #17202a;
+}
+
+.student-identity p,
+.info-item span,
+.info-item small,
+.detail-section p,
+.received-date,
+.guardian-row,
+.student-preview__data span {
+  color: #6b7687;
+}
+
+.status-badge--enrolled,
+.status-badge--approved {
+  color: #216744;
+  border-color: #c9e6d6;
+  background: #eef9f2;
+}
+
+.status-badge--pending,
+.status-badge--reviewed {
+  color: #725700;
+  border-color: #e9daa3;
+  background: #fff8df;
+}
+
+.status-badge--rejected {
+  color: #9c2f3d;
+  border-color: #f0c9cf;
+  background: #fff1f3;
+}
+
+.info-grid,
+.detail-section,
+.guardian-row,
+.enrollment-information,
+.enrollment-process {
+  border-color: #e6eaf0;
+}
+
+.button--secondary {
+  color: #344054;
+  border-color: #d7dee7;
+  background: #ffffff;
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: #f6f8fa;
+}
+
+.state-card {
+  border-color: #dfe5ec;
+  background: #ffffff;
+}
+
+.enrollment-modal {
+  border-color: #dfe4ea;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.22);
+}
+
+.enrollment-modal__header,
+.enrollment-modal__footer,
+.student-preview,
+.field-group,
+.voice-selection,
+.process-step {
+  border-color: #e5e9ef;
+}
+
+.student-preview,
+.field-group,
+.process-step {
+  background: #f8fafc;
+}
+
+.enrollment-form input,
+.enrollment-form textarea,
+.enrollment-form select {
+  color: #17202a;
+  border-color: #d9e0e8;
+  background: #ffffff;
+}
+
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(5px);
+}
+
 </style>

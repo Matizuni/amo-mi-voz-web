@@ -2964,3 +2964,144 @@ button:disabled {
   }
 }
 </style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   V5.1 · LIGHT LMS PATCH
+========================================================= */
+.attendance {
+  --amv-surface: #ffffff;
+  --amv-soft: #f8fafc;
+  --amv-ink: #172033;
+  --amv-muted: #667085;
+  --amv-border: #dbe3ee;
+  --amv-wine: #9f1d4a;
+  --amv-gold: #c99424;
+  --amv-gold-soft: #fff4d6;
+  --amv-green: #1f8a62;
+  --amv-green-soft: #eef9f4;
+  --amv-red: #b42318;
+  --amv-red-soft: #fff4f2;
+  color: var(--amv-ink);
+}
+
+.attendance__lesson-selector,
+.attendance-status,
+.attendance__summary article,
+.attendance-card,
+.attendance__toolbar,
+.attendance-actions,
+.attendance-state,
+.attendance-alert,
+.attendance-message {
+  background: var(--amv-surface) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+  box-shadow: 0 12px 30px rgba(23, 32, 51, 0.055) !important;
+}
+
+.attendance-select select,
+.attendance-select {
+  background: var(--amv-soft) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+}
+
+.attendance__lesson-selector label,
+.attendance__lesson-info small,
+.attendance-status__text span,
+.attendance__summary span,
+.attendance-card__identity small,
+.attendance-card__note label,
+.attendance-actions__info,
+.attendance-state p {
+  color: var(--amv-muted) !important;
+}
+
+.attendance__lesson-info strong,
+.attendance-status__text strong,
+.attendance-card__identity strong,
+.attendance__summary strong {
+  color: var(--amv-ink) !important;
+}
+
+.summary-card--primary {
+  background: linear-gradient(145deg, var(--amv-green-soft), #ffffff) !important;
+  border-color: #b8e2d1 !important;
+}
+
+.summary-card--primary strong { color: var(--amv-green) !important; }
+
+.attendance-status--saved {
+  background: var(--amv-green-soft) !important;
+  border-color: #b8e2d1 !important;
+}
+
+.attendance-status--pending {
+  background: #fffaf0 !important;
+  border-color: #f0d99b !important;
+}
+
+.attendance-status__icon {
+  background: #ffffff !important;
+  color: var(--amv-green) !important;
+  border: 1px solid #b8e2d1 !important;
+}
+
+.attendance-status__edit,
+.attendance-actions__cancel {
+  background: #ffffff !important;
+  color: #344054 !important;
+  border-color: var(--amv-border) !important;
+}
+
+.attendance-actions__save {
+  background: var(--amv-wine) !important;
+  border-color: var(--amv-wine) !important;
+  color: #ffffff !important;
+}
+
+.attendance-card--present { border-left: 4px solid var(--amv-green) !important; }
+.attendance-card--absent { border-left: 4px solid var(--amv-red) !important; }
+.attendance-card--justified { border-left: 4px solid var(--amv-gold) !important; }
+
+.status-button--present,
+.status-button--absent,
+.status-button--justified,
+.quick-action {
+  background: #ffffff !important;
+  color: #344054 !important;
+  border-color: var(--amv-border) !important;
+}
+
+.status-button--present.active,
+.quick-action--present.active {
+  background: var(--amv-green-soft) !important;
+  color: var(--amv-green) !important;
+  border-color: #9dd5bf !important;
+}
+
+.status-button--absent.active {
+  background: var(--amv-red-soft) !important;
+  color: var(--amv-red) !important;
+  border-color: #f1b7b2 !important;
+}
+
+.status-button--justified.active {
+  background: var(--amv-gold-soft) !important;
+  color: #8a6510 !important;
+  border-color: #e6c568 !important;
+}
+
+.attendance-card__avatar {
+  background: #eef3f8 !important;
+  color: #365f91 !important;
+}
+
+.attendance-card__note input,
+.attendance-card__note textarea {
+  background: var(--amv-soft) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+}
+</style>

@@ -140,6 +140,7 @@
       ==================================================== -->
       <header
         class="lesson-hero"
+        :style="lessonHeroStyle"
         :class="{
           'lesson-hero--completed':
             !isTeacher &&
@@ -2180,6 +2181,10 @@ import {
 } from '@/services/lessonService'
 
 import {
+  getLessonAppearance,
+} from '@/services/lessonAppearanceService'
+
+import {
   fetchMaterialsByLesson,
 } from '@/services/materialService'
 
@@ -2262,6 +2267,21 @@ const showAcademicContent =
 
 const toastMessage = ref('')
 const toastType = ref('success')
+const lessonAppearance = ref({ coverUrl: '', focalPoint: 'center' })
+
+const refreshLessonAppearance = () => {
+  const id = lesson.value?.id || route.params.id
+  lessonAppearance.value = getLessonAppearance(id)
+}
+
+const lessonHeroStyle = computed(() => {
+  const url = lessonAppearance.value?.coverUrl
+  return url ? { '--lesson-cover-image': `url(${JSON.stringify(url)})`, '--lesson-cover-position': lessonAppearance.value?.focalPoint || 'center' } : {}
+})
+
+const onAppearanceChanged = event => {
+  if (Number(event?.detail?.lessonId) === Number(lesson.value?.id || route.params.id)) refreshLessonAppearance()
+}
 
 let toastTimer = null
 
@@ -4053,16 +4073,19 @@ watch(
   () => {
     showAcademicContent.value =
       false
-
+    refreshLessonAppearance()
     loadLesson()
   },
 )
 
 onMounted(() => {
+  refreshLessonAppearance()
+  window.addEventListener('amv:lesson-appearance', onAppearanceChanged)
   loadLesson()
 })
 
 onUnmounted(() => {
+  window.removeEventListener('amv:lesson-appearance', onAppearanceChanged)
   clearTimeout(
     toastTimer,
   )
@@ -7324,6 +7347,394 @@ a.lesson-navigation__item:hover,
     bottom: 0.75rem;
     left: 0.75rem;
     max-width: none;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   V5.1 · LIGHT LMS PATCH
+   Preserves lesson logic while replacing dark content panels.
+========================================================= */
+.lesson-page {
+  --amv-surface: #ffffff;
+  --amv-soft: #f7f9fc;
+  --amv-soft-2: #eef3f8;
+  --amv-ink: #172033;
+  --amv-muted: #667085;
+  --amv-border: #dbe3ee;
+  --amv-wine: #9f1d4a;
+  --amv-gold: #c99424;
+  --amv-gold-soft: #fff4d6;
+  --amv-green: #1f8a62;
+  color: var(--amv-ink);
+}
+
+/* Main lesson content: light academic surfaces */
+.material-section,
+.assessment-section,
+.content-section,
+.completion-section,
+.academic-section,
+.academic-block,
+.sidebar-card,
+.quick-info,
+.class-data,
+.learning-path,
+.lesson-navigation,
+.teacher-notes,
+.empty-material,
+.empty-assignments,
+.section-empty {
+  background: var(--amv-surface) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+  box-shadow: 0 12px 30px rgba(23, 32, 51, 0.055) !important;
+}
+
+.primary-material,
+.resource-item,
+.assignment-card,
+.assessment-card,
+.learning-path-item,
+.classwork-link,
+.academic-list > *,
+.sidebar-nav a,
+.sidebar-checklist li,
+.lesson-navigation__item {
+  background: var(--amv-soft) !important;
+  color: var(--amv-ink) !important;
+  border-color: #e1e7ef !important;
+  box-shadow: none !important;
+}
+
+.primary-material {
+  background: linear-gradient(135deg, #fffaf0, #ffffff 62%) !important;
+  border-color: #ead9a8 !important;
+}
+
+.primary-material__visual,
+.resource-item__icon,
+.assignment-card__icon,
+.assessment-card__icon,
+.pdf-icon,
+.learning-progress__icon,
+.completion-section__icon {
+  background: #fff8e7 !important;
+  color: var(--amv-gold) !important;
+  border-color: #efd893 !important;
+}
+
+.section-heading h2,
+.primary-material__content h3,
+.resource-item__content strong,
+.assignment-card__content strong,
+.assessment-card__content strong,
+.sidebar-card h3,
+.class-data strong,
+.academic-block h3,
+.teacher-notes h3,
+.lesson-navigation strong {
+  color: var(--amv-ink) !important;
+}
+
+.section-heading p,
+.primary-material__content p,
+.resource-item__content p,
+.assignment-card__content p,
+.assessment-card__content p,
+.sidebar-description,
+.class-data span,
+.academic-block p,
+.teacher-note,
+.lesson-navigation small,
+.learning-path-item__copy p {
+  color: var(--amv-muted) !important;
+}
+
+.section-count,
+.academic-tags span,
+.assessment-type,
+.assessment-status,
+.learning-status,
+.primary-material__meta span,
+.assignment-card__meta span,
+.assessment-card__meta span {
+  background: #ffffff !important;
+  color: #475467 !important;
+  border-color: var(--amv-border) !important;
+}
+
+/* Right rail */
+.lesson-sidebar {
+  gap: 1rem !important;
+}
+
+.sidebar-card {
+  border-radius: 18px !important;
+}
+
+.sidebar-card__eyebrow,
+.primary-material__eyebrow,
+.section-heading > span,
+.academic-section > span {
+  color: #a77912 !important;
+}
+
+.sidebar-summary > div,
+.quick-info > div,
+.class-data > div {
+  background: var(--amv-soft) !important;
+  border-color: #e4e9f0 !important;
+}
+
+.sidebar-nav a:hover,
+.resource-item:hover,
+.assignment-card:hover,
+.assessment-card:hover,
+.learning-path-item:hover {
+  background: #f0f5fa !important;
+  border-color: #cbd7e5 !important;
+}
+
+/* Buttons */
+.material-button,
+.teacher-button,
+.complete-button,
+.continue-button,
+.academic-toggle,
+.classwork-link {
+  background: #ffffff !important;
+  color: #344054 !important;
+  border-color: var(--amv-border) !important;
+}
+
+.material-button--primary,
+.teacher-button--primary,
+.complete-button:not(.complete-button--done),
+.continue-button {
+  background: var(--amv-wine) !important;
+  color: #ffffff !important;
+  border-color: var(--amv-wine) !important;
+  box-shadow: 0 10px 24px rgba(159, 29, 74, 0.16) !important;
+}
+
+.complete-button--done,
+.primary-material--completed,
+.assignment-card--completed,
+.assessment-card--completed,
+.resource-item--completed,
+.learning-path--complete {
+  background: #eef9f4 !important;
+  border-color: #b8e2d1 !important;
+}
+
+/* Keep the hero premium but not black */
+.lesson-hero {
+  background: linear-gradient(120deg, #23344f 0%, #2e4567 55%, #5b4560 100%) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 18px 42px rgba(29, 45, 72, 0.18) !important;
+}
+
+.lesson-hero h1,
+.lesson-hero__description,
+.lesson-hero__meta span,
+.lesson-hero__eyebrow,
+.lesson-number,
+.status-badge {
+  color: #ffffff !important;
+}
+
+.lesson-hero__description { color: rgba(255,255,255,.78) !important; }
+.lesson-hero__meta span { background: rgba(255,255,255,.09) !important; border-color: rgba(255,255,255,.16) !important; }
+.lesson-number { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.22) !important; }
+
+/* Breadcrumbs/topbar stay clean */
+.unit-breadcrumb {
+  background: #ffffff !important;
+  border-color: var(--amv-border) !important;
+  color: var(--amv-muted) !important;
+}
+.unit-breadcrumb strong { color: var(--amv-ink) !important; }
+
+@media (max-width: 900px) {
+  .lesson-layout { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   V5.4 · SOBRE ESTA CLASE — LIGHT LMS PATCH
+   Convierte las fichas de información en superficies claras.
+========================================================= */
+.class-data {
+  gap: 0.75rem !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.class-data article {
+  min-height: 86px;
+  padding: 1rem 1.05rem !important;
+  border: 1px solid #dce4ed !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  box-shadow: 0 5px 14px rgba(23, 32, 51, 0.035) !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.class-data article:hover {
+  border-color: #cbd6e3 !important;
+  box-shadow: 0 8px 20px rgba(23, 32, 51, 0.06) !important;
+  transform: translateY(-1px);
+}
+
+.class-data article span {
+  margin-bottom: 0.42rem !important;
+  color: #7a8798 !important;
+  font-size: 0.61rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+}
+
+.class-data article strong {
+  color: #172033 !important;
+  font-size: 0.78rem !important;
+  font-weight: 750 !important;
+  line-height: 1.45 !important;
+}
+
+.class-data article:nth-child(1) {
+  border-top: 2px solid #c99424 !important;
+}
+
+.class-data article:nth-child(4) {
+  border-top: 2px solid #9f1d4a !important;
+}
+
+.class-data__wide {
+  background: #ffffff !important;
+}
+
+@media (max-width: 760px) {
+  .class-data {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .class-data__wide {
+    grid-column: span 2 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .class-data {
+    grid-template-columns: 1fr !important;
+  }
+
+  .class-data__wide {
+    grid-column: auto !important;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   V5.5 — RIGHT RAIL / "ESTA CLASE"
+   Corrige los contadores que seguían heredando el tema oscuro.
+========================================================= */
+.sidebar-card .sidebar-summary {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0.55rem !important;
+  margin-top: 1rem !important;
+}
+
+.sidebar-card .sidebar-summary article {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 52px !important;
+  padding: 0.7rem 0.8rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+.sidebar-card .sidebar-summary article:nth-child(1) {
+  border-left: 3px solid #c99424 !important;
+  background: #fffbf1 !important;
+}
+
+.sidebar-card .sidebar-summary article:nth-child(2) {
+  border-left: 3px solid #607ca8 !important;
+  background: #f5f8fc !important;
+}
+
+.sidebar-card .sidebar-summary article:nth-child(3) {
+  border-left: 3px solid #9f1d4a !important;
+  background: #fff7f9 !important;
+}
+
+.sidebar-card .sidebar-summary small {
+  order: -1 !important;
+  margin: 0 !important;
+  color: #667085 !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+
+.sidebar-card .sidebar-summary span {
+  margin: 0 !important;
+  color: #172033 !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+.sidebar-card .sidebar-summary article:nth-child(1) span {
+  color: #a77912 !important;
+}
+
+.sidebar-card .sidebar-summary article:nth-child(2) span {
+  color: #4f6d99 !important;
+}
+
+.sidebar-card .sidebar-summary article:nth-child(3) span {
+  color: #9f1d4a !important;
+}
+
+@media (max-width: 900px) {
+  .sidebar-card .sidebar-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .sidebar-card .sidebar-summary article {
+    display: grid !important;
+    justify-content: initial !important;
+    gap: 0.3rem !important;
+  }
+
+  .sidebar-card .sidebar-summary small {
+    order: 0 !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .sidebar-card .sidebar-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sidebar-card .sidebar-summary article {
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  .sidebar-card .sidebar-summary small {
+    order: -1 !important;
   }
 }
 </style>

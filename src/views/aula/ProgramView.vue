@@ -4790,4 +4790,188 @@ onUnmounted(() => {
     max-width: none;
   }
 }
+
+
+/* =========================================================
+   SAAS LIGHT THEME OVERRIDES
+   Más claro, académico y cercano a Blackboard moderno.
+========================================================= */
+.program-hero {
+  border-color: #e3e7ee;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(214, 171, 45, 0.16), transparent 31%),
+    linear-gradient(135deg, #ffffff 0%, #fbfaf6 58%, #f7f3e8 100%);
+  box-shadow: 0 14px 34px rgba(25, 35, 52, 0.06);
+}
+
+.program-hero h1,
+.hero-mode strong,
+.student-progress-ring strong,
+.state-card h2,
+.stat-card,
+.section-heading h2,
+.unit-title h3,
+.lesson-content h4,
+.admin-panel h3,
+.unassigned h2 {
+  color: #17202a;
+}
+
+.program-hero__content > p,
+.program-hero__meta span,
+.hero-mode small,
+.progress-ring span,
+.student-progress-ring > div:last-child > small,
+.state-card p,
+.stat-card > span,
+.stat-card > small,
+.stat-progress__header span,
+.stat-progress__header small,
+.unit-title p,
+.lesson-content p,
+.lesson-date,
+.lesson-meta,
+.unassigned p {
+  color: #697386;
+}
+
+.program-hero__meta span {
+  border-color: #e0e5ec;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.hero-mode,
+.student-progress-ring {
+  border-color: rgba(190, 145, 22, 0.28);
+  background: #fffaf0;
+}
+
+.hero-mode__icon {
+  background: #ffffff;
+}
+
+.progress-ring > div {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px #edf0f4;
+}
+
+.state-card,
+.stat-card,
+.admin-panel,
+.unit-card,
+.lesson-card,
+.unassigned,
+.unit-empty {
+  border-color: #e1e6ed;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(24, 34, 50, 0.045);
+}
+
+.stat-card:nth-child(1) {
+  background: linear-gradient(145deg, #fffdf6, #ffffff);
+}
+
+.stat-card:nth-child(2) {
+  background: linear-gradient(145deg, #f8fbff, #ffffff);
+}
+
+.stat-card:nth-child(3) {
+  background: linear-gradient(145deg, #fff8fa, #ffffff);
+}
+
+.stat-card--progress {
+  background: linear-gradient(145deg, #f8fafc, #ffffff);
+}
+
+.progress-bar {
+  background: #e9edf2;
+}
+
+.admin-panel {
+  border-color: #eadcae;
+  background: linear-gradient(100deg, #fffdf8, #ffffff);
+}
+
+.unit-card:hover,
+.lesson-card:hover {
+  border-color: #cbd4df;
+  box-shadow: 0 12px 30px rgba(24, 34, 50, 0.08);
+}
+
+.unit-card--draft {
+  background: #fafbfc;
+}
+
+.unit-header__main,
+.lesson-card__main {
+  color: #17202a;
+}
+
+.unit-number,
+.lesson-index {
+  border-color: #dfe4ea;
+  color: #394557;
+  background: #f4f6f8;
+}
+
+.lesson-index--completed,
+.unit-card--completed .unit-number {
+  color: #236b45;
+  border-color: #cbe7d7;
+  background: #edf8f1;
+}
+
+.unit-status--published,
+.lesson-status--published,
+.lesson-status--available {
+  color: #236b45;
+  background: #edf8f1;
+  border-color: #cbe7d7;
+}
+
+.unit-status--draft,
+.lesson-status--planned {
+  color: #6b7280;
+  background: #f3f4f6;
+  border-color: #e2e5e9;
+}
+
+.lesson-status--completed {
+  color: #705700;
+  background: #fff7da;
+  border-color: #eadb9c;
+}
+
+.lesson-admin,
+.student-lesson-footer,
+.unit-body {
+  border-color: #e7ebf0;
+}
+
+.lesson-unit-select select,
+.unit-form input,
+.unit-form textarea,
+.unit-form select {
+  color: #17202a;
+  border-color: #dce2e9;
+  background: #ffffff;
+}
+
+.unit-form__notice {
+  border-color: #dfe6ee;
+  background: #f7f9fb;
+}
+
+.unit-modal,
+.delete-dialog {
+  border-color: #dfe4ea;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.2);
+}
+
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(5px);
+}
+
 </style>

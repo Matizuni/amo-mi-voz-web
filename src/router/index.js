@@ -151,6 +151,35 @@ const router = createRouter({
         },
 
         /* =================================================
+           CENTRO DEL CURSO · EXPERIENCIA LMS
+        ================================================== */
+
+        {
+          path: 'curso',
+          name: 'aula-curso',
+
+          component: () =>
+            import(
+              '@/views/aula/CourseHubView.vue'
+            ),
+        },
+
+
+        /* =================================================
+           CALENDARIO
+        ================================================== */
+
+        {
+          path: 'calendario',
+          name: 'aula-calendario',
+
+          component: () =>
+            import(
+              '@/views/aula/CalendarView.vue'
+            ),
+        },
+
+        /* =================================================
            PROGRAMA FORMATIVO
         ================================================== */
 
@@ -172,6 +201,8 @@ const router = createRouter({
           path: 'clases/nueva',
           name: 'aula-crear-clase',
 
+          meta: { allowedRoles: ['teacher'] },
+
           component: () =>
             import(
               '@/views/aula/CreateLessonView.vue'
@@ -185,6 +216,8 @@ const router = createRouter({
         {
           path: 'alumnos',
           name: 'aula-alumnos',
+
+          meta: { allowedRoles: ['teacher'] },
 
           component: () =>
             import(
@@ -219,6 +252,8 @@ const router = createRouter({
         {
           path: 'clase/:id/editar',
           name: 'aula-editar-clase',
+
+          meta: { allowedRoles: ['teacher'] },
 
           component: () =>
             import(
@@ -258,6 +293,8 @@ const router = createRouter({
           path: 'clase/:id/crear-tarea',
           name: 'aula-crear-tarea',
 
+          meta: { allowedRoles: ['teacher'] },
+
           component: () =>
             import(
               '@/views/aula/CreateAssignmentView.vue'
@@ -268,6 +305,8 @@ const router = createRouter({
           path: 'clase/:id/tarea/:taskId/editar',
           name: 'aula-editar-tarea',
 
+          meta: { allowedRoles: ['teacher'] },
+
           component: () =>
             import(
               '@/views/aula/EditAssignmentView.vue'
@@ -277,6 +316,8 @@ const router = createRouter({
         {
           path: 'clase/:id/tarea/:taskId/entregas',
           name: 'aula-entregas',
+
+          meta: { allowedRoles: ['teacher'] },
 
           component: () =>
             import(
@@ -289,6 +330,8 @@ const router = createRouter({
             'clase/:id/tarea/:taskId/entregas/:submissionId',
 
           name: 'aula-revisar-entrega',
+
+          meta: { allowedRoles: ['teacher'] },
 
           component: () =>
             import(
@@ -318,6 +361,8 @@ const router = createRouter({
           path: 'calificaciones',
           name: 'aula-calificaciones',
 
+          meta: { allowedRoles: ['teacher'] },
+
           component: () =>
             import(
               '@/views/aula/GradebookView.vue'
@@ -331,6 +376,8 @@ const router = createRouter({
         {
           path: 'mis-tareas',
           name: 'aula-mis-tareas',
+
+          meta: { allowedRoles: ['student'] },
 
           component: () =>
             import(
@@ -356,6 +403,8 @@ const router = createRouter({
           path: 'recursos/publicar',
           name: 'aula-publicar-recurso',
 
+          meta: { allowedRoles: ['teacher'] },
+
           component: () =>
             import(
               '@/views/aula/CreateResourceView.vue'
@@ -369,6 +418,8 @@ const router = createRouter({
         {
           path: 'inscripciones',
           name: 'aula-inscriptions',
+
+          meta: { allowedRoles: ['teacher'] },
           component: InscriptionsView,
         },
 
@@ -394,6 +445,8 @@ const router = createRouter({
           path: 'clase/:id/evaluacion/nueva',
           name: 'aula-crear-evaluacion',
 
+          meta: { allowedRoles: ['teacher'] },
+
           component: () =>
             import(
               '@/views/aula/CreateQuizView.vue'
@@ -414,6 +467,8 @@ const router = createRouter({
           path: 'evaluaciones',
           name: 'aula-mis-evaluaciones',
 
+          meta: { allowedRoles: ['student'] },
+
           component: () =>
             import(
               '@/views/aula/MyEvaluationsView.vue'
@@ -423,6 +478,8 @@ const router = createRouter({
         {
           path: 'evaluaciones/intento/:attemptId',
           name: 'aula-evaluacion-revision',
+
+          meta: { allowedRoles: ['student'] },
 
           component: () =>
             import(
@@ -604,6 +661,27 @@ router.beforeEach(async to => {
       )
         .trim()
         .toLowerCase()
+
+    /* =====================================================
+       CONTROL DE ACCESO POR ROL EN EL FRONTEND
+
+       RLS en Supabase sigue siendo la protección real de datos.
+       Este control evita navegación accidental a pantallas que no
+       corresponden al tipo de cuenta.
+    ====================================================== */
+
+    const allowedRoles = to.matched
+      .flatMap(record => record.meta?.allowedRoles || [])
+
+    if (
+      allowedRoles.length > 0 &&
+      !allowedRoles.includes(role)
+    ) {
+      return {
+        name: AULA_ROUTE_NAME,
+        replace: true,
+      }
+    }
 
     /* =====================================================
        PROFESOR

@@ -3234,4 +3234,259 @@ onUnmounted(() => {
     max-width: none;
   }
 }
+
+
+/* =========================================================
+   V5.9 · VISOR DE RECURSOS · LIGHT LMS
+   Mantiene intacta la lógica del visor y del PDF.
+========================================================= */
+
+.resource-modal {
+  padding: 24px;
+  background: rgba(19, 31, 48, 0.48);
+  backdrop-filter: blur(12px);
+}
+
+.resource-modal__window {
+  width: min(1280px, 96vw);
+  height: min(860px, 94vh);
+  border: 1px solid #dbe3ec;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(20, 34, 53, 0.24);
+}
+
+/* HEADER DEL RECURSO */
+.resource-modal__header {
+  gap: 24px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e4eaf1;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(217, 169, 29, 0.11), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #fbfcfe 70%, #fffaf0 100%);
+}
+
+.resource-modal__title-area {
+  min-width: 0;
+  gap: 16px;
+}
+
+.resource-modal__icon {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #e2bd50;
+  border-radius: 14px;
+  color: #9b7200;
+  background: #fff8e7;
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.resource-modal__badges {
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.resource-modal__badges span {
+  padding: 5px 9px;
+  border: 1px solid #e5d8aa;
+  border-radius: 999px;
+  color: #8a6500;
+  background: #fffaf0;
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.resource-modal__title-area h2 {
+  max-width: 760px;
+  margin: 8px 0 4px;
+  color: #152033;
+  font-family: inherit;
+  font-size: clamp(1.25rem, 2.1vw, 1.75rem);
+  font-weight: 850;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+}
+
+.resource-modal__title-area p {
+  max-width: 760px;
+  margin: 0;
+  color: #748195;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  opacity: 1;
+}
+
+/* ACCIONES */
+.resource-modal__actions {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.modal-action {
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid #cfd8e3;
+  border-radius: 10px;
+  color: #435268;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.modal-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #b9c7d7;
+  background: #f6f8fb;
+}
+
+.resource-modal .modal-close {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #d3dce6;
+  border-radius: 11px;
+  color: #66768a;
+  background: #ffffff;
+  font-size: 1.35rem;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.resource-modal .modal-close:hover {
+  color: #9f1945;
+  border-color: #e1bcc8;
+  background: #fff6f8;
+}
+
+/* VISOR: el documento mantiene un entorno neutro para no alterar su color */
+.resource-modal__viewer {
+  background: #e9edf2;
+}
+
+.resource-viewer--pdf {
+  background: #ffffff;
+}
+
+.resource-viewer--video {
+  background: #182232;
+}
+
+.image-viewer {
+  background: #eef2f6;
+}
+
+.audio-viewer {
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  color: #152033;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(31, 48, 73, 0.08);
+}
+
+.audio-viewer h3 {
+  color: #152033;
+}
+
+.audio-viewer p {
+  color: #6f7c8f;
+}
+
+.audio-viewer__art {
+  border: 1px solid #e2bd50;
+  color: #9b7200;
+  background: #fff8e7;
+}
+
+.unsupported-viewer {
+  color: #607086;
+}
+
+.unsupported-viewer h3 {
+  color: #152033;
+}
+
+.unsupported-viewer__icon {
+  border: 1px solid #e2bd50;
+  color: #9b7200;
+  background: #fff8e7;
+}
+
+.unsupported-viewer button {
+  border: 1px solid #9f1945;
+  border-radius: 10px;
+  color: #ffffff;
+  background: #9f1945;
+  font-weight: 800;
+}
+
+/* PIE DEL RECURSO */
+.resource-modal__footer {
+  gap: 34px;
+  padding: 13px 24px;
+  border-top: 1px solid #e4eaf1;
+  color: #152033;
+  background: #ffffff;
+}
+
+.resource-modal__footer div {
+  gap: 2px;
+}
+
+.resource-modal__footer span {
+  color: #8a97a9;
+  font-size: 0.62rem;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.resource-modal__footer strong {
+  color: #344359;
+  font-size: 0.75rem;
+}
+
+/* RESPONSIVE DEL VISOR */
+@media (max-width: 760px) {
+  .resource-modal {
+    padding: 10px;
+  }
+
+  .resource-modal__window {
+    width: 100%;
+    height: 96vh;
+    border-radius: 16px;
+  }
+
+  .resource-modal__header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .resource-modal__actions {
+    width: 100%;
+  }
+
+  .modal-action {
+    flex: 1;
+  }
+
+  .resource-modal__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .resource-modal__footer {
+    gap: 16px;
+    padding: 12px 16px;
+  }
+}
+
 </style>

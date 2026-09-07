@@ -1,0 +1,247 @@
+/* =========================================================
+   AMO MI VOZ — AULA PREMIUM V3
+   Blackboard-inspired academic workspace, light-first UI.
+   This layer intentionally overrides legacy dark cards only
+   inside the authenticated Aula Virtual.
+========================================================= */
+
+.aula-content {
+  --amv-navy-950:#0f1726;
+  --amv-navy-900:#162033;
+  --amv-navy-800:#22304a;
+  --amv-wine:#8b1e3f;
+  --amv-wine-2:#a72b51;
+  --amv-gold:#d6ad32;
+  --amv-gold-deep:#aa8216;
+  --amv-ink:#172033;
+  --amv-copy:#48566a;
+  --amv-muted:#7a8798;
+  --amv-line:#dfe5ec;
+  --amv-line-soft:#edf1f5;
+  --amv-canvas:#f5f7fa;
+  --amv-card:#fff;
+  --amv-gold-soft:#fff9e8;
+  --amv-wine-soft:#fff4f7;
+  --amv-green-soft:#effaf4;
+  --amv-green:#2f9b66;
+}
+
+/* ---------- overall density / hierarchy ---------- */
+.aula-content :where(h1,h2,h3,h4) { color:var(--amv-ink)!important; }
+.aula-content :where(p,small) { color:var(--amv-copy); }
+.aula-content :where(.button,.primary-button,.dashboard-button,.form-button,.save-button,.submit-button) {
+  min-height:42px;
+  border-radius:10px!important;
+  font-weight:750!important;
+  transition:transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
+}
+.aula-content :where(.button,.primary-button,.dashboard-button,.form-button,.save-button,.submit-button):hover { transform:translateY(-1px); }
+
+/* ---------- Program / course workspace ---------- */
+.aula-content .program { max-width:1420px; }
+.aula-content .program-hero {
+  align-items:center;
+  min-height:255px;
+  padding:34px 36px!important;
+  border:1px solid #e2e7ed!important;
+  border-radius:20px!important;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(214,173,50,.14), transparent 31%),
+    linear-gradient(135deg,#ffffff 0%,#fffdf7 58%,#fff8e7 100%)!important;
+  box-shadow:0 14px 42px rgba(23,32,51,.055)!important;
+}
+.aula-content .program-hero::before { width:88px!important;height:4px!important;background:linear-gradient(90deg,var(--amv-wine),var(--amv-gold))!important; }
+.aula-content .program-hero h1 {
+  max-width:790px!important;
+  font-size:clamp(2.35rem,4.4vw,4.45rem)!important;
+  line-height:1!important;
+  letter-spacing:-.055em!important;
+}
+.aula-content .program-hero h1 strong { color:var(--amv-wine)!important; font-weight:800; }
+.aula-content .program-hero__content>p { max-width:720px!important;color:#617086!important;font-size:.96rem!important;line-height:1.65!important; }
+.aula-content .program-hero__meta span { border:1px solid #e0e5eb!important;background:rgba(255,255,255,.75)!important;color:#66758a!important; }
+.aula-content .program .eyebrow { color:var(--amv-gold-deep)!important; }
+.aula-content .program .eyebrow>span { background:var(--amv-gold)!important;box-shadow:0 0 0 5px rgba(214,173,50,.13)!important; }
+
+.aula-content .hero-mode,
+.aula-content .student-progress-ring {
+  border:1px solid #eadca6!important;
+  background:rgba(255,255,255,.75)!important;
+  box-shadow:0 8px 22px rgba(82,62,13,.045)!important;
+}
+.aula-content .hero-mode__icon { border-color:#dbc35f!important;background:#fff9df!important;color:#8b6b0f!important; }
+.aula-content .hero-mode span,
+.aula-content .student-progress-ring>div:last-child>span { color:#9b7713!important; }
+.aula-content .hero-mode strong,
+.aula-content .student-progress-ring>div:last-child>strong { color:var(--amv-ink)!important; }
+.aula-content .hero-mode small,
+.aula-content .student-progress-ring>div:last-child>small { color:#7b8797!important; }
+.aula-content .progress-ring>div { background:#fff!important; }
+.aula-content .progress-ring span { color:#7d8795!important; }
+
+.aula-content .program-stats { gap:12px!important;margin:16px 0 18px!important; }
+.aula-content .stat-card {
+  min-height:118px!important;
+  padding:19px!important;
+  border:1px solid var(--amv-line)!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  box-shadow:0 6px 20px rgba(23,32,51,.035)!important;
+}
+.aula-content .stat-card:nth-child(1){background:linear-gradient(145deg,#fffdf7,#fff)!important}
+.aula-content .stat-card:nth-child(2){background:linear-gradient(145deg,#f8fbff,#fff)!important}
+.aula-content .stat-card:nth-child(3){background:linear-gradient(145deg,#f7fbf8,#fff)!important}
+.aula-content .stat-card>span,
+.aula-content .stat-progress__header span { color:#66758a!important;font-weight:650; }
+.aula-content .stat-card>strong,
+.aula-content .stat-progress__header strong { color:var(--amv-wine)!important; }
+.aula-content .stat-card>small,
+.aula-content .stat-progress__header small { color:#8a96a7!important; }
+.aula-content .progress-bar { background:#edf0f4!important;height:6px!important; }
+.aula-content .progress-bar>span { background:linear-gradient(90deg,var(--amv-wine),#c65777,var(--amv-gold))!important; }
+
+.aula-content .admin-panel,
+.aula-content .continue-learning,
+.aula-content .completion-banner {
+  border:1px solid #e5e9ee!important;
+  background:#fff!important;
+  box-shadow:0 6px 22px rgba(23,32,51,.035)!important;
+}
+.aula-content .admin-panel { padding:18px 20px!important;margin-bottom:26px!important; }
+.aula-content .admin-panel p,
+.aula-content .continue-learning p,
+.aula-content .completion-banner p { color:#66758a!important; }
+.aula-content .continue-learning { border-left:4px solid var(--amv-wine)!important; }
+.aula-content .continue-learning__button,
+.aula-content .button--primary { background:var(--amv-wine)!important;border-color:var(--amv-wine)!important;color:#fff!important; }
+.aula-content .button--secondary { background:#fff!important;border:1px solid #d8dee6!important;color:#344054!important; }
+
+/* units become Blackboard-like content modules */
+.aula-content .section-heading { margin-top:20px; }
+.aula-content .units-list { gap:16px!important; }
+.aula-content .unit-card {
+  overflow:hidden;
+  border:1px solid #dde4eb!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:0 7px 24px rgba(23,32,51,.035)!important;
+}
+.aula-content .unit-header { background:linear-gradient(180deg,#fff,#fbfcfd)!important;border-bottom-color:#e7ebf0!important; }
+.aula-content .unit-number { border-color:#d9e0e8!important;background:#f5f7fa!important;color:#536174!important; }
+.aula-content .unit-title__eyebrow,
+.aula-content .unit-status { color:#8a6b17!important; }
+.aula-content .unit-title p,
+.aula-content .unit-metrics span,
+.aula-content .unit-progress span { color:#7b8798!important; }
+.aula-content .unit-body { background:#fbfcfd!important; }
+.aula-content .lessons-list { gap:9px!important; }
+.aula-content .lesson-card {
+  border:1px solid #e2e7ed!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+.aula-content .lesson-card:hover { border-color:#cfd7e2!important;box-shadow:0 7px 18px rgba(23,32,51,.045)!important; }
+.aula-content .lesson-index { background:#f1f4f7!important;border-color:#dde3ea!important;color:#334155!important; }
+.aula-content .lesson-content__top>span,
+.aula-content .lesson-date,
+.aula-content .lesson-meta span { color:#718095!important; }
+.aula-content .lesson-arrow { color:var(--amv-wine)!important; }
+.aula-content .lesson-admin { border-top-color:#edf0f4!important;background:#fbfcfd!important; }
+.aula-content .lesson-admin-button { border-color:#dce2e9!important;background:#fff!important;color:#425066!important; }
+.aula-content .lesson-admin-button--accent { border-color:#e5c8d1!important;background:#fff5f8!important;color:var(--amv-wine)!important; }
+.aula-content .lesson-admin-button--danger { color:#b42318!important;background:#fff7f6!important;border-color:#f1d0cc!important; }
+.aula-content .student-lesson-footer { border-top-color:#edf0f4!important;background:#fbfcfd!important; }
+.aula-content .student-lesson-footer small { color:#7a8798!important; }
+.aula-content .completion-button { background:#fff!important;color:#445166!important;border-color:#d8dfe7!important; }
+.aula-content .completion-button--done { background:#effaf4!important;color:#20744c!important;border-color:#bfe8cf!important; }
+.aula-content .unit-empty,.aula-content .empty-program,.aula-content .state-card { background:#fff!important;border-color:#dce3ea!important; }
+.aula-content .unit-empty p,.aula-content .state-card p { color:#718095!important; }
+
+/* ---------- Inscriptions / admissions ---------- */
+.aula-content .inscriptions-page { max-width:1420px!important; }
+.aula-content .inscriptions-page .page-header { border-bottom-color:#dfe5eb!important; }
+.aula-content .inscriptions-page .page-header h1 { font-size:clamp(2.4rem,4vw,4rem)!important;line-height:1!important; }
+.aula-content .inscriptions-page .page-header h1 strong { color:var(--amv-wine)!important; }
+.aula-content .summary-grid { gap:12px!important; }
+.aula-content .inscriptions-page .summary-card {
+  border:1px solid #dfe5eb!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  box-shadow:0 6px 18px rgba(23,32,51,.035)!important;
+}
+.aula-content .inscriptions-page .summary-card--highlight { background:linear-gradient(145deg,#fff8e5,#fff)!important;border-color:#ead99e!important; }
+.aula-content .inscriptions-page .summary-card strong { color:var(--amv-wine)!important; }
+.aula-content .toolbar { gap:10px!important; }
+.aula-content .search-box { border:1px solid #dce2e9!important;background:#fff!important;border-radius:11px!important; }
+.aula-content .search-box input { background:transparent!important;color:#243044!important; }
+.aula-content .refresh-button { border:1px solid #dce2e9!important;background:#fff!important;color:#445166!important;border-radius:11px!important; }
+.aula-content .filter-tabs { gap:8px!important; }
+.aula-content .filter-tabs button { border:1px solid #dfe4ea!important;background:#fff!important;color:#58667a!important;box-shadow:none!important; }
+.aula-content .filter-tabs button.active { border-color:#d7bc5d!important;background:#fff7d9!important;color:#72560a!important; }
+.aula-content .inscriptions-grid { gap:14px!important; }
+.aula-content .inscription-card {
+  overflow:hidden;
+  border:1px solid #dde4eb!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:0 7px 22px rgba(23,32,51,.04)!important;
+}
+.aula-content .inscription-card__header { background:linear-gradient(180deg,#fff,#fcfdfe)!important;border-bottom-color:#e9edf2!important; }
+.aula-content .student-avatar { background:#fff8dc!important;border-color:#e7d37c!important;color:#8d6a0e!important; }
+.aula-content .student-identity strong { color:#1f2a3d!important; }
+.aula-content .student-identity span,.aula-content .received-date { color:#778499!important; }
+.aula-content .inscription-card__body { background:#fff!important; }
+.aula-content .info-item { border-bottom-color:#edf0f3!important; }
+.aula-content .info-item>span { color:#8490a1!important; }
+.aula-content .info-item strong { color:#263247!important; }
+.aula-content .detail-section { border-top-color:#edf0f3!important; }
+.aula-content .detail-section>span { color:#8b6d17!important; }
+.aula-content .detail-section p { color:#56657a!important; }
+.aula-content .inscription-card__footer { border-top-color:#edf0f3!important;background:#fafbfd!important; }
+.aula-content .status-badge { background:#f2f4f7!important;color:#526174!important;border:1px solid #e1e6ec!important; }
+.aula-content .status-badge--approved,.aula-content .status-badge--enrolled { background:#effaf4!important;color:#24774e!important;border-color:#c6e9d4!important; }
+.aula-content .status-badge--pending { background:#fff8e4!important;color:#795d0e!important;border-color:#eadb9b!important; }
+.aula-content .status-badge--rejected { background:#fff2f0!important;color:#a43a2f!important;border-color:#f0d0cb!important; }
+.aula-content .button--approve { background:#247b51!important;color:#fff!important;border-color:#247b51!important; }
+.aula-content .button--reject { background:#fff!important;color:#a63a31!important;border-color:#e8c9c5!important; }
+
+/* modals should be clear surfaces too */
+.aula-content .unit-modal,
+.aula-content .enrollment-modal,
+.unit-modal,
+.enrollment-modal,
+.delete-dialog {
+  background:#fff!important;
+  color:#1f2a3d!important;
+  border:1px solid #dfe4ea!important;
+  box-shadow:0 30px 90px rgba(15,23,42,.22)!important;
+}
+.aula-content .unit-form input,.aula-content .unit-form textarea,.aula-content .unit-form select,
+.aula-content .enrollment-form input,.aula-content .enrollment-form textarea,.aula-content .enrollment-form select,
+.unit-form input,.unit-form textarea,.unit-form select,
+.enrollment-form input,.enrollment-form textarea,.enrollment-form select { background:#fff!important;color:#263247!important;border-color:#d9e0e7!important; }
+
+/* ---------- universal legacy-dark rescue inside Aula ---------- */
+.aula-content :where(.resource-card,.student-card,.task-card,.quiz-card,.content-card) {
+  background:#fff!important;
+  color:var(--amv-ink)!important;
+  border:1px solid var(--amv-line)!important;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .aula-content .program-hero { grid-template-columns:1fr!important;padding:28px!important; }
+  .aula-content .program-stats { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+  .aula-content .hero-mode,.aula-content .student-progress-ring { max-width:520px; }
+}
+@media (max-width:640px){
+  .aula-content .program-hero { padding:23px 19px!important;border-radius:16px!important; }
+  .aula-content .program-hero h1 { font-size:2.35rem!important; }
+  .aula-content .program-stats { grid-template-columns:1fr!important; }
+  .aula-content .stat-card { min-height:104px!important; }
+  .aula-content .continue-learning { grid-template-columns:auto 1fr!important; }
+  .aula-content .continue-learning__button { grid-column:1/-1;justify-content:center; }
+  .aula-content .admin-panel { align-items:flex-start!important;flex-direction:column!important; }
+  .aula-content .admin-panel__actions { width:100%;flex-wrap:wrap; }
+}

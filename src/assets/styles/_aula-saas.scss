@@ -1,0 +1,25 @@
+/* Shared SaaS layer for every existing Aula view. Keeps legacy business logic intact while unifying UI. */
+.aula-content {
+  --amv-text: #17202a;
+  --amv-muted: #667085;
+  --amv-soft: #98a2b3;
+  --amv-border: #e1e6ec;
+  --amv-surface: #ffffff;
+  --amv-subtle: #f7f8fa;
+  --amv-primary: #8b1e3f;
+  --amv-gold: #b68b19;
+  color: var(--amv-text);
+}
+
+.aula-content :where(h1,h2,h3,h4,h5,h6){font-family:inherit;letter-spacing:-.02em;color:var(--amv-text)}
+.aula-content :where(p,span,small,label){font-family:inherit}
+.aula-content :where(input,textarea,select){font:inherit;color:var(--amv-text)}
+.aula-content :where(input,textarea,select):focus{outline:none;border-color:#a83a59!important;box-shadow:0 0 0 3px rgba(139,30,63,.08)!important}
+.aula-content :where(button,a){-webkit-tap-highlight-color:transparent}
+.aula-content :where(table){border-collapse:separate;border-spacing:0;width:100%}
+.aula-content :where(th){font-size:.7rem!important;text-transform:uppercase;letter-spacing:.06em;color:#667085!important;background:#f8fafb!important}
+.aula-content :where(td,th){border-color:#e6e9ee!important}
+.aula-content :where(.dashboard-button,.primary-button,.form-button,.save-button,.submit-button){border-radius:9px!important;box-shadow:none!important;font-family:inherit!important}
+.aula-content :where(.summary-card,.card,.panel,.content-card,.resource-card,.student-card,.lesson-card,.task-card,.quiz-card){border-color:#e2e7ec!important;box-shadow:0 4px 15px rgba(15,23,42,.035)!important}
+
+@media (max-width: 700px){.aula-content :where(table){min-width:680px}.aula-content :where(.table-wrapper,.table-container){overflow:auto}}

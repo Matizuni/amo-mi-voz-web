@@ -138,14 +138,11 @@
           </span>
 
           <strong>
-            {{
-              String(lesson.id)
-                .padStart(2, '0')
-            }}
+            {{ classDisplayNumber }}
           </strong>
 
           <small>
-            ID {{ lesson.id }}
+            {{ lesson.title }}
           </small>
         </aside>
       </header>
@@ -323,6 +320,27 @@
             <small>
               Esta descripción aparece en la portada de la clase.
             </small>
+          </div>
+
+          <div class="field lesson-cover-field">
+            <div class="field__header">
+              <label>Portada de la clase</label>
+              <span>Imagen opcional</span>
+            </div>
+            <input ref="coverInput" class="hidden-input" type="file" accept="image/jpeg,image/png,image/webp" @change="handleCoverInput" />
+            <div class="lesson-cover-editor" :class="{ 'lesson-cover-editor--has-image': coverUrl }">
+              <div class="lesson-cover-editor__preview" :style="coverUrl ? { backgroundImage: `linear-gradient(90deg, rgba(16,25,40,.75), rgba(16,25,40,.16)), url(${coverUrl})` } : {}">
+                <span>PORTADA</span>
+                <strong>{{ form.title || 'Vista previa de la clase' }}</strong>
+                <small>{{ coverUrl ? 'Tu imagen se verá con una capa de contraste para mantener la lectura.' : 'Añade una fotografía horizontal para personalizar la entrada a la clase.' }}</small>
+              </div>
+              <div class="lesson-cover-editor__actions">
+                <button type="button" class="cover-action cover-action--primary" :disabled="isUploadingCover" @click="coverInput?.click()">{{ isUploadingCover ? 'Subiendo…' : (coverUrl ? 'Cambiar imagen' : 'Subir portada') }}</button>
+                <button v-if="coverUrl" type="button" class="cover-action" :disabled="isUploadingCover" @click="removeCover">Quitar</button>
+              </div>
+            </div>
+            <small v-if="coverError" class="cover-error">{{ coverError }}</small>
+            <small>Recomendado: 1600 × 700 px, JPG/PNG/WebP, máximo 8 MB.</small>
           </div>
         </section>
 
@@ -1169,6 +1187,12 @@ import {
   removeMaterial,
 } from '@/services/materialService'
 
+import {
+  clearLessonCover,
+  getLessonAppearance,
+  uploadLessonCover,
+} from '@/services/lessonAppearanceService'
+
 const route = useRoute()
 const router = useRouter()
 
@@ -1184,6 +1208,29 @@ const MAX_PDF_SIZE =
 ========================================================= */
 
 const lesson = ref(null)
+
+// Número visible de la clase. Nunca usamos el ID de base de datos como número académico.
+// Ej.: "Clase II - Tiempo..." => "II" aunque el registro tenga id 6.
+const classDisplayNumber = computed(() => {
+  const title = String(lesson.value?.title || '').trim()
+  const match = title.match(/\bclase\s+([ivxlcdm]+|\d+)\b/i)
+
+  if (match?.[1]) {
+    return match[1].toUpperCase()
+  }
+
+  const academicNumber =
+    lesson.value?.position ??
+    lesson.value?.sequence ??
+    lesson.value?.order ??
+    lesson.value?.lesson_number
+
+  if (academicNumber !== null && academicNumber !== undefined) {
+    return String(academicNumber).padStart(2, '0')
+  }
+
+  return '—'
+})
 const units = ref([])
 const materials = ref([])
 
@@ -1203,12 +1250,49 @@ const pendingFile = ref(null)
 
 const isDragging = ref(false)
 const fileError = ref('')
+const coverInput = ref(null)
+const coverUrl = ref('')
+const isUploadingCover = ref(false)
+const coverError = ref('')
 
 const removePrimaryMaterial =
   ref(false)
 
 const savingStage =
   ref('')
+
+/* =========================================================
+   PORTADA VISUAL
+========================================================= */
+const syncCover = () => {
+  if (!lesson.value?.id) return
+  coverUrl.value = getLessonAppearance(lesson.value.id)?.coverUrl || ''
+}
+
+const handleCoverInput = async event => {
+  const file = event?.target?.files?.[0]
+  if (!file || !lesson.value?.id) return
+  coverError.value = ''
+  isUploadingCover.value = true
+  try {
+    const appearance = await uploadLessonCover({ lessonId: lesson.value.id, file })
+    coverUrl.value = appearance.coverUrl || ''
+    successMessage.value = 'Portada actualizada correctamente.'
+  } catch (error) {
+    console.error(error)
+    coverError.value = error?.message || 'No fue posible subir la portada.'
+  } finally {
+    isUploadingCover.value = false
+    if (coverInput.value) coverInput.value.value = ''
+  }
+}
+
+const removeCover = () => {
+  if (!lesson.value?.id) return
+  clearLessonCover(lesson.value.id)
+  coverUrl.value = ''
+  successMessage.value = 'Portada eliminada.'
+}
 
 /* =========================================================
    FORM
@@ -2211,6 +2295,8 @@ watch(
 /* =========================================================
    MOUNT
 ========================================================= */
+
+watch(() => lesson.value?.id, () => syncCover())
 
 onMounted(() => {
   loadEditor()
@@ -3942,4 +4028,367 @@ onBeforeUnmount(() => {
     width: 100%;
   }
 }
+
+.lesson-cover-editor{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px;border:1px solid #dfe5ec;border-radius:16px;background:#f8fafc}.lesson-cover-editor__preview{min-height:180px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:24px;border-radius:12px;background:linear-gradient(135deg,#172033,#2d3a50);background-size:cover;background-position:center;color:#fff;overflow:hidden}.lesson-cover-editor__preview span{color:#f2c84b;font-size:.64rem;font-weight:850;letter-spacing:.14em}.lesson-cover-editor__preview strong{color:#fff;font-size:1.45rem;line-height:1.1}.lesson-cover-editor__preview small{max-width:620px;color:rgba(255,255,255,.78);line-height:1.5}.lesson-cover-editor__actions{display:grid;gap:8px;min-width:150px}.cover-action{padding:11px 13px;border:1px solid #d7dee7;border-radius:10px;background:#fff;color:#334155;font-weight:750;cursor:pointer}.cover-action--primary{background:#8f1d42;color:#fff;border-color:#8f1d42}.cover-action:disabled{opacity:.6;cursor:wait}.cover-error{color:#b4233d!important}@media(max-width:700px){.lesson-cover-editor{grid-template-columns:1fr}.lesson-cover-editor__actions{grid-template-columns:1fr 1fr;min-width:0}}
+
+
+/* =========================================================
+   V5.3 · LIGHT LMS EDITOR
+   El editor deja de usar superficies negras. El contraste
+   fuerte queda reservado a acciones y pequeños acentos.
+========================================================= */
+
+.edit-lesson {
+  --editor-bg: #f4f7fb;
+  --editor-card: #ffffff;
+  --editor-soft: #f8fafc;
+  --editor-soft-gold: #fffaf0;
+  --editor-border: #dbe3ec;
+  --editor-border-strong: #cbd6e2;
+  --editor-text: #172033;
+  --editor-muted: #64748b;
+  --editor-wine: #9f1f48;
+  --editor-wine-dark: #7f1839;
+  --editor-gold: #d9a91c;
+  --editor-green: #16845b;
+
+  color: var(--editor-text);
+}
+
+.topbar-button {
+  border-color: var(--editor-border);
+  background: rgba(255,255,255,.72);
+  color: #475569;
+}
+
+.topbar-button:hover {
+  border-color: #bcc9d8;
+  background: #fff;
+  color: var(--editor-text);
+}
+
+.editor-hero {
+  border-color: #e4d6aa;
+  background:
+    radial-gradient(circle at 92% 18%, rgba(217,169,28,.15), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #fffdfa 58%, #fff8e8 100%);
+  box-shadow: 0 18px 48px rgba(31, 45, 61, .07);
+}
+
+.editor-hero::before {
+  background: linear-gradient(90deg, var(--editor-wine), var(--editor-gold));
+}
+
+.editor-hero h1,
+.editor-hero h1 strong {
+  color: var(--editor-text);
+}
+
+.editor-hero h1 strong {
+  color: var(--editor-wine);
+}
+
+.editor-hero p {
+  color: var(--editor-muted);
+}
+
+.eyebrow,
+.eyebrow span,
+.panel__header > div > span,
+.panel-description strong {
+  color: #a27700;
+}
+
+.eyebrow span {
+  background: var(--editor-gold);
+  box-shadow: 0 0 0 5px rgba(217,169,28,.11);
+}
+
+.hero-state {
+  color: #526174;
+}
+
+.hero-state__dot {
+  background: #aeb9c6;
+}
+
+.hero-state__dot--active {
+  background: var(--editor-wine);
+}
+
+.class-identity {
+  min-width: 150px;
+  border: 1px solid #ead598;
+  background: rgba(255,255,255,.78);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.55);
+}
+
+.class-identity span {
+  color: #987000;
+}
+
+.class-identity strong {
+  color: var(--editor-wine);
+}
+
+.class-identity small {
+  max-width: 140px;
+  color: var(--editor-muted);
+  line-height: 1.35;
+  text-align: center;
+}
+
+.editor-form {
+  gap: 1rem;
+}
+
+.panel,
+.advanced-panel,
+.preview {
+  border-color: var(--editor-border);
+  background: var(--editor-card);
+  box-shadow: 0 12px 32px rgba(31,45,61,.055);
+}
+
+.panel__header {
+  border-bottom-color: #e8edf3;
+}
+
+.panel__number,
+.advanced-toggle__icon {
+  border-color: #e6c665;
+  background: var(--editor-soft-gold);
+  color: #9b7300;
+}
+
+.panel__header h2,
+.advanced-toggle strong,
+.preview h2 {
+  color: var(--editor-text);
+}
+
+.panel-badge,
+.panel-badge--ready,
+.preview-status {
+  border-color: #d7e0e9;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.panel-badge--ready,
+.preview-status {
+  border-color: #bfe4d4;
+  background: #effaf5;
+  color: var(--editor-green);
+}
+
+.field__header label,
+.field > label {
+  color: #334155;
+}
+
+.field__header span,
+.panel-description,
+.inline-state,
+.preview__meta,
+.file-card__message {
+  color: var(--editor-muted);
+}
+
+.field input,
+.field select,
+.field textarea,
+.two-columns input,
+.two-columns select,
+.advanced-grid input,
+.advanced-grid textarea,
+.advanced-grid select {
+  border-color: var(--editor-border-strong);
+  background: #fff;
+  color: var(--editor-text);
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.02);
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+.advanced-grid input::placeholder,
+.advanced-grid textarea::placeholder {
+  color: #9aa8b8;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.two-columns input:focus,
+.two-columns select:focus,
+.advanced-grid input:focus,
+.advanced-grid textarea:focus,
+.advanced-grid select:focus {
+  border-color: #b88a18;
+  outline: 3px solid rgba(217,169,28,.13);
+  background: #fff;
+}
+
+.lesson-cover-editor {
+  border-color: var(--editor-border);
+  background: #f7f9fc;
+}
+
+.lesson-cover-editor__preview {
+  background: linear-gradient(135deg, #26354d, #5f2940);
+}
+
+.cover-action {
+  border-color: var(--editor-border-strong);
+  background: #fff;
+  color: #334155;
+}
+
+.cover-action--primary {
+  border-color: var(--editor-wine);
+  background: var(--editor-wine);
+  color: #fff;
+}
+
+.cover-action--primary:hover {
+  background: var(--editor-wine-dark);
+}
+
+.file-card,
+.remove-state,
+.drop-zone,
+.replace-drop-zone {
+  border-color: var(--editor-border);
+  background: var(--editor-soft);
+}
+
+.file-card--new {
+  border-color: #e6cf83;
+  background: #fffcf3;
+}
+
+.file-card__icon,
+.remove-state__icon,
+.drop-zone__icon {
+  border-color: #e3c760;
+  background: #fff9e7;
+  color: #987000;
+}
+
+.file-card__body strong,
+.remove-state strong,
+.drop-zone strong {
+  color: var(--editor-text);
+}
+
+.file-card__body span,
+.remove-state p,
+.drop-zone p {
+  color: var(--editor-muted);
+}
+
+.file-card__actions button,
+.secondary-button {
+  border-color: var(--editor-border-strong);
+  background: #fff;
+  color: #334155;
+}
+
+.file-card__actions button:hover,
+.secondary-button:hover {
+  border-color: #aebdcd;
+  background: #f8fafc;
+}
+
+.file-card__actions button:last-child {
+  border-color: #f0c9d2;
+  color: #b42348;
+}
+
+.advanced-toggle {
+  border-color: var(--editor-border);
+  background: var(--editor-card);
+  box-shadow: 0 10px 26px rgba(31,45,61,.045);
+}
+
+.advanced-toggle:hover {
+  border-color: #c8d3df;
+  background: #fbfcfe;
+}
+
+.preview {
+  border-color: #dfd4ae;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(217,169,28,.09), transparent 34%),
+    #fff;
+}
+
+.preview__meta span,
+.preview__content-grid > div {
+  border-color: var(--editor-border);
+  background: #f8fafc;
+}
+
+.preview__content-grid strong {
+  color: var(--editor-text);
+}
+
+.action-bar {
+  border-color: var(--editor-border);
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 -8px 28px rgba(31,45,61,.09);
+  backdrop-filter: blur(12px);
+}
+
+.action-bar__status strong {
+  color: var(--editor-text);
+}
+
+.action-bar__status span {
+  color: var(--editor-muted);
+}
+
+.primary-button {
+  border-color: var(--editor-wine);
+  background: var(--editor-wine);
+  color: #fff;
+}
+
+.primary-button:hover:not(:disabled) {
+  border-color: var(--editor-wine-dark);
+  background: var(--editor-wine-dark);
+}
+
+.secondary-button--accent {
+  border-color: #e3c65e;
+  background: #fff7db;
+  color: #7d5d00;
+}
+
+.global-message--success {
+  border-color: #bfe4d4;
+  background: #effaf5;
+  color: #166b4b;
+}
+
+.global-message--error,
+.inline-error,
+.file-error,
+.cover-error {
+  color: #b42348;
+}
+
+.state-screen {
+  border-color: var(--editor-border);
+  background: #fff;
+  color: var(--editor-text);
+}
+
+@media (max-width: 700px) {
+  .class-identity {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 </style>

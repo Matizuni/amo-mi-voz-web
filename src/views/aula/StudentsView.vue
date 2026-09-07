@@ -3406,3 +3406,136 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   V5.1 · LIGHT LMS PATCH
+   Scoped visual refinement: no backend or template logic touched.
+========================================================= */
+.students {
+  --amv-bg: #f4f7fb;
+  --amv-surface: #ffffff;
+  --amv-surface-soft: #f8fafc;
+  --amv-surface-warm: #fffaf0;
+  --amv-ink: #172033;
+  --amv-muted: #667085;
+  --amv-border: #dbe3ee;
+  --amv-border-strong: #c7d2e0;
+  --amv-wine: #9f1d4a;
+  --amv-gold: #c99424;
+  --amv-gold-soft: #fff3cf;
+  --amv-success: #1f8a62;
+  color: var(--amv-ink);
+}
+
+.students__summary article,
+.summary-card,
+.students-toolbar,
+.students__info,
+.student-card,
+.students-directory__header,
+.students-empty,
+.students-no-results,
+.students-state,
+.students-modal__card {
+  background: var(--amv-surface) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+  box-shadow: 0 12px 32px rgba(23, 32, 51, 0.06) !important;
+}
+
+.summary-card--main {
+  background: linear-gradient(145deg, var(--amv-gold-soft), #ffffff 72%) !important;
+  border-color: #ead59a !important;
+}
+
+.students__summary span,
+.students__summary small,
+.students-toolbar__label,
+.students-toolbar__result,
+.student-card__details,
+.student-card__status,
+.students__info p,
+.students-state p,
+.students-empty p,
+.students-no-results p {
+  color: var(--amv-muted) !important;
+}
+
+.students__summary strong,
+.student-card__identity strong,
+.student-card__main-action,
+.students-directory__header h2,
+.students-state strong,
+.students-empty h2,
+.students-no-results strong {
+  color: var(--amv-ink) !important;
+}
+
+.students-search,
+.students-search input {
+  background: var(--amv-surface-soft) !important;
+  color: var(--amv-ink) !important;
+  border-color: var(--amv-border) !important;
+}
+
+.students-search input::placeholder { color: #98a2b3 !important; }
+
+.voice-filters button {
+  background: #ffffff !important;
+  color: #344054 !important;
+  border-color: var(--amv-border) !important;
+}
+
+.voice-filters button[aria-pressed='true'],
+.voice-filters button.active {
+  background: var(--amv-gold-soft) !important;
+  color: #77580f !important;
+  border-color: #e2bd55 !important;
+}
+
+.student-card__avatar {
+  background: var(--amv-surface-warm) !important;
+  color: var(--amv-gold) !important;
+  border-color: #efd893 !important;
+}
+
+.student-card__voice {
+  color: var(--amv-gold) !important;
+}
+
+.student-card__admin,
+.student-card__delete {
+  background: #ffffff !important;
+  border-color: var(--amv-border) !important;
+}
+
+.student-card__admin { color: #475467 !important; }
+.student-card__delete { color: #b42318 !important; }
+
+.students__primary-action {
+  background: var(--amv-wine) !important;
+  border-color: var(--amv-wine) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(159, 29, 74, 0.18) !important;
+}
+
+.students__primary-action:hover { background: #82173d !important; }
+
+.students-modal {
+  background: rgba(15, 23, 42, 0.48) !important;
+  backdrop-filter: blur(4px);
+}
+
+.students-modal__notice,
+.students-modal__confirmation {
+  background: var(--amv-surface-soft) !important;
+  border-color: var(--amv-border) !important;
+  color: var(--amv-ink) !important;
+}
+
+@media (max-width: 760px) {
+  .students__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .students-toolbar { padding: 1rem !important; }
+}
+</style>

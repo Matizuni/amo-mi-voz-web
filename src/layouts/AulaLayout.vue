@@ -1,2040 +1,322 @@
 <template>
   <div class="aula-layout">
-
-    <!-- =====================================================
-         CARGANDO AUTENTICACIÓN
-    ====================================================== -->
-
-    <section
-      v-if="isAuthLoading && !authReady"
-      class="auth-screen"
-    >
+    <section v-if="isAuthLoading && !authReady" class="auth-screen">
       <div class="auth-loading">
-        <div class="auth-loading__logo">
-          AMV
-        </div>
-
+        <div class="brand-mark">AMV</div>
         <div class="auth-spinner"></div>
-
-        <strong>
-          Preparando tu aula...
-        </strong>
-
-        <span>
-          Academia de Talentos Amo Mi Voz
-        </span>
+        <strong>Preparando tu aula</strong>
+        <span>Organizando tu experiencia de aprendizaje…</span>
       </div>
     </section>
 
-    <!-- =====================================================
-         LOGIN
-    ====================================================== -->
-
-    <section
-      v-else-if="!isAuthenticated"
-      class="login-screen"
-    >
-      <div class="login-screen__background">
-        <span class="login-screen__note login-screen__note--1">
-          ♪
-        </span>
-
-        <span class="login-screen__note login-screen__note--2">
-          ♫
-        </span>
-
-        <span class="login-screen__note login-screen__note--3">
-          ♩
-        </span>
-      </div>
-
-      <div class="login">
-
-        <!-- PRESENTACIÓN -->
-
-        <section class="login__presentation">
-
-          <RouterLink
-            to="/"
-            class="login__brand"
-          >
-            <div class="login__brand-logo">
-              AMV
-            </div>
-
-            <div>
-              <strong>
-                Amo Mi Voz
-              </strong>
-
-              <span>
-                Academia de Talentos
-              </span>
-            </div>
+    <section v-else-if="!isAuthenticated" class="login-screen">
+      <div class="login-shell">
+        <section class="login-brand-panel">
+          <RouterLink to="/" class="login-brand">
+            <div class="brand-mark brand-mark--large">AMV</div>
+            <div><strong>Amo Mi Voz</strong><span>Academia de Talentos</span></div>
           </RouterLink>
 
-          <div class="login__hero">
-
-            <p class="login__eyebrow">
-              AULA VIRTUAL
-            </p>
-
-            <h1>
-              Tu música continúa
-              <span>fuera de la sala.</span>
-            </h1>
-
-            <p class="login__description">
-              Accede a tus clases, repertorio,
-              materiales, tareas, evaluaciones
-              y seguimiento vocal desde un solo lugar.
-            </p>
-
-            <div class="login__features">
-
-              <article>
-                <span>01</span>
-
-                <div>
-                  <strong>
-                    Formación musical
-                  </strong>
-
-                  <p>
-                    Clases, contenidos y material
-                    pedagógico organizado.
-                  </p>
-                </div>
-              </article>
-
-              <article>
-                <span>02</span>
-
-                <div>
-                  <strong>
-                    Seguimiento vocal
-                  </strong>
-
-                  <p>
-                    Tesitura, asistencia,
-                    evaluaciones y progreso.
-                  </p>
-                </div>
-              </article>
-
-              <article>
-                <span>03</span>
-
-                <div>
-                  <strong>
-                    Repertorio
-                  </strong>
-
-                  <p>
-                    Audios, partituras y recursos
-                    disponibles para estudiar.
-                  </p>
-                </div>
-              </article>
-
-            </div>
-
+          <div class="login-copy">
+            <span class="login-kicker">AULA VIRTUAL</span>
+            <h1>Tu formación musical, <em>en un solo lugar.</em></h1>
+            <p>Clases, evaluaciones, repertorio, tareas, asistencia y seguimiento académico en una experiencia pensada para aprender sin distracciones.</p>
           </div>
 
-          <RouterLink
-            to="/"
-            class="login__site-link"
-          >
-            ← Volver al sitio web
-          </RouterLink>
+          <div class="login-capabilities">
+            <article><AulaIcon name="program"/><div><strong>Contenido ordenado</strong><span>Unidades, clases y recursos siempre disponibles.</span></div></article>
+            <article><AulaIcon name="progress"/><div><strong>Progreso visible</strong><span>Evaluaciones, asistencia y seguimiento vocal.</span></div></article>
+            <article><AulaIcon name="tasks"/><div><strong>Todo al día</strong><span>Tareas y actividades reunidas en un solo espacio.</span></div></article>
+          </div>
 
+          <RouterLink to="/" class="login-back">← Volver al sitio de Amo Mi Voz</RouterLink>
         </section>
 
-        <!-- FORMULARIO -->
-
-        <section class="login__panel">
-
+        <section class="login-form-panel">
           <div class="login-card">
-
             <div class="login-card__header">
-              <span>
-                ACCESO PRIVADO
-              </span>
-
-              <h2>
-                Iniciar sesión
-              </h2>
-
-              <p>
-                Ingresa con la cuenta asignada
-                por la Academia Amo Mi Voz.
-              </p>
+              <span class="eyebrow">PORTAL ACADÉMICO</span>
+              <h2>Bienvenido de vuelta</h2>
+              <p>Ingresa con las credenciales de tu cuenta.</p>
             </div>
 
-            <form
-              class="login-form"
-              @submit.prevent="handleLogin"
-            >
+            <form class="login-form" @submit.prevent="handleLogin">
+              <label>
+                <span>Correo electrónico</span>
+                <input v-model="email" type="email" autocomplete="email" placeholder="nombre@correo.cl" :disabled="isSubmitting" required>
+              </label>
 
-              <div class="login-form__group">
-
-                <label for="email">
-                  Correo electrónico
-                </label>
-
-                <input
-                  id="email"
-                  v-model.trim="email"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="tu@correo.cl"
-                  :disabled="isSubmitting"
-                  required
-                >
-
-              </div>
-
-              <div class="login-form__group">
-
-                <div class="login-form__label-row">
-  <label for="password">
-    Contraseña
-  </label>
-
-  <button
-    type="button"
-    class="login-form__forgot"
-    :disabled="isSendingReset"
-    @click="handlePasswordReset"
-  >
-    {{
-      isSendingReset
-        ? 'Enviando...'
-        : '¿Olvidaste tu contraseña?'
-    }}
-  </button>
-</div>
-
+              <label>
+                <span>Contraseña</span>
                 <div class="password-field">
-
-                  <input
-                    id="password"
-                    v-model="password"
-                    :type="
-                      showPassword
-                        ? 'text'
-                        : 'password'
-                    "
-                    autocomplete="current-password"
-                    placeholder="Tu contraseña"
-                    :disabled="isSubmitting"
-                    required
-                  >
-
-                  <button
-                    type="button"
-                    class="password-field__toggle"
-                    :disabled="isSubmitting"
-                    @click="
-                      showPassword =
-                        !showPassword
-                    "
-                  >
-                    {{
-                      showPassword
-                        ? 'Ocultar'
-                        : 'Ver'
-                    }}
-                  </button>
-
+                  <input v-model="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" placeholder="Tu contraseña" :disabled="isSubmitting" required>
+                  <button type="button" @click="showPassword = !showPassword">{{ showPassword ? 'Ocultar' : 'Ver' }}</button>
                 </div>
+              </label>
 
-              </div>
-
-              <div
-  v-if="resetMessage"
-  class="login-form__success"
->
-  <span>✓</span>
-
-  <p>
-    {{ resetMessage }}
-  </p>
-</div>
-
-              <div
-                v-if="loginError"
-                class="login-form__error"
-              >
-                <span>!</span>
-
-                <p>
-                  {{ loginError }}
-                </p>
-              </div>
-
-              <button
-                type="submit"
-                class="login-form__submit"
-                :disabled="isSubmitting"
-              >
-                <template v-if="isSubmitting">
-                  <span class="button-spinner"></span>
-                  Ingresando...
-                </template>
-
-                <template v-else>
-                  Entrar al aula
-                  <span>→</span>
-                </template>
+              <button type="button" class="forgot-link" :disabled="isSendingReset" @click="handlePasswordReset">
+                {{ isSendingReset ? 'Enviando enlace…' : '¿Olvidaste tu contraseña?' }}
               </button>
 
+              <div v-if="resetMessage" class="form-message form-message--success"><AulaIcon name="check"/><span>{{ resetMessage }}</span></div>
+              <div v-if="loginError" class="form-message form-message--error"><strong>!</strong><span>{{ loginError }}</span></div>
+
+              <button type="submit" class="login-submit" :disabled="isSubmitting">
+                <span>{{ isSubmitting ? 'Ingresando…' : 'Entrar al aula' }}</span>
+                <AulaIcon v-if="!isSubmitting" name="arrow"/>
+                <span v-else class="button-spinner"></span>
+              </button>
             </form>
 
-            <div class="login-card__security">
-              <span class="login-card__security-icon">
-                ✓
-              </span>
-
-              <div>
-                <strong>
-                  Acceso protegido
-                </strong>
-
-                <p>
-                  Tu sesión es administrada de forma
-                  segura mediante Supabase Auth.
-                </p>
-              </div>
-            </div>
-
+            <div class="secure-note"><span>✓</span><p><strong>Acceso protegido.</strong> Tu sesión se administra con Supabase Auth.</p></div>
           </div>
-
-          <p class="login__help">
-            Si tienes problemas para ingresar,
-            comunícate con tu profesor.
-          </p>
-
+          <p class="login-help">¿Problemas para ingresar? Comunícate con la academia.</p>
         </section>
-
       </div>
     </section>
 
-    <!-- =====================================================
-         AULA AUTENTICADA
-    ====================================================== -->
-
     <template v-else>
+      <div v-if="mobileOpen" class="mobile-backdrop" @click="mobileOpen = false"></div>
 
-      <!-- HEADER -->
-
-      <header class="aula-header">
-
-        <RouterLink
-          to="/aula"
-          class="aula-header__brand"
-        >
-          <div class="aula-header__logo">
-            AMV
-          </div>
-
-          <div class="aula-header__brand-text">
-            <strong>
-              Amo Mi Voz
-            </strong>
-
-            <span>
-              Aula Virtual
-            </span>
-          </div>
-        </RouterLink>
-
-        <!-- NAVEGACIÓN ESCRITORIO -->
-
-        <nav class="aula-header__nav">
-
-          <RouterLink
-            to="/aula"
-            exact-active-class="is-active"
-          >
-            Inicio
+      <aside class="aula-sidebar" :class="{ 'is-open': mobileOpen }">
+        <div class="sidebar-brand">
+          <RouterLink to="/aula" class="sidebar-brand__link" @click="mobileOpen = false">
+            <div class="brand-mark">AMV</div>
+            <div><strong>Amo Mi Voz</strong><span>Aula Virtual</span></div>
           </RouterLink>
+          <button class="sidebar-close" type="button" aria-label="Cerrar menú" @click="mobileOpen = false"><AulaIcon name="close"/></button>
+        </div>
 
-          <RouterLink
-            to="/aula/programa-formativo"
-            active-class="is-active"
-          >
-            Programa
-          </RouterLink>
+        <div class="workspace-chip"><span class="workspace-chip__dot"></span><div><small>ESPACIO ACTIVO</small><strong>Academia Amo Mi Voz</strong></div></div>
 
-          <RouterLink
-            to="/aula/recursos"
-            active-class="is-active"
-          >
-            Recursos
-          </RouterLink>
-
-          <!-- ALUMNO -->
-
-          <RouterLink
-            v-if="isStudent"
-            to="/aula/mis-tareas"
-            active-class="is-active"
-          >
-            Mis tareas
-          </RouterLink>
-
-          <RouterLink
-            v-if="
-              isStudent &&
-              currentUser?.studentId
-            "
-            :to="
-              `/aula/estudiante/${currentUser.studentId}`
-            "
-            active-class="is-active"
-          >
-            Mi progreso
-          </RouterLink>
-
-          <!-- PROFESOR -->
-
-          <RouterLink
-  v-if="isTeacher"
-  to="/aula/alumnos"
-  active-class="is-active"
->
-  Alumnos
-</RouterLink>
-
-<RouterLink
-  v-if="isTeacher"
-  to="/aula/inscripciones"
-  active-class="is-active"
->
-  Inscripciones
-</RouterLink>
-
-<RouterLink
-  v-if="isTeacher"
-  to="/aula/asistencia"
-  active-class="is-active"
->
-  Asistencia
-</RouterLink>
-
-          <RouterLink
-            v-if="isTeacher"
-            to="/aula/calificaciones"
-            active-class="is-active"
-          >
-            Calificaciones
-          </RouterLink>
-
-          <RouterLink
-  to="/aula/cuenta"
-  active-class="is-active"
->
-  Mi cuenta
-</RouterLink>
-
+        <nav class="sidebar-nav" aria-label="Navegación del aula">
+          <template v-for="group in navGroups" :key="group.label">
+            <p class="sidebar-nav__label">{{ group.label }}</p>
+            <RouterLink
+              v-for="item in group.items"
+              :key="item.to"
+              :to="item.to"
+              class="sidebar-link"
+              :class="{ 'is-active': isNavActive(item) }"
+              active-class=""
+              exact-active-class=""
+              @click="mobileOpen = false"
+            >
+              <AulaIcon :name="item.icon"/>
+              <span>{{ item.label }}</span>
+              <span v-if="item.badge" class="sidebar-link__badge">{{ item.badge }}</span>
+            </RouterLink>
+          </template>
         </nav>
 
-        <!-- USUARIO -->
+        <div class="sidebar-footer">
+          <RouterLink to="/" class="sidebar-site-link"><AulaIcon name="external"/><span>Ver sitio web</span></RouterLink>
+          <div class="sidebar-profile">
+            <div class="avatar">{{ initials }}</div>
+            <div class="sidebar-profile__copy"><strong>{{ currentUser?.name }}</strong><span>{{ roleLabel }}<template v-if="isStudent && currentUser?.voice"> · {{ currentUser.voice }}</template></span></div>
+            <button type="button" title="Cerrar sesión" :disabled="isLoggingOut" @click="handleLogout"><AulaIcon name="logout"/></button>
+          </div>
+        </div>
+      </aside>
 
-        <div class="aula-user">
-
-          <div class="aula-user__info">
-
-            <span>
-              {{ roleLabel }}
-            </span>
-
-            <strong>
-              {{ currentUser?.name }}
-            </strong>
-
-            <small
-              v-if="
-                isStudent &&
-                currentUser?.voice
-              "
-            >
-              {{ currentUser.voice }}
-            </small>
-
+      <div class="aula-workspace">
+        <header class="aula-topbar">
+          <div class="topbar-left">
+            <button class="mobile-menu" type="button" aria-label="Abrir menú" @click="mobileOpen = true"><AulaIcon name="menu"/></button>
+            <div class="breadcrumb"><span>Aula Virtual</span><AulaIcon name="chevron"/><strong>{{ currentSection }}</strong></div>
           </div>
 
-          <div class="aula-user__avatar">
-            {{ initials }}
+          <div class="topbar-right">
+            <div class="topbar-status"><span></span> Plataforma activa</div>
+            <RouterLink to="/aula/cuenta" class="topbar-profile">
+              <div class="avatar avatar--small">{{ initials }}</div>
+              <div><strong>{{ firstName }}</strong><span>{{ roleLabel }}</span></div>
+            </RouterLink>
           </div>
+        </header>
 
-          <RouterLink
-  to="/aula/cuenta"
-  active-class="is-active"
->
-  Mi cuenta
-</RouterLink>
+        <main class="aula-content">
+          <RouterView />
+        </main>
 
-          <button
-            type="button"
-            class="aula-user__logout"
-            :disabled="isLoggingOut"
-            @click="handleLogout"
-          >
-            {{
-              isLoggingOut
-                ? 'Saliendo...'
-                : 'Cerrar sesión'
-            }}
-          </button>
-
-        </div>
-
-      </header>
-
-      <!-- BARRA SECUNDARIA -->
-
-      <section class="aula-toolbar">
-
-        <div>
-
-          <span class="aula-toolbar__status">
-            <i></i>
-            Sesión activa
-          </span>
-
-          <span class="aula-toolbar__separator">
-            /
-          </span>
-
-          <span>
-            {{ roleLabel }}
-          </span>
-
-          <template
-            v-if="
-              isStudent &&
-              currentUser?.voice
-            "
-          >
-            <span class="aula-toolbar__separator">
-              /
-            </span>
-
-            <span class="aula-toolbar__voice">
-              {{ currentUser.voice }}
-            </span>
-          </template>
-
-        </div>
-
-        <RouterLink
-          to="/"
-          class="back-to-site"
-        >
-          ← Sitio web
-        </RouterLink>
-
-      </section>
-
-      <!-- NAVEGACIÓN MÓVIL -->
-
-      <nav class="aula-mobile-nav">
-
-        <RouterLink
-          to="/aula"
-          exact-active-class="is-active"
-        >
-          Inicio
-        </RouterLink>
-
-        <RouterLink
-          to="/aula/programa-formativo"
-          active-class="is-active"
-        >
-          Programa
-        </RouterLink>
-
-        <RouterLink
-          to="/aula/recursos"
-          active-class="is-active"
-        >
-          Recursos
-        </RouterLink>
-
-        <RouterLink
-          v-if="isStudent"
-          to="/aula/mis-tareas"
-          active-class="is-active"
-        >
-          Mis tareas
-        </RouterLink>
-
-        <RouterLink
-          v-if="
-            isStudent &&
-            currentUser?.studentId
-          "
-          :to="
-            `/aula/estudiante/${currentUser.studentId}`
-          "
-          active-class="is-active"
-        >
-          Mi progreso
-        </RouterLink>
-
-        <RouterLink
-  v-if="isTeacher"
-  to="/aula/alumnos"
-  active-class="is-active"
->
-  Alumnos
-</RouterLink>
-
-<RouterLink
-  v-if="isTeacher"
-  to="/aula/inscripciones"
-  active-class="is-active"
->
-  Inscripciones
-</RouterLink>
-
-<RouterLink
-  v-if="isTeacher"
-  to="/aula/asistencia"
-  active-class="is-active"
->
-  Asistencia
-</RouterLink>
-
-        <button
-          type="button"
-          class="aula-mobile-nav__logout"
-          @click="handleLogout"
-        >
-          Salir
-        </button>
-
-      </nav>
-
-      <!-- CONTENIDO -->
-
-      <main class="aula-layout__content">
-        <RouterView />
-      </main>
-
+        <footer class="aula-footer">
+          <span>© {{ new Date().getFullYear() }} Academia Amo Mi Voz</span>
+          <span>Portal académico · versión SaaS</span>
+        </footer>
+      </div>
     </template>
-
   </div>
 </template>
 
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref
-} from 'vue'
-
-import {
-  RouterLink,
-  RouterView,
-  useRouter
-} from 'vue-router'
-
-import {
-  useAuth
-} from '@/composables/useAuth'
-
+import { computed, onMounted, ref } from 'vue'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import AulaIcon from '@/components/aula/AulaIcon.vue'
+import { useAuth } from '@/composables/useAuth'
 import { supabase } from '@/lib/supabase'
 
-/* =========================================================
-   ROUTER
-========================================================= */
-
 const router = useRouter()
-
-/* =========================================================
-   AUTH
-========================================================= */
-
-const {
-  currentUser,
-  isAuthenticated,
-  isTeacher,
-  isStudent,
-  isAuthLoading,
-  authError,
-  initializeAuth,
-  login,
-  logout
-} = useAuth()
-
-/* =========================================================
-   ESTADO LOCAL
-========================================================= */
+const route = useRoute()
+const { currentUser, isAuthenticated, isTeacher, isStudent, isAuthLoading, authError, initializeAuth, login, logout } = useAuth()
 
 const email = ref('')
-
 const password = ref('')
-
 const showPassword = ref(false)
-
 const isSubmitting = ref(false)
-
 const isLoggingOut = ref(false)
-
 const localError = ref('')
 const authReady = ref(false)
-
 const resetMessage = ref('')
 const isSendingReset = ref(false)
+const mobileOpen = ref(false)
 
-/* =========================================================
-   ERROR
-========================================================= */
+const loginError = computed(() => localError.value || authError.value || '')
+const roleLabel = computed(() => currentUser.value?.role === 'teacher' ? 'Profesor' : 'Estudiante')
+const firstName = computed(() => String(currentUser.value?.name || 'Usuario').trim().split(/\s+/)[0])
+const initials = computed(() => String(currentUser.value?.name || '?').split(' ').filter(Boolean).map(word => word[0]).slice(0, 2).join('').toUpperCase())
 
-const loginError = computed(() =>
-  localError.value ||
-  authError.value ||
-  ''
-)
+const teacherNav = [
+  { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
+  { label: 'Centro del curso', to: '/aula/curso', icon: 'course' },
+  { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
+  { label: 'Contenido', to: '/aula/programa-formativo', icon: 'program' },
+  { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
+  { label: 'Alumnos', to: '/aula/alumnos', icon: 'users' },
+  { label: 'Inscripciones', to: '/aula/inscripciones', icon: 'inbox' },
+  { label: 'Asistencia', to: '/aula/asistencia', icon: 'attendance' },
+  { label: 'Calificaciones', to: '/aula/calificaciones', icon: 'grades' }
+]
 
-/* =========================================================
-   ROL
-========================================================= */
+const studentNav = computed(() => [
+  { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
+  { label: 'Mi curso', to: '/aula/curso', icon: 'course' },
+  { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
+  { label: 'Contenido', to: '/aula/programa-formativo', icon: 'program' },
+  { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
+  { label: 'Mis tareas', to: '/aula/mis-tareas', icon: 'tasks' },
+  { label: 'Mis evaluaciones', to: '/aula/evaluaciones', icon: 'grades' },
+  ...(currentUser.value?.studentId ? [{ label: 'Mi progreso', to: `/aula/estudiante/${currentUser.value.studentId}`, icon: 'progress' }] : [])
+])
 
-const roleLabel = computed(() => {
-  if (!currentUser.value) {
-    return ''
+const navGroups = computed(() => [
+  { label: 'APRENDIZAJE', items: isTeacher.value ? teacherNav.slice(0, 5) : studentNav.value.slice(0, 7) },
+  { label: isTeacher.value ? 'GESTIÓN ACADÉMICA' : 'SEGUIMIENTO', items: isTeacher.value ? teacherNav.slice(5) : studentNav.value.slice(7) },
+  { label: 'CUENTA', items: [{ label: 'Mi cuenta', to: '/aula/cuenta', icon: 'account' }] }
+].filter(group => group.items.length))
+
+const sectionNames = {
+  aula: 'Inicio', 'aula-curso': 'Centro del curso', 'aula-calendario': 'Calendario', 'aula-programa': 'Contenido del curso', 'aula-crear-clase': 'Nueva clase', 'aula-alumnos': 'Alumnos',
+  'aula-estudiante': isStudent.value ? 'Mi progreso' : 'Perfil de estudiante', 'aula-clase': 'Clase', 'aula-editar-clase': 'Editar clase',
+  'aula-trabajo': 'Trabajo de clase', 'aula-tarea': 'Tarea', 'aula-crear-tarea': 'Nueva tarea', 'aula-editar-tarea': 'Editar tarea',
+  'aula-entregas': 'Entregas', 'aula-revisar-entrega': 'Revisar entrega', 'aula-asistencia': 'Asistencia', 'aula-calificaciones': 'Calificaciones',
+  'aula-mis-tareas': 'Mis tareas', 'aula-recursos': 'Recursos', 'aula-publicar-recurso': 'Publicar recurso', 'aula-inscriptions': 'Inscripciones',
+  'aula-account': 'Mi cuenta', 'aula-crear-evaluacion': 'Nueva evaluación', 'aula-evaluacion': 'Evaluación', 'aula-mis-evaluaciones': 'Mis evaluaciones',
+  'aula-evaluacion-revision': 'Resultado de evaluación'
+}
+const isNavActive = item => {
+  const currentPath = route.path.replace(/\/$/, '') || '/aula'
+  const targetPath = String(item.to || '').replace(/\/$/, '') || '/aula'
+
+  // Inicio debe activarse SOLO en /aula.
+  if (targetPath === '/aula') {
+    return currentPath === '/aula'
   }
 
-  return currentUser.value.role ===
-    'teacher'
-    ? 'Profesor'
-    : 'Estudiante'
-})
+  // Las secciones principales se activan únicamente en su propia vista.
+  // Para subrutas funcionales (crear/editar/ver) no dejamos otro item marcado.
+  return currentPath === targetPath
+}
 
-/* =========================================================
-   INICIALES
-========================================================= */
-
-const initials = computed(() => {
-  const name =
-    currentUser.value?.name
-
-  if (!name) {
-    return '?'
-  }
-
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map(
-      word =>
-        word.charAt(0)
-    )
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-})
+const currentSection = computed(() => sectionNames[route.name] || 'Aula Virtual')
 
 const handlePasswordReset = async () => {
-  localError.value = ''
-  resetMessage.value = ''
-
-  if (!email.value) {
-    localError.value =
-      'Escribe primero tu correo electrónico para recuperar tu contraseña.'
-    return
-  }
-
+  localError.value = ''; resetMessage.value = ''
+  if (!email.value) { localError.value = 'Escribe primero tu correo electrónico para recuperar tu contraseña.'; return }
   isSendingReset.value = true
-
   try {
-    const { error } =
-      await supabase.auth.resetPasswordForEmail(
-        email.value,
-        {
-          redirectTo: `${window.location.origin}/aula/cuenta`
-        }
-      )
-
-    if (error) {
-      throw error
-    }
-
-    resetMessage.value =
-      'Te enviamos un correo con el enlace para crear una nueva contraseña.'
-  } catch (error) {
-    console.error(
-      'Error enviando recuperación:',
-      error
-    )
-
-    localError.value =
-      'No fue posible enviar el correo de recuperación.'
-  } finally {
-    isSendingReset.value = false
-  }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.value, { redirectTo: `${window.location.origin}/aula/cuenta` })
+    if (error) throw error
+    resetMessage.value = 'Te enviamos un enlace para crear una nueva contraseña.'
+  } catch (error) { console.error(error); localError.value = 'No fue posible enviar el correo de recuperación.' }
+  finally { isSendingReset.value = false }
 }
-
-/* =========================================================
-   LOGIN
-========================================================= */
 
 const handleLogin = async () => {
-  if (
-    !email.value ||
-    !password.value
-  ) {
-    localError.value =
-      'Ingresa tu correo y contraseña.'
-
-    return
-  }
-
-  isSubmitting.value = true
-
-  localError.value = ''
-
+  if (!email.value || !password.value) { localError.value = 'Ingresa tu correo y contraseña.'; return }
+  isSubmitting.value = true; localError.value = ''
   try {
-    const user =
-      await login(
-        email.value,
-        password.value
-      )
-
-    if (!user) {
-      throw new Error(
-        'No se pudo cargar el perfil de esta cuenta.'
-      )
-    }
-
+    const user = await login(email.value, password.value)
+    if (!user) throw new Error('No se pudo cargar el perfil de esta cuenta.')
     password.value = ''
-
     await router.push('/aula')
-
-  } catch (error) {
-    console.error(
-      'Error iniciando sesión:',
-      error
-    )
-
-    if (!authError.value) {
-      localError.value =
-        error?.message ||
-        'No fue posible iniciar sesión.'
-    }
-
-  } finally {
-    isSubmitting.value = false
-  }
+  } catch (error) { console.error(error); if (!authError.value) localError.value = error?.message || 'No fue posible iniciar sesión.' }
+  finally { isSubmitting.value = false }
 }
-
-/* =========================================================
-   LOGOUT
-========================================================= */
 
 const handleLogout = async () => {
-  if (isLoggingOut.value) {
-    return
-  }
-
+  if (isLoggingOut.value) return
   isLoggingOut.value = true
-
-  try {
-    await logout()
-
-    email.value = ''
-    password.value = ''
-    localError.value = ''
-
-    await router.push('/aula')
-
-  } catch (error) {
-    console.error(
-      'Error cerrando sesión:',
-      error
-    )
-  } finally {
-    isLoggingOut.value = false
-  }
+  try { await logout(); email.value = ''; password.value = ''; localError.value = ''; mobileOpen.value = false; await router.push('/aula') }
+  catch (error) { console.error(error) }
+  finally { isLoggingOut.value = false }
 }
 
-/* =========================================================
-   INICIALIZAR
-========================================================= */
-
-onMounted(async () => {
-  try {
-    await initializeAuth()
-  } finally {
-    authReady.value = true
-  }
-})
+onMounted(async () => { try { await initializeAuth() } finally { authReady.value = true } })
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/abstracts/variables' as variables;
-
-/* =========================================================
-   GENERAL
-========================================================= */
-
-.aula-layout {
-  min-height: 100vh;
-  background:
-    variables.$color-background;
-  color:
-    variables.$color-white;
-}
-
-/* =========================================================
-   AUTH LOADING
-========================================================= */
-
-.auth-screen {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  padding:
-    variables.$spacing-xl;
-}
-
-.auth-loading {
-  display: grid;
-  gap:
-    variables.$spacing-md;
-  justify-items: center;
-  text-align: center;
-}
-
-.auth-loading__logo {
-  display: grid;
-  width: 78px;
-  height: 78px;
-  place-items: center;
-  border-radius: 50%;
-  background:
-    variables.$color-primary;
-  color:
-    variables.$color-white;
-  font-family:
-    variables.$font-family-heading;
-  font-weight:
-    variables.$font-weight-bold;
-}
-
-.auth-loading span {
-  opacity: 0.45;
-}
-
-.auth-spinner {
-  width: 32px;
-  height: 32px;
-  border:
-    3px solid
-    variables.$color-border;
-  border-top-color:
-    variables.$color-primary;
-  border-radius: 50%;
-  animation:
-    spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* =========================================================
-   LOGIN
-========================================================= */
-
-.login-screen {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-.login-screen__background {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.login-screen__background::before {
-  position: absolute;
-  width: 650px;
-  height: 650px;
-  top: -300px;
-  right: -200px;
-  border-radius: 50%;
-  background:
-    rgba(
-      variables.$color-primary,
-      0.08
-    );
-  content: '';
-  filter: blur(20px);
-}
-
-.login-screen__background::after {
-  position: absolute;
-  width: 450px;
-  height: 450px;
-  bottom: -280px;
-  left: -180px;
-  border-radius: 50%;
-  background:
-    rgba(
-      variables.$color-primary,
-      0.05
-    );
-  content: '';
-}
-
-.login-screen__note {
-  position: absolute;
-  color:
-    variables.$color-primary;
-  font-family: serif;
-  opacity: 0.035;
-  user-select: none;
-}
-
-.login-screen__note--1 {
-  top: 8%;
-  left: 42%;
-  font-size: 16rem;
-  transform: rotate(-15deg);
-}
-
-.login-screen__note--2 {
-  right: 4%;
-  bottom: 5%;
-  font-size: 22rem;
-  transform: rotate(10deg);
-}
-
-.login-screen__note--3 {
-  bottom: 8%;
-  left: 3%;
-  font-size: 12rem;
-}
-
-/* =========================================================
-   LOGIN LAYOUT
-========================================================= */
-
-.login {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  min-height: 100vh;
-  grid-template-columns:
-    minmax(0, 1.15fr)
-    minmax(420px, 0.85fr);
-}
-
-.login__presentation {
-  display: flex;
-  flex-direction: column;
-  justify-content:
-    space-between;
-  padding:
-    clamp(2rem, 5vw, 5rem);
-}
-
-.login__brand {
-  display: flex;
-  gap:
-    variables.$spacing-md;
-  align-items: center;
-  width: fit-content;
-  color:
-    variables.$color-white;
-  text-decoration: none;
-}
-
-.login__brand-logo {
-  display: grid;
-  width: 58px;
-  height: 58px;
-  place-items: center;
-  border-radius: 50%;
-  background:
-    variables.$color-primary;
-  color:
-    variables.$color-white;
-  font-family:
-    variables.$font-family-heading;
-  font-size: 0.95rem;
-  font-weight:
-    variables.$font-weight-bold;
-}
-
-.login__brand strong,
-.login__brand span {
-  display: block;
-}
-
-.login__brand strong {
-  font-size: 1.1rem;
-}
-
-.login__brand span {
-  margin-top: 3px;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-sm;
-}
-
-/* =========================================================
-   HERO LOGIN
-========================================================= */
-
-.login__hero {
-  max-width: 760px;
-  padding:
-    variables.$spacing-3xl
-    0;
-}
-
-.login__eyebrow {
-  margin:
-    0 0
-    variables.$spacing-md;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-sm;
-  font-weight:
-    variables.$font-weight-bold;
-  letter-spacing: 0.18em;
-}
-
-.login__hero h1 {
-  max-width: 720px;
-  margin:
-    0 0
-    variables.$spacing-xl;
-  font-size:
-    clamp(
-      3.4rem,
-      7vw,
-      7.5rem
-    );
-  line-height: 0.9;
-}
-
-.login__hero h1 span {
-  display: block;
-  color:
-    variables.$color-primary;
-}
-
-.login__description {
-  max-width: 650px;
-  margin:
-    0 0
-    variables.$spacing-2xl;
-  font-size: 1.05rem;
-  line-height: 1.8;
-  opacity: 0.65;
-}
-
-/* =========================================================
-   FEATURES
-========================================================= */
-
-.login__features {
-  display: grid;
-  gap:
-    variables.$spacing-sm;
-  max-width: 650px;
-}
-
-.login__features article {
-  display: grid;
-  gap:
-    variables.$spacing-md;
-  grid-template-columns:
-    42px 1fr;
-  padding:
-    variables.$spacing-md
-    0;
-  border-top:
-    1px solid
-    variables.$color-border;
-}
-
-.login__features article > span {
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-xs;
-  font-weight:
-    variables.$font-weight-bold;
-}
-
-.login__features strong {
-  display: block;
-  margin-bottom: 3px;
-}
-
-.login__features p {
-  margin: 0;
-  font-size:
-    variables.$font-size-sm;
-  opacity: 0.45;
-}
-
-.login__site-link {
-  width: fit-content;
-  color:
-    variables.$color-white;
-  font-size:
-    variables.$font-size-sm;
-  text-decoration: none;
-  opacity: 0.45;
-}
-
-.login__site-link:hover {
-  color:
-    variables.$color-primary;
-  opacity: 1;
-}
-
-/* =========================================================
-   PANEL LOGIN
-========================================================= */
-
-.login__panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding:
-    variables.$spacing-xl;
-  border-left:
-    1px solid
-    variables.$color-border;
-  background:
-    rgba(
-      variables.$color-surface,
-      0.58
-    );
-  backdrop-filter:
-    blur(20px);
-  flex-direction: column;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 480px;
-  padding:
-    clamp(
-      1.5rem,
-      4vw,
-      3rem
-    );
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-background;
-  box-shadow:
-    0 30px 80px
-    rgba(0, 0, 0, 0.3);
-}
-
-.login-card__header {
-  margin-bottom:
-    variables.$spacing-2xl;
-}
-
-.login-card__header > span {
-  display: block;
-  margin-bottom:
-    variables.$spacing-sm;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-xs;
-  font-weight:
-    variables.$font-weight-bold;
-  letter-spacing: 0.15em;
-}
-
-.login-card__header h2 {
-  margin:
-    0 0
-    variables.$spacing-sm;
-  font-size:
-    clamp(
-      2rem,
-      4vw,
-      3rem
-    );
-}
-
-.login-card__header p {
-  margin: 0;
-  line-height: 1.6;
-  opacity: 0.5;
-}
-
-/* =========================================================
-   FORM
-========================================================= */
-
-.login-form {
-  display: grid;
-  gap:
-    variables.$spacing-lg;
-}
-
-.login-form__group {
-  display: grid;
-  gap:
-    variables.$spacing-sm;
-}
-
-.login-form label {
-  font-size:
-    variables.$font-size-sm;
-  font-weight:
-    variables.$font-weight-semibold;
-}
-
-.login-form input {
-  width: 100%;
-  padding:
-    0.95rem
-    1rem;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  outline: none;
-  background:
-    variables.$color-surface;
-  color:
-    variables.$color-white;
-  font: inherit;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.login-form input:focus {
-  border-color:
-    variables.$color-primary;
-  box-shadow:
-    0 0 0 3px
-    rgba(
-      variables.$color-primary,
-      0.1
-    );
-}
-
-.login-form input::placeholder {
-  color:
-    variables.$color-white;
-  opacity: 0.25;
-}
-
-.password-field {
-  position: relative;
-}
-
-.password-field input {
-  padding-right: 90px;
-}
-
-.password-field__toggle {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  padding: 5px 8px;
-  border: 0;
-  background: transparent;
-  color:
-    variables.$color-primary;
-  font: inherit;
-  font-size:
-    variables.$font-size-xs;
-  cursor: pointer;
-  transform:
-    translateY(-50%);
-}
-
-.login-form__error {
-  display: flex;
-  gap:
-    variables.$spacing-sm;
-  align-items: flex-start;
-  padding:
-    variables.$spacing-md;
-  border:
-    1px solid
-    rgba(220, 70, 70, 0.45);
-  border-radius:
-    variables.$radius-lg;
-  background:
-    rgba(220, 70, 70, 0.08);
-}
-
-.login-form__error span {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 50%;
-  background: #d94d4d;
-  font-size:
-    variables.$font-size-xs;
-  font-weight: bold;
-}
-
-.login-form__error p {
-  margin: 2px 0 0;
-  font-size:
-    variables.$font-size-sm;
-}
-
-.login-form__submit {
-  display: flex;
-  gap:
-    variables.$spacing-sm;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding:
-    variables.$spacing-md
-    variables.$spacing-lg;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-primary;
-  color:
-    variables.$color-white;
-  font: inherit;
-  font-weight:
-    variables.$font-weight-bold;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.login-form__submit:hover:not(:disabled) {
-  transform:
-    translateY(-2px);
-}
-
-.login-form__submit:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.button-spinner {
-  width: 18px;
-  height: 18px;
-  border:
-    2px solid
-    rgba(255, 255, 255, 0.3);
-  border-top-color:
-    variables.$color-white;
-  border-radius: 50%;
-  animation:
-    spin 0.7s linear infinite;
-}
-
-/* =========================================================
-   SECURITY
-========================================================= */
-
-.login-card__security {
-  display: flex;
-  gap:
-    variables.$spacing-sm;
-  margin-top:
-    variables.$spacing-xl;
-  padding-top:
-    variables.$spacing-lg;
-  border-top:
-    1px solid
-    variables.$color-border;
-}
-
-.login-card__security-icon {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  place-items: center;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-xs;
-}
-
-.login-card__security strong {
-  display: block;
-  margin-bottom: 3px;
-  font-size:
-    variables.$font-size-sm;
-}
-
-.login-card__security p {
-  margin: 0;
-  font-size:
-    variables.$font-size-xs;
-  line-height: 1.5;
-  opacity: 0.4;
-}
-
-.login__help {
-  max-width: 480px;
-  margin:
-    variables.$spacing-lg
-    auto 0;
-  font-size:
-    variables.$font-size-xs;
-  text-align: center;
-  opacity: 0.35;
-}
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-.aula-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: grid;
-  grid-template-columns:
-    auto 1fr auto;
-  gap:
-    variables.$spacing-xl;
-  align-items: center;
-  min-height: 82px;
-  padding:
-    variables.$spacing-md
-    variables.$spacing-xl;
-  border-bottom:
-    1px solid
-    variables.$color-border;
-  background:
-    rgba(
-      variables.$color-background,
-      0.96
-    );
-  backdrop-filter:
-    blur(16px);
-}
-
-.aula-header__brand {
-  display: flex;
-  gap:
-    variables.$spacing-md;
-  align-items: center;
-  color:
-    variables.$color-white;
-  text-decoration: none;
-}
-
-.aula-header__logo {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 50%;
-  background:
-    variables.$color-primary;
-  color:
-    variables.$color-white;
-  font-family:
-    variables.$font-family-heading;
-  font-size: 0.9rem;
-  font-weight:
-    variables.$font-weight-bold;
-}
-
-.aula-header__brand-text strong,
-.aula-header__brand-text span {
-  display: block;
-}
-
-.aula-header__brand-text span {
-  margin-top: 3px;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-sm;
-}
-
-/* =========================================================
-   NAV
-========================================================= */
-
-.aula-header__nav {
-  display: flex;
-  gap:
-    variables.$spacing-xl;
-  align-items: center;
-  justify-content: center;
-}
-
-.aula-header__nav a {
-  position: relative;
-  padding:
-    variables.$spacing-sm 0;
-  color:
-    variables.$color-white;
-  font-weight:
-    variables.$font-weight-semibold;
-  text-decoration: none;
-  opacity: 0.6;
-  transition:
-    color 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.aula-header__nav a::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  border-radius: 999px;
-  background:
-    variables.$color-primary;
-  content: '';
-  opacity: 0;
-  transform:
-    scaleX(0);
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.aula-header__nav a:hover,
-.aula-header__nav a.is-active {
-  color:
-    variables.$color-primary;
-  opacity: 1;
-}
-
-.aula-header__nav a.is-active::after {
-  opacity: 1;
-  transform:
-    scaleX(1);
-}
-
-/* =========================================================
-   USER
-========================================================= */
-
-.aula-user {
-  display: flex;
-  gap:
-    variables.$spacing-md;
-  align-items: center;
-}
-
-.aula-user__info {
-  min-width: 110px;
-  text-align: right;
-}
-
-.aula-user__info span,
-.aula-user__info strong,
-.aula-user__info small {
-  display: block;
-}
-
-.aula-user__info span {
-  margin-bottom: 3px;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-sm;
-}
-
-.aula-user__info small {
-  margin-top: 3px;
-  opacity: 0.5;
-}
-
-.aula-user__avatar {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  place-items: center;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius: 50%;
-  background:
-    variables.$color-surface;
-  color:
-    variables.$color-primary;
-  font-weight:
-    variables.$font-weight-semibold;
-}
-
-.aula-user__logout {
-  padding:
-    variables.$spacing-sm
-    variables.$spacing-md;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  background: transparent;
-  color:
-    variables.$color-white;
-  font: inherit;
-  font-size:
-    variables.$font-size-xs;
-  cursor: pointer;
-}
-
-.aula-user__logout:hover {
-  border-color:
-    variables.$color-primary;
-  color:
-    variables.$color-primary;
-}
-
-/* =========================================================
-   TOOLBAR
-========================================================= */
-
-.aula-toolbar {
-  display: flex;
-  gap:
-    variables.$spacing-lg;
-  align-items: center;
-  justify-content:
-    space-between;
-  padding:
-    variables.$spacing-sm
-    variables.$spacing-xl;
-  border-bottom:
-    1px solid
-    variables.$color-border;
-  background:
-    variables.$color-surface;
-  font-size:
-    variables.$font-size-xs;
-}
-
-.aula-toolbar > div {
-  display: flex;
-  gap:
-    variables.$spacing-sm;
-  align-items: center;
-}
-
-.aula-toolbar__status {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  color:
-    variables.$color-primary;
-}
-
-.aula-toolbar__status i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background:
-    variables.$color-primary;
-}
-
-.aula-toolbar__separator {
-  opacity: 0.2;
-}
-
-.aula-toolbar__voice {
-  color:
-    variables.$color-primary;
-}
-
-.back-to-site {
-  color:
-    variables.$color-white;
-  text-decoration: none;
-  opacity: 0.45;
-}
-
-.back-to-site:hover {
-  color:
-    variables.$color-primary;
-  opacity: 1;
-}
-
-/* =========================================================
-   MOBILE NAV
-========================================================= */
-
-.aula-mobile-nav {
-  display: none;
-  gap:
-    variables.$spacing-sm;
-  padding:
-    variables.$spacing-sm
-    variables.$spacing-md;
-  overflow-x: auto;
-  border-bottom:
-    1px solid
-    variables.$color-border;
-  background:
-    variables.$color-background;
-}
-
-.aula-mobile-nav a,
-.aula-mobile-nav__logout {
-  flex-shrink: 0;
-  padding:
-    variables.$spacing-sm
-    variables.$spacing-md;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius: 999px;
-  background: transparent;
-  color:
-    variables.$color-white;
-  font: inherit;
-  font-size:
-    variables.$font-size-sm;
-  font-weight:
-    variables.$font-weight-semibold;
-  text-decoration: none;
-  opacity: 0.65;
-}
-
-.aula-mobile-nav a.is-active {
-  border-color:
-    variables.$color-primary;
-  color:
-    variables.$color-primary;
-  opacity: 1;
-}
-
-.aula-mobile-nav__logout {
-  cursor: pointer;
-}
-
-/* =========================================================
-   CONTENT
-========================================================= */
-
-.aula-layout__content {
-  min-height:
-    calc(100vh - 130px);
-  padding:
-    variables.$spacing-3xl
-    variables.$spacing-xl;
-}
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 1100px) {
-  .aula-header__nav {
-    gap:
-      variables.$spacing-md;
-  }
-
-  .aula-user__logout {
-    display: none;
-  }
-}
-
-@media (max-width: 900px) {
-  .login {
-    grid-template-columns: 1fr;
-  }
-
-  .login__presentation {
-    min-height: auto;
-  }
-
-  .login__panel {
-    border-top:
-      1px solid
-      variables.$color-border;
-    border-left: 0;
-    padding:
-      variables.$spacing-2xl
-      variables.$spacing-md;
-  }
-
-  .login__hero {
-    padding:
-      variables.$spacing-3xl 0;
-  }
-
-  .login__features {
-    display: none;
-  }
-
-  .aula-header {
-    grid-template-columns:
-      1fr auto;
-  }
-
-  .aula-header__nav {
-    display: none;
-  }
-
-  .aula-mobile-nav {
-    display: flex;
-  }
-}
-
-@media (max-width: 650px) {
-  .login__presentation {
-    padding:
-      variables.$spacing-xl
-      variables.$spacing-md;
-  }
-
-  .login__hero h1 {
-    font-size:
-      clamp(
-        3rem,
-        15vw,
-        5rem
-      );
-  }
-
-  .aula-header {
-    min-height: 72px;
-    padding:
-      variables.$spacing-md;
-  }
-
-  .aula-header__logo {
-    width: 42px;
-    height: 42px;
-  }
-
-  .aula-user__info {
-    display: none;
-  }
-
-  .aula-toolbar {
-    padding:
-      variables.$spacing-sm
-      variables.$spacing-md;
-  }
-
-  .aula-layout__content {
-    padding:
-      variables.$spacing-xl
-      variables.$spacing-md;
-  }
-}
-
-@media (max-width: 420px) {
-  .aula-header__brand-text strong {
-    font-size: 0.9rem;
-  }
-
-  .aula-header__brand-text span {
-    font-size: 0.75rem;
-  }
-
-  .login-card {
-    padding:
-      variables.$spacing-lg;
-  }
-}
-
-.login-form__label-row {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.login-form__forgot {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: variables.$color-primary;
-  font: inherit;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-semibold;
-  cursor: pointer;
-}
-
-.login-form__forgot:hover {
-  text-decoration: underline;
-}
-
-.login-form__forgot:disabled {
-  cursor: wait;
-  opacity: 0.5;
-}
-
-.login-form__success {
-  display: flex;
-  gap: variables.$spacing-sm;
-  align-items: flex-start;
-  padding: variables.$spacing-md;
-  border:
-    1px solid
-    rgba(223, 185, 47, 0.35);
-  border-radius: variables.$radius-lg;
-  background:
-    rgba(223, 185, 47, 0.07);
-  color: variables.$color-white;
-}
-
-.login-form__success span {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 50%;
-  background: variables.$color-primary;
-  color: #090909;
-  font-size: variables.$font-size-xs;
-  font-weight: bold;
-}
-
-.login-form__success p {
-  margin: 2px 0 0;
-  font-size: variables.$font-size-sm;
-  line-height: 1.5;
-}
-
+@use '@/assets/styles/abstracts/variables' as v;
+
+.aula-layout { min-height: 100vh; background: #f4f6f8; color: #17202a; }
+.brand-mark { width: 42px; height: 42px; border-radius: 11px; display:grid; place-items:center; background:#111827; color:#fff; font-weight:800; letter-spacing:.03em; box-shadow:0 8px 20px rgba(17,24,39,.18); }
+.brand-mark--large { width:50px; height:50px; border-radius:14px; }
+.auth-screen { min-height:100vh; display:grid; place-items:center; background:#f6f7f9; }
+.auth-loading { display:grid; justify-items:center; gap:14px; color:#17202a; }
+.auth-loading span { color:#697586; font-size:.92rem; }
+.auth-spinner,.button-spinner { width:22px; height:22px; border:2px solid #d9dee7; border-top-color:#8b1e3f; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.login-screen { min-height:100vh; background:#eef1f5; padding:24px; display:grid; place-items:center; }
+.login-shell { width:min(1180px,100%); min-height:720px; display:grid; grid-template-columns:1.08fr .92fr; background:#fff; border:1px solid #dde2e8; border-radius:24px; overflow:hidden; box-shadow:0 30px 80px rgba(15,23,42,.12); }
+.login-brand-panel { position:relative; padding:48px; display:flex; flex-direction:column; color:#fff; background:linear-gradient(145deg,#101827 0%,#182233 60%,#25131a 100%); overflow:hidden; }
+.login-brand-panel::after { content:''; position:absolute; width:420px; height:420px; border-radius:50%; right:-180px; bottom:-190px; background:radial-gradient(circle,rgba(214,173,50,.18),transparent 66%); }
+.login-brand { display:flex; gap:14px; align-items:center; color:#fff; text-decoration:none; position:relative; z-index:1; }
+.login-brand strong { display:block; font-size:1.06rem; } .login-brand span { color:#aeb8c6; font-size:.78rem; }
+.login-copy { margin:auto 0 34px; max-width:610px; position:relative; z-index:1; }
+.login-kicker,.eyebrow { display:inline-flex; font-size:.72rem; font-weight:800; letter-spacing:.15em; color:#a9841e; }
+.login-copy h1 { margin:16px 0 20px; font-family:inherit; font-size:clamp(2.7rem,5vw,4.5rem); line-height:1.03; letter-spacing:-.045em; }
+.login-copy h1 em { display:block; color:#d6ad32; font-style:normal; }
+.login-copy p { margin:0; color:#bdc5d1; font-size:1.02rem; line-height:1.75; max-width:540px; }
+.login-capabilities { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; position:relative; z-index:1; }
+.login-capabilities article { min-width:0; padding:16px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.045); border-radius:14px; }
+.login-capabilities svg { color:#d6ad32; font-size:1.2rem; margin-bottom:12px; }
+.login-capabilities strong { display:block; font-size:.84rem; } .login-capabilities span { display:block; margin-top:4px; color:#95a1b1; font-size:.74rem; line-height:1.45; }
+.login-back { margin-top:26px; color:#98a4b4; text-decoration:none; font-size:.82rem; position:relative; z-index:1; }
+.login-form-panel { padding:48px; display:grid; align-content:center; background:#fbfcfd; }
+.login-card { width:min(430px,100%); margin:auto; padding:36px; background:#fff; border:1px solid #e2e6eb; border-radius:18px; box-shadow:0 12px 35px rgba(15,23,42,.06); }
+.login-card__header h2 { margin:9px 0 8px; font-family:inherit; color:#17202a; font-size:1.85rem; letter-spacing:-.025em; }
+.login-card__header p { margin:0 0 28px; color:#738092; font-size:.92rem; }
+.login-form { display:grid; gap:17px; } .login-form label>span { display:block; margin-bottom:7px; color:#344054; font-size:.8rem; font-weight:700; }
+.login-form input { width:100%; height:48px; border:1px solid #d9dee7; border-radius:10px; padding:0 13px; background:#fff; color:#17202a; outline:none; transition:.2s; }
+.login-form input:focus { border-color:#8b1e3f; box-shadow:0 0 0 3px rgba(139,30,63,.09); }
+.password-field { position:relative; } .password-field input { padding-right:72px; } .password-field button { position:absolute; right:7px; top:7px; height:34px; border:0; background:#f2f4f7; border-radius:7px; padding:0 10px; font-size:.72rem; font-weight:700; color:#475467; cursor:pointer; }
+.forgot-link { justify-self:end; margin-top:-8px; border:0; background:none; color:#8b1e3f; font-weight:700; font-size:.78rem; cursor:pointer; }
+.form-message { display:flex; gap:9px; align-items:flex-start; padding:11px 12px; border-radius:9px; font-size:.78rem; line-height:1.45; }.form-message--success{background:#ecfdf3;color:#166534}.form-message--error{background:#fef2f2;color:#991b1b}
+.login-submit { height:50px; display:flex; align-items:center; justify-content:center; gap:10px; border:0; border-radius:10px; background:#8b1e3f; color:#fff; font-weight:800; cursor:pointer; box-shadow:0 9px 22px rgba(139,30,63,.18); }.login-submit:hover{background:#761933}.login-submit:disabled{opacity:.65;cursor:not-allowed}.login-submit .button-spinner{border-color:rgba(255,255,255,.3);border-top-color:#fff;width:18px;height:18px}
+.secure-note { margin-top:24px; padding-top:19px; border-top:1px solid #eef0f3; display:flex; gap:10px; align-items:flex-start; color:#667085; font-size:.76rem; line-height:1.5; }.secure-note>span{width:22px;height:22px;display:grid;place-items:center;background:#ecfdf3;color:#15803d;border-radius:50%;font-weight:800}.secure-note p{margin:0}.secure-note strong{color:#344054}
+.login-help { text-align:center; color:#8691a1; font-size:.76rem; }
+
+.aula-sidebar { position:fixed; inset:0 auto 0 0; z-index:100; width:274px; display:flex; flex-direction:column; background:linear-gradient(180deg,#142036 0%,#18253c 55%,#101a2c 100%); color:#fff; border-right:1px solid rgba(255,255,255,.07); }
+.sidebar-brand { height:76px; padding:0 20px; display:flex; align-items:center; border-bottom:1px solid rgba(255,255,255,.07); }.sidebar-brand__link{display:flex;align-items:center;gap:11px;color:#fff;text-decoration:none}.sidebar-brand strong{display:block;font-size:.91rem}.sidebar-brand span{display:block;color:#8e9aab;font-size:.7rem;margin-top:2px}.sidebar-close{display:none}
+.workspace-chip { margin:18px 16px 8px; padding:12px; display:flex; align-items:center; gap:10px; border:1px solid rgba(255,255,255,.07); border-radius:10px; background:rgba(255,255,255,.05); }.workspace-chip__dot{width:8px;height:8px;border-radius:50%;background:#42c77a;box-shadow:0 0 0 4px rgba(66,199,122,.1)}.workspace-chip small{display:block;color:#6f7d90;font-size:.58rem;font-weight:800;letter-spacing:.11em}.workspace-chip strong{display:block;margin-top:2px;font-size:.74rem;color:#dbe1e9;font-weight:600}
+.sidebar-nav { flex:1; min-height:0; overflow:auto; padding:10px 12px 18px; }.sidebar-nav__label{margin:19px 10px 7px;color:#5f6d80;font-size:.59rem;font-weight:800;letter-spacing:.13em}.sidebar-link{height:42px;padding:0 11px;display:flex;align-items:center;gap:11px;border-radius:8px;color:#aeb8c6;text-decoration:none;font-size:.79rem;font-weight:600;transition:.18s}.sidebar-link:hover{background:rgba(255,255,255,.055);color:#fff}.sidebar-link.is-active{background:linear-gradient(90deg,rgba(214,173,50,.17),rgba(214,173,50,.08));color:#ffe28a;box-shadow:inset 3px 0 0 #d6ad32}.sidebar-link.is-active{background:rgba(214,173,50,.12);color:#f3d46d}.sidebar-link__badge{margin-left:auto;min-width:20px;height:20px;display:grid;place-items:center;border-radius:999px;background:#8b1e3f;color:#fff;font-size:.62rem}
+.sidebar-footer { padding:12px; border-top:1px solid rgba(255,255,255,.07); }.sidebar-site-link{height:38px;display:flex;align-items:center;gap:10px;padding:0 10px;color:#8f9bad;text-decoration:none;font-size:.74rem}.sidebar-profile{margin-top:8px;padding:10px;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.045);border-radius:10px}.avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:9px;background:#8b1e3f;color:#fff;font-size:.74rem;font-weight:800;letter-spacing:.02em}.sidebar-profile__copy{min-width:0;flex:1}.sidebar-profile__copy strong,.sidebar-profile__copy span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sidebar-profile__copy strong{font-size:.73rem}.sidebar-profile__copy span{margin-top:2px;color:#7f8da0;font-size:.63rem}.sidebar-profile button{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:#7f8da0;cursor:pointer}.sidebar-profile button:hover{background:rgba(255,255,255,.07);color:#fff}
+.aula-workspace { min-height:100vh; margin-left:274px; display:flex; flex-direction:column; }.aula-topbar{position:sticky;top:0;z-index:60;height:76px;padding:0 clamp(20px,3vw,42px);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid #e1e5ea}.topbar-left,.topbar-right,.breadcrumb,.topbar-profile{display:flex;align-items:center}.breadcrumb{gap:7px;color:#98a2b3;font-size:.76rem}.breadcrumb svg{font-size:.8rem}.breadcrumb strong{color:#344054;font-weight:700}.topbar-right{gap:17px}.topbar-status{display:flex;align-items:center;gap:7px;color:#667085;font-size:.69rem;font-weight:600}.topbar-status>span{width:7px;height:7px;border-radius:50%;background:#34b56f}.topbar-profile{gap:9px;color:#17202a;text-decoration:none}.avatar--small{width:34px;height:34px;border-radius:50%}.topbar-profile strong,.topbar-profile span{display:block}.topbar-profile strong{font-size:.74rem}.topbar-profile span{margin-top:1px;color:#98a2b3;font-size:.62rem}.mobile-menu{display:none}
+.aula-content { flex:1; width:100%; max-width:1540px; margin:0 auto; padding:30px clamp(20px,3.4vw,52px) 48px; }.aula-footer{padding:17px clamp(20px,3.4vw,52px);display:flex;justify-content:space-between;border-top:1px solid #e1e5ea;color:#98a2b3;background:#f8f9fb;font-size:.64rem}.mobile-backdrop{display:none}
+
+@media (max-width: 980px){
+  .login-shell{grid-template-columns:1fr;min-height:auto}.login-brand-panel{padding:34px}.login-copy{margin:72px 0 32px}.login-copy h1{font-size:clamp(2.4rem,9vw,4rem)}.login-capabilities{display:none}.login-form-panel{padding:30px 22px}.login-card{padding:28px}
+  .aula-sidebar{transform:translateX(-100%);transition:transform .24s ease;box-shadow:20px 0 50px rgba(15,23,42,.2)}.aula-sidebar.is-open{transform:translateX(0)}.sidebar-close{margin-left:auto;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:rgba(255,255,255,.06);color:#fff}.mobile-backdrop{display:block;position:fixed;inset:0;z-index:90;background:rgba(15,23,42,.45);backdrop-filter:blur(2px)}.aula-workspace{margin-left:0}.mobile-menu{width:38px;height:38px;margin-right:13px;display:grid;place-items:center;border:1px solid #e0e5eb;border-radius:9px;background:#fff;color:#344054}.topbar-status{display:none}
+}
+@media (max-width:640px){.login-screen{padding:0}.login-shell{border:0;border-radius:0;min-height:100vh}.login-brand-panel{padding:26px 22px}.login-copy{margin:60px 0 12px}.login-copy p{font-size:.92rem}.login-back{margin-top:30px}.login-form-panel{padding:25px 16px 36px}.login-card{padding:24px 20px}.aula-topbar{height:66px;padding:0 16px}.breadcrumb>span,.breadcrumb svg,.topbar-profile>div:last-child{display:none}.aula-content{padding:22px 14px 36px}.aula-footer{padding:14px 16px;display:block}.aula-footer span:last-child{display:none}}
 </style>

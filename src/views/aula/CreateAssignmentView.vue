@@ -18,7 +18,7 @@
     <header class="create-assignment__header">
       <div>
         <p>
-          PROFESOR · CLASE {{ lessonId }}
+          PROFESOR · NUEVA ACTIVIDAD
         </p>
 
         <h1>
@@ -26,8 +26,7 @@
         </h1>
 
         <span>
-          Diseña y publica una actividad
-          para los estudiantes del Aula Virtual.
+          Crea una actividad clara, define la forma de entrega y publícala cuando esté lista.
         </span>
       </div>
 
@@ -45,7 +44,7 @@
         </strong>
 
         <small>
-          Supabase Database
+          Sincronizado con el aula
         </small>
       </aside>
     </header>
@@ -99,6 +98,9 @@
             <h2>
               Datos de la actividad
             </h2>
+            <span class="form-section__hint">
+              Define qué harán los estudiantes y qué esperas recibir.
+            </span>
           </div>
         </header>
 
@@ -159,6 +161,9 @@
             <h2>
               Tipo de trabajo
             </h2>
+            <span class="form-section__hint">
+              Elige la categoría que mejor representa la actividad.
+            </span>
           </div>
         </header>
 
@@ -208,6 +213,9 @@
             <h2>
               Formato solicitado
             </h2>
+            <span class="form-section__hint">
+              Indica qué tipo de archivo deberá entregar el estudiante.
+            </span>
           </div>
         </header>
 
@@ -255,6 +263,9 @@
             <h2>
               Fecha y puntaje
             </h2>
+            <span class="form-section__hint">
+              La fecha es opcional; el puntaje se usa como referencia académica.
+            </span>
           </div>
         </header>
 
@@ -313,6 +324,9 @@
             <h2>
               Estado de la tarea
             </h2>
+            <span class="form-section__hint">
+              Publica ahora o guárdala como borrador para terminarla después.
+            </span>
           </div>
         </header>
 
@@ -429,7 +443,7 @@
 
         <footer class="assignment-preview__meta">
           <span>
-            Clase {{ lessonId }}
+            Actividad del curso
           </span>
 
           <span>
@@ -730,24 +744,45 @@ const createAssignment =
 @use '@/assets/styles/abstracts/variables' as variables;
 
 /* =========================================================
-   BASE
+   DESIGN SYSTEM · LIGHT LMS
 ========================================================= */
 
 .create-assignment {
+  --ink: #152033;
+  --muted: #6f7c8f;
+  --soft: #f6f8fb;
+  --soft-blue: #eef3f8;
+  --line: #dbe3ec;
+  --line-strong: #cbd6e2;
+  --card: #ffffff;
+  --wine: #9f1945;
+  --wine-dark: #7f1237;
+  --gold: #d9a91d;
+  --gold-soft: #fff8e6;
+  --green: #2d8a63;
+  --green-soft: #edf8f3;
+  --blue: #3f6fa8;
+  --blue-soft: #eef5fc;
   width: 100%;
-  max-width: 1050px;
+  max-width: 1120px;
   margin: 0 auto;
+  color: var(--ink);
 }
 
 .create-assignment__back {
-  display: inline-block;
-  margin-bottom:
-    variables.$spacing-xl;
-  color:
-    variables.$color-primary;
-  font-weight:
-    variables.$font-weight-semibold;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 26px;
+  color: var(--wine);
+  font-weight: 750;
   text-decoration: none;
+  transition: transform .2s ease, color .2s ease;
+}
+
+.create-assignment__back:hover {
+  color: var(--wine-dark);
+  transform: translateX(-2px);
 }
 
 /* =========================================================
@@ -755,58 +790,57 @@ const createAssignment =
 ========================================================= */
 
 .create-assignment__header {
-  display: flex;
-  gap:
-    variables.$spacing-2xl;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom:
-    variables.$spacing-3xl;
+  display: grid;
+  gap: 28px;
+  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 290px);
+  margin-bottom: 34px;
+  padding: 30px 32px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(217, 169, 29, .12), transparent 31%),
+    linear-gradient(135deg, #ffffff 0%, #fbfcfe 58%, #f7f2e6 100%);
+  box-shadow: 0 14px 35px rgba(31, 48, 73, .06);
 }
 
 .create-assignment__header > div {
-  max-width: 750px;
+  max-width: 760px;
 }
 
 .create-assignment__header p {
-  margin-bottom:
-    variables.$spacing-sm;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-sm;
-  font-weight:
-    variables.$font-weight-semibold;
-  letter-spacing: 0.15em;
+  margin: 0 0 9px;
+  color: #b27d00;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .17em;
+  text-transform: uppercase;
 }
 
 .create-assignment__header h1 {
-  margin-bottom:
-    variables.$spacing-md;
-  font-size:
-    clamp(
-      3rem,
-      6vw,
-      5rem
-    );
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2.7rem, 5vw, 4.6rem);
+  line-height: .97;
+  letter-spacing: -.045em;
 }
 
 .create-assignment__header > div > span {
-  line-height: 1.6;
-  opacity: 0.65;
+  display: block;
+  max-width: 680px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: .98rem;
+  line-height: 1.65;
 }
 
 .assignment-status-card {
-  min-width: 210px;
-  padding:
-    variables.$spacing-lg;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-surface;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line-strong);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 8px 25px rgba(31, 48, 73, .05);
 }
 
 .assignment-status-card span,
@@ -816,20 +850,21 @@ const createAssignment =
 }
 
 .assignment-status-card span {
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-xs;
-  letter-spacing: 0.12em;
+  color: #9b7200;
+  font-size: .61rem;
+  font-weight: 900;
+  letter-spacing: .15em;
 }
 
 .assignment-status-card strong {
-  margin: 5px 0;
-  font-size: 1.3rem;
+  margin: 7px 0 4px;
+  color: var(--ink);
+  font-size: 1.18rem;
 }
 
 .assignment-status-card small {
-  opacity: 0.45;
+  color: var(--muted);
+  font-size: .73rem;
 }
 
 /* =========================================================
@@ -838,70 +873,72 @@ const createAssignment =
 
 .assignment-form {
   display: grid;
-  gap:
-    variables.$spacing-xl;
+  gap: 20px;
 }
 
 .form-section {
-  padding:
-    variables.$spacing-2xl;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-surface;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  background: var(--card);
+  box-shadow: 0 10px 28px rgba(31, 48, 73, .045);
 }
 
 .form-section__header {
   display: flex;
-  gap:
-    variables.$spacing-md;
-  align-items: center;
-  margin-bottom:
-    variables.$spacing-xl;
+  gap: 15px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e8edf3;
 }
 
 .form-section__header > span {
   display: grid;
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
   place-items: center;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
-  font-weight:
-    variables.$font-weight-bold;
+  border: 1px solid #ecd17b;
+  border-radius: 13px;
+  color: #a47300;
+  background: var(--gold-soft);
+  font-size: .8rem;
+  font-weight: 900;
+}
+
+.form-section__header > div {
+  min-width: 0;
 }
 
 .form-section__header p {
-  margin: 0;
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-xs;
-  letter-spacing: 0.1em;
+  margin: 1px 0 3px;
+  color: #b27d00;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 
 .form-section__header h2 {
-  margin:
-    3px
-    0
-    0;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  letter-spacing: -.025em;
+}
+
+.form-section__hint {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.5;
 }
 
 .form-group {
   display: grid;
-  gap:
-    variables.$spacing-sm;
-  margin-bottom:
-    variables.$spacing-lg;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .form-group:last-child {
@@ -909,178 +946,179 @@ const createAssignment =
 }
 
 .form-group label {
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-sm;
-  font-weight:
-    variables.$font-weight-semibold;
+  color: #344359;
+  font-size: .79rem;
+  font-weight: 800;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding:
-    variables.$spacing-md;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
+  padding: 13px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
   outline: none;
-  background:
-    variables.$color-background;
-  color:
-    variables.$color-white;
+  color: var(--ink);
+  background: #fbfcfe;
   font: inherit;
   transition:
-    border-color
-    0.2s ease;
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #9aa6b7;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
-  border-color:
-    variables.$color-primary;
+  border-color: #b8c7d7;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(63, 111, 168, .08);
 }
 
 .form-group textarea {
+  min-height: 150px;
   line-height: 1.65;
   resize: vertical;
 }
 
 .form-group small {
-  opacity: 0.45;
+  color: #8a97a9;
+  font-size: .7rem;
 }
 
 .form-row {
   display: grid;
-  gap:
-    variables.$spacing-lg;
-  grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* =========================================================
-   ACTIVIDAD
+   ACTIVITY TYPE
 ========================================================= */
 
 .activity-types {
   display: grid;
-  gap: 10px;
-  grid-template-columns:
-    repeat(
-      5,
-      minmax(0, 1fr)
-    );
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .activity-types button {
   display: grid;
-  min-height: 145px;
-  gap: 8px;
-  padding:
-    variables.$spacing-md;
+  min-height: 132px;
+  gap: 7px;
+  padding: 17px 12px;
   place-items: center;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-background;
-  color:
-    variables.$color-white;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  color: #58677b;
+  background: #fbfcfe;
   font: inherit;
   text-align: center;
   cursor: pointer;
-  opacity: 0.55;
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background .2s ease,
+    color .2s ease;
+}
+
+.activity-types button:hover {
+  transform: translateY(-2px);
+  border-color: #c8d4e0;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(31, 48, 73, .06);
 }
 
 .activity-types button.active {
-  border-color:
-    variables.$color-primary;
-  color:
-    variables.$color-primary;
-  opacity: 1;
+  border-color: #e2bd50;
+  color: #805c00;
+  background: var(--gold-soft);
+  box-shadow: inset 0 0 0 1px rgba(217, 169, 29, .12);
 }
 
 .activity-types button > span {
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  border:
-    1px solid
-    currentColor;
-  border-radius: 50%;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  background: rgba(255,255,255,.72);
+  font-weight: 900;
+}
+
+.activity-types button strong {
+  color: var(--ink);
+  font-size: .82rem;
 }
 
 .activity-types button small {
-  opacity: 0.55;
+  color: #8995a5;
+  font-size: .66rem;
+  line-height: 1.35;
 }
 
 /* =========================================================
-   ENTREGA
+   DELIVERY
 ========================================================= */
 
 .delivery-types {
   display: grid;
-  gap: 10px;
-  grid-template-columns:
-    repeat(
-      4,
-      minmax(0, 1fr)
-    );
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .delivery-types button {
   display: flex;
-  min-height: 85px;
-  gap:
-    variables.$spacing-sm;
+  min-height: 78px;
+  gap: 11px;
   align-items: center;
-  justify-content: center;
-  padding:
-    variables.$spacing-md;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-background;
-  color:
-    variables.$color-white;
+  justify-content: flex-start;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: #607086;
+  background: #fbfcfe;
   font: inherit;
   cursor: pointer;
-  opacity: 0.55;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.delivery-types button:hover {
+  transform: translateY(-1px);
+  border-color: #c7d3df;
+  background: #fff;
 }
 
 .delivery-types button.active {
-  border-color:
-    variables.$color-primary;
-  color:
-    variables.$color-primary;
-  opacity: 1;
+  border-color: #e2bd50;
+  color: #805c00;
+  background: var(--gold-soft);
+}
+
+.delivery-types button strong {
+  color: var(--ink);
+  font-size: .8rem;
 }
 
 .delivery-types span {
   display: grid;
   min-width: 38px;
   height: 38px;
-  padding: 0 4px;
+  padding: 0 5px;
   place-items: center;
-  border:
-    1px solid
-    currentColor;
-  border-radius: 50%;
-  font-size: 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 11px;
+  background: #fff;
+  font-size: .68rem;
+  font-weight: 900;
 }
 
 /* =========================================================
@@ -1089,51 +1127,53 @@ const createAssignment =
 
 .status-selector {
   display: grid;
-  gap:
-    variables.$spacing-md;
+  gap: 14px;
   grid-template-columns: 1fr 1fr;
 }
 
 .status-selector button {
   display: flex;
-  gap:
-    variables.$spacing-md;
+  gap: 14px;
   align-items: center;
-  padding:
-    variables.$spacing-lg;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-background;
-  color:
-    variables.$color-white;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  color: #6b7889;
+  background: #fbfcfe;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  opacity: 0.55;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.status-selector button:hover {
+  transform: translateY(-1px);
+  border-color: #c7d3df;
+  background: #fff;
 }
 
 .status-selector button.active {
-  border-color:
-    variables.$color-primary;
-  opacity: 1;
+  border-color: #c0d9cd;
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.status-selector button:nth-child(2).active {
+  border-color: #cdd8e5;
+  background: var(--blue-soft);
+  color: var(--blue);
 }
 
 .status-selector button > span {
   display: grid;
   width: 42px;
   height: 42px;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   place-items: center;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 900;
 }
 
 .status-selector strong,
@@ -1141,9 +1181,15 @@ const createAssignment =
   display: block;
 }
 
+.status-selector strong {
+  color: var(--ink);
+  font-size: .86rem;
+}
+
 .status-selector small {
   margin-top: 4px;
-  opacity: 0.5;
+  color: var(--muted);
+  font-size: .7rem;
 }
 
 /* =========================================================
@@ -1151,106 +1197,87 @@ const createAssignment =
 ========================================================= */
 
 .assignment-preview {
-  padding:
-    variables.$spacing-2xl;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius:
-    variables.$radius-lg;
+  padding: 28px;
+  border: 1px solid #ead8a4;
+  border-radius: 19px;
   background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(
-        variables.$color-primary,
-        0.12
-      ),
-      transparent 35%
-    ),
-    variables.$color-surface;
+    radial-gradient(circle at 91% 8%, rgba(217, 169, 29, .13), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
+  box-shadow: 0 10px 28px rgba(31, 48, 73, .045);
 }
 
 .assignment-preview__top {
   display: flex;
+  gap: 16px;
   justify-content: space-between;
-  margin-bottom:
-    variables.$spacing-xl;
+  margin-bottom: 22px;
 }
 
 .assignment-preview__top span {
-  color:
-    variables.$color-primary;
-  font-size:
-    variables.$font-size-xs;
-  letter-spacing: 0.12em;
+  color: #a47300;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .13em;
 }
 
 .assignment-preview__status--draft {
-  opacity: 0.45;
+  color: #5d6f83 !important;
 }
 
 .assignment-preview__body {
   display: grid;
-  gap:
-    variables.$spacing-lg;
+  gap: 18px;
   align-items: start;
-  grid-template-columns:
-    auto
-    1fr;
+  grid-template-columns: auto 1fr;
 }
 
 .assignment-preview__icon {
   display: grid;
-  width: 70px;
-  height: 70px;
+  width: 58px;
+  height: 58px;
   place-items: center;
-  border:
-    1px solid
-    variables.$color-primary;
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
-  font-size: 1.4rem;
+  border: 1px solid #e2bd50;
+  border-radius: 16px;
+  color: #9b7200;
+  background: var(--gold-soft);
+  font-size: 1.2rem;
+  font-weight: 900;
 }
 
 .assignment-preview__body small {
-  color:
-    variables.$color-primary;
+  color: #a47300;
+  font-weight: 800;
 }
 
 .assignment-preview__body h2 {
-  margin:
-    variables.$spacing-xs
-    0
-    variables.$spacing-sm;
+  margin: 5px 0 8px;
+  color: var(--ink);
+  font-size: clamp(1.45rem, 2.7vw, 2.15rem);
+  letter-spacing: -.035em;
 }
 
 .assignment-preview__body p {
+  max-width: 820px;
   margin: 0;
-  line-height: 1.6;
+  color: var(--muted);
+  line-height: 1.65;
   white-space: pre-line;
-  opacity: 0.6;
 }
 
 .assignment-preview__meta {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top:
-    variables.$spacing-xl;
+  margin-top: 22px;
 }
 
 .assignment-preview__meta span {
-  padding:
-    6px
-    10px;
-  border:
-    1px solid
-    variables.$color-border;
+  padding: 7px 10px;
+  border: 1px solid #e3e8ee;
   border-radius: 999px;
-  font-size:
-    variables.$font-size-xs;
-  opacity: 0.65;
+  color: #68778a;
+  background: rgba(255,255,255,.72);
+  font-size: .69rem;
 }
 
 /* =========================================================
@@ -1259,50 +1286,36 @@ const createAssignment =
 
 .form-error {
   display: flex;
-  gap:
-    variables.$spacing-md;
+  gap: 13px;
   align-items: center;
-  margin-bottom:
-    variables.$spacing-xl;
-  padding:
-    variables.$spacing-lg;
-  border:
-    1px solid
-    #d85151;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    rgba(
-      216,
-      81,
-      81,
-      0.06
-    );
+  margin-bottom: 20px;
+  padding: 15px 17px;
+  border: 1px solid #ecc7cb;
+  border-radius: 14px;
+  background: #fff4f5;
 }
 
 .form-error > span {
   display: grid;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
   place-items: center;
-  border:
-    1px solid
-    #d85151;
-  border-radius: 50%;
-  color: #ff7777;
+  border: 1px solid #dd939d;
+  border-radius: 11px;
+  color: #a93649;
+  background: #fff;
+  font-weight: 900;
 }
 
 .form-error strong {
-  color: #ff7777;
+  color: #902c3e;
 }
 
 .form-error p {
-  margin:
-    4px
-    0
-    0;
-  opacity: 0.65;
+  margin: 3px 0 0;
+  color: #8c6170;
+  font-size: .77rem;
 }
 
 /* =========================================================
@@ -1311,66 +1324,67 @@ const createAssignment =
 
 .form-actions {
   display: flex;
-  gap:
-    variables.$spacing-md;
+  gap: 12px;
+  align-items: center;
   justify-content: flex-end;
-  padding:
-    variables.$spacing-md;
-  border:
-    1px solid
-    variables.$color-border;
-  border-radius:
-    variables.$radius-lg;
-  background:
-    variables.$color-surface;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 12px 30px rgba(31, 48, 73, .06);
 }
 
 .cancel-button,
 .publish-button {
-  padding:
-    variables.$spacing-md
-    variables.$spacing-xl;
-  border-radius:
-    variables.$radius-lg;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 20px;
+  border-radius: 11px;
   font: inherit;
-  font-weight:
-    variables.$font-weight-semibold;
+  font-weight: 800;
   text-decoration: none;
-  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
 .cancel-button {
-  border:
-    1px solid
-    variables.$color-border;
-  background: transparent;
-  color:
-    variables.$color-white;
+  border: 1px solid var(--line-strong);
+  color: #536276;
+  background: #fff;
+}
+
+.cancel-button:hover {
+  background: #f7f9fc;
 }
 
 .publish-button {
-  border:
-    1px solid
-    variables.$color-primary;
-  background:
-    variables.$color-primary;
-  color:
-    variables.$color-white;
+  border: 1px solid var(--wine);
+  color: #fff;
+  background: var(--wine);
+  cursor: pointer;
+  box-shadow: 0 7px 18px rgba(159, 25, 69, .16);
+}
+
+.publish-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--wine-dark);
+  box-shadow: 0 10px 22px rgba(159, 25, 69, .2);
 }
 
 .publish-button:disabled {
-  opacity: 0.35;
-  cursor: default;
+  opacity: .4;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* =========================================================
    RESPONSIVE
 ========================================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 920px) {
   .create-assignment__header {
-    align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .assignment-status-card {
@@ -1378,23 +1392,21 @@ const createAssignment =
   }
 
   .activity-types {
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .delivery-types {
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 700px) {
+  .create-assignment__header,
+  .form-section,
+  .assignment-preview {
+    padding: 22px;
+  }
+
   .form-row,
   .status-selector,
   .activity-types,
@@ -1402,24 +1414,17 @@ const createAssignment =
     grid-template-columns: 1fr;
   }
 
-  .form-section,
-  .assignment-preview {
-    padding:
-      variables.$spacing-xl;
-  }
-
   .assignment-preview__body {
     grid-template-columns: 1fr;
   }
 
   .form-actions {
-    flex-direction: column;
+    flex-direction: column-reverse;
   }
 
   .cancel-button,
   .publish-button {
     width: 100%;
-    text-align: center;
   }
 }
 </style>
