@@ -483,7 +483,25 @@
                  CABECERA
             ============================================== -->
 
-            <header class="unit-header">
+            <header
+              class="unit-header"
+              :class="{
+                'unit-header--covered': getUnitCover(unit)
+              }"
+            >
+              <div
+                v-if="getUnitCover(unit)"
+                class="unit-cover"
+                aria-hidden="true"
+              >
+                <img
+                  :src="getUnitCover(unit)"
+                  alt=""
+                  loading="lazy"
+                />
+                <div class="unit-cover__veil"></div>
+              </div>
+
               <button
                 type="button"
                 class="unit-header__main"
@@ -680,39 +698,50 @@
                       :to="
                         `/aula/clase/${lessonItem.id}`
                       "
-                      class="lesson-card__main"
+                      class="lesson-card__main lesson-card__main--cinematic"
                     >
                       <div
-                        class="lesson-index"
+                        class="lesson-card__visual"
                         :class="{
-                          'lesson-index--completed':
-                            !isTeacher &&
-                            isLessonCompleted(
-                              lessonItem.id
-                            )
+                          'lesson-card__visual--empty':
+                            !getLessonCover(lessonItem)
                         }"
                       >
-                        <span
-                          v-if="
-                            !isTeacher &&
-                            isLessonCompleted(
-                              lessonItem.id
-                            )
-                          "
-                        >
-                          ✓
-                        </span>
+                        <img
+                          v-if="getLessonCover(lessonItem)"
+                          :src="getLessonCover(lessonItem)"
+                          :alt="`Portada de ${lessonItem.title}`"
+                          loading="lazy"
+                        />
 
-                        <template v-else>
-                          {{
-                            String(
-                              lessonIndex + 1
-                            ).padStart(2, '0')
-                          }}
-                        </template>
+                        <div class="lesson-card__visual-overlay"></div>
+                        <div class="lesson-card__visual-fade"></div>
+
+                        <div class="lesson-card__visual-copy">
+                          <div class="lesson-card__visual-top">
+                            <span class="lesson-card__visual-badge">
+                              {{
+                                isLessonCompleted(lessonItem.id) && !isTeacher
+                                  ? '✓ COMPLETADA'
+                                  : `CLASE ${lessonIndex + 1}`
+                              }}
+                            </span>
+
+                            <span
+                              v-if="lessonItem.date"
+                              class="lesson-card__visual-date"
+                            >
+                              {{ lessonItem.date }}
+                            </span>
+                          </div>
+
+                          <h4>
+                            {{ lessonItem.title }}
+                          </h4>
+                        </div>
                       </div>
 
-                      <div class="lesson-content">
+                      <div class="lesson-content lesson-content--cinematic">
                         <div class="lesson-content__top">
                           <span class="lesson-date">
                             {{
@@ -747,11 +776,7 @@
                           </span>
                         </div>
 
-                        <h4>
-                          {{ lessonItem.title }}
-                        </h4>
-
-                        <p>
+                        <p class="lesson-content__description">
                           {{
                             lessonItem.description ||
                             'Consulta los materiales y actividades de esta clase.'
@@ -1142,6 +1167,99 @@
               class="unit-form"
               @submit.prevent="saveUnit"
             >
+              <section class="unit-cover-field">
+                <div class="unit-cover-field__heading">
+                  <div>
+                    <span>Portada de la unidad</span>
+                    <small>
+                      Recomendado: imagen horizontal 1600 × 500 px.
+                    </small>
+                  </div>
+
+                  <span class="unit-cover-field__size">Máx. 8 MB</span>
+                </div>
+
+                <div
+                  class="unit-cover-preview"
+                  :class="{
+                    'unit-cover-preview--empty':
+                      !unitCoverPreviewUrl
+                  }"
+                >
+                  <img
+                    v-if="unitCoverPreviewUrl"
+                    :src="unitCoverPreviewUrl"
+                    alt="Vista previa de la portada de la unidad"
+                  />
+
+                  <div
+                    v-else
+                    class="unit-cover-preview__empty"
+                  >
+                    <span>▧</span>
+                    <strong>Sin portada</strong>
+                    <small>
+                      La unidad usará el diseño académico predeterminado.
+                    </small>
+                  </div>
+
+                  <div
+                    v-if="unitCoverPreviewUrl"
+                    class="unit-cover-preview__shade"
+                  ></div>
+
+                  <div
+                    v-if="unitCoverPreviewUrl"
+                    class="unit-cover-preview__copy"
+                  >
+                    <span>UNIDAD {{ unitForm.position || 1 }}</span>
+                    <strong>
+                      {{ unitForm.title || 'Nombre de la unidad' }}
+                    </strong>
+                  </div>
+                </div>
+
+                <input
+                  ref="unitCoverInput"
+                  class="unit-cover-file"
+                  type="file"
+                  accept="image/*"
+                  @change="handleUnitCoverInput"
+                />
+
+                <div class="unit-cover-field__actions">
+                  <button
+                    type="button"
+                    class="unit-cover-action unit-cover-action--primary"
+                    :disabled="isSavingUnit"
+                    @click="unitCoverInput?.click()"
+                  >
+                    {{
+                      unitCoverPreviewUrl
+                        ? 'Cambiar portada'
+                        : 'Añadir portada'
+                    }}
+                  </button>
+
+                  <button
+                    v-if="unitCoverPreviewUrl"
+                    type="button"
+                    class="unit-cover-action"
+                    :disabled="isSavingUnit"
+                    @click="removeSelectedUnitCover"
+                  >
+                    Quitar portada
+                  </button>
+                </div>
+
+                <p
+                  v-if="unitCoverError"
+                  class="unit-cover-error"
+                >
+                  {{ unitCoverError }}
+                </p>
+              </section>
+
               <label>
                 <span>
                   Nombre
@@ -1246,11 +1364,13 @@
                 <button
                   type="submit"
                   class="button button--primary"
-                  :disabled="isSavingUnit"
+                  :disabled="isSavingUnit || isUploadingUnitCover"
                 >
                   {{
-                    isSavingUnit
-                      ? 'Guardando...'
+                    isUploadingUnitCover
+                      ? 'Subiendo portada...'
+                      : isSavingUnit
+                        ? 'Guardando...'
                       : editingUnit
                         ? 'Guardar cambios'
                         : 'Crear unidad'
@@ -1465,6 +1585,12 @@ import {
 } from '@/services/unitService'
 
 import {
+  clearUnitCover,
+  getUnitAppearance,
+  uploadUnitCover,
+} from '@/services/unitAppearanceService'
+
+import {
   calculateOverallProgress,
   calculateUnitProgress,
   fetchProgressByStudent,
@@ -1538,6 +1664,27 @@ const unitForm =
     position: 1,
     status: 'published',
   })
+
+const unitCoverInput =
+  ref(null)
+
+const pendingUnitCover =
+  ref(null)
+
+const unitCoverPreviewUrl =
+  ref('')
+
+const unitCoverError =
+  ref('')
+
+const removeUnitCoverRequested =
+  ref(false)
+
+const isUploadingUnitCover =
+  ref(false)
+
+const MAX_UNIT_COVER_SIZE =
+  8 * 1024 * 1024
 
 const toastMessage =
   ref('')
@@ -2057,6 +2204,146 @@ const unlockBody = () => {
 }
 
 /* =========================================================
+   PORTADAS · UNIDADES Y CLASES
+========================================================= */
+
+const getLessonCover = lesson =>
+  lesson?.coverUrl ||
+  lesson?.cover_url ||
+  lesson?.bannerUrl ||
+  lesson?.banner_url ||
+  lesson?.imageUrl ||
+  lesson?.image_url ||
+  ''
+
+const getUnitCover = unit => {
+  const direct =
+    unit?.coverUrl ||
+    unit?.cover_url ||
+    unit?.bannerUrl ||
+    unit?.banner_url ||
+    unit?.imageUrl ||
+    unit?.image_url ||
+    ''
+
+  if (direct) {
+    return direct
+  }
+
+  return (
+    getUnitAppearance(unit?.id)
+      ?.coverUrl ||
+    ''
+  )
+}
+
+const revokeUnitCoverPreview = () => {
+  if (
+    unitCoverPreviewUrl.value
+      ?.startsWith('blob:')
+  ) {
+    URL.revokeObjectURL(
+      unitCoverPreviewUrl.value,
+    )
+  }
+}
+
+const resetUnitCoverState = () => {
+  revokeUnitCoverPreview()
+
+  pendingUnitCover.value =
+    null
+
+  unitCoverPreviewUrl.value =
+    ''
+
+  unitCoverError.value =
+    ''
+
+  removeUnitCoverRequested.value =
+    false
+
+  if (unitCoverInput.value) {
+    unitCoverInput.value.value =
+      ''
+  }
+}
+
+const handleUnitCoverInput =
+  event => {
+    const file =
+      event?.target
+        ?.files?.[0]
+
+    unitCoverError.value =
+      ''
+
+    if (!file) {
+      return
+    }
+
+    if (
+      !String(file.type || '')
+        .startsWith('image/')
+    ) {
+      unitCoverError.value =
+        'Selecciona una imagen válida.'
+
+      event.target.value = ''
+      return
+    }
+
+    if (
+      file.size >
+      MAX_UNIT_COVER_SIZE
+    ) {
+      unitCoverError.value =
+        'La portada no puede superar 8 MB.'
+
+      event.target.value = ''
+      return
+    }
+
+    revokeUnitCoverPreview()
+
+    pendingUnitCover.value =
+      file
+
+    removeUnitCoverRequested.value =
+      false
+
+    unitCoverPreviewUrl.value =
+      URL.createObjectURL(file)
+  }
+
+const removeSelectedUnitCover =
+  () => {
+    revokeUnitCoverPreview()
+
+    pendingUnitCover.value =
+      null
+
+    unitCoverPreviewUrl.value =
+      ''
+
+    unitCoverError.value =
+      ''
+
+    removeUnitCoverRequested.value =
+      Boolean(
+        editingUnit.value &&
+        getUnitCover(
+          editingUnit.value,
+        ),
+      )
+
+    if (unitCoverInput.value) {
+      unitCoverInput.value.value =
+        ''
+    }
+  }
+
+/* =========================================================
    UNIDADES
 ========================================================= */
 
@@ -2102,6 +2389,7 @@ const openCreateUnitModal =
       null
 
     resetUnitForm()
+    resetUnitCoverState()
 
     unitModalOpen.value =
       true
@@ -2132,8 +2420,10 @@ const openEditUnitModal =
         'published',
     }
 
-    unitFormError.value =
-      ''
+    resetUnitCoverState()
+
+    unitCoverPreviewUrl.value =
+      getUnitCover(unit)
 
     unitModalOpen.value =
       true
@@ -2157,6 +2447,8 @@ const closeUnitModal =
 
     unitFormError.value =
       ''
+
+    resetUnitCoverState()
 
     unlockBody()
   }
@@ -2217,32 +2509,106 @@ const saveUnit =
             .status,
       }
 
-      if (
-        editingUnit.value
-      ) {
-        await updateUnit(
-          editingUnit.value.id,
-          payload,
+      const wasEditing =
+        Boolean(
+          editingUnit.value,
         )
 
-        showToast(
-          'Unidad actualizada correctamente.',
-        )
+      let savedUnit = null
+
+      if (wasEditing) {
+        const updated =
+          await updateUnit(
+            editingUnit.value.id,
+            payload,
+          )
+
+        savedUnit =
+          updated || {
+            ...editingUnit.value,
+            ...payload,
+            id:
+              editingUnit.value.id,
+          }
       } else {
-        await insertUnit(
-          payload,
-        )
+        savedUnit =
+          await insertUnit(
+            payload,
+          )
+      }
 
-        showToast(
-          'Unidad creada correctamente.',
+      if (
+        (
+          pendingUnitCover.value ||
+          removeUnitCoverRequested.value
+        ) &&
+        !savedUnit?.id
+      ) {
+        throw new Error(
+          'La unidad se guardó, pero no fue posible obtener su ID para actualizar la portada.',
         )
       }
+
+      if (
+        savedUnit?.id &&
+        removeUnitCoverRequested.value &&
+        !pendingUnitCover.value
+      ) {
+        isUploadingUnitCover.value =
+          true
+
+        try {
+          await clearUnitCover(
+            savedUnit.id,
+          )
+        } finally {
+          isUploadingUnitCover.value =
+            false
+        }
+      }
+
+      if (
+        savedUnit?.id &&
+        pendingUnitCover.value
+      ) {
+        isUploadingUnitCover.value =
+          true
+
+        try {
+          await uploadUnitCover({
+            unitId:
+              savedUnit.id,
+
+            file:
+              pendingUnitCover.value,
+          })
+        } finally {
+          isUploadingUnitCover.value =
+            false
+        }
+      }
+
+      showToast(
+        pendingUnitCover.value
+          ? (
+              wasEditing
+                ? 'Unidad y portada actualizadas correctamente.'
+                : 'Unidad creada con su portada.'
+            )
+          : removeUnitCoverRequested.value
+            ? 'Unidad actualizada y portada eliminada.'
+            : wasEditing
+              ? 'Unidad actualizada correctamente.'
+              : 'Unidad creada correctamente.',
+      )
 
       unitModalOpen.value =
         false
 
       editingUnit.value =
         null
+
+      resetUnitCoverState()
 
       unlockBody()
 
@@ -2258,6 +2624,9 @@ const saveUnit =
         'No fue posible guardar la unidad.'
     } finally {
       isSavingUnit.value =
+        false
+
+      isUploadingUnitCover.value =
         false
     }
   }
@@ -4972,6 +5341,1006 @@ onUnmounted(() => {
 .modal-backdrop {
   background: rgba(15, 23, 42, 0.42);
   backdrop-filter: blur(5px);
+}
+
+/* =========================================================
+   V8 · PROGRAMA CINEMATOGRÁFICO
+   Banners horizontales + portadas persistentes de unidad
+========================================================= */
+
+/* ---------- UNIDAD / BANNER ---------- */
+
+.unit-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 18px 18px 0 0;
+}
+
+.unit-cover {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  overflow: hidden;
+  background: #182238;
+  pointer-events: none;
+}
+
+.unit-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.015);
+}
+
+.unit-cover__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(16, 23, 43, 0.97) 0%,
+      rgba(16, 23, 43, 0.88) 31%,
+      rgba(16, 23, 43, 0.55) 59%,
+      rgba(16, 23, 43, 0.32) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(16, 23, 43, 0.32),
+      rgba(16, 23, 43, 0.04) 55%
+    );
+}
+
+.unit-header--covered .unit-header__main {
+  min-height: 168px;
+  padding-top: 1.55rem;
+  padding-bottom: 1.25rem;
+}
+
+.unit-header--covered .unit-title h3,
+.unit-header--covered .unit-number,
+.unit-header--covered .collapse-button {
+  color: #ffffff;
+}
+
+.unit-header--covered .unit-title h3 {
+  max-width: 780px;
+  font-size: clamp(1.35rem, 2vw, 1.95rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.22);
+}
+
+.unit-header--covered .unit-title p {
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.unit-header--covered .unit-title__eyebrow > span:first-child {
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(159, 25, 69, 0.88);
+  box-shadow: 0 8px 18px rgba(72, 8, 31, 0.18);
+}
+
+.unit-header--covered .unit-number {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.unit-header--covered .collapse-button {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.unit-header--covered .unit-metrics {
+  position: relative;
+  z-index: 1;
+  border-top-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 23, 43, 0.54);
+  backdrop-filter: blur(12px);
+}
+
+.unit-header--covered .unit-metrics article {
+  border-right-color: rgba(255, 255, 255, 0.12);
+}
+
+.unit-header--covered .unit-metrics span {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.unit-header--covered .unit-metrics strong {
+  color: #ffffff;
+}
+
+.unit-header--covered .unit-metrics .progress-bar {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.unit-header--covered .unit-admin {
+  position: relative;
+  z-index: 1;
+  border-top-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 23, 43, 0.66);
+  backdrop-filter: blur(12px);
+}
+
+.unit-header--covered .unit-admin button {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.unit-header--covered .unit-admin button:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.unit-header--covered .unit-admin .danger-text {
+  color: #ffd4dc;
+}
+
+/* ---------- TARJETA CINEMATOGRÁFICA DE CLASE ---------- */
+
+.lesson-card {
+  overflow: hidden;
+  border-radius: 17px;
+  background: #ffffff;
+}
+
+.lesson-card__main--cinematic {
+  position: relative;
+  display: grid;
+  grid-template-columns:
+    minmax(330px, 43%)
+    minmax(0, 1fr)
+    54px;
+  gap: 0;
+  min-height: 178px;
+  padding: 0;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.lesson-card__visual {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 178px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 38%, rgba(159, 25, 69, 0.28), transparent 34%),
+    linear-gradient(135deg, #111a31, #263149);
+}
+
+.lesson-card__visual img {
+  position: absolute;
+  z-index: -3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.025);
+  transition: transform 0.45s ease;
+}
+
+.lesson-card:hover .lesson-card__visual img {
+  transform: scale(1.055);
+}
+
+.lesson-card__visual-overlay {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(12, 18, 36, 0.94) 0%,
+      rgba(12, 18, 36, 0.65) 48%,
+      rgba(12, 18, 36, 0.18) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(12, 18, 36, 0.35),
+      transparent 70%
+    );
+}
+
+.lesson-card__visual-fade {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: -2px;
+  bottom: 0;
+  width: 112px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.55) 64%,
+      #ffffff 100%
+    );
+}
+
+.lesson-card__visual--empty .lesson-card__visual-fade {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0),
+      #ffffff 100%
+    );
+}
+
+.lesson-card__visual-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1.3rem 1.7rem;
+  padding-right: 4rem;
+}
+
+.lesson-card__visual-top {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.lesson-card__visual-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0.28rem 0.62rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(159, 25, 69, 0.9);
+  color: #ffffff;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 7px 18px rgba(67, 8, 28, 0.18);
+}
+
+.lesson-card__visual-date {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.22);
+}
+
+.lesson-card__visual-copy h4 {
+  max-width: 440px;
+  margin: 0.75rem 0 0;
+  color: #ffffff;
+  font-size: clamp(1.15rem, 1.8vw, 1.62rem);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.28);
+}
+
+.lesson-content--cinematic {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.15rem 1.2rem 1.05rem 1rem;
+  background: #ffffff;
+}
+
+.lesson-content--cinematic .lesson-content__top {
+  margin-bottom: 0.55rem;
+}
+
+.lesson-content__description {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: #58677b !important;
+  font-size: 0.72rem;
+  line-height: 1.58;
+}
+
+.lesson-content--cinematic .lesson-meta {
+  margin-top: 0.75rem;
+}
+
+.lesson-card__main--cinematic .lesson-arrow {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 0.8rem;
+  border-radius: 999px;
+  background: #fff3f6;
+  color: #9f1945;
+  font-size: 1.05rem;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.lesson-card:hover .lesson-card__main--cinematic .lesson-arrow {
+  transform: translateX(3px);
+  background: #fde6ed;
+}
+
+.lesson-admin,
+.student-lesson-footer {
+  position: relative;
+  z-index: 3;
+  background: #ffffff;
+}
+
+/* ---------- MODAL PORTADA DE UNIDAD ---------- */
+
+.unit-modal {
+  width: min(680px, calc(100vw - 2rem));
+  max-height: min(88vh, 900px);
+  overflow: hidden;
+}
+
+.unit-form {
+  max-height: calc(88vh - 92px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.unit-cover-field {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  border: 1px solid #dce3eb;
+  border-radius: 15px;
+  background: #f8fafc;
+}
+
+.unit-cover-field__heading {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.unit-cover-field__heading > div > span,
+.unit-cover-field__heading > div > small {
+  display: block;
+}
+
+.unit-cover-field__heading > div > span {
+  color: #172033;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.unit-cover-field__heading > div > small {
+  margin-top: 0.18rem;
+  color: #758195;
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.unit-cover-field__size {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.48rem;
+  border: 1px solid #e0e6ed;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6a7689;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.unit-cover-preview {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 175px;
+  overflow: hidden;
+  border: 1px solid #dce3eb;
+  border-radius: 13px;
+  background: #eef2f6;
+}
+
+.unit-cover-preview img {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.unit-cover-preview__shade {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(15, 22, 42, 0.9),
+      rgba(15, 22, 42, 0.45) 58%,
+      rgba(15, 22, 42, 0.14)
+    );
+}
+
+.unit-cover-preview__copy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.2rem;
+}
+
+.unit-cover-preview__copy span {
+  align-self: flex-start;
+  padding: 0.25rem 0.52rem;
+  border-radius: 999px;
+  background: #9f1945;
+  color: #ffffff;
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.unit-cover-preview__copy strong {
+  max-width: 420px;
+  margin-top: 0.65rem;
+  color: #ffffff;
+  font-size: 1.15rem;
+  line-height: 1.15;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.unit-cover-preview--empty {
+  display: grid;
+  place-items: center;
+}
+
+.unit-cover-preview__empty {
+  display: grid;
+  gap: 0.25rem;
+  place-items: center;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.unit-cover-preview__empty > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #9f1945;
+  font-size: 1.1rem;
+  box-shadow: 0 5px 14px rgba(31, 48, 73, 0.06);
+}
+
+.unit-cover-preview__empty strong {
+  color: #172033;
+  font-size: 0.72rem;
+}
+
+.unit-cover-preview__empty small {
+  max-width: 360px;
+  color: #748095;
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.unit-cover-file {
+  display: none;
+}
+
+.unit-cover-field__actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.unit-cover-action {
+  min-height: 34px;
+  padding: 0.52rem 0.72rem;
+  border: 1px solid #d6dee8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #516075;
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.unit-cover-action--primary {
+  border-color: #9f1945;
+  background: #9f1945;
+  color: #ffffff;
+}
+
+.unit-cover-action:hover:not(:disabled) {
+  border-color: #9f1945;
+  color: #9f1945;
+}
+
+.unit-cover-action--primary:hover:not(:disabled) {
+  background: #7f1237;
+  color: #ffffff;
+}
+
+.unit-cover-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.unit-cover-error {
+  margin: 0;
+  color: #be4856;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 980px) {
+  .lesson-card__main--cinematic {
+    grid-template-columns:
+      minmax(280px, 40%)
+      minmax(0, 1fr)
+      46px;
+  }
+
+  .lesson-card__visual-copy {
+    padding-left: 1.25rem;
+    padding-right: 3rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .unit-header--covered .unit-header__main {
+    min-height: 190px;
+  }
+
+  .unit-cover__veil {
+    background:
+      linear-gradient(
+        0deg,
+        rgba(16, 23, 43, 0.94) 0%,
+        rgba(16, 23, 43, 0.58) 68%,
+        rgba(16, 23, 43, 0.26) 100%
+      );
+  }
+
+  .unit-header--covered .unit-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lesson-card__main--cinematic {
+    grid-template-columns: 1fr;
+  }
+
+  .lesson-card__visual {
+    min-height: 205px;
+  }
+
+  .lesson-card__visual-fade {
+    top: auto;
+    right: 0;
+    bottom: -2px;
+    left: 0;
+    width: auto;
+    height: 88px;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0),
+        #ffffff 100%
+      );
+  }
+
+  .lesson-card__visual-copy {
+    justify-content: flex-end;
+    padding: 1.3rem 1.2rem 2.1rem;
+  }
+
+  .lesson-card__visual-copy h4 {
+    max-width: 90%;
+    font-size: 1.35rem;
+  }
+
+  .lesson-content--cinematic {
+    padding: 0.8rem 1rem 1rem;
+  }
+
+  .lesson-content__description {
+    -webkit-line-clamp: 4;
+  }
+
+  .lesson-card__main--cinematic .lesson-arrow {
+    position: absolute;
+    right: 0.65rem;
+    bottom: 0.75rem;
+    margin: 0;
+  }
+
+  .unit-cover-field__heading {
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .lesson-card__visual {
+    min-height: 185px;
+  }
+
+  .lesson-card__visual-copy {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .lesson-card__visual-top {
+    gap: 0.4rem;
+  }
+
+  .lesson-card__visual-date {
+    font-size: 0.52rem;
+  }
+
+  .unit-cover-preview {
+    min-height: 150px;
+  }
+
+  .unit-cover-field__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .unit-cover-action {
+    width: 100%;
+  }
+}
+
+
+
+/* =========================================================
+   V8.2 · CONTRASTE PROFESOR + MODAL UNIDAD
+   Corrige estilos heredados oscuros/crema del sitio público
+========================================================= */
+
+/* Acciones de unidad siempre visibles, tenga o no portada */
+.unit-admin {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  gap: .55rem;
+  justify-content: flex-end;
+  padding: .72rem 1.35rem;
+  border-top: 1px solid #dbe3ec;
+  background: #ffffff;
+}
+
+.unit-admin button {
+  min-height: 36px;
+  padding: .56rem .82rem;
+  border: 1px solid #cbd6e2;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #344359;
+  font: inherit;
+  font-size: .66rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 2px 7px rgba(31, 48, 73, .03);
+  transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.unit-admin button:first-child {
+  border-color: #9f1945;
+  background: #fff5f8;
+  color: #9f1945;
+}
+
+.unit-admin button:hover:not(:disabled) {
+  border-color: #9f1945;
+  background: #fff5f8;
+  color: #9f1945;
+  transform: translateY(-1px);
+}
+
+.unit-admin .danger-text {
+  border-color: #f1c8ce;
+  background: #fff7f8;
+  color: #be4856;
+}
+
+.unit-admin .danger-text:hover:not(:disabled) {
+  border-color: #be4856;
+  background: #fff0f2;
+  color: #a33443;
+}
+
+/* Con portada conservamos botones claros sobre la imagen */
+.unit-header--covered .unit-admin {
+  border-top-color: rgba(255,255,255,.13);
+  background: rgba(16, 23, 43, .72);
+}
+
+.unit-header--covered .unit-admin button,
+.unit-header--covered .unit-admin button:first-child {
+  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.13);
+  color: #ffffff;
+}
+
+.unit-header--covered .unit-admin .danger-text {
+  border-color: rgba(255, 210, 219, .35);
+  background: rgba(190, 72, 86, .16);
+  color: #ffe2e7;
+}
+
+/* Modal totalmente claro y legible */
+.modal-backdrop {
+  background: rgba(15, 23, 42, .58) !important;
+  backdrop-filter: blur(7px);
+}
+
+.unit-modal {
+  color: #172033 !important;
+  border: 1px solid #dbe3ec !important;
+  background: #ffffff !important;
+  box-shadow: 0 32px 90px rgba(15, 23, 42, .28) !important;
+}
+
+.unit-modal > header {
+  position: sticky;
+  z-index: 8;
+  top: 0;
+  margin: -1.4rem -1.4rem 1rem;
+  padding: 1.35rem 1.4rem 1rem;
+  border-bottom: 1px solid #e3e8ef;
+  background: rgba(255,255,255,.97);
+  backdrop-filter: blur(12px);
+}
+
+.unit-modal > header > div {
+  min-width: 0;
+}
+
+.unit-modal > header span {
+  display: block;
+  color: #9f1945 !important;
+  font-size: .64rem !important;
+  font-weight: 950 !important;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.unit-modal h2,
+.unit-modal > header h2 {
+  margin: .28rem 0 0 !important;
+  color: #172033 !important;
+  font-family: inherit !important;
+  font-size: clamp(1.35rem, 3vw, 2rem) !important;
+  font-weight: 900 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.035em !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.modal-close {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #d8e0e9 !important;
+  background: #f8fafc !important;
+  color: #344359 !important;
+  box-shadow: none !important;
+}
+
+.modal-close:hover:not(:disabled) {
+  border-color: #9f1945 !important;
+  background: #fff4f7 !important;
+  color: #9f1945 !important;
+}
+
+.unit-form {
+  padding-right: .3rem;
+  color: #344359 !important;
+  scrollbar-width: thin;
+  scrollbar-color: #c6d0dc transparent;
+}
+
+.unit-form::-webkit-scrollbar {
+  width: 9px;
+}
+
+.unit-form::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.unit-form::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #c6d0dc;
+  background-clip: padding-box;
+}
+
+.unit-form label > span,
+.unit-form__grid label > span {
+  color: #344359 !important;
+  font-size: .7rem !important;
+  font-weight: 850 !important;
+}
+
+.unit-form input,
+.unit-form textarea,
+.unit-form select {
+  width: 100%;
+  border: 1px solid #ccd7e3 !important;
+  background: #ffffff !important;
+  color: #172033 !important;
+  caret-color: #9f1945;
+  box-shadow: none !important;
+}
+
+.unit-form input::placeholder,
+.unit-form textarea::placeholder {
+  color: #8b96a8 !important;
+  opacity: 1 !important;
+}
+
+.unit-form input:focus,
+.unit-form textarea:focus,
+.unit-form select:focus {
+  border-color: #9f1945 !important;
+  outline: 3px solid rgba(159, 25, 69, .10) !important;
+}
+
+.unit-form__notice {
+  border: 1px solid #dfe6ee !important;
+  background: #f7f9fc !important;
+  color: #344359 !important;
+}
+
+.unit-form__notice strong {
+  color: #172033 !important;
+}
+
+.unit-form__notice p {
+  color: #667085 !important;
+}
+
+.unit-form > footer {
+  position: sticky;
+  z-index: 7;
+  bottom: 0;
+  margin: .25rem -.15rem -.1rem;
+  padding: .9rem .15rem .15rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 28%, #fff 100%);
+}
+
+.unit-form > footer .button--secondary {
+  border-color: #cbd6e2 !important;
+  background: #ffffff !important;
+  color: #344359 !important;
+}
+
+.unit-form > footer .button--primary {
+  border-color: #9f1945 !important;
+  background: #9f1945 !important;
+  color: #ffffff !important;
+}
+
+.unit-form > footer .button--primary:hover:not(:disabled) {
+  background: #7f1237 !important;
+}
+
+.unit-cover-field {
+  border-color: #d8e2ec !important;
+  background: #f8fafc !important;
+}
+
+.unit-cover-field__heading > div > span {
+  color: #172033 !important;
+}
+
+.unit-cover-field__heading > div > small,
+.unit-cover-preview__empty small {
+  color: #667085 !important;
+}
+
+.unit-cover-field__size {
+  border-color: #d6dee8 !important;
+  background: #ffffff !important;
+  color: #5e6c7f !important;
+}
+
+.unit-cover-preview--empty {
+  border-color: #d6e0ea !important;
+  background: #eef3f8 !important;
+}
+
+.unit-cover-preview__empty strong {
+  color: #172033 !important;
+}
+
+.unit-cover-action--primary,
+.unit-cover-action--primary:hover:not(:disabled) {
+  border-color: #9f1945 !important;
+  background: #9f1945 !important;
+  color: #ffffff !important;
+}
+
+.unit-cover-action--primary:hover:not(:disabled) {
+  background: #7f1237 !important;
+}
+
+/* Unidad sin portada: jerarquía clara */
+.unit-header:not(.unit-header--covered) {
+  background: #ffffff;
+}
+
+.unit-header:not(.unit-header--covered) .unit-title h3 {
+  color: #172033 !important;
+}
+
+.unit-header:not(.unit-header--covered) .unit-title p {
+  color: #667085 !important;
+}
+
+.unit-header:not(.unit-header--covered) .unit-title__eyebrow > span:first-child {
+  color: #9f1945 !important;
+}
+
+.unit-header:not(.unit-header--covered) .unit-number {
+  color: #4d6684 !important;
+  background: #f4f7fa !important;
+}
+
+.unit-header:not(.unit-header--covered) .collapse-button {
+  color: #9f1945 !important;
+}
+
+@media (max-width: 720px) {
+  .unit-modal {
+    width: min(100%, calc(100vw - 1rem));
+    max-height: 92vh;
+    border-radius: 18px;
+  }
+
+  .unit-modal > header {
+    margin: -1.4rem -1.4rem .9rem;
+  }
+
+  .unit-modal h2,
+  .unit-modal > header h2 {
+    font-size: 1.38rem !important;
+  }
+
+  .unit-admin {
+    justify-content: stretch;
+  }
+
+  .unit-admin button {
+    flex: 1 1 auto;
+  }
 }
 
 </style>
