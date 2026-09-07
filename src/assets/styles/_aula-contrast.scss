@@ -1,0 +1,205 @@
+/* =========================================================
+   AULA VIRTUAL · CONTRASTE Y LEGIBILIDAD GLOBAL
+   Este archivo se carga al final de main.scss y neutraliza
+   la tipografía clara heredada de la web pública dentro del aula.
+   ========================================================= */
+
+.aula-layout {
+  --amv-ink: #152033;
+  --amv-text: #344359;
+  --amv-muted: #5f6f82;
+  --amv-muted-soft: #7d8999;
+  --amv-line: #dbe3ec;
+  --amv-brand: #8f1d42;
+  --amv-brand-hover: #761734;
+  --amv-gold: #b1840f;
+  --amv-gold-strong: #8a6500;
+  --amv-gold-soft: #fff7df;
+  --amv-success: #23865e;
+  --amv-danger: #b9384b;
+}
+
+/* ---------------------------------------------------------
+   Base tipográfica del workspace claro
+   La web pública es oscura y define texto marfil globalmente;
+   el aula necesita su propia base de contraste.
+   --------------------------------------------------------- */
+.aula-layout .aula-content {
+  color: var(--amv-text);
+}
+
+.aula-layout .aula-content :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--amv-ink);
+}
+
+.aula-layout .aula-content :where(strong, b, .ui-title, .card-title, .form-title, .table-title) {
+  color: var(--amv-ink);
+}
+
+.aula-layout .aula-content :where(p) {
+  color: var(--amv-text);
+}
+
+.aula-layout .aula-content :where(small, .text-muted) {
+  color: var(--amv-muted);
+}
+
+/* Dorado legible sobre fondos claros. */
+.aula-layout .aula-content :where(
+  .eyebrow,
+  .label,
+  .overline,
+  .page-kicker,
+  .panel-heading > span,
+  .section-heading small,
+  .lesson-hero__eyebrow,
+  [class*="__eyebrow"],
+  [class*="__kicker"]
+) {
+  color: var(--amv-gold-strong);
+}
+
+/* ---------------------------------------------------------
+   Componentes SaaS que antes heredaban #f6f3ec
+   --------------------------------------------------------- */
+.aula-layout .aula-content :where(
+  .attention-item,
+  .activity-row,
+  .quick-panel,
+  .metric-card,
+  .summary-card,
+  .student-card,
+  .profile-card,
+  .history-card,
+  .state-card,
+  .empty-state
+) :where(strong, b) {
+  color: var(--amv-ink);
+}
+
+.aula-layout .aula-content :where(
+  .attention-item,
+  .activity-row,
+  .quick-panel,
+  .metric-card,
+  .summary-card,
+  .student-card,
+  .profile-card,
+  .history-card,
+  .state-card,
+  .empty-state
+) :where(small, p) {
+  color: var(--amv-muted);
+}
+
+/* Estado del curso: el dato principal ya no puede quedar marfil. */
+.aula-layout .aula-content .attention-item strong {
+  color: var(--amv-ink) !important;
+  font-weight: 750;
+}
+
+.aula-layout .aula-content .attention-item small {
+  color: var(--amv-muted) !important;
+}
+
+.aula-layout .aula-content .attention-dot--gold {
+  background: #b98712 !important;
+}
+
+.aula-layout .aula-content .attention-dot--wine {
+  background: #9f1945 !important;
+}
+
+.aula-layout .aula-content .attention-dot--green {
+  background: #2f9a69 !important;
+}
+
+/* Números/acentos dorados: suficientemente oscuros sobre blanco. */
+.aula-layout .aula-content :where(
+  .text-primary,
+  .summary-card--main > strong,
+  .summary-card--primary > strong,
+  .questions-total strong,
+  .grade-circle,
+  .academic-details [class*="gold"]
+) {
+  color: var(--amv-gold-strong);
+}
+
+/* Texto funcional claro en controles y superficies blancas. */
+.aula-layout .aula-content :where(input, textarea, select, label) {
+  color: var(--amv-ink);
+}
+
+.aula-layout .aula-content :where(input, textarea)::placeholder {
+  color: #8d99aa;
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------
+   ZONAS OSCURAS INTENCIONALES
+   Restauramos texto claro únicamente donde el diseño realmente
+   usa una superficie oscura.
+   --------------------------------------------------------- */
+.aula-layout .aula-content :where(
+  .lesson-hero,
+  .button--dark,
+  .teacher-button--primary,
+  .publish-button,
+  .submit-button,
+  .login-submit,
+  .primary-action,
+  [class*="hero--dark"],
+  [class*="panel--dark"]
+) :where(h1, h2, h3, h4, h5, h6, strong, b) {
+  color: #ffffff;
+}
+
+.aula-layout .aula-content :where(
+  .lesson-hero,
+  [class*="hero--dark"],
+  [class*="panel--dark"]
+) :where(p, small) {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Botones oscuros/brand conservan contraste del texto. */
+.aula-layout .aula-content :where(
+  .button--primary,
+  .button--dark,
+  .teacher-button--primary,
+  .publish-button,
+  .submit-button,
+  .primary-action
+) {
+  color: #ffffff;
+}
+
+.aula-layout .aula-content :where(
+  .button--primary,
+  .button--dark,
+  .teacher-button--primary,
+  .publish-button,
+  .submit-button,
+  .primary-action
+) :where(span, strong, b) {
+  color: inherit;
+}
+
+/* ---------------------------------------------------------
+   MÓVIL
+   Un punto extra de contraste y tamaño para textos auxiliares.
+   --------------------------------------------------------- */
+@media (max-width: 768px) {
+  .aula-layout .aula-content :where(small, .text-muted) {
+    color: #607084;
+  }
+
+  .aula-layout .aula-content .attention-item strong {
+    font-size: 0.76rem;
+  }
+
+  .aula-layout .aula-content .attention-item small {
+    font-size: 0.66rem;
+  }
+}

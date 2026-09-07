@@ -7349,392 +7349,669 @@ a.lesson-navigation__item:hover,
     max-width: none;
   }
 }
-</style>
 
-<style lang="scss" scoped>
+
 /* =========================================================
-   V5.1 · LIGHT LMS PATCH
-   Preserves lesson logic while replacing dark content panels.
-========================================================= */
+   V7.0 · LESSON VIEW · LIGHT LMS FINAL
+   Corrección sobre el selector raíz REAL: .lesson-page
+   ========================================================= */
+
 .lesson-page {
+  --amv-ink: #152033;
+  --amv-ink-soft: #344359;
+  --amv-muted: #6f7c8f;
+  --amv-muted-2: #8b98aa;
+  --amv-line: #dbe3ec;
+  --amv-line-strong: #cbd6e2;
   --amv-surface: #ffffff;
-  --amv-soft: #f7f9fc;
-  --amv-soft-2: #eef3f8;
-  --amv-ink: #172033;
-  --amv-muted: #667085;
-  --amv-border: #dbe3ee;
-  --amv-wine: #9f1d4a;
-  --amv-gold: #c99424;
-  --amv-gold-soft: #fff4d6;
-  --amv-green: #1f8a62;
-  color: var(--amv-ink);
+  --amv-surface-soft: #f7f9fc;
+  --amv-wine: #9f1945;
+  --amv-wine-dark: #7f1237;
+  --amv-gold: #d9a91d;
+  --amv-gold-dark: #987000;
+  --amv-gold-soft: #fff8e7;
+  --amv-green: #2d8a63;
+  --amv-green-soft: #edf8f3;
 }
 
-/* Main lesson content: light academic surfaces */
-.material-section,
-.assessment-section,
-.content-section,
-.completion-section,
-.academic-section,
-.academic-block,
-.sidebar-card,
-.quick-info,
-.class-data,
-.learning-path,
-.lesson-navigation,
-.teacher-notes,
-.empty-material,
-.empty-assignments,
-.section-empty {
-  background: var(--amv-surface) !important;
-  color: var(--amv-ink) !important;
-  border-color: var(--amv-border) !important;
-  box-shadow: 0 12px 30px rgba(23, 32, 51, 0.055) !important;
-}
-
-.primary-material,
-.resource-item,
-.assignment-card,
-.assessment-card,
-.learning-path-item,
-.classwork-link,
-.academic-list > *,
-.sidebar-nav a,
-.sidebar-checklist li,
-.lesson-navigation__item {
-  background: var(--amv-soft) !important;
-  color: var(--amv-ink) !important;
-  border-color: #e1e7ef !important;
-  box-shadow: none !important;
-}
-
-.primary-material {
-  background: linear-gradient(135deg, #fffaf0, #ffffff 62%) !important;
-  border-color: #ead9a8 !important;
-}
-
-.primary-material__visual,
-.resource-item__icon,
-.assignment-card__icon,
-.assessment-card__icon,
-.pdf-icon,
-.learning-progress__icon,
-.completion-section__icon {
-  background: #fff8e7 !important;
-  color: var(--amv-gold) !important;
-  border-color: #efd893 !important;
-}
-
-.section-heading h2,
-.primary-material__content h3,
-.resource-item__content strong,
-.assignment-card__content strong,
-.assessment-card__content strong,
-.sidebar-card h3,
-.class-data strong,
-.academic-block h3,
-.teacher-notes h3,
-.lesson-navigation strong {
-  color: var(--amv-ink) !important;
-}
-
-.section-heading p,
-.primary-material__content p,
-.resource-item__content p,
-.assignment-card__content p,
-.assessment-card__content p,
-.sidebar-description,
-.class-data span,
-.academic-block p,
-.teacher-note,
-.lesson-navigation small,
-.learning-path-item__copy p {
-  color: var(--amv-muted) !important;
-}
-
-.section-count,
-.academic-tags span,
-.assessment-type,
-.assessment-status,
-.learning-status,
-.primary-material__meta span,
-.assignment-card__meta span,
-.assessment-card__meta span {
-  background: #ffffff !important;
-  color: #475467 !important;
-  border-color: var(--amv-border) !important;
-}
-
-/* Right rail */
-.lesson-sidebar {
-  gap: 1rem !important;
-}
-
-.sidebar-card {
-  border-radius: 18px !important;
-}
-
-.sidebar-card__eyebrow,
-.primary-material__eyebrow,
-.section-heading > span,
-.academic-section > span {
-  color: #a77912 !important;
-}
-
-.sidebar-summary > div,
-.quick-info > div,
-.class-data > div {
-  background: var(--amv-soft) !important;
-  border-color: #e4e9f0 !important;
-}
-
-.sidebar-nav a:hover,
-.resource-item:hover,
-.assignment-card:hover,
-.assessment-card:hover,
-.learning-path-item:hover {
-  background: #f0f5fa !important;
-  border-color: #cbd7e5 !important;
-}
-
-/* Buttons */
-.material-button,
-.teacher-button,
-.complete-button,
-.continue-button,
-.academic-toggle,
-.classwork-link {
-  background: #ffffff !important;
-  color: #344054 !important;
-  border-color: var(--amv-border) !important;
-}
-
-.material-button--primary,
-.teacher-button--primary,
-.complete-button:not(.complete-button--done),
-.continue-button {
-  background: var(--amv-wine) !important;
-  color: #ffffff !important;
-  border-color: var(--amv-wine) !important;
-  box-shadow: 0 10px 24px rgba(159, 29, 74, 0.16) !important;
-}
-
-.complete-button--done,
-.primary-material--completed,
-.assignment-card--completed,
-.assessment-card--completed,
-.resource-item--completed,
-.learning-path--complete {
-  background: #eef9f4 !important;
-  border-color: #b8e2d1 !important;
-}
-
-/* Keep the hero premium but not black */
-.lesson-hero {
-  background: linear-gradient(120deg, #23344f 0%, #2e4567 55%, #5b4560 100%) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 18px 42px rgba(29, 45, 72, 0.18) !important;
-}
-
-.lesson-hero h1,
-.lesson-hero__description,
-.lesson-hero__meta span,
-.lesson-hero__eyebrow,
-.lesson-number,
-.status-badge {
-  color: #ffffff !important;
-}
-
-.lesson-hero__description { color: rgba(255,255,255,.78) !important; }
-.lesson-hero__meta span { background: rgba(255,255,255,.09) !important; border-color: rgba(255,255,255,.16) !important; }
-.lesson-number { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.22) !important; }
-
-/* Breadcrumbs/topbar stay clean */
-.unit-breadcrumb {
-  background: #ffffff !important;
-  border-color: var(--amv-border) !important;
-  color: var(--amv-muted) !important;
-}
-.unit-breadcrumb strong { color: var(--amv-ink) !important; }
-
-@media (max-width: 900px) {
-  .lesson-layout { grid-template-columns: 1fr !important; }
-}
-</style>
-
-<style lang="scss" scoped>
 /* =========================================================
-   V5.4 · SOBRE ESTA CLASE — LIGHT LMS PATCH
-   Convierte las fichas de información en superficies claras.
+   QUICK INFO · CONTRASTE REAL
 ========================================================= */
-.class-data {
-  gap: 0.75rem !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
+
+.lesson-page .quick-info {
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.class-data article {
-  min-height: 86px;
-  padding: 1rem 1.05rem !important;
-  border: 1px solid #dce4ed !important;
-  border-radius: 14px !important;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-  box-shadow: 0 5px 14px rgba(23, 32, 51, 0.035) !important;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-}
-
-.class-data article:hover {
-  border-color: #cbd6e3 !important;
-  box-shadow: 0 8px 20px rgba(23, 32, 51, 0.06) !important;
-  transform: translateY(-1px);
-}
-
-.class-data article span {
-  margin-bottom: 0.42rem !important;
-  color: #7a8798 !important;
-  font-size: 0.61rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase;
-}
-
-.class-data article strong {
-  color: #172033 !important;
-  font-size: 0.78rem !important;
-  font-weight: 750 !important;
-  line-height: 1.45 !important;
-}
-
-.class-data article:nth-child(1) {
-  border-top: 2px solid #c99424 !important;
-}
-
-.class-data article:nth-child(4) {
-  border-top: 2px solid #9f1d4a !important;
-}
-
-.class-data__wide {
+.lesson-page .quick-info article {
+  min-height: 112px;
+  padding: 18px;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 16px;
   background: #ffffff !important;
+  box-shadow: 0 7px 20px rgba(31, 48, 73, 0.035);
 }
+
+.lesson-page .quick-info article:nth-child(3) {
+  border-color: #ead797 !important;
+  background: linear-gradient(145deg, #fff, #fffaf0) !important;
+}
+
+.lesson-page .quick-info span {
+  color: #718096 !important;
+  font-size: 0.61rem !important;
+  font-weight: 800;
+  letter-spacing: .07em;
+}
+
+.lesson-page .quick-info strong {
+  color: var(--amv-gold-dark) !important;
+  font-size: 1.2rem;
+}
+
+.lesson-page .quick-info small {
+  color: #7b8797 !important;
+  font-size: .6rem !important;
+}
+
+.lesson-page .quick-info__text {
+  color: var(--amv-ink) !important;
+  font-size: .78rem !important;
+  font-weight: 800;
+}
+
+/* =========================================================
+   LAYOUT PRINCIPAL
+========================================================= */
+
+.lesson-page .lesson-main {
+  gap: 14px;
+}
+
+.lesson-page .lesson-sidebar {
+  gap: 12px;
+}
+
+/* =========================================================
+   TODAS LAS SECCIONES GRANDES
+========================================================= */
+
+.lesson-page .content-section,
+.lesson-page .teacher-notes {
+  padding: 26px;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 18px;
+  background: #ffffff !important;
+  box-shadow: 0 9px 26px rgba(31, 48, 73, 0.04);
+}
+
+.lesson-page .section-heading > div > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .section-heading h2 {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .section-heading p {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .section-count {
+  border-color: #e5d18a !important;
+  color: var(--amv-gold-dark) !important;
+  background: var(--amv-gold-soft);
+}
+
+/* =========================================================
+   MATERIAL PRINCIPAL
+========================================================= */
+
+.lesson-page .material-section {
+  background:
+    radial-gradient(circle at 98% 3%, rgba(217,169,29,.08), transparent 31%),
+    #ffffff !important;
+}
+
+.lesson-page .primary-material {
+  border-color: #ead79c !important;
+  background: #fffdf8 !important;
+}
+
+.lesson-page .primary-material__visual {
+  border-color: #eadfb9 !important;
+  background: linear-gradient(145deg, #fffaf0, #fff) !important;
+}
+
+.lesson-page .primary-material__eyebrow {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .primary-material h3 {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .primary-material p {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .primary-material__meta span {
+  border-color: #dfe5ec !important;
+  color: #718095 !important;
+  background: #fff !important;
+}
+
+.lesson-page .pdf-icon {
+  border-color: #d6ad25 !important;
+  background: #fff !important;
+}
+
+.lesson-page .pdf-icon span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .pdf-icon strong {
+  color: #8b97a7 !important;
+}
+
+.lesson-page .material-button {
+  border-color: var(--amv-line-strong) !important;
+  color: #536276 !important;
+  background: #fff !important;
+}
+
+.lesson-page .material-button--primary {
+  border-color: var(--amv-wine) !important;
+  color: #fff !important;
+  background: var(--amv-wine) !important;
+}
+
+.lesson-page .material-button--primary:hover {
+  background: var(--amv-wine-dark) !important;
+}
+
+/* =========================================================
+   RECURSOS / ACTIVIDADES / EVALUACIONES
+========================================================= */
+
+.lesson-page .resource-item,
+.lesson-page .assignment-card,
+.lesson-page .assessment-card {
+  border-color: var(--amv-line) !important;
+  color: var(--amv-ink) !important;
+  background: #fbfcfe !important;
+}
+
+.lesson-page .resource-item:hover:not(.resource-item--disabled),
+.lesson-page .assignment-card:hover,
+.lesson-page .assessment-card:hover {
+  border-color: #c6d2df !important;
+  background: #fff !important;
+}
+
+.lesson-page .resource-item__icon,
+.lesson-page .assignment-card__icon,
+.lesson-page .assessment-card__icon {
+  border-color: #e4cb78 !important;
+  color: var(--amv-gold-dark) !important;
+  background: var(--amv-gold-soft) !important;
+}
+
+.lesson-page .resource-item__content > span,
+.lesson-page .assignment-card__content > span,
+.lesson-page .assessment-card__content > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .resource-item__content strong,
+.lesson-page .assignment-card__content > strong,
+.lesson-page .assessment-card__content > strong {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .resource-item__content small,
+.lesson-page .assignment-card__content small,
+.lesson-page .assessment-card__content small {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .assignment-card__meta span {
+  border-color: #dfe5ec !important;
+  color: #6e7c90 !important;
+  background: #fff !important;
+}
+
+.lesson-page .assessment-card__action {
+  border-color: var(--amv-wine) !important;
+  color: #fff !important;
+  background: var(--amv-wine) !important;
+}
+
+.lesson-page .assessment-card__action:hover {
+  background: var(--amv-wine-dark) !important;
+  color: #fff !important;
+}
+
+.lesson-page .classwork-link,
+.lesson-page .classwork-link--assessment {
+  border-color: #e4d18d !important;
+  color: var(--amv-wine) !important;
+  background: #fffdf7 !important;
+}
+
+/* =========================================================
+   EMPTY STATES
+========================================================= */
+
+.lesson-page .empty-material,
+.lesson-page .section-empty {
+  border-color: #d6dfe8 !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .empty-material__icon,
+.lesson-page .section-empty > span {
+  border-color: #e4c967 !important;
+  color: var(--amv-gold-dark) !important;
+  background: var(--amv-gold-soft) !important;
+}
+
+.lesson-page .empty-material strong,
+.lesson-page .section-empty strong {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .empty-material p,
+.lesson-page .section-empty p {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .empty-material a {
+  color: var(--amv-wine) !important;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.lesson-page .sidebar-card {
+  padding: 18px;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 16px;
+  background: #fff !important;
+  box-shadow: 0 8px 22px rgba(31, 48, 73, 0.035);
+}
+
+.lesson-page .sidebar-card--progress {
+  border-color: #e4d18c !important;
+  background:
+    radial-gradient(circle at 95% 5%, rgba(217,169,29,.08), transparent 34%),
+    #fff !important;
+}
+
+.lesson-page .sidebar-card__eyebrow {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .sidebar-card h3 {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .sidebar-description,
+.lesson-page .sidebar-card p,
+.lesson-page .sidebar-card small {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .sidebar-summary article,
+.lesson-page .sidebar-checklist li {
+  border-color: #e3e8ee !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .sidebar-summary strong,
+.lesson-page .sidebar-checklist strong {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .sidebar-summary small,
+.lesson-page .sidebar-checklist p {
+  color: var(--amv-muted) !important;
+}
+
+/* cajas pequeñas negras del sidebar */
+.lesson-page .sidebar-card .sidebar-summary article,
+.lesson-page .sidebar-card .sidebar-stat,
+.lesson-page .sidebar-card .summary-item {
+  color: var(--amv-ink) !important;
+  background: #f8fafc !important;
+}
+
+/* =========================================================
+   SOBRE ESTA CLASE
+========================================================= */
+
+.lesson-page .class-data {
+  gap: 10px;
+}
+
+.lesson-page .class-data article {
+  border-color: var(--amv-line) !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .class-data span {
+  color: #7d8999 !important;
+}
+
+.lesson-page .class-data strong {
+  color: var(--amv-ink) !important;
+}
+
+/* =========================================================
+   PROGRESO DE UNIDAD · ESTUDIANTE
+========================================================= */
+
+.lesson-page .learning-progress {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 18px 20px;
+  overflow: hidden;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 94% 8%, rgba(217,169,29,.08), transparent 31%),
+    #fff !important;
+  box-shadow: 0 9px 26px rgba(31,48,73,.04);
+}
+
+.lesson-page .learning-progress::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  content: '';
+  background: var(--amv-gold);
+}
+
+.lesson-page .learning-progress--complete {
+  border-color: #c8e1d3 !important;
+}
+
+.lesson-page .learning-progress--complete::before {
+  background: var(--amv-green);
+}
+
+.lesson-page .learning-progress__icon {
+  width: 46px;
+  height: 46px;
+  border: 1px solid #e5cf83 !important;
+  border-radius: 14px;
+  color: var(--amv-gold-dark) !important;
+  background: var(--amv-gold-soft) !important;
+}
+
+.lesson-page .learning-progress__content > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .learning-progress__heading h2 {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .learning-progress__heading strong {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .learning-progress__bar {
+  height: 7px;
+  background: #e8edf2 !important;
+}
+
+.lesson-page .learning-progress__bar span {
+  background: linear-gradient(90deg, #b98a00, #d9a91d) !important;
+}
+
+.lesson-page .learning-progress--complete .learning-progress__bar span {
+  background: linear-gradient(90deg, #247553, #45a977) !important;
+}
+
+.lesson-page .learning-progress__content p {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .learning-progress__state {
+  min-width: 105px;
+  padding: 11px 13px;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 11px;
+  background: #f8fafc !important;
+  text-align: center;
+}
+
+.lesson-page .learning-progress__state small {
+  color: #8491a1 !important;
+}
+
+.lesson-page .learning-progress__state strong {
+  color: var(--amv-gold-dark) !important;
+}
+
+/* =========================================================
+   RUTA DE LA CLASE · ESTUDIANTE
+========================================================= */
+
+.lesson-page .learning-path {
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 18px;
+  background: #fff !important;
+  box-shadow: 0 9px 26px rgba(31,48,73,.04);
+}
+
+.lesson-page .learning-path--complete {
+  border-color: #c8e1d3 !important;
+}
+
+.lesson-page .learning-path__header {
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e7ecf1 !important;
+  background:
+    radial-gradient(circle at 95% 4%, rgba(217,169,29,.07), transparent 28%),
+    #fff !important;
+}
+
+.lesson-page .learning-path__ring {
+  width: 58px;
+  height: 58px;
+}
+
+.lesson-page .learning-path__ring::before {
+  width: 47px;
+  height: 47px;
+  background: #fff !important;
+  box-shadow: 0 0 0 1px #e1e7ed;
+}
+
+.lesson-page .learning-path__ring span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .learning-path__heading > div:last-child > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .learning-path__heading h2 {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .learning-path__heading p {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .learning-path__summary {
+  min-width: 100px;
+  padding: 10px 12px;
+  border: 1px solid #e6d294;
+  border-radius: 11px;
+  background: var(--amv-gold-soft);
+  text-align: center;
+}
+
+.lesson-page .learning-path__summary strong {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .learning-path__summary small {
+  color: #82764f !important;
+}
+
+.lesson-page .learning-path__items {
+  background: #fff !important;
+}
+
+.lesson-page .learning-path-item {
+  padding: 13px 18px;
+  border-bottom: 1px solid #edf1f4 !important;
+  background: #fff !important;
+}
+
+.lesson-page .learning-path-item:hover {
+  background: #fafbfd !important;
+}
+
+.lesson-page .learning-path-item--completed {
+  background: #f7fcf9 !important;
+}
+
+.lesson-page .learning-path-item--viewed {
+  background: #fffdf7 !important;
+}
+
+.lesson-page .learning-path-item__state {
+  border-color: #d5dde6 !important;
+  color: #8c98a7 !important;
+  background: #fff !important;
+}
+
+.lesson-page .learning-path-item--completed .learning-path-item__state {
+  border-color: #b9ddc8 !important;
+  color: var(--amv-green) !important;
+  background: var(--amv-green-soft) !important;
+}
+
+.lesson-page .learning-path-item--viewed .learning-path-item__state {
+  border-color: #e6cf82 !important;
+  color: var(--amv-gold-dark) !important;
+  background: var(--amv-gold-soft) !important;
+}
+
+.lesson-page .learning-path-item__copy span {
+  color: #7d8999 !important;
+}
+
+.lesson-page .learning-path-item__copy strong {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .learning-path-item__status {
+  border-color: #dbe2e9 !important;
+  color: #758294 !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .learning-path-item--completed .learning-path-item__status {
+  border-color: #bfe0cd !important;
+  color: var(--amv-green) !important;
+  background: var(--amv-green-soft) !important;
+}
+
+.lesson-page .learning-path-item--viewed .learning-path-item__status {
+  border-color: #ead79c !important;
+  color: var(--amv-gold-dark) !important;
+  background: var(--amv-gold-soft) !important;
+}
+
+.lesson-page .learning-path__footer {
+  padding: 13px 18px;
+  border-top: 1px solid #e7ecf1 !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .learning-path__footer span {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .learning-path__footer strong {
+  color: var(--amv-wine) !important;
+}
+
+.lesson-page .learning-path__empty {
+  color: var(--amv-muted) !important;
+  background: #fbfcfe !important;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.lesson-page .learning-status {
+  border-color: #dbe2e9 !important;
+  color: #758294 !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .learning-status--completed {
+  border-color: #bfe0cd !important;
+  color: var(--amv-green) !important;
+  background: var(--amv-green-soft) !important;
+}
+
+.lesson-page .learning-status--viewed {
+  border-color: #ead79c !important;
+  color: var(--amv-gold-dark) !important;
+  background: var(--amv-gold-soft) !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
 @media (max-width: 760px) {
-  .class-data {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  .lesson-page .learning-progress {
+    grid-template-columns: 1fr;
   }
 
-  .class-data__wide {
-    grid-column: span 2 !important;
+  .lesson-page .learning-progress__state {
+    width: 100%;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .lesson-page .learning-path__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lesson-page .learning-path__summary {
+    width: 100%;
+    text-align: left;
+  }
+
+  .lesson-page .quick-info {
+    grid-template-columns: repeat(2,minmax(0,1fr));
   }
 }
 
 @media (max-width: 480px) {
-  .class-data {
-    grid-template-columns: 1fr !important;
-  }
-
-  .class-data__wide {
-    grid-column: auto !important;
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-/* =========================================================
-   V5.5 — RIGHT RAIL / "ESTA CLASE"
-   Corrige los contadores que seguían heredando el tema oscuro.
-========================================================= */
-.sidebar-card .sidebar-summary {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 0.55rem !important;
-  margin-top: 1rem !important;
-}
-
-.sidebar-card .sidebar-summary article {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  min-height: 52px !important;
-  padding: 0.7rem 0.8rem !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 12px !important;
-  background: #f8fafc !important;
-  box-shadow: none !important;
-}
-
-.sidebar-card .sidebar-summary article:nth-child(1) {
-  border-left: 3px solid #c99424 !important;
-  background: #fffbf1 !important;
-}
-
-.sidebar-card .sidebar-summary article:nth-child(2) {
-  border-left: 3px solid #607ca8 !important;
-  background: #f5f8fc !important;
-}
-
-.sidebar-card .sidebar-summary article:nth-child(3) {
-  border-left: 3px solid #9f1d4a !important;
-  background: #fff7f9 !important;
-}
-
-.sidebar-card .sidebar-summary small {
-  order: -1 !important;
-  margin: 0 !important;
-  color: #667085 !important;
-  font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  line-height: 1.25 !important;
-}
-
-.sidebar-card .sidebar-summary span {
-  margin: 0 !important;
-  color: #172033 !important;
-  font-size: 1rem !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-}
-
-.sidebar-card .sidebar-summary article:nth-child(1) span {
-  color: #a77912 !important;
-}
-
-.sidebar-card .sidebar-summary article:nth-child(2) span {
-  color: #4f6d99 !important;
-}
-
-.sidebar-card .sidebar-summary article:nth-child(3) span {
-  color: #9f1d4a !important;
-}
-
-@media (max-width: 900px) {
-  .sidebar-card .sidebar-summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-
-  .sidebar-card .sidebar-summary article {
-    display: grid !important;
-    justify-content: initial !important;
-    gap: 0.3rem !important;
-  }
-
-  .sidebar-card .sidebar-summary small {
-    order: 0 !important;
+  .lesson-page .quick-info {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 520px) {
-  .sidebar-card .sidebar-summary {
-    grid-template-columns: 1fr !important;
-  }
-
-  .sidebar-card .sidebar-summary article {
-    display: flex !important;
-    justify-content: space-between !important;
-  }
-
-  .sidebar-card .sidebar-summary small {
-    order: -1 !important;
-  }
-}
 </style>
