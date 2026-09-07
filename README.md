@@ -340,7 +340,7 @@ El proyecto continuará evolucionando a medida que sea utilizado con alumnos rea
 
 **Matías Zúñiga**
 
-Director de Academia de Talentos Amo Mi Voz  
+Profesor de Academia de Talentos Amo Mi Voz  
 Desarrollo web · Tecnología · Música · Producción de audio
 
 GitHub: **[@Matizuni](https://github.com/Matizuni)**
