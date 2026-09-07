@@ -377,36 +377,47 @@
                 ★ Recurso para tu voz
               </div>
 
-              <!-- PROFESOR -->
+              <!-- PROFESOR · GESTIÓN DEL RECURSO -->
 
               <div
                 v-if="isTeacher"
                 class="material-admin"
                 @click.stop
               >
-                <button
-                  type="button"
-                  class="material-admin__edit"
-                  @click="
-                    openEditMaterial(
-                      material
-                    )
-                  "
-                >
-                  ✎ Editar
-                </button>
+                <div class="material-admin__label">
+                  <span>GESTIÓN</span>
+                  <small>Solo profesor</small>
+                </div>
 
-                <button
-                  type="button"
-                  class="material-admin__delete"
-                  @click="
-                    askDeleteMaterial(
-                      material
-                    )
-                  "
-                >
-                  🗑 Eliminar
-                </button>
+                <div class="material-admin__actions">
+                  <button
+                    type="button"
+                    class="material-admin__edit"
+                    title="Editar información del recurso"
+                    @click="
+                      openEditMaterial(
+                        material
+                      )
+                    "
+                  >
+                    <span>✎</span>
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="material-admin__delete"
+                    title="Eliminar este recurso"
+                    @click="
+                      askDeleteMaterial(
+                        material
+                      )
+                    "
+                  >
+                    <span>×</span>
+                    Eliminar
+                  </button>
+                </div>
               </div>
 
               <!-- FOOTER -->
@@ -855,33 +866,134 @@
                 ></textarea>
               </div>
 
-              <div
-                v-if="
-                  editingMaterial.fileName
-                "
-                class="current-file"
-              >
-                <span>
-                  Archivo actual
-                </span>
-
-                <strong>
-                  {{
+              <section class="resource-file-editor">
+                <div
+                  v-if="
                     editingMaterial.fileName
-                  }}
-                </strong>
+                  "
+                  class="current-file"
+                >
+                  <div class="current-file__icon">
+                    ARCH
+                  </div>
 
-                <small>
-                  En esta etapa editamos
-                  los datos del recurso.
-                  El archivo no se reemplaza.
-                </small>
-              </div>
+                  <div>
+                    <span>
+                      Archivo actual
+                    </span>
+
+                    <strong>
+                      {{
+                        editingMaterial.fileName
+                      }}
+                    </strong>
+
+                    <small>
+                      {{
+                        formatBytes(
+                          editingMaterial.fileSize
+                        )
+                      }}
+                    </small>
+                  </div>
+                </div>
+
+                <div class="replacement-file">
+                  <div class="replacement-file__heading">
+                    <div>
+                      <span>
+                        REEMPLAZAR ARCHIVO
+                      </span>
+
+                      <strong>
+                        Sube una nueva versión
+                      </strong>
+                    </div>
+
+                    <small>
+                      Opcional · máximo 50 MB
+                    </small>
+                  </div>
+
+                  <input
+                    ref="replacementFileInput"
+                    id="edit-replacement-file"
+                    class="replacement-file__input"
+                    type="file"
+                    :accept="formatReplacementAccept"
+                    @change="handleReplacementFile"
+                  >
+
+                  <label
+                    for="edit-replacement-file"
+                    class="replacement-file__drop"
+                    :class="{
+                      'replacement-file__drop--selected':
+                        replacementFile
+                    }"
+                  >
+                    <span class="replacement-file__drop-icon">
+                      ↑
+                    </span>
+
+                    <template v-if="!replacementFile">
+                      <strong>
+                        Seleccionar nuevo archivo
+                      </strong>
+
+                      <small>
+                        PNG, PDF, audio, video u otro
+                        formato según el tipo de recurso.
+                      </small>
+                    </template>
+
+                    <template v-else>
+                      <strong>
+                        {{ replacementFile.name }}
+                      </strong>
+
+                      <small>
+                        {{
+                          formatBytes(
+                            replacementFile.size
+                          )
+                        }}
+                        · listo para reemplazar
+                      </small>
+                    </template>
+                  </label>
+
+                  <button
+                    v-if="replacementFile"
+                    type="button"
+                    class="replacement-file__clear"
+                    @click="clearReplacementFile"
+                  >
+                    Quitar archivo seleccionado
+                  </button>
+
+                  <p
+                    v-if="replacementFileError"
+                    class="replacement-file__error"
+                  >
+                    {{ replacementFileError }}
+                  </p>
+
+                  <p class="replacement-file__note">
+                    El archivo nuevo reemplazará al actual
+                    cuando presiones “Guardar cambios”.
+                    El archivo anterior se eliminará de
+                    Supabase Storage después de actualizar
+                    correctamente el recurso.
+                  </p>
+                </div>
+              </section>
 
               <footer class="admin-modal__actions">
                 <button
                   type="button"
                   class="button-secondary"
+                  :disabled="isSavingEdit"
                   @click="closeEditMaterial"
                 >
                   Cancelar
@@ -890,8 +1002,15 @@
                 <button
                   type="submit"
                   class="button-primary"
+                  :disabled="isSavingEdit"
                 >
-                  Guardar cambios
+                  {{
+                    isSavingEdit
+                      ? 'Guardando...'
+                      : replacementFile
+                        ? 'Guardar y reemplazar'
+                        : 'Guardar cambios'
+                  }}
                 </button>
               </footer>
             </form>
@@ -1037,7 +1156,9 @@ import {
 import {
   fetchMaterials,
   updateMaterial,
-  removeMaterial
+  removeMaterial,
+  uploadMaterialFile,
+  removeMaterialFile
 } from '@/services/materialService'
 
 const {
@@ -1114,6 +1235,13 @@ const editingMaterial = ref(null)
 const materialToDelete = ref(null)
 const isDeleting = ref(false)
 const isSavingEdit = ref(false)
+
+const replacementFile = ref(null)
+const replacementFileInput = ref(null)
+const replacementFileError = ref('')
+
+const MAX_RESOURCE_FILE_SIZE =
+  50 * 1024 * 1024
 
 const toastMessage = ref('')
 const toastType = ref('success')
@@ -1616,6 +1744,13 @@ const openEditMaterial = material => {
     material.description ||
     ''
 
+  replacementFile.value = null
+  replacementFileError.value = ''
+
+  if (replacementFileInput.value) {
+    replacementFileInput.value.value = ''
+  }
+
   document.body.style.overflow =
     'hidden'
 }
@@ -1626,9 +1761,74 @@ const closeEditMaterial = () => {
   }
 
   editingMaterial.value = null
+  replacementFile.value = null
+  replacementFileError.value = ''
+
+  if (replacementFileInput.value) {
+    replacementFileInput.value.value = ''
+  }
 
   document.body.style.overflow =
     ''
+}
+
+
+const formatReplacementAccept = computed(() => {
+  const type = editForm.type
+
+  const accepts = {
+    pdf:
+      '.pdf,application/pdf',
+
+    score:
+      '.pdf,application/pdf,image/png,image/jpeg,.png,.jpg,.jpeg',
+
+    audio:
+      'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac',
+
+    video:
+      'video/*,.mp4,.webm,.mov,.m4v',
+
+    other:
+      '*/*'
+  }
+
+  return accepts[type] || '*/*'
+})
+
+const handleReplacementFile = event => {
+  const file =
+    event.target.files?.[0]
+
+  replacementFileError.value = ''
+
+  if (!file) {
+    replacementFile.value = null
+    return
+  }
+
+  if (
+    file.size >
+    MAX_RESOURCE_FILE_SIZE
+  ) {
+    replacementFileError.value =
+      'El archivo supera el máximo permitido de 50 MB.'
+
+    event.target.value = ''
+    replacementFile.value = null
+    return
+  }
+
+  replacementFile.value = file
+}
+
+const clearReplacementFile = () => {
+  replacementFile.value = null
+  replacementFileError.value = ''
+
+  if (replacementFileInput.value) {
+    replacementFileInput.value.value = ''
+  }
 }
 
 const saveEditedMaterial = async () => {
@@ -1641,26 +1841,107 @@ const saveEditedMaterial = async () => {
   }
 
   isSavingEdit.value = true
+  replacementFileError.value = ''
+
+  const originalMaterial =
+    editingMaterial.value
+
+  let uploadedReplacement = null
 
   try {
-    const updated =
-      await updateMaterial(
-        editingMaterial.value.id,
-        {
+    /*
+     * Si el profesor seleccionó un archivo nuevo,
+     * primero lo subimos a Storage.
+     */
+    if (replacementFile.value) {
+      uploadedReplacement =
+        await uploadMaterialFile({
+          file:
+            replacementFile.value,
+
           lessonId:
             Number(
               editForm.lessonId
             ),
-          title:
-            editForm.title.trim(),
-          type:
-            editForm.type,
-          voice:
-            editForm.voice,
-          description:
-            editForm.description.trim()
-        }
+
+          folder:
+            String(
+              editForm.voice ||
+              'general'
+            )
+              .toLowerCase()
+              .replace(/\s+/g, '-')
+        })
+    }
+
+    /*
+     * Actualizamos el registro.
+     * Si no hay archivo nuevo, updateMaterial
+     * conserva los datos del archivo existente.
+     */
+    const payload = {
+      lessonId:
+        Number(
+          editForm.lessonId
+        ),
+
+      title:
+        editForm.title.trim(),
+
+      type:
+        editForm.type,
+
+      voice:
+        editForm.voice,
+
+      description:
+        editForm.description.trim()
+    }
+
+    if (uploadedReplacement) {
+      payload.url =
+        uploadedReplacement.url
+
+      payload.storagePath =
+        uploadedReplacement.storagePath
+
+      payload.fileName =
+        uploadedReplacement.fileName
+
+      payload.fileSize =
+        uploadedReplacement.fileSize
+
+      payload.mimeType =
+        uploadedReplacement.mimeType
+    }
+
+    const updated =
+      await updateMaterial(
+        originalMaterial.id,
+        payload
       )
+
+    /*
+     * El registro ya apunta al nuevo archivo.
+     * Ahora eliminamos el archivo anterior.
+     */
+    if (
+      uploadedReplacement &&
+      originalMaterial.storagePath &&
+      originalMaterial.storagePath !==
+        uploadedReplacement.storagePath
+    ) {
+      try {
+        await removeMaterialFile(
+          originalMaterial.storagePath
+        )
+      } catch (cleanupError) {
+        console.error(
+          'El recurso se actualizó, pero no se pudo eliminar el archivo anterior:',
+          cleanupError
+        )
+      }
+    }
 
     const index =
       materials.value.findIndex(
@@ -1678,10 +1959,19 @@ const saveEditedMaterial = async () => {
     }
 
     editingMaterial.value = null
+    replacementFile.value = null
+    replacementFileError.value = ''
+
+    if (replacementFileInput.value) {
+      replacementFileInput.value.value = ''
+    }
+
     document.body.style.overflow = ''
 
     showToast(
-      'Recurso actualizado en Supabase.'
+      uploadedReplacement
+        ? 'Recurso y archivo actualizados correctamente.'
+        : 'Recurso actualizado en Supabase.'
     )
   } catch (error) {
     console.error(
@@ -1689,9 +1979,31 @@ const saveEditedMaterial = async () => {
       error
     )
 
-    showToast(
+    /*
+     * Si subimos un archivo nuevo pero falló
+     * la actualización de Database, lo limpiamos.
+     */
+    if (
+      uploadedReplacement?.storagePath
+    ) {
+      try {
+        await removeMaterialFile(
+          uploadedReplacement.storagePath
+        )
+      } catch (cleanupError) {
+        console.error(
+          'No se pudo limpiar el archivo nuevo después del error:',
+          cleanupError
+        )
+      }
+    }
+
+    replacementFileError.value =
       error?.message ||
-      'No se pudo actualizar el recurso.',
+      'No se pudo actualizar el recurso.'
+
+    showToast(
+      replacementFileError.value,
       'error'
     )
   } finally {
@@ -3486,6 +3798,738 @@ onUnmounted(() => {
   .resource-modal__footer {
     gap: 16px;
     padding: 12px 16px;
+  }
+}
+
+
+
+/* =========================================================
+   V6.0 · GESTIÓN DE RECURSOS · PROFESOR
+   Acciones visibles, claras y coherentes con el LMS light
+========================================================= */
+
+.resources-page .material-admin {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-top: 18px !important;
+  padding: 12px !important;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+}
+
+.resources-page .material-admin__label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resources-page .material-admin__label span {
+  color: #987000 !important;
+  font-size: .58rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+}
+
+.resources-page .material-admin__label small {
+  color: #7b8797 !important;
+  font-size: .58rem !important;
+}
+
+.resources-page .material-admin__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.resources-page .material-admin button {
+  display: inline-flex !important;
+  min-height: 38px !important;
+  gap: 7px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 11px !important;
+  border-radius: 9px !important;
+  font-size: .66rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    color .18s ease,
+    transform .18s ease !important;
+}
+
+.resources-page .material-admin__edit {
+  border: 1px solid #cbd6e2 !important;
+  background: #ffffff !important;
+  color: #344359 !important;
+}
+
+.resources-page .material-admin__edit:hover {
+  border-color: #9f1945 !important;
+  background: #fffafb !important;
+  color: #9f1945 !important;
+  transform: translateY(-1px);
+}
+
+.resources-page .material-admin__delete {
+  border: 1px solid #e6b6bd !important;
+  background: #fff5f6 !important;
+  color: #b93849 !important;
+}
+
+.resources-page .material-admin__delete:hover {
+  border-color: #be4856 !important;
+  background: #fff0f2 !important;
+  color: #a72c3c !important;
+  transform: translateY(-1px);
+}
+
+.resources-page .material-admin button:focus-visible {
+  outline: 3px solid rgba(159, 25, 69, .14) !important;
+  outline-offset: 2px !important;
+}
+
+/* Modal admin: asegurar contraste light también al usar Teleport */
+.admin-modal .admin-modal__window,
+.admin-modal .delete-dialog {
+  background: #ffffff !important;
+  color: #152033 !important;
+}
+
+.admin-modal .admin-modal__header h2,
+.admin-modal .delete-dialog h2,
+.admin-modal .delete-dialog__title {
+  color: #152033 !important;
+}
+
+.admin-modal .admin-modal__header p,
+.admin-modal .current-file small,
+.admin-modal .delete-dialog p {
+  color: #6f7c8f !important;
+  opacity: 1 !important;
+}
+
+.admin-modal .edit-field label,
+.admin-modal .admin-modal__form label {
+  color: #344359 !important;
+}
+
+.admin-modal input,
+.admin-modal textarea,
+.admin-modal select {
+  border-color: #dbe3ec !important;
+  background: #ffffff !important;
+  color: #152033 !important;
+}
+
+.admin-modal input:focus,
+.admin-modal textarea:focus,
+.admin-modal select:focus {
+  border-color: #9f1945 !important;
+  box-shadow: 0 0 0 3px rgba(159, 25, 69, .1) !important;
+}
+
+.admin-modal .current-file {
+  border-color: #dbe3ec !important;
+  background: #f8fafc !important;
+}
+
+.admin-modal .current-file span {
+  color: #987000 !important;
+}
+
+.admin-modal .current-file strong {
+  color: #152033 !important;
+}
+
+.admin-modal .button-primary {
+  border-color: #9f1945 !important;
+  background: #9f1945 !important;
+  color: #ffffff !important;
+}
+
+.admin-modal .button-primary:hover {
+  border-color: #7f1237 !important;
+  background: #7f1237 !important;
+}
+
+.admin-modal .button-secondary {
+  border-color: #cbd6e2 !important;
+  background: #ffffff !important;
+  color: #344359 !important;
+}
+
+.admin-modal .button-danger {
+  border-color: #be4856 !important;
+  background: #be4856 !important;
+  color: #ffffff !important;
+}
+
+.admin-modal .delete-dialog__warning {
+  border-color: #ead6a0 !important;
+  background: #fff9eb !important;
+  color: #715a12 !important;
+}
+
+@media (max-width: 640px) {
+  .resources-page .material-admin {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .resources-page .material-admin__actions {
+    width: 100%;
+  }
+
+  .resources-page .material-admin__actions button {
+    flex: 1 1 0;
+  }
+}
+
+
+
+/* =========================================================
+   V6.1 · MODAL EDITAR RECURSO · PREMIUM LIGHT
+   Teleport no hereda variables del contenedor principal.
+========================================================= */
+
+.admin-modal {
+  background: rgba(12, 20, 34, .54) !important;
+  backdrop-filter: blur(7px) !important;
+}
+
+.admin-modal .admin-modal__window {
+  overflow: hidden !important;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  color: #152033 !important;
+  box-shadow:
+    0 26px 80px rgba(17, 28, 45, .22) !important;
+}
+
+.admin-modal .admin-modal__header {
+  padding: 26px 30px 22px !important;
+  border-bottom: 1px solid #e6ebf1 !important;
+  background:
+    radial-gradient(
+      circle at 92% 8%,
+      rgba(217, 169, 29, .10),
+      transparent 30%
+    ),
+    #ffffff !important;
+}
+
+.admin-modal .admin-modal__header span {
+  color: #987000 !important;
+}
+
+.admin-modal .admin-modal__header h2 {
+  color: #152033 !important;
+}
+
+.admin-modal .admin-modal__header p {
+  color: #667085 !important;
+}
+
+.admin-modal .admin-modal__close {
+  border: 1px solid #dbe3ec !important;
+  background: #ffffff !important;
+  color: #344359 !important;
+}
+
+.admin-modal .admin-modal__close:hover {
+  border-color: #9f1945 !important;
+  background: #fffafb !important;
+  color: #9f1945 !important;
+}
+
+.admin-modal .edit-form {
+  background: #ffffff !important;
+}
+
+.admin-modal .form-field label {
+  color: #344359 !important;
+}
+
+.admin-modal .form-field input,
+.admin-modal .form-field textarea,
+.admin-modal .form-field select {
+  border: 1px solid #dbe3ec !important;
+  background: #ffffff !important;
+  color: #152033 !important;
+}
+
+.admin-modal .form-field input:focus,
+.admin-modal .form-field textarea:focus,
+.admin-modal .form-field select:focus {
+  border-color: #9f1945 !important;
+  box-shadow: 0 0 0 3px rgba(159, 25, 69, .10) !important;
+}
+
+.admin-modal .voice-selector button {
+  border-color: #dbe3ec !important;
+  background: #f8fafc !important;
+  color: #344359 !important;
+  opacity: 1 !important;
+}
+
+.admin-modal .voice-selector button span {
+  border-color: #cbd6e2 !important;
+  background: #ffffff !important;
+  color: #667085 !important;
+}
+
+.admin-modal .voice-selector button.active {
+  border-color: #d9a91d !important;
+  background: #fff8e7 !important;
+  color: #987000 !important;
+}
+
+.admin-modal .voice-selector button.active span {
+  border-color: #d9a91d !important;
+  color: #987000 !important;
+}
+
+/* =========================================================
+   ARCHIVO ACTUAL + REEMPLAZO
+========================================================= */
+
+.admin-modal .resource-file-editor {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.admin-modal .current-file {
+  display: flex !important;
+  gap: 14px !important;
+  align-items: center !important;
+  padding: 15px 16px !important;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 13px !important;
+  background: #f8fafc !important;
+}
+
+.admin-modal .current-file__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 1px solid #e4c35a;
+  border-radius: 11px;
+  background: #fff8e7;
+  color: #987000;
+  font-size: .54rem;
+  font-weight: 900;
+}
+
+.admin-modal .current-file > div:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-modal .current-file span {
+  color: #987000 !important;
+  font-size: .60rem !important;
+  font-weight: 900 !important;
+}
+
+.admin-modal .current-file strong {
+  overflow: hidden;
+  color: #152033 !important;
+  font-size: .88rem !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-modal .current-file small {
+  color: #667085 !important;
+}
+
+.admin-modal .replacement-file {
+  padding: 16px;
+  border: 1px solid #dbe3ec;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.admin-modal .replacement-file__heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.admin-modal .replacement-file__heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-modal .replacement-file__heading span {
+  color: #987000;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.admin-modal .replacement-file__heading strong {
+  color: #152033;
+  font-size: .86rem;
+}
+
+.admin-modal .replacement-file__heading small {
+  color: #7b8797;
+  font-size: .60rem;
+  white-space: nowrap;
+}
+
+.admin-modal .replacement-file__input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+.admin-modal .replacement-file__drop {
+  display: flex;
+  min-height: 118px;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  border: 1px dashed #bdc9d6;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-align: center;
+  cursor: pointer;
+  flex-direction: column;
+  transition:
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.admin-modal .replacement-file__drop:hover,
+.admin-modal .replacement-file__drop--selected {
+  border-color: #9f1945;
+  background: #fffafb;
+}
+
+.admin-modal .replacement-file__drop-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 3px;
+  place-items: center;
+  border: 1px solid #e4c35a;
+  border-radius: 50%;
+  background: #fff8e7;
+  color: #987000;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.admin-modal .replacement-file__drop strong {
+  color: #152033;
+  font-size: .78rem;
+}
+
+.admin-modal .replacement-file__drop small {
+  color: #667085;
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
+.admin-modal .replacement-file__clear {
+  margin-top: 9px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #be4856;
+  font: inherit;
+  font-size: .64rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-modal .replacement-file__error {
+  margin-top: 9px;
+  padding: 9px 11px;
+  border: 1px solid #e4b8be;
+  border-radius: 9px;
+  background: #fff3f5;
+  color: #a72c3c;
+  font-size: .66rem;
+  font-weight: 700;
+}
+
+.admin-modal .replacement-file__note {
+  margin: 10px 0 0 !important;
+  color: #667085 !important;
+  font-size: .64rem !important;
+  line-height: 1.55 !important;
+}
+
+.admin-modal .admin-modal__actions {
+  border-top: 1px solid #e6ebf1 !important;
+  background: #ffffff !important;
+}
+
+.admin-modal .button-secondary {
+  border: 1px solid #cbd6e2 !important;
+  background: #ffffff !important;
+  color: #344359 !important;
+}
+
+.admin-modal .button-primary {
+  border: 1px solid #9f1945 !important;
+  background: #9f1945 !important;
+  color: #ffffff !important;
+  box-shadow: 0 7px 16px rgba(159, 25, 69, .14) !important;
+}
+
+.admin-modal .button-primary:hover:not(:disabled) {
+  border-color: #7f1237 !important;
+  background: #7f1237 !important;
+}
+
+.admin-modal .button-primary:disabled,
+.admin-modal .button-secondary:disabled {
+  cursor: wait !important;
+  opacity: .62 !important;
+}
+
+@media (max-width: 640px) {
+  .admin-modal .admin-modal__header {
+    padding: 20px !important;
+  }
+
+  .admin-modal .replacement-file__heading {
+    flex-direction: column;
+  }
+
+  .admin-modal .replacement-file__heading small {
+    white-space: normal;
+  }
+}
+
+
+
+/* =========================================================
+   V6.2 · MODAL EDITAR RECURSO · SCROLL CORRECTO
+   Header fijo + cuerpo desplazable + acciones visibles
+========================================================= */
+
+.admin-modal {
+  overflow: hidden !important;
+  padding: 18px !important;
+}
+
+.admin-modal .admin-modal__window {
+  display: flex !important;
+  width: min(900px, 96vw) !important;
+  max-height: calc(100dvh - 36px) !important;
+  overflow: hidden !important;
+  flex-direction: column !important;
+}
+
+/* La cabecera queda siempre visible */
+.admin-modal .admin-modal__header {
+  position: relative !important;
+  z-index: 3 !important;
+  flex: 0 0 auto !important;
+}
+
+/* El formulario es ahora la zona con scroll */
+.admin-modal .edit-form {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+}
+
+/* Scroll elegante y visible */
+.admin-modal .edit-form::-webkit-scrollbar {
+  width: 10px;
+}
+
+.admin-modal .edit-form::-webkit-scrollbar-track {
+  background: #f1f4f8;
+}
+
+.admin-modal .edit-form::-webkit-scrollbar-thumb {
+  border: 2px solid #f1f4f8;
+  border-radius: 999px;
+  background: #b8c3d1;
+}
+
+.admin-modal .edit-form::-webkit-scrollbar-thumb:hover {
+  background: #95a3b5;
+}
+
+.admin-modal .edit-form {
+  scrollbar-width: thin;
+  scrollbar-color: #b8c3d1 #f1f4f8;
+}
+
+/* Footer pegado al borde inferior mientras se desplaza */
+.admin-modal .admin-modal__actions {
+  position: sticky !important;
+  z-index: 4 !important;
+  bottom: 0 !important;
+  margin:
+    18px
+    -30px
+    -30px !important;
+  padding:
+    18px
+    30px !important;
+  border-top: 1px solid #e6ebf1 !important;
+  background:
+    rgba(255, 255, 255, .97) !important;
+  box-shadow:
+    0 -10px 24px
+    rgba(31, 48, 73, .05) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Espacio para que el último contenido no quede bajo el footer */
+.admin-modal .resource-file-editor {
+  padding-bottom: 6px !important;
+}
+
+/* Alturas pequeñas / notebook */
+@media (max-height: 760px) {
+  .admin-modal {
+    padding: 10px !important;
+  }
+
+  .admin-modal .admin-modal__window {
+    max-height: calc(100dvh - 20px) !important;
+  }
+
+  .admin-modal .admin-modal__header {
+    padding:
+      18px
+      24px !important;
+  }
+
+  .admin-modal .admin-modal__header h2 {
+    margin:
+      5px
+      0 !important;
+    font-size: 1.65rem !important;
+  }
+
+  .admin-modal .admin-modal__header p {
+    margin: 0 !important;
+    font-size: .8rem !important;
+  }
+}
+
+/* Móvil */
+@media (max-width: 640px) {
+  .admin-modal {
+    padding: 0 !important;
+    place-items: stretch !important;
+  }
+
+  .admin-modal .admin-modal__window {
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .admin-modal .admin-modal__actions {
+    margin:
+      16px
+      -20px
+      -20px !important;
+    padding:
+      14px
+      20px
+      calc(14px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+
+
+/* =========================================================
+   V6.3 · TARJETA "MI SECCIÓN" · ALUMNO · PREMIUM LIGHT
+   Corrige bloque negro heredado del tema global
+========================================================= */
+
+.resources .student-voice-card {
+  min-width: 220px !important;
+  padding: 22px 24px !important;
+  border: 1px solid #dfd4ae !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(217, 169, 29, .10),
+      transparent 36%
+    ),
+    #ffffff !important;
+  color: #152033 !important;
+  box-shadow:
+    0 10px 28px
+    rgba(31, 48, 73, .05) !important;
+}
+
+.resources .student-voice-card span {
+  display: block !important;
+  margin-bottom: 8px !important;
+  color: #6f7c8f !important;
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .02em !important;
+  opacity: 1 !important;
+}
+
+.resources .student-voice-card strong {
+  display: block !important;
+  color: #987000 !important;
+  font-size: 1.45rem !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+}
+
+.resources .student-voice-card small {
+  display: block !important;
+  margin-top: 10px !important;
+  color: #667085 !important;
+  font-size: .72rem !important;
+  line-height: 1.45 !important;
+  opacity: 1 !important;
+}
+
+/* Mantener coherencia con el header del alumno */
+.resources .resources__header {
+  align-items: center !important;
+}
+
+@media (max-width: 820px) {
+  .resources .student-voice-card {
+    width: 100% !important;
+    min-width: 0 !important;
   }
 }
 

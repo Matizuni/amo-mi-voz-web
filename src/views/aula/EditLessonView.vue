@@ -4391,4 +4391,318 @@ onBeforeUnmount(() => {
   }
 }
 
+
+
+/* =========================================================
+   V5.4 · EDITAR CLASE · PREVIEW + ACTION BAR LIGHT
+   Corrige tarjetas negras heredadas y metadatos con bajo contraste
+========================================================= */
+
+.edit-lesson-page .preview {
+  border: 1px solid #dfd4ae !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(217, 169, 28, .09),
+      transparent 34%
+    ),
+    #ffffff !important;
+  box-shadow:
+    0 12px 32px
+    rgba(31, 45, 61, .055) !important;
+}
+
+.edit-lesson-page .preview__top > div > span {
+  color: #987000 !important;
+}
+
+.edit-lesson-page .preview h2 {
+  color: #152033 !important;
+}
+
+.edit-lesson-page .preview-status {
+  border-color: #bfe4d4 !important;
+  background: #effaf5 !important;
+  color: #2d8a63 !important;
+}
+
+.edit-lesson-page .preview__meta span {
+  border: 1px solid #dbe3ec !important;
+  background: #f8fafc !important;
+  color: #667085 !important;
+  opacity: 1 !important;
+}
+
+.edit-lesson-page .preview > p {
+  color: #667085 !important;
+  opacity: 1 !important;
+}
+
+/* El template usa ARTICLE, no DIV */
+.edit-lesson-page .preview__content-grid article {
+  padding: 14px 16px !important;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+.edit-lesson-page .preview__content-grid article:hover {
+  border-color: #cbd6e2 !important;
+  background: #ffffff !important;
+}
+
+.edit-lesson-page .preview__content-grid span {
+  color: #6f7c8f !important;
+  opacity: 1 !important;
+  font-size: .60rem !important;
+  font-weight: 700 !important;
+}
+
+.edit-lesson-page .preview__content-grid strong {
+  margin-top: 5px !important;
+  color: #152033 !important;
+  font-size: .82rem !important;
+  font-weight: 900 !important;
+}
+
+/* Destacar disponibilidad del material sin usar bloques negros */
+.edit-lesson-page .preview__content-grid article:first-child {
+  border-color: #d8c16a !important;
+  background: #fffaf0 !important;
+}
+
+.edit-lesson-page .preview__content-grid article:first-child strong {
+  color: #987000 !important;
+}
+
+/* Barra final */
+.edit-lesson-page .action-bar {
+  border: 1px solid #dbe3ec !important;
+  background: rgba(255, 255, 255, .97) !important;
+  box-shadow:
+    0 8px 24px
+    rgba(31, 48, 73, .055) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.edit-lesson-page .action-bar__status strong {
+  color: #152033 !important;
+}
+
+.edit-lesson-page .action-bar__status small {
+  color: #6f7c8f !important;
+  opacity: 1 !important;
+}
+
+.edit-lesson-page .secondary-button {
+  border-color: #cbd6e2 !important;
+  background: #ffffff !important;
+  color: #344359 !important;
+}
+
+.edit-lesson-page .secondary-button:hover:not(:disabled) {
+  border-color: #aebdcd !important;
+  background: #f8fafc !important;
+}
+
+.edit-lesson-page .secondary-button:disabled {
+  border-color: #e2e8f0 !important;
+  background: #f8fafc !important;
+  color: #a0aaba !important;
+  opacity: 1 !important;
+}
+
+.edit-lesson-page .primary-button {
+  border-color: #9f1945 !important;
+  background: #9f1945 !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 7px 16px
+    rgba(159, 25, 69, .14) !important;
+}
+
+.edit-lesson-page .primary-button:hover:not(:disabled) {
+  border-color: #7f1237 !important;
+  background: #7f1237 !important;
+}
+
+.edit-lesson-page .primary-button:disabled {
+  border-color: #e0e6ed !important;
+  background: #eef2f6 !important;
+  color: #9aa6b5 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  .edit-lesson-page .preview__content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-lesson-page .preview__content-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+
+/* =========================================================
+   V5.5 · FIX REAL PREVIEW · ROOT CORRECTO .edit-lesson
+   El template usa .edit-lesson, no .edit-lesson-page
+========================================================= */
+
+.edit-lesson .preview {
+  border: 1px solid #dfd4ae !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(217, 169, 28, .09),
+      transparent 34%
+    ),
+    #ffffff !important;
+  box-shadow:
+    0 12px 32px
+    rgba(31, 45, 61, .055) !important;
+}
+
+.edit-lesson .preview__top > div > span {
+  color: #987000 !important;
+}
+
+.edit-lesson .preview h2 {
+  color: #152033 !important;
+}
+
+.edit-lesson .preview-status {
+  border: 1px solid #bfe4d4 !important;
+  background: #effaf5 !important;
+  color: #2d8a63 !important;
+}
+
+.edit-lesson .preview__meta span {
+  border: 1px solid #dbe3ec !important;
+  background: #f8fafc !important;
+  color: #667085 !important;
+  opacity: 1 !important;
+}
+
+.edit-lesson .preview > p {
+  color: #667085 !important;
+  opacity: 1 !important;
+}
+
+/* TARJETAS REALES: article */
+.edit-lesson .preview__content-grid article {
+  padding: 14px 16px !important;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  color: #152033 !important;
+  box-shadow: none !important;
+}
+
+.edit-lesson .preview__content-grid article:first-child {
+  border-color: #dfc76d !important;
+  background: #fffaf0 !important;
+}
+
+.edit-lesson .preview__content-grid article:hover {
+  border-color: #cbd6e2 !important;
+  background: #ffffff !important;
+}
+
+.edit-lesson .preview__content-grid span {
+  display: block !important;
+  color: #6f7c8f !important;
+  opacity: 1 !important;
+  font-size: .60rem !important;
+  font-weight: 700 !important;
+}
+
+.edit-lesson .preview__content-grid strong {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #152033 !important;
+  font-size: .82rem !important;
+  font-weight: 900 !important;
+}
+
+.edit-lesson .preview__content-grid article:first-child strong {
+  color: #987000 !important;
+}
+
+/* ACTION BAR */
+.edit-lesson .action-bar {
+  border: 1px solid #dbe3ec !important;
+  background: rgba(255,255,255,.97) !important;
+  box-shadow:
+    0 8px 24px
+    rgba(31,48,73,.055) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.edit-lesson .action-bar__status strong {
+  color: #152033 !important;
+}
+
+.edit-lesson .action-bar__status small {
+  color: #6f7c8f !important;
+  opacity: 1 !important;
+}
+
+.edit-lesson .secondary-button {
+  border-color: #cbd6e2 !important;
+  background: #ffffff !important;
+  color: #344359 !important;
+}
+
+.edit-lesson .secondary-button:hover:not(:disabled) {
+  border-color: #aebdcd !important;
+  background: #f8fafc !important;
+}
+
+.edit-lesson .secondary-button:disabled {
+  border-color: #e2e8f0 !important;
+  background: #f8fafc !important;
+  color: #a0aaba !important;
+  opacity: 1 !important;
+}
+
+.edit-lesson .primary-button {
+  border-color: #9f1945 !important;
+  background: #9f1945 !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 7px 16px
+    rgba(159,25,69,.14) !important;
+}
+
+.edit-lesson .primary-button:hover:not(:disabled) {
+  border-color: #7f1237 !important;
+  background: #7f1237 !important;
+}
+
+.edit-lesson .primary-button:disabled {
+  border-color: #e0e6ed !important;
+  background: #eef2f6 !important;
+  color: #9aa6b5 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  .edit-lesson .preview__content-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-lesson .preview__content-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 </style>

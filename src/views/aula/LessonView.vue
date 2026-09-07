@@ -8138,4 +8138,251 @@ a.lesson-navigation__item:hover,
   }
 }
 
+
+
+/* =========================================================
+   V8.0 · DETALLE ACADÉMICO + NOTAS DOCENTES · LIGHT LMS
+   Corrige bloques negros heredados del tema global
+========================================================= */
+
+/* Contenedor académico */
+.lesson-page .academic-section {
+  overflow: hidden;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: 0 9px 26px rgba(31, 48, 73, 0.04) !important;
+}
+
+/* Cabecera / acordeón */
+.lesson-page .academic-toggle {
+  width: 100% !important;
+  padding: 20px 22px !important;
+  border: 0 !important;
+  border-bottom: 1px solid transparent !important;
+  background: #ffffff !important;
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .academic-toggle[aria-expanded="true"] {
+  border-bottom-color: #ead79c !important;
+  box-shadow: inset 0 -2px 0 #f1c84a !important;
+}
+
+.lesson-page .academic-toggle__icon {
+  border: 1px solid #e5c35a !important;
+  background: #fffaf0 !important;
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .academic-toggle span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .academic-toggle strong {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .academic-toggle small {
+  color: var(--amv-muted) !important;
+}
+
+/* Cuerpo */
+.lesson-page .academic-content {
+  gap: 14px !important;
+  padding: 18px 20px 22px !important;
+  background: #f8fafc !important;
+}
+
+/* Tarjetas académicas */
+.lesson-page .academic-block {
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  color: var(--amv-ink-soft) !important;
+  box-shadow: 0 6px 18px rgba(31, 48, 73, 0.035) !important;
+}
+
+.lesson-page .academic-block--focus {
+  border-color: #ead79c !important;
+  background: linear-gradient(145deg, #fffdf8, #fff8e7) !important;
+}
+
+.lesson-page .academic-block--focus > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .academic-block--focus h3 {
+  color: var(--amv-ink) !important;
+  line-height: 1.5 !important;
+}
+
+/* Encabezados de bloques */
+.lesson-page .academic-block > header {
+  border-bottom: 1px solid #edf1f5 !important;
+}
+
+.lesson-page .academic-block > header > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .academic-block > header h3 {
+  color: var(--amv-ink) !important;
+}
+
+/* Listas */
+.lesson-page .academic-list > div {
+  border-bottom: 1px solid #edf1f5 !important;
+}
+
+.lesson-page .academic-list > div:last-child {
+  border-bottom: 0 !important;
+}
+
+.lesson-page .academic-list > div > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .academic-list p {
+  color: var(--amv-ink-soft) !important;
+  line-height: 1.55 !important;
+}
+
+/* Tags de contenidos */
+.lesson-page .academic-tags > span {
+  border: 1px solid #dbe3ec !important;
+  background: #f7f9fc !important;
+  color: var(--amv-ink-soft) !important;
+}
+
+.lesson-page .academic-tags > span:hover {
+  border-color: #d6b549 !important;
+  background: #fff8e7 !important;
+  color: var(--amv-ink) !important;
+}
+
+/* Repertorio */
+.lesson-page .repertoire-list > div {
+  border-bottom: 1px solid #edf1f5 !important;
+}
+
+.lesson-page .repertoire-list > div:last-child {
+  border-bottom: 0 !important;
+}
+
+.lesson-page .repertoire-list > div > span {
+  border: 1px solid #e5c35a !important;
+  background: #fffaf0 !important;
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .repertoire-list small {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .repertoire-list strong {
+  color: var(--amv-ink) !important;
+}
+
+/* =========================================================
+   NOTAS DOCENTES
+========================================================= */
+
+.lesson-page .teacher-notes {
+  padding: 24px !important;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: 0 9px 26px rgba(31, 48, 73, 0.04) !important;
+}
+
+.lesson-page .teacher-notes > header {
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid #edf1f5 !important;
+}
+
+.lesson-page .teacher-notes > header span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .teacher-notes > header h2 {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .teacher-notes > header a {
+  display: inline-flex !important;
+  min-height: 38px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  border: 1px solid #d8b443 !important;
+  border-radius: 9px !important;
+  background: #fffaf0 !important;
+  color: var(--amv-gold-dark) !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+}
+
+.lesson-page .teacher-notes > header a:hover {
+  border-color: #c39b22 !important;
+  background: #fff4cf !important;
+}
+
+/* Cada nota */
+.lesson-page .teacher-note {
+  margin-top: 14px !important;
+  padding: 18px !important;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 14px !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .teacher-note > span {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .teacher-note p {
+  color: var(--amv-ink-soft) !important;
+  line-height: 1.65 !important;
+  white-space: pre-line !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 760px) {
+  .lesson-page .academic-content {
+    padding: 14px !important;
+  }
+
+  .lesson-page .academic-block,
+  .lesson-page .teacher-notes {
+    border-radius: 14px !important;
+  }
+
+  .lesson-page .teacher-notes {
+    padding: 18px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .lesson-page .academic-toggle {
+    padding: 16px !important;
+  }
+
+  .lesson-page .academic-tags {
+    gap: 7px !important;
+  }
+
+  .lesson-page .academic-tags > span {
+    width: 100% !important;
+  }
+
+  .lesson-page .teacher-notes > header {
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+}
+
 </style>
