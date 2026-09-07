@@ -1,5 +1,5 @@
 <template>
-  <section class="lesson-page">
+  <section class="lesson-page lesson-page--max">
     <!-- =====================================================
          LOADING
     ====================================================== -->
@@ -69,6 +69,11 @@
           <span>←</span>
           Programa formativo
         </RouterLink>
+
+        <div class="lesson-mode-chip" :class="{ 'lesson-mode-chip--teacher': isTeacher }">
+          <span></span>
+          {{ isTeacher ? 'Vista profesor' : 'Vista estudiante' }}
+        </div>
 
         <div
           v-if="isTeacher"
@@ -167,7 +172,7 @@
             {{ lesson.title }}
           </h1>
 
-          <p class="lesson-hero__description">
+          <p class="lesson-hero__description lesson-hero__description--readable">
             {{
               lesson.description ||
               'Consulta el material y completa las actividades disponibles para esta clase.'
@@ -240,6 +245,42 @@
           </span>
         </aside>
       </header>
+
+      <!-- ===================================================
+           NAVEGACIÓN INTERNA · V9
+      ==================================================== -->
+      <nav
+        class="lesson-tabs"
+        aria-label="Secciones de la clase"
+      >
+        <a href="#ruta-clase">
+          <span>01</span>
+          Resumen y progreso
+        </a>
+
+        <a href="#material-principal">
+          <span>02</span>
+          Materiales
+        </a>
+
+        <a href="#actividades">
+          <span>03</span>
+          Actividades
+        </a>
+
+        <a href="#evaluaciones">
+          <span>04</span>
+          Evaluaciones
+        </a>
+
+        <a
+          v-if="hasAcademicContent"
+          href="#contenido-academico"
+        >
+          <span>05</span>
+          Objetivos y contenidos
+        </a>
+      </nav>
 
       <!-- ===================================================
            PROGRESO DEL ALUMNO
@@ -412,6 +453,7 @@
            RUTA DE APRENDIZAJE AUTOMÁTICA
       ==================================================== -->
       <section
+        id="ruta-clase"
         v-if="!isTeacher"
         class="learning-path"
         :class="{
@@ -533,6 +575,36 @@
         </footer>
       </section>
 
+      <section
+        v-if="isTeacher"
+        class="teacher-command"
+      >
+        <div class="teacher-command__copy">
+          <span>CENTRO DOCENTE</span>
+          <h2>Gestiona esta clase desde un solo lugar</h2>
+          <p>
+            Edita contenidos, revisa actividades y controla evaluaciones
+            sin salir de la experiencia de la clase.
+          </p>
+        </div>
+
+        <div class="teacher-command__actions">
+          <RouterLink
+            :to="`/aula/clase/${lesson.id}/editar`"
+            class="teacher-command__button"
+          >
+            Editar clase
+          </RouterLink>
+
+          <RouterLink
+            :to="`/aula/clase/${lesson.id}/trabajo`"
+            class="teacher-command__button teacher-command__button--primary"
+          >
+            Contenidos y evaluaciones
+          </RouterLink>
+        </div>
+      </section>
+
       <!-- ===================================================
            GRID PRINCIPAL
       ==================================================== -->
@@ -544,7 +616,7 @@
           <!-- ===============================================
                MATERIAL PRINCIPAL
           ================================================ -->
-          <section class="content-section material-section">
+          <section id="material-principal" class="content-section material-section">
             <header class="section-heading">
               <div>
                 <span>
@@ -742,6 +814,7 @@
               secondaryMaterials.length ||
               isTeacher
             "
+            id="recursos"
             class="content-section"
           >
             <header class="section-heading">
@@ -887,7 +960,7 @@
           <!-- ===============================================
                ACTIVIDADES
           ================================================ -->
-          <section class="content-section">
+          <section id="actividades" class="content-section">
             <header class="section-heading">
               <div>
                 <span>
@@ -1450,6 +1523,7 @@
           ================================================ -->
           <section
             v-if="hasAcademicContent"
+            id="contenido-academico"
             class="academic-section"
           >
             <button
@@ -1706,49 +1780,69 @@
           <!-- PROGRESO PERSONAL -->
           <section
             v-if="!isTeacher && currentUnit"
-            class="sidebar-card sidebar-card--progress"
+            class="sidebar-card sidebar-card--progress student-progress-card"
           >
-            <span class="sidebar-card__eyebrow">
-              MI PROGRESO
-            </span>
-
-            <div
-              class="sidebar-progress-ring"
-              :style="unitProgressRingStyle"
-            >
+            <header class="student-progress-card__header">
               <div>
+                <span class="sidebar-card__eyebrow">
+                  MI PROGRESO
+                </span>
+
+                <strong>
+                  Unidad {{ currentUnit.position }}
+                </strong>
+              </div>
+
+              <span
+                class="student-progress-card__state"
+                :class="{
+                  'student-progress-card__state--done':
+                    unitProgress === 100
+                }"
+              >
+                {{
+                  unitProgress === 100
+                    ? 'Completada'
+                    : 'En curso'
+                }}
+              </span>
+            </header>
+
+            <div class="student-progress-card__summary">
+              <div class="student-progress-card__percentage">
                 <strong>
                   {{ unitProgress }}%
                 </strong>
 
                 <span>
-                  unidad
+                  completado
                 </span>
+              </div>
+
+              <div class="student-progress-card__copy">
+                <h3>
+                  {{ currentUnit.title }}
+                </h3>
+
+                <p>
+                  {{ unitCompletedLessons }}
+                  de {{ unitLessons.length }}
+                  {{
+                    unitLessons.length === 1
+                      ? 'clase completada'
+                      : 'clases completadas'
+                  }}
+                </p>
               </div>
             </div>
 
-            <h3>
-              {{ currentUnit.title }}
-            </h3>
-
-            <p class="sidebar-description">
-              {{ unitCompletedLessons }}
-              de {{ unitLessons.length }}
-              clases completadas.
-            </p>
-
-            <div class="sidebar-progress">
+            <div class="student-progress-card__track">
               <div>
-                <span>
-                  Avance
-                </span>
-
-                <strong>
-                  {{ unitProgress }}%
-                </strong>
+                <span>Avance de la unidad</span>
+                <strong>{{ unitProgress }}%</strong>
               </div>
 
-              <div class="sidebar-progress__bar">
+              <div class="student-progress-card__bar">
                 <span
                   :style="{
                     width: `${unitProgress}%`
@@ -1756,6 +1850,63 @@
                 ></span>
               </div>
             </div>
+
+            <footer class="student-progress-card__footer">
+              <div class="student-progress-card__remaining">
+                <span
+                  class="student-progress-card__remaining-icon"
+                  :class="{
+                    'student-progress-card__remaining-icon--done':
+                      unitProgress === 100
+                  }"
+                >
+                  {{
+                    unitProgress === 100
+                      ? '✓'
+                      : '→'
+                  }}
+                </span>
+
+                <p>
+                  <strong>
+                    {{
+                      unitProgress === 100
+                        ? 'Unidad terminada'
+                        : `${Math.max(
+                            unitLessons.length -
+                            unitCompletedLessons,
+                            0
+                          )} ${
+                            Math.max(
+                              unitLessons.length -
+                              unitCompletedLessons,
+                              0
+                            ) === 1
+                              ? 'clase pendiente'
+                              : 'clases pendientes'
+                          }`
+                    }}
+                  </strong>
+
+                  <small>
+                    {{
+                      unitProgress === 100
+                        ? 'Tu progreso quedó guardado.'
+                        : 'Continúa cuando estés listo.'
+                    }}
+                  </small>
+                </p>
+              </div>
+
+              <RouterLink
+                v-if="nextLesson"
+                :to="`/aula/clase/${nextLesson.id}`"
+                class="student-progress-card__continue"
+              >
+                Continuar
+                <span>→</span>
+              </RouterLink>
+            </footer>
           </section>
 
           <!-- RESUMEN -->
@@ -2252,6 +2403,8 @@ import {
   useAuth,
 } from '@/composables/useAuth'
 
+import { supabase } from '@/lib/supabase'
+
 const route = useRoute()
 
 const {
@@ -2293,21 +2446,160 @@ const showAcademicContent =
 
 const toastMessage = ref('')
 const toastType = ref('success')
-const lessonAppearance = ref({ coverUrl: '', focalPoint: 'center' })
-
-const refreshLessonAppearance = () => {
-  const id = lesson.value?.id || route.params.id
-  lessonAppearance.value = getLessonAppearance(id)
-}
-
-const lessonHeroStyle = computed(() => {
-  const url = lessonAppearance.value?.coverUrl
-  return url ? { '--lesson-cover-image': `url(${JSON.stringify(url)})`, '--lesson-cover-position': lessonAppearance.value?.focalPoint || 'center' } : {}
+const lessonAppearance = ref({
+  coverUrl: '',
+  focalPoint: 'center',
 })
 
-const onAppearanceChanged = event => {
-  if (Number(event?.detail?.lessonId) === Number(lesson.value?.id || route.params.id)) refreshLessonAppearance()
+const persistentCover = ref({
+  coverUrl: '',
+  coverPath: '',
+})
+
+const refreshLessonAppearance = () => {
+  const id =
+    lesson.value?.id ||
+    route.params.id
+
+  lessonAppearance.value =
+    getLessonAppearance(id)
 }
+
+/*
+ * Producción segura:
+ * consultamos directamente cover_url / cover_path desde Supabase.
+ * Esto evita depender de localStorage y también protege la vista
+ * frente a servicios antiguos que no normalicen todavía esas columnas.
+ */
+const fetchPersistentLessonCover =
+  async lessonId => {
+    const id = Number(lessonId)
+
+    if (
+      !Number.isFinite(id) ||
+      id <= 0
+    ) {
+      return {
+        coverUrl: '',
+        coverPath: '',
+      }
+    }
+
+    const {
+      data,
+      error,
+    } =
+      await supabase
+        .from('lessons')
+        .select(
+          'id, cover_url, cover_path',
+        )
+        .eq('id', id)
+        .maybeSingle()
+
+    if (error) {
+      console.warn(
+        'No fue posible consultar la portada persistente:',
+        error,
+      )
+
+      return {
+        coverUrl: '',
+        coverPath: '',
+      }
+    }
+
+    return {
+      coverUrl:
+        data?.cover_url || '',
+      coverPath:
+        data?.cover_path || '',
+    }
+  }
+
+const lessonCoverUrl =
+  computed(() =>
+    persistentCover.value
+      ?.coverUrl ||
+    lesson.value?.coverUrl ||
+    lesson.value?.cover_url ||
+    lessonAppearance.value
+      ?.coverUrl ||
+    '',
+  )
+
+const lessonCoverPosition =
+  computed(() =>
+    lesson.value
+      ?.coverPosition ||
+    lesson.value
+      ?.cover_position ||
+    lessonAppearance.value
+      ?.focalPoint ||
+    'center',
+  )
+
+const lessonHeroStyle =
+  computed(() => {
+    const url =
+      lessonCoverUrl.value
+
+    if (!url) {
+      return {}
+    }
+
+    return {
+      '--lesson-cover-image':
+        `url("${String(url).replace(/"/g, '\\\"')}")`,
+
+      '--lesson-cover-position':
+        lessonCoverPosition.value,
+
+      backgroundImage: `
+        linear-gradient(
+          90deg,
+          rgba(8, 17, 31, .96) 0%,
+          rgba(8, 17, 31, .88) 34%,
+          rgba(8, 17, 31, .62) 66%,
+          rgba(8, 17, 31, .72) 100%
+        ),
+        url("${String(url).replace(/"/g, '\\\"')}")
+      `,
+
+      backgroundSize:
+        'cover',
+
+      backgroundPosition:
+        lessonCoverPosition.value,
+
+      backgroundRepeat:
+        'no-repeat',
+    }
+  })
+
+const onAppearanceChanged =
+  async event => {
+    if (
+      Number(
+        event?.detail
+          ?.lessonId,
+      ) !==
+      Number(
+        lesson.value?.id ||
+        route.params.id,
+      )
+    ) {
+      return
+    }
+
+    refreshLessonAppearance()
+
+    persistentCover.value =
+      await fetchPersistentLessonCover(
+        lesson.value?.id ||
+        route.params.id,
+      )
+  }
 
 let toastTimer = null
 
@@ -2393,6 +2685,38 @@ const loadLesson =
 
       lesson.value =
         loadedLesson
+
+      refreshLessonAppearance()
+
+      persistentCover.value =
+        await fetchPersistentLessonCover(
+          id,
+        )
+
+      /*
+       * También dejamos la URL dentro del objeto lesson para que
+       * cualquier parte de esta vista pueda reutilizarla.
+       */
+      if (
+        persistentCover.value
+          ?.coverUrl
+      ) {
+        lesson.value = {
+          ...lesson.value,
+          coverUrl:
+            persistentCover.value
+              .coverUrl,
+          cover_url:
+            persistentCover.value
+              .coverUrl,
+          coverPath:
+            persistentCover.value
+              .coverPath,
+          cover_path:
+            persistentCover.value
+              .coverPath,
+        }
+      }
 
       lessonMaterials.value =
         loadedMaterials || []
@@ -8382,6 +8706,1692 @@ a.lesson-navigation__item:hover,
   .lesson-page .teacher-notes > header {
     align-items: flex-start !important;
     gap: 12px !important;
+  }
+}
+
+
+/* =========================================================
+   V9 · AMO MI VOZ · LESSON EXPERIENCE
+   SaaS educativo premium · desktop + mobile
+========================================================= */
+
+.lesson-page {
+  --amv-navy-950: #08111f;
+  --amv-navy-900: #0e192b;
+  --amv-navy-850: #132039;
+  --amv-wine: #a6154b;
+  --amv-wine-dark: #7f1038;
+  --amv-wine-soft: #fff1f6;
+  --amv-gold: #d9aa24;
+  --amv-gold-dark: #987000;
+  --amv-ink: #142033;
+  --amv-ink-soft: #344359;
+  --amv-muted: #6c7a90;
+  --amv-line: #dce4ee;
+  --amv-soft: #f6f8fb;
+  --amv-success: #219567;
+  --amv-success-soft: #edf9f4;
+  --amv-danger: #be4357;
+  color: var(--amv-ink);
+}
+
+/* TOPBAR */
+.lesson-page .lesson-topbar {
+  min-height: 52px !important;
+  margin-bottom: 14px !important;
+  padding: 0 4px !important;
+}
+
+.lesson-page .back-link {
+  color: var(--amv-wine) !important;
+  font-weight: 850 !important;
+  text-decoration: none !important;
+}
+
+.lesson-page .teacher-button {
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: var(--amv-ink-soft) !important;
+  box-shadow: 0 5px 18px rgba(30, 45, 68, .04) !important;
+}
+
+.lesson-page .teacher-button--primary {
+  border-color: var(--amv-wine) !important;
+  background: var(--amv-wine) !important;
+  color: #fff !important;
+}
+
+/* BREADCRUMB */
+.lesson-page .unit-breadcrumb {
+  margin-bottom: 14px !important;
+  padding: 11px 14px !important;
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.92) !important;
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .unit-breadcrumb span:first-child {
+  color: var(--amv-gold-dark) !important;
+}
+
+.lesson-page .unit-breadcrumb strong {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .unit-breadcrumb small,
+.lesson-page .unit-breadcrumb > span:last-of-type {
+  color: #9aa6b6 !important;
+}
+
+/* HERO CINEMÁTICO */
+.lesson-page .lesson-hero {
+  min-height: 440px !important;
+  margin-bottom: 0 !important;
+  padding: clamp(30px, 4vw, 58px) !important;
+  border: 0 !important;
+  border-radius: 24px 24px 0 0 !important;
+  background-color: var(--amv-navy-950) !important;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(8,17,31,.97) 0%,
+      rgba(8,17,31,.90) 34%,
+      rgba(8,17,31,.63) 68%,
+      rgba(8,17,31,.76) 100%
+    ),
+    var(--lesson-cover-image) !important;
+  background-size: cover !important;
+  background-position: var(--lesson-cover-position, center) !important;
+  box-shadow: 0 24px 60px rgba(13, 28, 49, .16) !important;
+  isolation: isolate !important;
+}
+
+.lesson-page .lesson-hero::before {
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  z-index: -1 !important;
+  background:
+    radial-gradient(circle at 72% 38%, rgba(166,21,75,.18), transparent 34%),
+    linear-gradient(180deg, transparent 55%, rgba(4,10,19,.26) 100%) !important;
+}
+
+.lesson-page .lesson-hero__content {
+  max-width: 850px !important;
+}
+
+.lesson-page .lesson-hero__eyebrow {
+  color: #e2b429 !important;
+  font-size: .72rem !important;
+  letter-spacing: .08em !important;
+}
+
+.lesson-page .lesson-hero h1 {
+  max-width: 840px !important;
+  margin-top: 18px !important;
+  color: #fff !important;
+  font-size: clamp(3rem, 6vw, 5.6rem) !important;
+  line-height: .96 !important;
+  letter-spacing: -.055em !important;
+  text-shadow: 0 8px 34px rgba(0,0,0,.22) !important;
+}
+
+.lesson-page .lesson-hero__description {
+  max-width: 820px !important;
+  margin-top: 22px !important;
+  color: rgba(255,255,255,.83) !important;
+  font-size: clamp(.92rem, 1.15vw, 1.06rem) !important;
+  line-height: 1.75 !important;
+}
+
+.lesson-page .lesson-hero__meta {
+  gap: 8px !important;
+  margin-top: 24px !important;
+}
+
+.lesson-page .lesson-hero__meta span {
+  padding: 8px 11px !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.08) !important;
+  color: rgba(255,255,255,.9) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.lesson-page .lesson-hero__aside {
+  min-width: 150px !important;
+}
+
+.lesson-page .lesson-number {
+  width: 132px !important;
+  height: 132px !important;
+  border-color: rgba(217,170,36,.62) !important;
+  background: rgba(255,255,255,.08) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    0 14px 32px rgba(0,0,0,.16) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.lesson-page .lesson-number span {
+  color: #e6ba37 !important;
+}
+
+.lesson-page .lesson-number strong {
+  color: #f5c537 !important;
+}
+
+.lesson-page .status-badge {
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: rgba(255,255,255,.93) !important;
+  color: #344359 !important;
+  box-shadow: 0 7px 18px rgba(0,0,0,.12) !important;
+}
+
+/* TABS */
+.lesson-page .lesson-tabs {
+  position: sticky;
+  top: 76px;
+  z-index: 45;
+  display: flex;
+  gap: 3px;
+  margin: 0 0 22px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  border: 1px solid var(--amv-line);
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 14px 34px rgba(27, 43, 65, .08);
+  backdrop-filter: blur(12px);
+  scrollbar-width: none;
+}
+
+.lesson-page .lesson-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.lesson-page .lesson-tabs a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: #536178;
+  font-size: .76rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: .18s ease;
+}
+
+.lesson-page .lesson-tabs a:hover {
+  background: var(--amv-wine-soft);
+  color: var(--amv-wine);
+}
+
+.lesson-page .lesson-tabs a:first-child {
+  background: var(--amv-wine-soft);
+  color: var(--amv-wine);
+}
+
+.lesson-page .lesson-tabs span {
+  color: var(--amv-gold-dark);
+  font-size: .62rem;
+  font-weight: 900;
+}
+
+/* PROGRESO / QUICK INFO */
+.lesson-page .learning-progress,
+.lesson-page .quick-info,
+.lesson-page .learning-path {
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 28px rgba(31,48,73,.045) !important;
+}
+
+.lesson-page .quick-info {
+  gap: 0 !important;
+  overflow: hidden !important;
+}
+
+.lesson-page .quick-info article {
+  min-height: 100px !important;
+  border: 0 !important;
+  border-right: 1px solid #edf1f5 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+}
+
+.lesson-page .quick-info article:last-child {
+  border-right: 0 !important;
+}
+
+.lesson-page .quick-info span {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .quick-info strong {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .learning-path {
+  scroll-margin-top: 150px !important;
+}
+
+/* GRID PRINCIPAL */
+.lesson-page .lesson-layout {
+  gap: 22px !important;
+  grid-template-columns: minmax(0, 1fr) 315px !important;
+  align-items: start !important;
+}
+
+.lesson-page .lesson-main {
+  gap: 18px !important;
+}
+
+.lesson-page .content-section,
+.lesson-page .academic-section,
+.lesson-page .teacher-notes,
+.lesson-page .sidebar-card,
+.lesson-page .next-sidebar,
+.lesson-page .unit-finished-sidebar {
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 30px rgba(31,48,73,.045) !important;
+}
+
+.lesson-page .content-section,
+.lesson-page .academic-section {
+  scroll-margin-top: 150px !important;
+}
+
+/* ENCABEZADOS */
+.lesson-page .section-heading > div > span,
+.lesson-page .sidebar-card__eyebrow {
+  color: var(--amv-gold-dark) !important;
+  letter-spacing: .08em !important;
+}
+
+.lesson-page .section-heading h2,
+.lesson-page .content-section h2,
+.lesson-page .sidebar-card h3 {
+  color: var(--amv-ink) !important;
+}
+
+.lesson-page .section-heading p,
+.lesson-page .content-section p,
+.lesson-page .sidebar-description {
+  color: var(--amv-muted) !important;
+}
+
+/* TARJETAS DE MATERIALES / ACTIVIDADES / EVALUACIONES */
+.lesson-page .primary-material,
+.lesson-page .resource-item,
+.lesson-page .assignment-card,
+.lesson-page .assessment-card {
+  border-color: #e4eaf1 !important;
+  background: #fbfcfe !important;
+  box-shadow: none !important;
+}
+
+.lesson-page .resource-item:hover,
+.lesson-page .assignment-card:hover,
+.lesson-page .assessment-card:hover {
+  border-color: #cfd9e5 !important;
+  background: #fff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 10px 24px rgba(31,48,73,.06) !important;
+}
+
+.lesson-page .material-button--primary,
+.lesson-page .assessment-card__action,
+.lesson-page .continue-button,
+.lesson-page .complete-button {
+  border-color: var(--amv-wine) !important;
+  background: var(--amv-wine) !important;
+  color: #fff !important;
+}
+
+.lesson-page .material-button--primary:hover,
+.lesson-page .assessment-card__action:hover,
+.lesson-page .continue-button:hover,
+.lesson-page .complete-button:hover {
+  background: var(--amv-wine-dark) !important;
+}
+
+/* SIDEBAR */
+.lesson-page .lesson-sidebar {
+  position: sticky !important;
+  top: 150px !important;
+  gap: 14px !important;
+}
+
+.lesson-page .sidebar-card {
+  padding: 20px !important;
+}
+
+.lesson-page .sidebar-card--progress {
+  background:
+    radial-gradient(circle at 88% 5%, rgba(166,21,75,.08), transparent 32%),
+    #fff !important;
+}
+
+.lesson-page .sidebar-progress-ring {
+  border-color: #e7edf4 !important;
+  background-color: #fff !important;
+}
+
+.lesson-page .sidebar-nav a {
+  border-radius: 10px !important;
+}
+
+.lesson-page .sidebar-nav a:hover {
+  background: #f7f9fc !important;
+}
+
+/* INFORMACIÓN */
+.lesson-page .class-data article {
+  border-color: #e4eaf1 !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page .class-data article span {
+  color: var(--amv-muted) !important;
+}
+
+.lesson-page .class-data article strong {
+  color: var(--amv-ink) !important;
+}
+
+/* NAVEGACIÓN ENTRE CLASES */
+.lesson-page .lesson-navigation {
+  gap: 12px !important;
+  margin-top: 24px !important;
+}
+
+.lesson-page .lesson-navigation__item,
+.lesson-page .lesson-navigation__program {
+  border: 1px solid var(--amv-line) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 8px 22px rgba(31,48,73,.04) !important;
+}
+
+/* RESPONSIVE · TABLET */
+@media (max-width: 1100px) {
+  .lesson-page .lesson-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page .lesson-sidebar {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+
+  .lesson-page .lesson-hero {
+    grid-template-columns: minmax(0,1fr) 120px !important;
+  }
+}
+
+/* RESPONSIVE · MOBILE */
+@media (max-width: 760px) {
+  .lesson-page .lesson-topbar {
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .lesson-page .teacher-actions {
+    width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  .lesson-page .unit-breadcrumb {
+    gap: 6px !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+
+  .lesson-page .lesson-hero {
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+    padding: 28px 22px !important;
+    border-radius: 18px 18px 0 0 !important;
+    background-position: 67% center !important;
+  }
+
+  .lesson-page .lesson-hero::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(8,17,31,.76) 0%,
+        rgba(8,17,31,.92) 55%,
+        rgba(8,17,31,.98) 100%
+      );
+    content: '';
+  }
+
+  .lesson-page .lesson-hero h1 {
+    max-width: 100% !important;
+    font-size: clamp(2.45rem, 12vw, 4rem) !important;
+    line-height: .98 !important;
+  }
+
+  .lesson-page .lesson-hero__description {
+    font-size: .9rem !important;
+    line-height: 1.62 !important;
+  }
+
+  .lesson-page .lesson-hero__aside {
+    display: flex !important;
+    min-width: 0 !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+
+  .lesson-page .lesson-number {
+    width: 78px !important;
+    height: 78px !important;
+  }
+
+  .lesson-page .lesson-number strong {
+    font-size: 1.55rem !important;
+  }
+
+  .lesson-page .lesson-tabs {
+    top: 66px !important;
+    margin-bottom: 16px !important;
+    border-radius: 0 0 14px 14px !important;
+  }
+
+  .lesson-page .lesson-tabs a {
+    min-height: 40px !important;
+    padding: 0 11px !important;
+    font-size: .7rem !important;
+  }
+
+  .lesson-page .quick-info {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+
+  .lesson-page .quick-info article {
+    min-height: 88px !important;
+    border-right: 1px solid #edf1f5 !important;
+    border-bottom: 1px solid #edf1f5 !important;
+  }
+
+  .lesson-page .lesson-sidebar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page .content-section,
+  .lesson-page .academic-section,
+  .lesson-page .teacher-notes {
+    padding: 18px !important;
+    border-radius: 15px !important;
+  }
+
+  .lesson-page .primary-material {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page .lesson-navigation {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page .lesson-navigation__program {
+    order: -1 !important;
+  }
+}
+
+/* MOBILE PEQUEÑO */
+@media (max-width: 480px) {
+  .lesson-page .lesson-hero {
+    padding: 24px 18px !important;
+  }
+
+  .lesson-page .lesson-hero h1 {
+    font-size: 2.35rem !important;
+  }
+
+  .lesson-page .lesson-hero__meta span {
+    padding: 7px 9px !important;
+    font-size: .56rem !important;
+  }
+
+  .lesson-page .quick-info {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .lesson-page .section-heading {
+    gap: 10px !important;
+  }
+
+  .lesson-page .lesson-tabs {
+    padding-inline: 8px !important;
+  }
+}
+
+
+/* =========================================================
+   V11 · AMO MI VOZ · MAX LEVEL / BLACKBOARD INSPIRED
+   Light-first, accesible, profesional y cómodo para
+   estudiantes, adultos mayores, niños y profesores.
+========================================================= */
+
+.lesson-page--max {
+  --max-bg: #f3f6fa;
+  --max-surface: #ffffff;
+  --max-surface-soft: #f8fafc;
+  --max-surface-tint: #fbfcfe;
+  --max-ink: #152033;
+  --max-copy: #344359;
+  --max-muted: #6e7c91;
+  --max-line: #dbe3ec;
+  --max-line-strong: #c9d4e1;
+  --max-wine: #9f1945;
+  --max-wine-dark: #7e1236;
+  --max-wine-soft: #fff2f6;
+  --max-gold: #d7a81f;
+  --max-gold-dark: #946c00;
+  --max-gold-soft: #fff8e8;
+  --max-green: #2c8b64;
+  --max-green-soft: #edf8f3;
+  --max-red: #bf4859;
+  --max-blue: #3f6fa8;
+  --max-shadow: 0 10px 28px rgba(31,48,73,.045);
+  color: var(--max-ink) !important;
+  background:
+    radial-gradient(circle at 88% 2%, rgba(159,25,69,.04), transparent 22%),
+    linear-gradient(180deg, #f7f9fc 0%, var(--max-bg) 100%) !important;
+}
+
+/* ---------- Accesibilidad base ---------- */
+.lesson-page--max a,
+.lesson-page--max button {
+  min-height: 40px;
+}
+
+.lesson-page--max :focus-visible {
+  outline: 3px solid rgba(159,25,69,.24) !important;
+  outline-offset: 3px !important;
+}
+
+.lesson-page--max p,
+.lesson-page--max li,
+.lesson-page--max small,
+.lesson-page--max span {
+  text-rendering: optimizeLegibility;
+}
+
+.lesson-page--max .lesson-hero__description--readable {
+  max-width: 830px !important;
+}
+
+/* ---------- Topbar ---------- */
+.lesson-page--max .lesson-topbar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 56px !important;
+  margin-bottom: 14px !important;
+}
+
+.lesson-page--max .back-link {
+  color: var(--max-wine) !important;
+  font-size: .84rem !important;
+  font-weight: 850 !important;
+}
+
+.lesson-page--max .lesson-mode-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  padding: 8px 11px;
+  border: 1px solid var(--max-line);
+  border-radius: 999px;
+  background: #fff;
+  color: #56657a;
+  font-size: .69rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.lesson-page--max .lesson-mode-chip span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--max-green);
+  box-shadow: 0 0 0 4px rgba(44,139,100,.10);
+}
+
+.lesson-page--max .lesson-mode-chip--teacher span {
+  background: var(--max-gold);
+  box-shadow: 0 0 0 4px rgba(215,168,31,.12);
+}
+
+.lesson-page--max .teacher-actions {
+  margin-left: 0 !important;
+}
+
+.lesson-page--max .teacher-button {
+  min-height: 42px !important;
+  border: 1px solid var(--max-line) !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: var(--max-copy) !important;
+  font-size: .75rem !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+
+.lesson-page--max .teacher-button:hover {
+  border-color: #b9c7d7 !important;
+  background: #f9fbfd !important;
+}
+
+.lesson-page--max .teacher-button--primary {
+  border-color: var(--max-wine) !important;
+  background: var(--max-wine) !important;
+  color: #fff !important;
+}
+
+/* ---------- Breadcrumb ---------- */
+.lesson-page--max .unit-breadcrumb {
+  margin-bottom: 14px !important;
+  padding: 11px 14px !important;
+  border: 1px solid var(--max-line) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.96) !important;
+  color: var(--max-muted) !important;
+  box-shadow: 0 4px 14px rgba(31,48,73,.025) !important;
+}
+
+.lesson-page--max .unit-breadcrumb span:first-child {
+  color: var(--max-gold-dark) !important;
+  font-weight: 900 !important;
+}
+
+.lesson-page--max .unit-breadcrumb strong {
+  color: var(--max-ink) !important;
+}
+
+/* ---------- Hero ---------- */
+.lesson-page--max .lesson-hero {
+  min-height: 405px !important;
+  padding: clamp(30px,4vw,54px) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 22px 22px 0 0 !important;
+  background-color: #111b2e !important;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(10,18,31,.92) 0%,
+      rgba(10,18,31,.82) 34%,
+      rgba(10,18,31,.51) 64%,
+      rgba(10,18,31,.58) 100%
+    ),
+    var(--lesson-cover-image) !important;
+  background-size: cover !important;
+  background-position: var(--lesson-cover-position, center) !important;
+  box-shadow: 0 20px 46px rgba(30,45,68,.12) !important;
+}
+
+.lesson-page--max .lesson-hero::before {
+  background:
+    linear-gradient(180deg, rgba(11,20,34,.02), rgba(7,15,27,.18)),
+    radial-gradient(circle at 75% 35%, rgba(159,25,69,.12), transparent 34%) !important;
+}
+
+.lesson-page--max .lesson-hero h1 {
+  max-width: 790px !important;
+  margin-top: 16px !important;
+  color: #fff !important;
+  font-size: clamp(2.8rem,5.5vw,5rem) !important;
+  line-height: .98 !important;
+  letter-spacing: -.05em !important;
+}
+
+.lesson-page--max .lesson-hero__eyebrow {
+  color: #f0c443 !important;
+  font-size: .72rem !important;
+}
+
+.lesson-page--max .lesson-hero__description {
+  margin-top: 20px !important;
+  color: rgba(255,255,255,.87) !important;
+  font-size: clamp(.95rem,1.1vw,1.05rem) !important;
+  line-height: 1.72 !important;
+}
+
+.lesson-page--max .lesson-hero__meta {
+  gap: 8px !important;
+  margin-top: 22px !important;
+}
+
+.lesson-page--max .lesson-hero__meta span {
+  padding: 8px 11px !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.10) !important;
+  color: #fff !important;
+  font-size: .66rem !important;
+  backdrop-filter: blur(8px);
+}
+
+.lesson-page--max .lesson-number {
+  width: 118px !important;
+  height: 118px !important;
+  border-color: rgba(236,193,59,.7) !important;
+  background: rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(10px);
+}
+
+.lesson-page--max .lesson-number span {
+  color: #f0c443 !important;
+}
+
+.lesson-page--max .lesson-number strong {
+  color: #ffd95c !important;
+}
+
+/* ---------- Tabs tipo Blackboard ---------- */
+.lesson-page--max .lesson-tabs {
+  position: sticky !important;
+  top: 76px !important;
+  z-index: 45 !important;
+  display: flex !important;
+  gap: 2px !important;
+  margin: 0 0 18px !important;
+  padding: 7px 10px !important;
+  overflow-x: auto !important;
+  border: 1px solid var(--max-line) !important;
+  border-top: 0 !important;
+  border-radius: 0 0 16px 16px !important;
+  background: rgba(255,255,255,.97) !important;
+  box-shadow: 0 12px 26px rgba(31,48,73,.07) !important;
+  backdrop-filter: blur(12px) !important;
+  scrollbar-width: none;
+}
+
+.lesson-page--max .lesson-tabs::-webkit-scrollbar { display: none; }
+
+.lesson-page--max .lesson-tabs a {
+  min-height: 42px !important;
+  padding: 0 13px !important;
+  border-radius: 9px !important;
+  color: #5b6980 !important;
+  font-size: .72rem !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+}
+
+.lesson-page--max .lesson-tabs a:first-child {
+  background: var(--max-wine-soft) !important;
+  color: var(--max-wine) !important;
+}
+
+.lesson-page--max .lesson-tabs a:hover {
+  background: #f7f9fc !important;
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .lesson-tabs span {
+  color: var(--max-gold-dark) !important;
+  font-size: .59rem !important;
+}
+
+/* ---------- Resumen/progreso ---------- */
+.lesson-page--max .learning-progress,
+.lesson-page--max .quick-info,
+.lesson-page--max .learning-path {
+  border: 1px solid var(--max-line) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: var(--max-ink) !important;
+  box-shadow: var(--max-shadow) !important;
+}
+
+.lesson-page--max .learning-progress {
+  padding: 18px 20px !important;
+}
+
+.lesson-page--max .learning-progress__content > span {
+  color: var(--max-gold-dark) !important;
+}
+
+.lesson-page--max .learning-progress h2,
+.lesson-page--max .learning-progress strong,
+.lesson-page--max .learning-path h2 {
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .learning-progress p,
+.lesson-page--max .learning-path p {
+  color: var(--max-muted) !important;
+}
+
+.lesson-page--max .quick-info {
+  gap: 0 !important;
+  overflow: hidden !important;
+}
+
+.lesson-page--max .quick-info article {
+  min-height: 96px !important;
+  padding: 17px 18px !important;
+  border: 0 !important;
+  border-right: 1px solid #edf1f5 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+}
+
+.lesson-page--max .quick-info article:last-child {
+  border-right: 0 !important;
+}
+
+.lesson-page--max .quick-info span {
+  color: #758297 !important;
+  font-size: .61rem !important;
+}
+
+.lesson-page--max .quick-info strong {
+  color: var(--max-gold-dark) !important;
+}
+
+.lesson-page--max .quick-info__text {
+  color: var(--max-ink) !important;
+}
+
+/* ---------- Ruta de aprendizaje ---------- */
+.lesson-page--max .learning-path {
+  overflow: hidden !important;
+  scroll-margin-top: 145px;
+}
+
+.lesson-page--max .learning-path__header {
+  padding: 18px 20px !important;
+  border-bottom: 1px solid #edf1f5 !important;
+  background: #fbfcfe !important;
+}
+
+.lesson-page--max .learning-path__heading > div:last-child > span {
+  color: var(--max-gold-dark) !important;
+}
+
+.lesson-page--max .learning-path__ring {
+  background-color: #fff !important;
+}
+
+.lesson-page--max .learning-path__ring > span {
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .learning-path-item {
+  min-height: 72px !important;
+  padding: 13px 18px !important;
+  border-bottom: 1px solid #edf1f5 !important;
+  background: #fff !important;
+}
+
+.lesson-page--max .learning-path-item:last-child {
+  border-bottom: 0 !important;
+}
+
+.lesson-page--max .learning-path-item__copy span {
+  color: #748198 !important;
+}
+
+.lesson-page--max .learning-path-item__copy strong {
+  color: var(--max-ink) !important;
+  font-size: .82rem !important;
+}
+
+.lesson-page--max .learning-path-item__status {
+  color: #56657a !important;
+}
+
+/* ---------- Centro docente ---------- */
+.lesson-page--max .teacher-command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 20px;
+  border: 1px solid #eadca9;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 96% 8%, rgba(215,168,31,.10), transparent 26%),
+    linear-gradient(135deg,#fff,#fffaf1);
+  box-shadow: var(--max-shadow);
+}
+
+.lesson-page--max .teacher-command__copy > span {
+  color: var(--max-gold-dark);
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.lesson-page--max .teacher-command__copy h2 {
+  margin: 5px 0 4px;
+  color: var(--max-ink);
+  font-size: 1.1rem;
+}
+
+.lesson-page--max .teacher-command__copy p {
+  margin: 0;
+  color: var(--max-muted);
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+.lesson-page--max .teacher-command__actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.lesson-page--max .teacher-command__button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid #d7dee7;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--max-copy);
+  font-size: .72rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.lesson-page--max .teacher-command__button--primary {
+  border-color: var(--max-wine);
+  background: var(--max-wine);
+  color: #fff;
+}
+
+/* ---------- Layout principal Blackboard ---------- */
+.lesson-page--max .lesson-layout {
+  grid-template-columns: minmax(0,1fr) 300px !important;
+  gap: 18px !important;
+  align-items: start !important;
+}
+
+.lesson-page--max .lesson-main {
+  gap: 16px !important;
+}
+
+.lesson-page--max .content-section,
+.lesson-page--max .academic-section,
+.lesson-page--max .teacher-notes,
+.lesson-page--max .sidebar-card,
+.lesson-page--max .next-sidebar,
+.lesson-page--max .unit-finished-sidebar {
+  padding: 22px !important;
+  border: 1px solid var(--max-line) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: var(--max-ink) !important;
+  box-shadow: var(--max-shadow) !important;
+}
+
+.lesson-page--max .content-section,
+.lesson-page--max .academic-section {
+  scroll-margin-top: 145px !important;
+}
+
+.lesson-page--max .section-heading > div > span,
+.lesson-page--max .sidebar-card__eyebrow,
+.lesson-page--max .teacher-notes > header span {
+  color: var(--max-gold-dark) !important;
+  letter-spacing: .08em !important;
+}
+
+.lesson-page--max .section-heading h2,
+.lesson-page--max .content-section h2,
+.lesson-page--max .sidebar-card h3,
+.lesson-page--max .teacher-notes h2,
+.lesson-page--max .academic-section h2 {
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .section-heading p,
+.lesson-page--max .content-section p,
+.lesson-page--max .sidebar-description,
+.lesson-page--max .academic-section p {
+  color: var(--max-muted) !important;
+}
+
+.lesson-page--max .section-count {
+  border-color: #e6d38f !important;
+  background: var(--max-gold-soft) !important;
+  color: var(--max-gold-dark) !important;
+}
+
+/* ---------- Materiales / tareas / evaluaciones ---------- */
+.lesson-page--max .primary-material,
+.lesson-page--max .resource-item,
+.lesson-page--max .assignment-card,
+.lesson-page--max .assessment-card,
+.lesson-page--max .academic-block,
+.lesson-page--max .teacher-note {
+  border: 1px solid #e1e8f0 !important;
+  border-radius: 13px !important;
+  background: #fbfcfe !important;
+  color: var(--max-ink) !important;
+  box-shadow: none !important;
+}
+
+.lesson-page--max .primary-material {
+  padding: 16px !important;
+}
+
+.lesson-page--max .primary-material__visual {
+  border-color: #e7d699 !important;
+  background: #fffaf0 !important;
+}
+
+.lesson-page--max .primary-material strong,
+.lesson-page--max .resource-item strong,
+.lesson-page--max .assignment-card strong,
+.lesson-page--max .assessment-card strong,
+.lesson-page--max .academic-block strong {
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .resource-item:hover,
+.lesson-page--max .assignment-card:hover,
+.lesson-page--max .assessment-card:hover {
+  border-color: #cbd6e2 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 20px rgba(31,48,73,.05) !important;
+  transform: translateY(-1px);
+}
+
+.lesson-page--max .material-button {
+  min-height: 40px !important;
+  border-color: var(--max-line-strong) !important;
+  background: #fff !important;
+  color: var(--max-copy) !important;
+}
+
+.lesson-page--max .material-button--primary,
+.lesson-page--max .assessment-card__action,
+.lesson-page--max .continue-button,
+.lesson-page--max .complete-button {
+  border-color: var(--max-wine) !important;
+  background: var(--max-wine) !important;
+  color: #fff !important;
+}
+
+.lesson-page--max .material-button--primary:hover,
+.lesson-page--max .assessment-card__action:hover,
+.lesson-page--max .continue-button:hover,
+.lesson-page--max .complete-button:hover {
+  background: var(--max-wine-dark) !important;
+}
+
+/* ---------- Clases informativas ---------- */
+.lesson-page--max .class-data article {
+  border-color: #e1e8f0 !important;
+  background: #f8fafc !important;
+}
+
+.lesson-page--max .class-data article span {
+  color: #748198 !important;
+}
+
+.lesson-page--max .class-data article strong {
+  color: var(--max-ink) !important;
+}
+
+/* ---------- Académico / notas profesor ---------- */
+.lesson-page--max .academic-section,
+.lesson-page--max .teacher-notes {
+  background:
+    radial-gradient(circle at 98% 3%, rgba(215,168,31,.06), transparent 25%),
+    #fff !important;
+}
+
+.lesson-page--max .teacher-notes > header {
+  border-bottom: 1px solid #edf1f5 !important;
+}
+
+.lesson-page--max .teacher-notes > header a {
+  border-color: #e3ce80 !important;
+  background: #fffaf0 !important;
+  color: var(--max-gold-dark) !important;
+}
+
+/* ---------- Sidebar ---------- */
+.lesson-page--max .lesson-sidebar {
+  position: sticky !important;
+  top: 145px !important;
+  gap: 12px !important;
+}
+
+.lesson-page--max .sidebar-card {
+  padding: 18px !important;
+}
+
+.lesson-page--max .sidebar-card--progress {
+  background:
+    radial-gradient(circle at 92% 4%, rgba(159,25,69,.06), transparent 30%),
+    #fff !important;
+}
+
+.lesson-page--max .sidebar-progress-ring {
+  background-color: #fff !important;
+  border-color: #e3e9f0 !important;
+}
+
+.lesson-page--max .sidebar-progress-ring strong {
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .sidebar-nav a {
+  border-radius: 10px !important;
+  color: var(--max-copy) !important;
+}
+
+.lesson-page--max .sidebar-nav a:hover {
+  background: #f7f9fc !important;
+}
+
+/* ---------- Completion ---------- */
+.lesson-page--max .completion-section {
+  border: 1px solid #e5d38f !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg,#fff,#fffaf0) !important;
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .completion-section h2,
+.lesson-page--max .completion-section strong {
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .completion-section p {
+  color: var(--max-muted) !important;
+}
+
+/* ---------- Navegación inferior ---------- */
+.lesson-page--max .lesson-navigation {
+  gap: 10px !important;
+  margin-top: 20px !important;
+}
+
+.lesson-page--max .lesson-navigation__item,
+.lesson-page--max .lesson-navigation__program {
+  border: 1px solid var(--max-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  color: var(--max-copy) !important;
+  box-shadow: 0 7px 20px rgba(31,48,73,.035) !important;
+}
+
+.lesson-page--max .lesson-navigation__item:hover,
+.lesson-page--max .lesson-navigation__program:hover {
+  border-color: #cbd6e2 !important;
+  background: #fbfcfe !important;
+}
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1100px) {
+  .lesson-page--max .lesson-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page--max .lesson-sidebar {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .lesson-page--max .teacher-command {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* ---------- Mobile / niños / adultos mayores ---------- */
+@media (max-width: 760px) {
+  .lesson-page--max {
+    font-size: 16px;
+  }
+
+  .lesson-page--max .lesson-topbar {
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  .lesson-page--max .lesson-mode-chip {
+    margin-left: 0;
+  }
+
+  .lesson-page--max .teacher-actions {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .lesson-page--max .unit-breadcrumb {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .lesson-page--max .lesson-hero {
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 28px 22px !important;
+    background-position: 68% center !important;
+  }
+
+  .lesson-page--max .lesson-hero::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(10,18,31,.55) 0%,
+        rgba(10,18,31,.84) 55%,
+        rgba(10,18,31,.94) 100%
+      );
+    content: '';
+  }
+
+  .lesson-page--max .lesson-hero h1 {
+    font-size: clamp(2.35rem,11vw,3.6rem) !important;
+  }
+
+  .lesson-page--max .lesson-hero__description {
+    font-size: .96rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .lesson-page--max .lesson-hero__aside {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+
+  .lesson-page--max .lesson-number {
+    width: 82px !important;
+    height: 82px !important;
+  }
+
+  .lesson-page--max .lesson-tabs {
+    top: 66px !important;
+    border-radius: 0 0 13px 13px !important;
+  }
+
+  .lesson-page--max .lesson-tabs a {
+    min-height: 44px !important;
+    padding: 0 12px !important;
+    font-size: .74rem !important;
+  }
+
+  .lesson-page--max .quick-info {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .lesson-page--max .quick-info article {
+    min-height: 92px !important;
+    border-right: 1px solid #edf1f5 !important;
+    border-bottom: 1px solid #edf1f5 !important;
+  }
+
+  .lesson-page--max .teacher-command__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .lesson-page--max .teacher-command__button {
+    width: 100%;
+  }
+
+  .lesson-page--max .lesson-sidebar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page--max .content-section,
+  .lesson-page--max .academic-section,
+  .lesson-page--max .teacher-notes,
+  .lesson-page--max .sidebar-card {
+    padding: 18px !important;
+  }
+
+  .lesson-page--max .primary-material {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page--max .lesson-navigation {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-page--max .lesson-navigation__program {
+    order: -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .lesson-page--max .lesson-hero {
+    padding: 24px 18px !important;
+  }
+
+  .lesson-page--max .lesson-hero h1 {
+    font-size: 2.45rem !important;
+  }
+
+  .lesson-page--max .lesson-hero__meta {
+    display: grid !important;
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .lesson-page--max .lesson-hero__meta span {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .lesson-page--max .quick-info {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+
+/* =========================================================
+   V11.1 · PROGRESO DEL ALUMNO · REDISEÑO ACCESIBLE
+========================================================= */
+
+.lesson-page--max .student-progress-card {
+  display: grid !important;
+  gap: 16px !important;
+  padding: 18px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(159,25,69,.055), transparent 32%),
+    #fff !important;
+}
+
+.lesson-page--max .student-progress-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lesson-page--max .student-progress-card__header > div {
+  min-width: 0;
+}
+
+.lesson-page--max .student-progress-card__header .sidebar-card__eyebrow {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.lesson-page--max .student-progress-card__header strong {
+  display: block;
+  color: var(--max-ink) !important;
+  font-size: .83rem;
+  line-height: 1.3;
+}
+
+.lesson-page--max .student-progress-card__state {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0 9px;
+  border: 1px solid #ead898;
+  border-radius: 999px;
+  background: #fff9e9;
+  color: #8e6900 !important;
+  font-size: .6rem;
+  font-weight: 900;
+}
+
+.lesson-page--max .student-progress-card__state--done {
+  border-color: #bfe6d4;
+  background: var(--max-green-soft);
+  color: #217752 !important;
+}
+
+.lesson-page--max .student-progress-card__summary {
+  display: grid;
+  grid-template-columns: 88px minmax(0,1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.lesson-page--max .student-progress-card__percentage {
+  display: grid;
+  width: 88px;
+  height: 88px;
+  place-items: center;
+  align-content: center;
+  border: 1px solid #e5eaf0;
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg,#fff,#f8fafc);
+  box-shadow:
+    inset 0 0 0 6px #f4f6f9,
+    0 8px 20px rgba(31,48,73,.04);
+}
+
+.lesson-page--max .student-progress-card__percentage strong {
+  color: var(--max-wine) !important;
+  font-size: 1.65rem;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.lesson-page--max .student-progress-card__percentage span {
+  margin-top: 4px;
+  color: #7a8798 !important;
+  font-size: .53rem;
+  font-weight: 750;
+}
+
+.lesson-page--max .student-progress-card__copy {
+  min-width: 0;
+}
+
+.lesson-page--max .student-progress-card__copy h3 {
+  margin: 0 !important;
+  color: var(--max-ink) !important;
+  font-size: .92rem !important;
+  line-height: 1.35 !important;
+  letter-spacing: -.01em;
+}
+
+.lesson-page--max .student-progress-card__copy p {
+  margin: 6px 0 0 !important;
+  color: var(--max-muted) !important;
+  font-size: .66rem !important;
+  line-height: 1.5 !important;
+}
+
+.lesson-page--max .student-progress-card__track {
+  display: grid;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.lesson-page--max .student-progress-card__track > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lesson-page--max .student-progress-card__track span {
+  color: #6e7c91 !important;
+  font-size: .61rem;
+  font-weight: 750;
+}
+
+.lesson-page--max .student-progress-card__track strong {
+  color: var(--max-gold-dark) !important;
+  font-size: .7rem;
+}
+
+.lesson-page--max .student-progress-card__bar {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1f5;
+}
+
+.lesson-page--max .student-progress-card__bar > span {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      var(--max-wine),
+      #c82f62
+    );
+  transition: width .35s ease;
+}
+
+.lesson-page--max .student-progress-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #edf1f5;
+}
+
+.lesson-page--max .student-progress-card__remaining {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.lesson-page--max .student-progress-card__remaining-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--max-wine-soft);
+  color: var(--max-wine) !important;
+  font-size: .8rem;
+  font-weight: 900;
+}
+
+.lesson-page--max .student-progress-card__remaining-icon--done {
+  background: var(--max-green-soft);
+  color: var(--max-green) !important;
+}
+
+.lesson-page--max .student-progress-card__remaining p {
+  min-width: 0;
+  margin: 0 !important;
+}
+
+.lesson-page--max .student-progress-card__remaining strong,
+.lesson-page--max .student-progress-card__remaining small {
+  display: block;
+}
+
+.lesson-page--max .student-progress-card__remaining strong {
+  color: var(--max-ink) !important;
+  font-size: .65rem;
+  line-height: 1.25;
+}
+
+.lesson-page--max .student-progress-card__remaining small {
+  margin-top: 2px;
+  color: #8390a1 !important;
+  font-size: .55rem;
+  line-height: 1.35;
+}
+
+.lesson-page--max .student-progress-card__continue {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 0 11px;
+  border: 1px solid var(--max-wine);
+  border-radius: 9px;
+  background: var(--max-wine);
+  color: #fff !important;
+  font-size: .62rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.lesson-page--max .student-progress-card__continue:hover {
+  background: var(--max-wine-dark);
+}
+
+@media (max-width: 1100px) {
+  .lesson-page--max .student-progress-card {
+    min-height: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .lesson-page--max .student-progress-card {
+    gap: 14px !important;
+    padding: 17px !important;
+  }
+
+  .lesson-page--max .student-progress-card__summary {
+    grid-template-columns: 78px minmax(0,1fr);
+  }
+
+  .lesson-page--max .student-progress-card__percentage {
+    width: 78px;
+    height: 78px;
+    border-radius: 19px;
+  }
+
+  .lesson-page--max .student-progress-card__percentage strong {
+    font-size: 1.45rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .lesson-page--max .student-progress-card__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lesson-page--max .student-progress-card__continue {
+    width: 100%;
+    min-height: 44px;
   }
 }
 
