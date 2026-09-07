@@ -1150,29 +1150,55 @@
                   </div>
                 </div>
 
+                <div
+                  v-if="isTeacher"
+                  class="assessment-card__teacher-actions"
+                >
+                  <RouterLink
+                    :to="
+                      `/aula/clase/${lesson.id}/trabajo#evaluaciones`
+                    "
+                    class="
+                      assessment-card__action
+                      assessment-card__action--secondary
+                    "
+                  >
+                    Gestionar
+                  </RouterLink>
+
+                  <RouterLink
+                    :to="
+                      `/aula/clase/${lesson.id}/evaluacion/${quiz.id}/intentos`
+                    "
+                    class="
+                      assessment-card__action
+                      assessment-card__action--review
+                    "
+                  >
+                    Revisar intentos
+                    <span>→</span>
+                  </RouterLink>
+                </div>
+
                 <RouterLink
+                  v-else
                   :to="
-                    isTeacher
-                      ? `/aula/clase/${lesson.id}/trabajo#evaluaciones`
-                      : isQuizCompleted(quiz)
-                        ? '/aula/evaluaciones'
-                        : `/aula/clase/${lesson.id}/evaluacion/${quiz.id}`
+                    isQuizCompleted(quiz)
+                      ? '/aula/evaluaciones'
+                      : `/aula/clase/${lesson.id}/evaluacion/${quiz.id}`
                   "
                   class="assessment-card__action"
                   @click="
-                    !isTeacher &&
                     !isQuizCompleted(quiz) &&
                     handleQuizOpen(quiz)
                   "
                 >
                   {{
-                    isTeacher
-                      ? 'Administrar'
-                      : isQuizCompleted(quiz)
-                        ? 'Ver resultados'
-                        : quiz.status === 'published'
-                          ? 'Comenzar evaluación'
-                          : 'Ver estado'
+                    isQuizCompleted(quiz)
+                      ? 'Ver resultados'
+                      : quiz.status === 'published'
+                        ? 'Comenzar evaluación'
+                        : 'Ver estado'
                   }}
                   <span>→</span>
                 </RouterLink>
@@ -8011,6 +8037,104 @@ a.lesson-navigation__item:hover,
 @media (max-width: 480px) {
   .lesson-page .quick-info {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   V7.9 · FLUJO PROFESOR · EVALUACIONES
+   Gestión separada de revisión de intentos
+========================================================= */
+
+.lesson-page .assessment-card__teacher-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.lesson-page .assessment-card__teacher-actions
+.assessment-card__action {
+  min-height: 42px;
+}
+
+.lesson-page
+.assessment-card__action--secondary {
+  border-color: var(--amv-line-strong) !important;
+  color: var(--amv-ink-soft) !important;
+  background: #ffffff !important;
+}
+
+.lesson-page
+.assessment-card__action--secondary:hover {
+  border-color: #b8c5d3 !important;
+  color: var(--amv-wine) !important;
+  background: var(--amv-surface-soft) !important;
+}
+
+.lesson-page
+.assessment-card__action--review {
+  border-color: var(--amv-wine) !important;
+  color: #ffffff !important;
+  background: var(--amv-wine) !important;
+  box-shadow:
+    0 6px 14px
+    rgba(159, 25, 69, 0.13);
+}
+
+.lesson-page
+.assessment-card__action--review:hover {
+  border-color: var(--amv-wine-dark) !important;
+  background: var(--amv-wine-dark) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 8px 18px
+    rgba(127, 18, 55, 0.16);
+}
+
+.lesson-page
+.assessment-card__action--review:focus-visible,
+.lesson-page
+.assessment-card__action--secondary:focus-visible {
+  outline:
+    3px solid
+    rgba(159, 25, 69, 0.16);
+  outline-offset: 3px;
+}
+
+/*
+ * Para el profesor la tarjeta actúa como centro de gestión:
+ * - Gestionar: vuelve a Contenidos y evaluaciones.
+ * - Revisar intentos: abre entregas/corrección del quiz.
+ *
+ * Para el alumno se mantiene intacto el flujo:
+ * comenzar -> completar -> ver resultados.
+ */
+
+@media (max-width: 760px) {
+  .lesson-page .assessment-card__teacher-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .lesson-page .assessment-card__teacher-actions
+  .assessment-card__action {
+    flex: 1 1 170px;
+  }
+}
+
+@media (max-width: 520px) {
+  .lesson-page .assessment-card__teacher-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lesson-page .assessment-card__teacher-actions
+  .assessment-card__action {
+    width: 100%;
+    flex: 0 0 auto;
   }
 }
 
