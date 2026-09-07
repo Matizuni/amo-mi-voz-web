@@ -568,23 +568,23 @@ export async function saveTeacherQuestionReview({
   return {
     attemptId:
       Number(
-        row?.attempt_id ||
+        row?.result_attempt_id ||
         parsedAttemptId,
       ),
 
     questionId:
       Number(
-        row?.question_id ||
+        row?.result_question_id ||
         parsedQuestionId,
       ),
 
     scoreAwarded:
       toNumberOrNull(
-        row?.score_awarded,
+        row?.result_score_awarded,
       ),
 
     teacherFeedback:
-      row?.teacher_feedback ||
+      row?.result_teacher_feedback ||
       '',
   }
 }

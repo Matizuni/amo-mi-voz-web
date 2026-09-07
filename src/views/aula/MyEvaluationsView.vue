@@ -397,6 +397,28 @@
                       : 'Pendiente'
                 }}
               </div>
+
+              <RouterLink
+                v-if="
+                  attempt.status === 'graded' ||
+                  attempt.passed !== null ||
+                  attempt.score !== null
+                "
+                :to="
+                  `/aula/evaluaciones/intento/${attempt.attemptId}`
+                "
+                class="attempt-row__review"
+              >
+                Ver revisión
+                <span>→</span>
+              </RouterLink>
+
+              <span
+                v-else
+                class="attempt-row__review-pending"
+              >
+                En revisión
+              </span>
             </article>
           </div>
 
@@ -464,15 +486,14 @@
           </span>
 
           <h2>
-            Revisión de respuestas
+            Revisa cómo te fue
           </h2>
 
           <p>
-            Este historial ya muestra tus resultados reales.
-            El siguiente módulo permitirá revisar pregunta por
-            pregunta qué acertaste, qué fallaste y qué contenido
-            conviene reforzar, siempre respetando la configuración
-            del profesor.
+            Cuando una evaluación ya fue corregida, puedes abrir
+            cada intento y revisar pregunta por pregunta tus respuestas,
+            el puntaje obtenido, las respuestas correctas y la
+            retroalimentación disponible del profesor.
           </p>
         </div>
       </section>
@@ -2684,6 +2705,110 @@ button.filter-tab--active {
 
   .evaluations-page .learning-panel {
     grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* =========================================================
+   V7.9 · REVISIÓN DE INTENTOS · ALUMNO
+========================================================= */
+
+.evaluations-page .attempt-row {
+  grid-template-columns:
+    90px
+    minmax(150px, 1fr)
+    minmax(140px, auto)
+    auto
+    auto !important;
+}
+
+.evaluations-page .attempt-row__review {
+  display: inline-flex !important;
+  min-height: 40px !important;
+  gap: 7px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  border: 1px solid var(--me-wine) !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  background: var(--me-wine) !important;
+  font-size: .62rem !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    transform .18s ease !important;
+}
+
+.evaluations-page .attempt-row__review:hover {
+  border-color: var(--me-wine-dark) !important;
+  background: var(--me-wine-dark) !important;
+  transform: translateY(-1px);
+}
+
+.evaluations-page .attempt-row__review:focus-visible {
+  outline: 3px solid rgba(159, 25, 69, .16) !important;
+  outline-offset: 3px !important;
+}
+
+.evaluations-page .attempt-row__review-pending {
+  display: inline-flex !important;
+  min-height: 40px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  border: 1px solid #ead79c !important;
+  border-radius: 10px !important;
+  color: var(--me-gold-dark) !important;
+  background: var(--me-gold-soft) !important;
+  font-size: .58rem !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1050px) {
+  .evaluations-page .attempt-row {
+    grid-template-columns:
+      80px
+      minmax(0, 1fr)
+      auto
+      auto !important;
+  }
+
+  .evaluations-page .attempt-row__result {
+    grid-column: 2 !important;
+    justify-self: start !important;
+  }
+
+  .evaluations-page .attempt-row__review,
+  .evaluations-page .attempt-row__review-pending {
+    grid-column: 3 / -1 !important;
+    justify-self: end !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .evaluations-page .attempt-row {
+    grid-template-columns: 68px minmax(0, 1fr) !important;
+  }
+
+  .evaluations-page .attempt-row__score {
+    grid-column: 2 !important;
+    text-align: left !important;
+  }
+
+  .evaluations-page .attempt-row__result {
+    grid-column: 2 !important;
+  }
+
+  .evaluations-page .attempt-row__review,
+  .evaluations-page .attempt-row__review-pending {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    justify-self: stretch !important;
   }
 }
 
