@@ -2043,4 +2043,648 @@ button.filter-tab--active {
     height: 48px;
   }
 }
+
+
+/* =========================================================
+   V7.8 · MY EVALUATIONS · PREMIUM LIGHT LMS
+   Rediseño completo del historial del estudiante.
+========================================================= */
+
+.evaluations-page {
+  --me-ink: #152033;
+  --me-ink-soft: #344359;
+  --me-muted: #6f7c8f;
+  --me-muted-2: #8b98aa;
+  --me-line: #dbe3ec;
+  --me-line-strong: #cbd6e2;
+  --me-surface: #ffffff;
+  --me-surface-soft: #f7f9fc;
+  --me-wine: #9f1945;
+  --me-wine-dark: #7f1237;
+  --me-gold: #d9a91d;
+  --me-gold-dark: #987000;
+  --me-gold-soft: #fff8e7;
+  --me-green: #2d8a63;
+  --me-green-soft: #edf8f3;
+  --me-blue: #3f6fa8;
+  --me-blue-soft: #eef5fc;
+  --me-red: #be4856;
+  --me-red-soft: #fff3f5;
+
+  width: min(1240px, calc(100% - 40px)) !important;
+  margin-inline: auto !important;
+  padding: 38px 0 72px !important;
+  color: var(--me-ink) !important;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.evaluations-page .evaluations-hero {
+  position: relative;
+  display: grid !important;
+  gap: 28px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  margin-bottom: 16px !important;
+  padding: 30px 32px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--me-line) !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(217,169,29,.12), transparent 30%),
+    linear-gradient(135deg,#fff 0%,#fbfcfe 68%,#fffaf0 100%) !important;
+  box-shadow: 0 14px 36px rgba(31,48,73,.055) !important;
+}
+
+.evaluations-page .evaluations-hero::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 132px;
+  height: 3px;
+  content: '';
+  background: linear-gradient(90deg,var(--me-wine),var(--me-gold));
+}
+
+.evaluations-page .eyebrow {
+  color: var(--me-gold-dark) !important;
+  font-size: .6rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .14em !important;
+}
+
+.evaluations-page .evaluations-hero h1 {
+  margin: 8px 0 10px !important;
+  color: var(--me-ink) !important;
+  font-size: clamp(2.7rem,5.6vw,4.8rem) !important;
+  line-height: .98 !important;
+  letter-spacing: -.045em !important;
+}
+
+.evaluations-page .evaluations-hero h1 span {
+  color: var(--me-gold-dark) !important;
+}
+
+.evaluations-page .evaluations-hero p {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: var(--me-muted) !important;
+  font-size: .82rem !important;
+  line-height: 1.65 !important;
+}
+
+.evaluations-page .evaluations-hero__badge {
+  display: grid !important;
+  width: 145px !important;
+  min-height: 145px !important;
+  place-items: center !important;
+  align-content: center !important;
+  border: 1px solid #e4cf86 !important;
+  border-radius: 50% !important;
+  background: #fffaf0 !important;
+  box-shadow: inset 0 0 0 6px rgba(217,169,29,.04) !important;
+}
+
+.evaluations-page .evaluations-hero__badge small,
+.evaluations-page .evaluations-hero__badge span {
+  color: #8b7d52 !important;
+  font-size: .52rem !important;
+  font-weight: 800 !important;
+}
+
+.evaluations-page .evaluations-hero__badge strong {
+  margin: 4px 0 !important;
+  color: var(--me-gold-dark) !important;
+  font-size: 2.4rem !important;
+}
+
+/* =========================================================
+   STATES
+========================================================= */
+
+.evaluations-page .state-card,
+.evaluations-page .empty-state {
+  border: 1px solid var(--me-line) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 9px 26px rgba(31,48,73,.04) !important;
+}
+
+.evaluations-page .state-card strong,
+.evaluations-page .empty-state h2,
+.evaluations-page .empty-state span {
+  color: var(--me-ink) !important;
+}
+
+.evaluations-page .state-card p,
+.evaluations-page .empty-state p {
+  color: var(--me-muted) !important;
+}
+
+.evaluations-page .state-card button,
+.evaluations-page .empty-state a {
+  border-color: var(--me-wine) !important;
+  color: var(--me-wine) !important;
+  background: #fff !important;
+}
+
+.evaluations-page .spinner {
+  border-color: #e3e8ee !important;
+  border-top-color: var(--me-wine) !important;
+}
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.evaluations-page .summary-grid {
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+.evaluations-page .summary-grid article {
+  min-height: 110px !important;
+  padding: 17px !important;
+  border: 1px solid var(--me-line) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 7px 20px rgba(31,48,73,.035) !important;
+}
+
+.evaluations-page .summary-grid article:nth-child(1) {
+  background: linear-gradient(145deg,#fff,#f8fafc) !important;
+}
+
+.evaluations-page .summary-grid article:nth-child(2) {
+  background: linear-gradient(145deg,#fff,#f6f9fd) !important;
+}
+
+.evaluations-page .summary-grid article:nth-child(3),
+.evaluations-page .summary-grid article:nth-child(4) {
+  background: linear-gradient(145deg,#fff,#fffaf0) !important;
+}
+
+.evaluations-page .summary-grid span {
+  color: var(--me-muted-2) !important;
+  font-size: .48rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+}
+
+.evaluations-page .summary-grid strong {
+  margin: 5px 0 2px !important;
+  color: var(--me-ink) !important;
+  font-size: 1.45rem !important;
+}
+
+.evaluations-page .summary-grid article:nth-child(3) strong,
+.evaluations-page .summary-grid article:nth-child(4) strong {
+  color: var(--me-gold-dark) !important;
+}
+
+.evaluations-page .summary-grid small {
+  color: var(--me-muted) !important;
+  font-size: .57rem !important;
+}
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.evaluations-page .filter-bar {
+  margin-bottom: 18px !important;
+}
+
+.evaluations-page .filter-tabs {
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+.evaluations-page .filter-tabs button {
+  display: inline-flex !important;
+  min-height: 38px !important;
+  gap: 7px !important;
+  align-items: center !important;
+  padding: 8px 11px !important;
+  border: 1px solid #dfe5ec !important;
+  border-radius: 999px !important;
+  color: #617084 !important;
+  background: #fff !important;
+  font-size: .64rem !important;
+  font-weight: 850 !important;
+}
+
+.evaluations-page .filter-tabs button span {
+  color: #718095 !important;
+}
+
+.evaluations-page .filter-tabs button.filter-tab--active {
+  border-color: #e2ca78 !important;
+  color: #765800 !important;
+  background: var(--me-gold-soft) !important;
+}
+
+.evaluations-page .filter-tabs button.filter-tab--active span {
+  color: #765800 !important;
+}
+
+/* =========================================================
+   EVALUATION CARD
+========================================================= */
+
+.evaluations-page .evaluation-list {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.evaluations-page .evaluation-card {
+  overflow: hidden !important;
+  border: 1px solid var(--me-line) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 9px 26px rgba(31,48,73,.04) !important;
+}
+
+.evaluations-page .evaluation-card--test {
+  border-color: #d6e1ed !important;
+}
+
+.evaluations-page .evaluation-card__header {
+  display: flex !important;
+  gap: 18px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 20px !important;
+  border-bottom: 1px solid #e7ecf1 !important;
+  background:
+    radial-gradient(circle at 96% 6%, rgba(217,169,29,.06), transparent 26%),
+    #fff !important;
+}
+
+.evaluations-page .evaluation-card__identity {
+  display: flex !important;
+  min-width: 0 !important;
+  gap: 14px !important;
+  align-items: center !important;
+}
+
+.evaluations-page .evaluation-card__icon {
+  display: grid !important;
+  width: 54px !important;
+  height: 54px !important;
+  flex: 0 0 auto !important;
+  place-items: center !important;
+  border: 1px solid #e5cf82 !important;
+  border-radius: 14px !important;
+  color: var(--me-gold-dark) !important;
+  background: var(--me-gold-soft) !important;
+  font-size: .7rem !important;
+  font-weight: 900 !important;
+}
+
+.evaluations-page .evaluation-card__badges {
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 6px !important;
+}
+
+.evaluations-page .evaluation-card__badges span {
+  padding: 5px 7px !important;
+  border: 1px solid #dfe5ec !important;
+  border-radius: 999px !important;
+  color: #6b788b !important;
+  background: #f8fafc !important;
+  font-size: .49rem !important;
+  font-weight: 850 !important;
+}
+
+.evaluations-page .evaluation-card__badges span:first-child {
+  border-color: #e5d18b !important;
+  color: var(--me-gold-dark) !important;
+  background: var(--me-gold-soft) !important;
+}
+
+.evaluations-page .evaluation-card__identity h2 {
+  margin: 0 !important;
+  color: var(--me-ink) !important;
+  font-size: 1.05rem !important;
+  letter-spacing: -.015em !important;
+}
+
+.evaluations-page .evaluation-card__identity p {
+  margin: 4px 0 0 !important;
+  color: var(--me-muted) !important;
+  font-size: .66rem !important;
+}
+
+.evaluations-page .evaluation-card__best {
+  min-width: 110px !important;
+  padding: 11px 12px !important;
+  border: 1px solid #ead79c !important;
+  border-radius: 12px !important;
+  background: var(--me-gold-soft) !important;
+  text-align: center !important;
+}
+
+.evaluations-page .evaluation-card__best span {
+  color: #8b7d52 !important;
+  font-size: .46rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+}
+
+.evaluations-page .evaluation-card__best strong {
+  display: block !important;
+  margin-top: 3px !important;
+  color: var(--me-gold-dark) !important;
+  font-size: 1.15rem !important;
+}
+
+/* =========================================================
+   PROGRESS INSIGHT
+========================================================= */
+
+.evaluations-page .progress-insight {
+  padding: 14px 20px !important;
+  border-bottom: 1px solid #e7ecf1 !important;
+  background: #f8fafc !important;
+}
+
+.evaluations-page .progress-insight span,
+.evaluations-page .progress-insight small {
+  color: var(--me-muted) !important;
+}
+
+.evaluations-page .progress-insight strong {
+  color: var(--me-ink) !important;
+}
+
+.evaluations-page .progress-insight__bar {
+  height: 7px !important;
+  border-radius: 999px !important;
+  background: #e6ebf0 !important;
+}
+
+.evaluations-page .progress-insight__bar span {
+  background: linear-gradient(90deg,#b98a00,#d9a91d) !important;
+}
+
+/* =========================================================
+   ATTEMPTS
+========================================================= */
+
+.evaluations-page .attempts {
+  background: #fff !important;
+}
+
+.evaluations-page .attempt-row {
+  display: grid !important;
+  gap: 14px !important;
+  grid-template-columns: 120px minmax(0,1fr) auto auto !important;
+  align-items: center !important;
+  padding: 15px 20px !important;
+  border-bottom: 1px solid #edf1f4 !important;
+  background: #fff !important;
+}
+
+.evaluations-page .attempt-row:last-child {
+  border-bottom: 0 !important;
+}
+
+.evaluations-page .attempt-row:hover {
+  background: #fafbfd !important;
+}
+
+.evaluations-page .attempt-row__number span,
+.evaluations-page .attempt-row__date span {
+  color: var(--me-muted-2) !important;
+  font-size: .46rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+}
+
+.evaluations-page .attempt-row__number strong {
+  color: var(--me-gold-dark) !important;
+  font-size: 1rem !important;
+}
+
+.evaluations-page .attempt-row__date strong,
+.evaluations-page .attempt-row__date small {
+  color: var(--me-ink-soft) !important;
+}
+
+.evaluations-page .attempt-row__date small {
+  color: var(--me-muted) !important;
+}
+
+.evaluations-page .attempt-row__score span {
+  color: var(--me-muted-2) !important;
+}
+
+.evaluations-page .attempt-row__score strong {
+  color: var(--me-ink) !important;
+}
+
+.evaluations-page .attempt-row__score b {
+  color: var(--me-gold-dark) !important;
+}
+
+.evaluations-page .attempt-row__result {
+  min-width: 96px !important;
+  padding: 7px 10px !important;
+  border: 1px solid #dfe5ec !important;
+  border-radius: 999px !important;
+  color: #718095 !important;
+  background: #f8fafc !important;
+  text-align: center !important;
+  font-size: .56rem !important;
+  font-weight: 900 !important;
+}
+
+.evaluations-page .attempt-row__result--passed {
+  border-color: #bfe0cd !important;
+  color: var(--me-green) !important;
+  background: var(--me-green-soft) !important;
+}
+
+.evaluations-page .attempt-row__result--failed {
+  border-color: #efcbd1 !important;
+  color: var(--me-red) !important;
+  background: var(--me-red-soft) !important;
+}
+
+.evaluations-page .attempt-row__result--pending {
+  border-color: #ead79c !important;
+  color: var(--me-gold-dark) !important;
+  background: var(--me-gold-soft) !important;
+}
+
+/* =========================================================
+   FOOTER / ACTIONS
+========================================================= */
+
+.evaluations-page .evaluation-card__footer {
+  display: flex !important;
+  gap: 18px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px 20px !important;
+  border-top: 1px solid #e7ecf1 !important;
+  background: #f8fafc !important;
+}
+
+.evaluations-page .learning-note span {
+  color: var(--me-gold-dark) !important;
+  font-size: .48rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+}
+
+.evaluations-page .learning-note p {
+  margin: 4px 0 0 !important;
+  color: var(--me-muted) !important;
+  font-size: .62rem !important;
+}
+
+.evaluations-page .evaluation-action {
+  min-height: 44px !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--me-wine) !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  background: var(--me-wine) !important;
+  font-size: .65rem !important;
+  font-weight: 900 !important;
+}
+
+.evaluations-page .evaluation-action:hover {
+  background: var(--me-wine-dark) !important;
+}
+
+.evaluations-page .evaluation-action--secondary {
+  border-color: var(--me-line-strong) !important;
+  color: var(--me-ink-soft) !important;
+  background: #fff !important;
+}
+
+.evaluations-page .evaluation-action--secondary:hover {
+  background: #f8fafc !important;
+}
+
+/* =========================================================
+   LEARNING PANEL
+========================================================= */
+
+.evaluations-page .learning-panel {
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: auto minmax(0,1fr) !important;
+  align-items: start !important;
+  margin-top: 16px !important;
+  padding: 20px !important;
+  border: 1px solid #ead79c !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 95% 5%, rgba(217,169,29,.08), transparent 32%),
+    #fff !important;
+}
+
+.evaluations-page .learning-panel__icon {
+  display: grid !important;
+  width: 46px !important;
+  height: 46px !important;
+  place-items: center !important;
+  border: 1px solid #e5cf82 !important;
+  border-radius: 14px !important;
+  color: var(--me-gold-dark) !important;
+  background: var(--me-gold-soft) !important;
+}
+
+.evaluations-page .learning-panel span {
+  color: var(--me-gold-dark) !important;
+  font-size: .52rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .09em !important;
+}
+
+.evaluations-page .learning-panel h2 {
+  margin: 5px 0 6px !important;
+  color: var(--me-ink) !important;
+  font-size: 1.45rem !important;
+  letter-spacing: -.025em !important;
+}
+
+.evaluations-page .learning-panel p {
+  margin: 0 !important;
+  color: var(--me-muted) !important;
+  font-size: .68rem !important;
+  line-height: 1.6 !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .evaluations-page .evaluations-hero {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+
+  .evaluations-page .summary-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .evaluations-page .attempt-row {
+    grid-template-columns: 90px minmax(0,1fr) auto !important;
+  }
+
+  .evaluations-page .attempt-row__result {
+    grid-column: 2 / -1 !important;
+    justify-self: start !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .evaluations-page {
+    width: min(100% - 28px,1240px) !important;
+    padding: 28px 0 54px !important;
+  }
+
+  .evaluations-page .evaluations-hero {
+    padding: 22px !important;
+  }
+
+  .evaluations-page .summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .evaluations-page .evaluation-card__header,
+  .evaluations-page .evaluation-card__footer {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .evaluations-page .evaluation-card__best {
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  .evaluations-page .attempt-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .evaluations-page .attempt-row__result {
+    grid-column: auto !important;
+  }
+
+  .evaluations-page .learning-panel {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 </style>
