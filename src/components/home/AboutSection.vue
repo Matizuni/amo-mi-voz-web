@@ -1,13 +1,41 @@
 <template>
   <section class="about">
-    <div class="about__grid" aria-hidden="true"></div>
-    <div class="about__glow about__glow--left" aria-hidden="true"></div>
-    <div class="about__glow about__glow--right" aria-hidden="true"></div>
+    <!-- =====================================================
+         CABECERA EDITORIAL
+    ====================================================== -->
+    <div class="container about__intro">
+      <div class="about__intro-copy">
+        <span class="about__eyebrow">
+          NUESTRA ACADEMIA
+        </span>
 
-    <div class="container about__container">
-      <!-- =========================
-           VISUAL
-      ========================== -->
+        <h2>
+          Aprender música es
+          <strong>mucho más que cantar.</strong>
+        </h2>
+      </div>
+
+      <div class="about__intro-text">
+        <p>
+          En Amo Mi Voz desarrollamos un proceso donde cada
+          estudiante aprende a conocer su voz, comprender la
+          música y desenvolverse con mayor seguridad.
+        </p>
+
+        <p>
+          Técnica vocal, entrenamiento auditivo, teoría musical,
+          interpretación y experiencia escénica se conectan
+          constantemente con el repertorio, los ensayos y las
+          presentaciones.
+        </p>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         HISTORIA + PROCESO
+    ====================================================== -->
+    <div class="container about__experience">
+      <!-- VISUAL -->
       <div class="about__visual">
         <figure class="about__image-frame">
           <img
@@ -17,11 +45,14 @@
             loading="lazy"
           />
 
-          <div class="about__image-overlay"></div>
+          <div
+            class="about__image-gradient"
+            aria-hidden="true"
+          ></div>
 
           <div class="about__visual-status">
             <span></span>
-            EXPERIENCIA FORMATIVA
+            FORMACIÓN EN ACCIÓN
           </div>
 
           <figcaption class="about__image-caption">
@@ -36,25 +67,7 @@
           </figcaption>
         </figure>
 
-        <div class="about__floating about__floating--top">
-          <span>01</span>
-
-          <div>
-            <small>PROCESO</small>
-            <strong>Personal y progresivo</strong>
-          </div>
-        </div>
-
-        <div class="about__floating about__floating--bottom">
-          <span>♪</span>
-
-          <div>
-            <small>EXPERIENCIA</small>
-            <strong>Aula + escenario</strong>
-          </div>
-        </div>
-
-        <div class="about__mini-grid">
+        <div class="about__areas">
           <article
             v-for="area in miniAreas"
             :key="area.title"
@@ -69,107 +82,119 @@
         </div>
       </div>
 
-      <!-- =========================
-           CONTENIDO
-      ========================== -->
-      <div class="about__content">
-        <span class="about__eyebrow">
-          NUESTRA ACADEMIA
-        </span>
+      <!-- PROCESO -->
+      <div class="about__process">
+        <header class="about__process-header">
+          <span>
+            NUESTRO PROCESO
+          </span>
 
-        <h2>
-          Aprender música es
-          <span>mucho más que cantar.</span>
-        </h2>
+          <h3>
+            Un recorrido claro,
+            <strong>personal y progresivo.</strong>
+          </h3>
 
-        <p class="about__lead">
-          En Amo Mi Voz desarrollamos un proceso donde cada
-          estudiante aprende a conocer su voz, comprender la
-          música y desenvolverse con mayor seguridad.
-        </p>
+          <p>
+            No buscamos que todos avancen de la misma forma.
+            Cada estudiante recorre etapas que conectan técnica,
+            comprensión musical, repertorio y experiencia escénica.
+          </p>
+        </header>
 
-        <p class="about__description">
-          Técnica vocal, entrenamiento auditivo, teoría musical,
-          interpretación y experiencia escénica se conectan
-          constantemente con el repertorio, los ensayos y las
-          presentaciones.
-        </p>
-
-        <!-- =========================
-             RECORRIDO
-        ========================== -->
         <div class="about__journey">
           <article
             v-for="step in journey"
             :key="step.number"
             class="about__journey-step"
           >
-            <span class="about__journey-number">
+            <div class="about__journey-number">
               {{ step.number }}
-            </span>
+            </div>
 
             <div class="about__journey-copy">
               <small>{{ step.label }}</small>
-
-              <h3>{{ step.title }}</h3>
-
+              <h4>{{ step.title }}</h4>
               <p>{{ step.description }}</p>
             </div>
+
+            <span
+              class="about__journey-arrow"
+              aria-hidden="true"
+            >
+              →
+            </span>
           </article>
         </div>
+      </div>
+    </div>
 
-        <!-- =========================
-             AULA VIRTUAL
-        ========================== -->
-        <div class="about__digital">
-          <div class="about__digital-icon">
-            ♪
-          </div>
+    <!-- =====================================================
+         APOYO DIGITAL
+    ====================================================== -->
+    <div class="container about__digital">
+      <div class="about__digital-copy">
+        <span class="about__digital-eyebrow">
+          FORMACIÓN PRESENCIAL + APOYO DIGITAL
+        </span>
 
-          <div class="about__digital-copy">
-            <small>
-              FORMACIÓN PRESENCIAL + APOYO DIGITAL
-            </small>
+        <h3>
+          El aprendizaje
+          <strong>continúa fuera de la sala.</strong>
+        </h3>
 
-            <strong>
-              El proceso continúa fuera de la sala.
-            </strong>
+        <p>
+          Materiales, repertorio, tareas y seguimiento también
+          forman parte del proceso. Nuestra Aula Virtual acompaña
+          al estudiante antes, durante y después de cada clase.
+        </p>
 
-            <p>
-              Materiales, repertorio, tareas y seguimiento
-              también forman parte del aprendizaje.
-            </p>
-          </div>
-
-          <RouterLink
-            to="/aula"
-            class="about__digital-link"
-            aria-label="Ir al Aula Virtual"
-          >
-            →
-          </RouterLink>
-        </div>
-
-        <!-- =========================
-             CTA
-        ========================== -->
-        <div class="about__actions">
-          <RouterLink
-            to="/academia"
-            class="about__button about__button--primary"
-          >
-            Conocer la Academia
-            <span>→</span>
-          </RouterLink>
-
-          <RouterLink
-            to="/formacion"
-            class="about__button about__button--secondary"
-          >
-            Ver programa formativo
-          </RouterLink>
+        <div class="about__digital-features">
+          <span>Materiales</span>
+          <span>Repertorio</span>
+          <span>Tareas</span>
+          <span>Progreso</span>
         </div>
       </div>
+
+      <div class="about__digital-panel">
+        <div class="about__digital-icon">
+          ♪
+        </div>
+
+        <div>
+          <small>AULA VIRTUAL AMO MI VOZ</small>
+          <strong>Tu proceso, en un solo lugar.</strong>
+        </div>
+
+        <RouterLink
+          to="/aula"
+          class="about__digital-link"
+          aria-label="Ir al Aula Virtual"
+        >
+          Entrar
+          <span>→</span>
+        </RouterLink>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         CTA
+    ====================================================== -->
+    <div class="container about__actions">
+      <RouterLink
+        to="/academia"
+        class="about__button about__button--primary"
+      >
+        Conocer la Academia
+        <span>→</span>
+      </RouterLink>
+
+      <RouterLink
+        to="/formacion"
+        class="about__button about__button--secondary"
+      >
+        Ver programa formativo
+      </RouterLink>
     </div>
   </section>
 </template>
@@ -182,17 +207,20 @@ const miniAreas = [
   {
     number: '01',
     title: 'Técnica vocal',
-    description: 'Respiración, apoyo, afinación y resonancia.'
+    description:
+      'Respiración, apoyo, afinación y resonancia.'
   },
   {
     number: '02',
     title: 'Formación musical',
-    description: 'Ritmo, oído, lectura y comprensión.'
+    description:
+      'Ritmo, oído, lectura y comprensión.'
   },
   {
     number: '03',
     title: 'Interpretación',
-    description: 'Expresión, presencia y comunicación.'
+    description:
+      'Expresión, presencia y comunicación.'
   }
 ]
 
@@ -229,110 +257,133 @@ const journey = [
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/abstracts/variables' as variables;
-@use '@/assets/styles/abstracts/mixins' as mixins;
-
 /* =========================================================
-   BASE
+   ABOUT V2 · EDITORIAL PREMIUM
 ========================================================= */
 
 .about {
+  --about-bg: #f4f6f9;
+  --about-surface: #ffffff;
+  --about-soft: #f8fafc;
+  --about-ink: #152033;
+  --about-copy: #344359;
+  --about-muted: #6f7c8f;
+  --about-line: #dbe3ec;
+  --about-wine: #9f1945;
+  --about-wine-dark: #761332;
+  --about-wine-soft: #fff1f5;
+  --about-gold: #d5a720;
+  --about-gold-dark: #916b00;
+  --about-green: #2d996b;
+
   position: relative;
   overflow: hidden;
-  padding: 105px 24px;
-  color: #f5f5f5;
-  background: #0b0b0b;
-}
-
-.about__grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+  padding:
+    110px
+    24px
+    105px;
+  color: var(--about-ink);
   background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.011) 1px,
-      transparent 1px
+    radial-gradient(
+      circle at 94% 8%,
+      rgba(159,25,69,.045),
+      transparent 24%
     ),
     linear-gradient(
-      rgba(255, 255, 255, 0.011) 1px,
-      transparent 1px
-    );
-  background-size: 72px 72px;
-  mask-image:
-    linear-gradient(
-      to bottom,
-      transparent,
-      black 12%,
-      black 88%,
-      transparent
+      180deg,
+      #ffffff 0%,
+      var(--about-bg) 100%
     );
 }
 
-.about__glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(150px);
-}
-
-.about__glow--left {
-  top: 18%;
-  left: -320px;
-  width: 600px;
-  height: 600px;
-  background:
-    rgba(212, 175, 55, 0.035);
-}
-
-.about__glow--right {
-  right: -360px;
-  bottom: -260px;
-  width: 650px;
-  height: 650px;
-  background:
-    rgba(212, 175, 55, 0.025);
-}
-
-/* =========================================================
-   LAYOUT
-========================================================= */
-
-.about__container {
-  position: relative;
-  z-index: 2;
-  display: grid;
+.container {
   width: min(1180px, 100%);
-  gap: 68px;
-  margin: 0 auto;
-  align-items: center;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      minmax(0, 0.9fr)
-      minmax(0, 1.1fr);
-  }
+  margin-inline: auto;
 }
 
 /* =========================================================
-   VISUAL
+   INTRO
 ========================================================= */
+
+.about__intro {
+  display: grid;
+  gap: 28px;
+  align-items: end;
+  margin-bottom: 48px;
+}
+
+.about__eyebrow {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--about-gold-dark);
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .17em;
+}
+
+.about__intro h2 {
+  max-width: 760px;
+  margin: 0;
+  color: var(--about-ink);
+  font-size:
+    clamp(
+      3rem,
+      5.2vw,
+      5.2rem
+    );
+  font-weight: 850;
+  line-height: .95;
+  letter-spacing: -.06em;
+}
+
+.about__intro h2 strong {
+  display: block;
+  color: var(--about-wine);
+  font-weight: inherit;
+}
+
+.about__intro-text {
+  max-width: 560px;
+}
+
+.about__intro-text p {
+  margin: 0;
+  color: var(--about-copy);
+  font-size: .92rem;
+  line-height: 1.78;
+}
+
+.about__intro-text p + p {
+  margin-top: 12px;
+  color: var(--about-muted);
+  font-size: .82rem;
+}
+
+/* =========================================================
+   EXPERIENCE
+========================================================= */
+
+.about__experience {
+  display: grid;
+  gap: 38px;
+  align-items: start;
+}
 
 .about__visual {
-  position: relative;
+  min-width: 0;
 }
 
 .about__image-frame {
   position: relative;
-  overflow: hidden;
-  min-height: 570px;
+  min-height: 620px;
   margin: 0;
-  border: 1px solid #292929;
-  border-radius: 21px;
-  background: #111;
+  overflow: hidden;
+  border: 1px solid var(--about-line);
+  border-radius: 24px;
+  background: #dfe5ec;
   box-shadow:
-    0 35px 80px
-    rgba(0, 0, 0, 0.38);
+    0 24px 55px
+    rgba(31,48,73,.10);
 }
 
 .about__image {
@@ -342,265 +393,179 @@ const journey = [
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter:
-    saturate(0.84)
-    contrast(1.03)
-    brightness(0.92);
   transition:
-    transform 0.7s ease;
+    transform .65s ease;
 }
 
 .about__image-frame:hover .about__image {
-  transform: scale(1.02);
+  transform: scale(1.018);
 }
 
-.about__image-overlay {
+.about__image-gradient {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.94),
-      rgba(0, 0, 0, 0.02) 62%
+      180deg,
+      rgba(10,18,31,.02) 45%,
+      rgba(10,18,31,.84) 100%
     );
 }
 
-/* =========================================================
-   STATUS
-========================================================= */
-
 .about__visual-status {
   position: absolute;
-  top: 21px;
-  left: 21px;
-  display: flex;
+  top: 18px;
+  left: 18px;
+  display: inline-flex;
   gap: 8px;
   align-items: center;
-  padding: 7px 10px;
+  padding: 8px 11px;
   border:
     1px solid
-    rgba(212, 175, 55, 0.2);
+    rgba(255,255,255,.28);
   border-radius: 999px;
-  color:
-    variables.$color-primary;
+  color: #fff;
   background:
-    rgba(8, 8, 8, 0.72);
-  font-size: 0.4rem;
+    rgba(17,28,49,.64);
+  font-size: .43rem;
   font-weight: 900;
-  letter-spacing: 0.13em;
+  letter-spacing: .12em;
   backdrop-filter: blur(10px);
 }
 
 .about__visual-status > span {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background:
-    variables.$color-primary;
+  background: #46d18f;
   box-shadow:
-    0 0 11px
-    rgba(212, 175, 55, 0.5);
+    0 0 0 5px
+    rgba(70,209,143,.11);
 }
-
-/* =========================================================
-   IMAGE CAPTION
-========================================================= */
 
 .about__image-caption {
   position: absolute;
   right: 24px;
-  bottom: 26px;
+  bottom: 25px;
   left: 24px;
 }
 
 .about__image-caption small {
-  color:
-    variables.$color-primary;
-  font-size: 0.44rem;
+  color: #f2c747;
+  font-size: .45rem;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: .13em;
 }
 
 .about__image-caption strong {
   display: block;
-  max-width: 480px;
+  max-width: 470px;
   margin-top: 8px;
-  color: #f3f3f3;
+  color: #fff;
   font-size:
     clamp(
-      1.9rem,
-      3.5vw,
-      2.9rem
+      2rem,
+      3.7vw,
+      3rem
     );
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  line-height: .98;
+  letter-spacing: -.045em;
 }
 
 .about__image-caption strong em {
   display: block;
-  color:
-    variables.$color-primary;
+  color: #f2c747;
   font-style: normal;
 }
 
 /* =========================================================
-   FLOATING CARDS
+   AREAS
 ========================================================= */
 
-.about__floating {
-  position: absolute;
-  z-index: 4;
-  display: flex;
-  gap: 9px;
-  align-items: center;
-  padding: 10px 12px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.2);
-  border-radius: 11px;
-  background:
-    rgba(9, 9, 9, 0.9);
-  backdrop-filter: blur(12px);
+.about__areas {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
 }
 
-.about__floating > span {
-  display: grid;
-  width: 31px;
-  height: 31px;
-  place-items: center;
-  border-radius: 50%;
-  color: #080808;
-  background:
-    variables.$color-primary;
-  font-size: 0.48rem;
+.about__areas article {
+  display: flex;
+  min-height: 86px;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 15px;
+  border: 1px solid var(--about-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    0 7px 20px
+    rgba(31,48,73,.035);
+}
+
+.about__areas article > span {
+  color: var(--about-gold-dark);
+  font-size: .5rem;
   font-weight: 900;
 }
 
-.about__floating small,
-.about__floating strong {
+.about__areas strong,
+.about__areas small {
   display: block;
 }
 
-.about__floating small {
-  color: #606060;
-  font-size: 0.38rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
+.about__areas strong {
+  color: var(--about-ink);
+  font-size: .72rem;
 }
 
-.about__floating strong {
-  margin-top: 2px;
-  color: #ddd;
-  font-size: 0.57rem;
-}
-
-.about__floating--top {
-  top: 74px;
-  right: -20px;
-}
-
-.about__floating--bottom {
-  right: -18px;
-  bottom: 105px;
+.about__areas small {
+  margin-top: 5px;
+  color: var(--about-muted);
+  font-size: .59rem;
+  line-height: 1.45;
 }
 
 /* =========================================================
-   MINI AREAS
+   PROCESS
 ========================================================= */
 
-.about__mini-grid {
-  display: grid;
-  gap: 8px;
-  margin-top: 10px;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(3, 1fr);
-  }
+.about__process {
+  min-width: 0;
+  padding-top: 8px;
 }
 
-.about__mini-grid article {
-  display: flex;
-  gap: 9px;
-  min-height: 78px;
-  padding: 12px;
-  border: 1px solid #262626;
-  border-radius: 10px;
-  background: #101010;
-}
-
-.about__mini-grid article > span {
-  color:
-    variables.$color-primary;
-  font-size: 0.42rem;
+.about__process-header > span {
+  color: var(--about-gold-dark);
+  font-size: .56rem;
   font-weight: 900;
+  letter-spacing: .15em;
 }
 
-.about__mini-grid strong,
-.about__mini-grid small {
-  display: block;
-}
-
-.about__mini-grid strong {
-  margin-bottom: 4px;
-  color: #d8d8d8;
-  font-size: 0.62rem;
-}
-
-.about__mini-grid small {
-  color: #666;
-  font-size: 0.51rem;
-  line-height: 1.4;
-}
-
-/* =========================================================
-   CONTENT
-========================================================= */
-
-.about__eyebrow {
-  display: block;
-  margin-bottom: 14px;
-  color:
-    variables.$color-primary;
-  font-size: 0.55rem;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-}
-
-.about__content h2 {
-  max-width: 680px;
-  margin: 0;
-  color: #f2f2f2;
+.about__process-header h3 {
+  max-width: 620px;
+  margin: 12px 0 0;
+  color: var(--about-ink);
   font-size:
     clamp(
-      2.8rem,
-      4.8vw,
-      4.6rem
+      2.2rem,
+      4vw,
+      3.8rem
     );
-  font-weight: 800;
-  line-height: 0.94;
-  letter-spacing: -0.06em;
+  line-height: .98;
+  letter-spacing: -.05em;
 }
 
-.about__content h2 span {
+.about__process-header h3 strong {
   display: block;
-  color:
-    variables.$color-primary;
+  color: var(--about-wine);
+  font-weight: inherit;
 }
 
-.about__lead {
-  max-width: 650px;
-  margin: 23px 0 0;
-  color: #c2c2c2;
-  font-size: 0.91rem;
-  line-height: 1.7;
-}
-
-.about__description {
-  max-width: 650px;
-  margin: 13px 0 0;
-  color: #777;
-  font-size: 0.76rem;
+.about__process-header p {
+  max-width: 620px;
+  margin: 18px 0 0;
+  color: var(--about-muted);
+  font-size: .81rem;
   line-height: 1.72;
 }
 
@@ -610,189 +575,256 @@ const journey = [
 
 .about__journey {
   display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 27px;
+  gap: 10px;
+  margin-top: 28px;
 }
 
 .about__journey-step {
-  display: flex;
-  gap: 12px;
-  min-height: 118px;
-  padding: 14px;
-  border: 1px solid #272727;
-  border-radius: 11px;
-  background: #0d0d0d;
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  gap: 14px;
+  align-items: center;
+  min-height: 112px;
+  padding: 16px;
+  border: 1px solid var(--about-line);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow:
+    0 8px 22px
+    rgba(31,48,73,.035);
   transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
 }
 
 .about__journey-step:hover {
-  transform: translateY(-2px);
-  border-color:
-    rgba(212, 175, 55, 0.22);
-  background: #10100f;
+  transform:
+    translateY(-2px);
+  border-color: #c9d5e1;
+  box-shadow:
+    0 12px 28px
+    rgba(31,48,73,.06);
 }
 
 .about__journey-number {
   display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.22);
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
-  font-size: 0.44rem;
+  border: 1px solid #e5d38e;
+  border-radius: 12px;
+  color: var(--about-gold-dark);
+  background: #fff9e9;
+  font-size: .55rem;
   font-weight: 900;
 }
 
-.about__journey-copy {
-  min-width: 0;
-}
-
-.about__journey-step small {
-  color:
-    variables.$color-primary;
-  font-size: 0.39rem;
+.about__journey-copy small {
+  color: var(--about-gold-dark);
+  font-size: .42rem;
   font-weight: 900;
-  letter-spacing: 0.11em;
+  letter-spacing: .11em;
 }
 
-.about__journey-step h3 {
-  margin: 4px 0;
-  color: #e6e6e6;
-  font-size: 0.72rem;
-  line-height: 1.3;
+.about__journey-copy h4 {
+  margin: 4px 0 0;
+  color: var(--about-ink);
+  font-size: .82rem;
+  line-height: 1.35;
 }
 
-.about__journey-step p {
-  margin: 0;
-  color: #686868;
-  font-size: 0.55rem;
+.about__journey-copy p {
+  margin: 6px 0 0;
+  color: var(--about-muted);
+  font-size: .63rem;
   line-height: 1.5;
 }
 
+.about__journey-arrow {
+  color: var(--about-wine);
+  font-size: .9rem;
+}
+
 /* =========================================================
-   AULA VIRTUAL
+   DIGITAL
 ========================================================= */
 
 .about__digital {
   display: grid;
-  grid-template-columns:
-    auto
-    1fr
-    auto;
-  gap: 13px;
+  gap: 22px;
   align-items: center;
-  margin-top: 18px;
-  padding: 15px;
+  margin-top: 58px;
+  padding: 28px;
   border:
     1px solid
-    rgba(212, 175, 55, 0.19);
-  border-radius: 12px;
+    #e6dcae;
+  border-radius: 20px;
   background:
+    radial-gradient(
+      circle at 94% 6%,
+      rgba(213,167,32,.12),
+      transparent 30%
+    ),
     linear-gradient(
-      120deg,
-      rgba(212, 175, 55, 0.045),
-      rgba(255, 255, 255, 0.008)
+      135deg,
+      #fff,
+      #fffaf0
     );
+  box-shadow:
+    0 12px 30px
+    rgba(31,48,73,.05);
+}
+
+.about__digital-eyebrow {
+  color: var(--about-gold-dark);
+  font-size: .5rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.about__digital-copy h3 {
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: var(--about-ink);
+  font-size:
+    clamp(
+      1.8rem,
+      3.4vw,
+      3rem
+    );
+  line-height: 1;
+  letter-spacing: -.045em;
+}
+
+.about__digital-copy h3 strong {
+  display: block;
+  color: var(--about-wine);
+  font-weight: inherit;
+}
+
+.about__digital-copy p {
+  max-width: 610px;
+  margin: 14px 0 0;
+  color: var(--about-muted);
+  font-size: .75rem;
+  line-height: 1.65;
+}
+
+.about__digital-features {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.about__digital-features span {
+  padding: 7px 9px;
+  border: 1px solid #e2e8ef;
+  border-radius: 999px;
+  color: #56657b;
+  background: #fff;
+  font-size: .56rem;
+  font-weight: 800;
+}
+
+.about__digital-panel {
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  border:
+    1px solid
+    #dce4ed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0 8px 22px
+    rgba(31,48,73,.04);
 }
 
 .about__digital-icon {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   place-items: center;
-  border-radius: 50%;
-  color: #080808;
+  border-radius: 12px;
+  color: #fff;
   background:
-    variables.$color-primary;
-  font-size: 0.9rem;
+    linear-gradient(
+      135deg,
+      var(--about-wine),
+      var(--about-wine-dark)
+    );
 }
 
-.about__digital-copy small,
-.about__digital-copy strong {
+.about__digital-panel small,
+.about__digital-panel strong {
   display: block;
 }
 
-.about__digital-copy small {
-  color:
-    variables.$color-primary;
-  font-size: 0.37rem;
+.about__digital-panel small {
+  color: var(--about-gold-dark);
+  font-size: .42rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: .1em;
 }
 
-.about__digital-copy strong {
-  margin-top: 3px;
-  color: #d9d9d9;
-  font-size: 0.68rem;
-}
-
-.about__digital-copy p {
-  margin: 4px 0 0;
-  color: #6d6d6d;
-  font-size: 0.54rem;
-  line-height: 1.45;
+.about__digital-panel strong {
+  margin-top: 4px;
+  color: var(--about-ink);
+  font-size: .72rem;
 }
 
 .about__digital-link {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.24);
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
+  display: inline-flex;
+  min-height: 40px;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid var(--about-wine);
+  border-radius: 10px;
+  color: #fff;
+  background: var(--about-wine);
+  font-size: .62rem;
+  font-weight: 900;
   text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease;
-}
-
-.about__digital-link:hover {
-  transform: translateX(3px);
-  background:
-    rgba(212, 175, 55, 0.06);
 }
 
 /* =========================================================
-   BUTTONS
+   ACTIONS
 ========================================================= */
 
 .about__actions {
   display: flex;
-  gap: 9px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 20px;
+  margin-top: 26px;
 }
 
 .about__button {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 46px;
   gap: 9px;
   align-items: center;
   justify-content: center;
   padding: 0 17px;
-  border-radius: 8px;
-  font-size: 0.61rem;
+  border-radius: 10px;
+  font-size: .64rem;
   font-weight: 900;
   text-decoration: none;
   transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
+    transform .18s ease,
+    border-color .18s ease,
+    background .18s ease;
 }
 
 .about__button:hover {
@@ -800,110 +832,135 @@ const journey = [
 }
 
 .about__button--primary {
-  border:
-    1px solid
-    variables.$color-primary;
-  color: #080808;
+  border: 1px solid var(--about-wine);
+  color: #fff;
   background:
-    variables.$color-primary;
-}
-
-.about__button--primary:hover {
-  box-shadow:
-    0 14px 35px
-    rgba(212, 175, 55, 0.13);
+    linear-gradient(
+      135deg,
+      var(--about-wine),
+      var(--about-wine-dark)
+    );
 }
 
 .about__button--secondary {
-  border: 1px solid #333;
-  color: #aaa;
-  background: transparent;
-}
-
-.about__button--secondary:hover {
-  color: #fff;
-  border-color: #505050;
+  border: 1px solid var(--about-line);
+  color: var(--about-copy);
+  background: #fff;
 }
 
 /* =========================================================
-   RESPONSIVE
+   DESKTOP
 ========================================================= */
 
-@media (max-width: 1050px) {
+@media (min-width: 900px) {
+  .about__intro {
+    grid-template-columns:
+      minmax(0, 1.15fr)
+      minmax(320px, .85fr);
+  }
+
+  .about__experience {
+    grid-template-columns:
+      minmax(0, .92fr)
+      minmax(0, 1.08fr);
+    gap: 54px;
+  }
+
+  .about__areas {
+    grid-template-columns:
+      repeat(3, 1fr);
+  }
+
+  .about__digital {
+    grid-template-columns:
+      minmax(0, 1.2fr)
+      minmax(360px, .8fr);
+  }
+}
+
+/* =========================================================
+   TABLET / MOBILE
+========================================================= */
+
+@media (max-width: 899px) {
   .about {
-    padding: 85px 22px;
+    padding:
+      88px
+      20px
+      82px;
   }
 
-  .about__container {
-    grid-template-columns: 1fr;
-    gap: 50px;
-  }
-
-  .about__visual {
-    width: min(720px, 100%);
-    margin: 0 auto;
+  .about__intro {
+    margin-bottom: 38px;
   }
 
   .about__image-frame {
-    min-height: 620px;
+    min-height: 560px;
+  }
+
+  .about__process {
+    padding-top: 0;
   }
 }
 
 @media (max-width: 700px) {
   .about {
-    padding: 72px 18px;
+    padding:
+      72px
+      16px
+      68px;
   }
 
-  .about__container {
-    gap: 42px;
-  }
-
-  .about__image-frame {
-    min-height: 500px;
-    border-radius: 17px;
-  }
-
-  .about__floating--top {
-    top: 62px;
-    right: 12px;
-  }
-
-  .about__floating--bottom {
-    right: 12px;
-    bottom: 100px;
-  }
-
-  .about__content h2 {
+  .about__intro h2 {
     font-size:
       clamp(
-        2.55rem,
+        2.65rem,
         11vw,
-        3.8rem
+        3.7rem
       );
   }
 
-  .about__lead {
-    font-size: 0.87rem;
+  .about__intro-text p {
+    font-size: .86rem;
   }
 
-  .about__journey {
+  .about__image-frame {
+    min-height: 480px;
+    border-radius: 18px;
+  }
+
+  .about__image-caption strong {
+    font-size: 2rem;
+  }
+
+  .about__areas {
     grid-template-columns: 1fr;
   }
 
   .about__journey-step {
-    min-height: auto;
+    grid-template-columns:
+      auto
+      minmax(0,1fr);
+  }
+
+  .about__journey-arrow {
+    display: none;
   }
 
   .about__digital {
+    padding: 20px;
+  }
+
+  .about__digital-panel {
     grid-template-columns:
       auto
-      1fr;
+      minmax(0,1fr);
   }
 
   .about__digital-link {
     grid-column: 1 / -1;
     width: 100%;
-    border-radius: 8px;
+    min-height: 46px;
   }
 
   .about__actions {
@@ -912,42 +969,33 @@ const journey = [
 
   .about__button {
     width: 100%;
+    min-height: 48px;
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 480px) {
   .about__image-frame {
-    min-height: 440px;
+    min-height: 420px;
   }
 
-  .about__image-caption strong {
-    font-size: 1.85rem;
+  .about__image-caption {
+    right: 18px;
+    bottom: 20px;
+    left: 18px;
   }
 
-  .about__floating {
-    padding: 8px 9px;
-  }
-
-  .about__floating > span {
-    width: 27px;
-    height: 27px;
-  }
-
-  .about__mini-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .about__mini-grid article {
-    min-height: auto;
+  .about__visual-status {
+    top: 14px;
+    left: 14px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .about__image,
-  .about__journey-step,
-  .about__button,
-  .about__digital-link {
-    transition: none;
+  .about *,
+  .about *::before,
+  .about *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }
 </style>

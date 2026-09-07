@@ -1,36 +1,15 @@
 <template>
-  <article
-    class="workshop-card reveal fade-up"
-    v-reveal
-  >
-    <div class="workshop-card__top">
-      <span
-        class="workshop-card__icon"
-        aria-hidden="true"
-      >
-        {{ icon }}
-      </span>
-
-      <span class="workshop-card__line" aria-hidden="true"></span>
+  <article class="unit-card">
+    <div class="unit-card__icon" aria-hidden="true">
+      {{ icon }}
     </div>
 
-    <div class="workshop-card__content">
-      <h3 class="workshop-card__title">
-        {{ title }}
-      </h3>
-
-      <p class="workshop-card__description">
-        {{ description }}
-      </p>
+    <div class="unit-card__copy">
+      <strong>{{ title }}</strong>
+      <p>{{ description }}</p>
     </div>
 
-    <a
-      class="workshop-card__link"
-      href="#contacto"
-    >
-      <span>Consultar</span>
-      <strong aria-hidden="true">→</strong>
-    </a>
+    <span class="unit-card__arrow" aria-hidden="true">→</span>
   </article>
 </template>
 
@@ -38,209 +17,74 @@
 defineProps({
   title: {
     type: String,
-    required: true,
+    required: true
   },
   description: {
     type: String,
-    required: true,
+    default: ''
   },
   icon: {
     type: String,
-    required: true,
-  },
+    default: '♪'
+  }
 })
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/styles/abstracts/variables' as variables;
-@use '@/assets/styles/abstracts/mixins' as mixins;
-
-.workshop-card {
-  position: relative;
-  display: flex;
-  min-height: 235px;
-  overflow: hidden;
-  padding: 22px;
-  flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.035),
-      rgba(255, 255, 255, 0.008)
-    ),
-    #111;
-  box-shadow:
-    0 18px 40px
-    rgba(0, 0, 0, 0.18);
-  transition:
-    transform 0.22s ease,
-    border-color 0.22s ease,
-    background 0.22s ease,
-    box-shadow 0.22s ease;
-}
-
-.workshop-card::before {
-  position: absolute;
-  top: 0;
-  left: 22px;
-  width: 54px;
-  height: 1px;
-  background:
-    variables.$color-primary;
-  content: '';
-  opacity: 0.55;
-}
-
-.workshop-card:hover {
-  border-color:
-    rgba(variables.$color-primary, 0.28);
-  background:
-    linear-gradient(
-      145deg,
-      rgba(variables.$color-primary, 0.045),
-      rgba(255, 255, 255, 0.01)
-    ),
-    #111;
-  box-shadow:
-    0 24px 55px
-    rgba(0, 0, 0, 0.28);
-  transform:
-    translateY(-4px);
-}
-
-/* =========================
-   TOP
-========================= */
-
-.workshop-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.workshop-card__icon {
+<style scoped>
+.unit-card {
   display: grid;
-  width: 46px;
-  height: 46px;
-  place-items: center;
-  border:
-    1px solid
-    rgba(variables.$color-primary, 0.22);
-  border-radius: 12px;
-  color:
-    variables.$color-primary;
-  background:
-    rgba(variables.$color-primary, 0.055);
-  font-size: 1.35rem;
-}
-
-.workshop-card__line {
-  width: 30px;
-  height: 1px;
-  background:
-    rgba(variables.$color-primary, 0.25);
-}
-
-/* =========================
-   CONTENT
-========================= */
-
-.workshop-card__content {
-  margin-top: 22px;
-}
-
-.workshop-card__title {
-  max-width: 230px;
-  margin: 0;
-  color: #f0f0f0;
-  font-family:
-    variables.$font-family-primary;
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -0.035em;
-}
-
-.workshop-card__description {
-  max-width: 250px;
-  margin: 12px 0 0;
-  color: #8a8a8a;
-  font-size: 0.73rem;
-  line-height: 1.62;
-}
-
-/* =========================
-   LINK
-========================= */
-
-.workshop-card__link {
-  display: inline-flex;
-  gap: 9px;
-  align-items: center;
-  align-self: flex-start;
-  margin-top: auto;
-  padding-top: 20px;
-  color:
-    variables.$color-primary;
-  font-size: 0.67rem;
-  font-weight: 800;
-  text-decoration: none;
-  transition:
-    gap 0.2s ease,
-    color 0.2s ease;
-
-  @include mixins.focus-visible;
-}
-
-.workshop-card__link strong {
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition:
-    transform 0.2s ease;
-}
-
-.workshop-card__link:hover {
+  grid-template-columns: auto minmax(0,1fr) auto;
   gap: 13px;
+  align-items: center;
+  min-height: 104px;
+  padding: 16px;
+  border: 1px solid #dce4ed;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(31,48,73,.035);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
-.workshop-card__link:hover strong {
-  transform:
-    translateX(2px);
+.unit-card:hover {
+  transform: translateY(-2px);
+  border-color: #c6d2df;
+  box-shadow: 0 12px 28px rgba(31,48,73,.065);
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1100px) {
-  .workshop-card {
-    min-height: 220px;
-  }
+.unit-card__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 13px;
+  color: #9f1945;
+  background: #fff1f5;
+  font-size: 1rem;
+  font-weight: 900;
 }
 
-@media (max-width: 700px) {
-  .workshop-card {
-    min-height: auto;
-    padding: 20px;
-  }
-
-  .workshop-card__title {
-    max-width: none;
-    font-size: 1.12rem;
-  }
-
-  .workshop-card__description {
-    max-width: none;
-  }
+.unit-card__copy strong {
+  display: block;
+  color: #152033;
+  font-size: .78rem;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .workshop-card,
-  .workshop-card__link,
-  .workshop-card__link strong {
-    transition: none;
+.unit-card__copy p {
+  margin: 5px 0 0;
+  color: #6f7c8f;
+  font-size: .61rem;
+  line-height: 1.5;
+}
+
+.unit-card__arrow {
+  color: #9f1945;
+  font-size: .9rem;
+}
+
+@media (max-width: 600px) {
+  .unit-card {
+    min-height: 96px;
+    padding: 14px;
   }
 }
 </style>

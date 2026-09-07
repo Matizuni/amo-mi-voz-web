@@ -1,231 +1,81 @@
 <template>
-  <section
-    id="musicales"
-    class="musicals"
-    v-reveal
-  >
-    <div class="musicals__grid-bg" aria-hidden="true"></div>
-    <div class="musicals__glow musicals__glow--left" aria-hidden="true"></div>
-    <div class="musicals__glow musicals__glow--right" aria-hidden="true"></div>
-
-    <div class="container musicals__container">
-      <!-- =========================
-           HEADER
-      ========================== -->
+  <section id="musicales" class="musicals">
+    <div class="container">
       <header class="musicals__header">
-        <div class="musicals__heading">
-          <span class="musicals__eyebrow">
-            EXPERIENCIAS ESCÉNICO-MUSICALES
-          </span>
+        <div>
+          <span class="eyebrow">EXPERIENCIAS ESCÉNICO-MUSICALES</span>
 
-          <h2 class="musicals__title">
+          <h2>
             La música también
-            <span>puede contar historias.</span>
+            <strong>puede contar historias.</strong>
           </h2>
         </div>
 
-        <div class="musicals__header-copy">
-          <p class="musicals__lead">
-            En Amo Mi Voz transformamos repertorio en experiencias
-            que conectan canto, interpretación, narración y escenario.
-          </p>
-
-          <p>
-            El objetivo no es solamente presentar canciones,
-            sino construir una experiencia artística con sentido.
-          </p>
-        </div>
+        <p>
+          Transformamos repertorio en experiencias que conectan
+          canto, interpretación, narración y escenario.
+        </p>
       </header>
 
-      <!-- =========================
-           CONCEPTO
-      ========================== -->
-      <div class="musicals__concept">
-        <div class="musicals__concept-mark">
-          AMV
-        </div>
-
-        <div class="musicals__concept-copy">
-          <small>
-            MÚSICA · NARRACIÓN · INTERPRETACIÓN · ESCENA
-          </small>
-
-          <strong>
-            Del repertorio a una experiencia escénica.
-          </strong>
-        </div>
-
-        <div class="musicals__concept-side">
-          <span>PROYECTOS</span>
-          <strong>2026</strong>
-        </div>
-      </div>
-
-      <!-- =========================
-           PRODUCCIONES
-      ========================== -->
-      <div class="musicals__productions-heading">
-        <div>
-          <span>PRODUCCIONES</span>
-
-          <strong>
-            Historias trabajadas por nuestra Academia
-          </strong>
-        </div>
-
-        <small>
-          EXPERIENCIA ESCÉNICA
-        </small>
-      </div>
-
       <div class="musicals__showcase">
-        <!-- COCO -->
-        <article class="production production--coco">
+        <article class="production">
           <div class="production__visual">
-            <img
-              :src="cocoFlyer"
-              alt="Flyer de COCO de la Academia de Talentos Amo Mi Voz"
-              class="production__poster"
-              loading="lazy"
-            />
-
-            <div class="production__visual-overlay"></div>
-
-            <div class="production__badge">
-              <span></span>
-              PRESENTADO
-            </div>
-
-            <div class="production__visual-number">
-              01
-            </div>
+            <img :src="cocoFlyer" alt="Producción COCO de Amo Mi Voz" loading="lazy" />
+            <span class="production__status">PRESENTADO</span>
           </div>
 
           <div class="production__content">
-            <div class="production__meta">
-              <span>
-                EXPERIENCIA ESCÉNICO-MUSICAL
-              </span>
-
-              <small>
-                2026
-              </small>
-            </div>
-
-            <h3>
-              COCO
-            </h3>
-
+            <small>EXPERIENCIA ESCÉNICO-MUSICAL · 2026</small>
+            <h3>COCO</h3>
             <p class="production__subtitle">
               Una historia de memoria, familia, música y sueños.
             </p>
 
-            <p class="production__description">
-              Canciones reconocidas se conectan mediante
-              interpretación, narración y trabajo escénico
+            <p>
+              Canciones, interpretación y narración se conectan
               para construir una experiencia continua.
             </p>
 
-            <div class="production__features">
-              <span>Canto</span>
-              <span>Interpretación</span>
-              <span>Narración</span>
-              <span>Escena</span>
-            </div>
-
-            <RouterLink
-              to="/musicales"
-              class="production__link"
-            >
-              <span>Conocer producción</span>
-              <strong>→</strong>
+            <RouterLink to="/musicales">
+              Conocer producción
+              <span>→</span>
             </RouterLink>
           </div>
         </article>
 
-        <!-- JACK -->
-        <article class="production production--jack">
+        <article class="production">
           <div class="production__visual">
-            <img
-              :src="jackFlyer"
-              alt="Flyer de El Extraño Mundo de Jack de la Academia Amo Mi Voz"
-              class="production__poster"
-              loading="lazy"
-            />
-
-            <div class="production__visual-overlay"></div>
-
-            <div class="production__badge">
-              <span></span>
-              EN PREPARACIÓN
-            </div>
-
-            <div class="production__visual-number">
-              02
-            </div>
+            <img :src="jackFlyer" alt="Producción El Extraño Mundo de Jack de Amo Mi Voz" loading="lazy" />
+            <span class="production__status production__status--future">EN PREPARACIÓN</span>
           </div>
 
           <div class="production__content">
-            <div class="production__meta">
-              <span>
-                PRÓXIMA EXPERIENCIA ESCÉNICA
-              </span>
-
-              <small>
-                2026
-              </small>
-            </div>
-
-            <h3 class="production__title--jack">
-              El Extraño
-              <span>Mundo de Jack</span>
-            </h3>
-
+            <small>PRÓXIMA EXPERIENCIA ESCÉNICA · 2026</small>
+            <h3>El Extraño Mundo de Jack</h3>
             <p class="production__subtitle">
               Halloween se transforma en música, personajes y escenario.
             </p>
 
-            <p class="production__description">
-              Canto, actuación, narración y diseño sonoro se
-              integran para construir una experiencia con identidad propia.
+            <p>
+              Canto, actuación, narración y diseño sonoro se integran
+              para crear una experiencia con identidad propia.
             </p>
 
-            <div class="production__features">
-              <span>Canto</span>
-              <span>Personajes</span>
-              <span>Actuación</span>
-              <span>Producción</span>
-            </div>
-
-            <RouterLink
-              to="/musicales"
-              class="production__link"
-            >
-              <span>Descubrir producción</span>
-              <strong>→</strong>
+            <RouterLink to="/musicales">
+              Descubrir producción
+              <span>→</span>
             </RouterLink>
           </div>
         </article>
       </div>
 
-      <!-- =========================
-           PROCESO
-      ========================== -->
       <div class="musicals__process">
-        <div class="musicals__process-heading">
-          <span class="musicals__eyebrow">
-            DEL REPERTORIO AL ESCENARIO
-          </span>
-
+        <div class="musicals__process-copy">
+          <span class="eyebrow">DEL REPERTORIO AL ESCENARIO</span>
           <h3>
             Una historia se construye
-            <span>capa por capa.</span>
+            <strong>capa por capa.</strong>
           </h3>
-
-          <p>
-            Cada proyecto conecta distintas disciplinas para
-            transformar canciones en una experiencia artística coherente.
-          </p>
         </div>
 
         <div class="musicals__process-list">
@@ -233,73 +83,24 @@
             v-for="step in process"
             :key="step.number"
           >
-            <span class="musicals__process-number">
-              {{ step.number }}
-            </span>
-
+            <span>{{ step.number }}</span>
             <div>
-              <small>
-                {{ step.label }}
-              </small>
-
-              <strong>
-                {{ step.title }}
-              </strong>
-
-              <p>
-                {{ step.description }}
-              </p>
+              <small>{{ step.label }}</small>
+              <strong>{{ step.title }}</strong>
+              <p>{{ step.description }}</p>
             </div>
           </article>
         </div>
       </div>
 
-      <!-- =========================
-           CIERRE
-      ========================== -->
-      <div class="musicals__closing">
-        <div class="musicals__closing-symbol">
-          ♪
-        </div>
-
-        <div class="musicals__closing-copy">
-          <small>
-            APRENDER HACIENDO
-          </small>
-
-          <strong>
-            El escenario también forma parte de nuestra metodología.
-          </strong>
-
-          <p>
-            Presentarse permite aplicar técnica, interpretación,
-            memoria, escucha y trabajo colectivo.
-          </p>
-        </div>
-
-        <RouterLink
-          to="/musicales"
-          class="musicals__closing-arrow"
-          aria-label="Ver musicales"
-        >
-          →
-        </RouterLink>
-      </div>
-
       <div class="musicals__actions">
-        <RouterLink
-          to="/musicales"
-          class="musicals__button musicals__button--primary"
-        >
-          Explorar nuestros musicales
+        <RouterLink to="/musicales" class="button button--primary">
+          Explorar musicales
           <span>→</span>
         </RouterLink>
 
-        <RouterLink
-          to="/galeria"
-          class="musicals__button musicals__button--secondary"
-        >
-          Ver experiencias en galería
+        <RouterLink to="/galeria" class="button button--secondary">
+          Ver galería
         </RouterLink>
       </div>
     </div>
@@ -308,612 +109,192 @@
 
 <script setup>
 import { RouterLink } from 'vue-router'
-
 import cocoFlyer from '@/assets/images/coco-flayer.png'
 import jackFlyer from '@/assets/images/jack-flayer.png'
 
 const process = [
-  {
-    number: '01',
-    label: 'REPERTORIO',
-    title: 'La música',
-    description:
-      'Seleccionamos canciones capaces de representar momentos importantes de la historia.'
-  },
-  {
-    number: '02',
-    label: 'NARRATIVA',
-    title: 'El relato',
-    description:
-      'La narración conecta las canciones y permite construir un recorrido comprensible.'
-  },
-  {
-    number: '03',
-    label: 'INTERPRETACIÓN',
-    title: 'Los personajes',
-    description:
-      'El estudiante trabaja intención, expresión, movimiento y presencia escénica.'
-  },
-  {
-    number: '04',
-    label: 'PRODUCCIÓN',
-    title: 'La atmósfera',
-    description:
-      'Audio, efectos, transiciones y elementos visuales completan la experiencia.'
-  }
+  { number:'01', label:'REPERTORIO', title:'La música', description:'Seleccionamos canciones capaces de representar momentos importantes de la historia.' },
+  { number:'02', label:'NARRATIVA', title:'El relato', description:'La narración conecta las canciones y permite construir un recorrido comprensible.' },
+  { number:'03', label:'INTERPRETACIÓN', title:'Los personajes', description:'El estudiante trabaja intención, expresión, movimiento y presencia escénica.' },
+  { number:'04', label:'PRODUCCIÓN', title:'La atmósfera', description:'Audio, efectos, transiciones y elementos visuales completan la experiencia.' }
 ]
 </script>
 
-<style scoped lang="scss">
-@use '@/assets/styles/abstracts/variables' as variables;
-@use '@/assets/styles/abstracts/mixins' as mixins;
-
-/* =========================================================
-   BASE
-========================================================= */
-
+<style scoped>
 .musicals {
-  position: relative;
-  overflow: hidden;
-  padding: 105px 24px;
-  color: #f5f5f5;
-  background: #070707;
-}
-
-.musicals__container {
-  position: relative;
-  z-index: 2;
-}
-
-.musicals__grid-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+  padding: 110px 24px;
+  color: #fff;
   background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.011) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      rgba(255, 255, 255, 0.011) 1px,
-      transparent 1px
-    );
-  background-size: 72px 72px;
-  mask-image:
-    linear-gradient(
-      to bottom,
-      transparent,
-      black 12%,
-      black 88%,
-      transparent
-    );
+    radial-gradient(circle at 10% 12%, rgba(213,167,32,.08), transparent 24%),
+    linear-gradient(135deg,#111b2e,#18243a);
 }
 
-.musicals__glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(150px);
+.container {
+  width: min(1180px,100%);
+  margin-inline: auto;
 }
-
-.musicals__glow--left {
-  top: 14%;
-  left: -330px;
-  width: 650px;
-  height: 650px;
-  background:
-    rgba(212, 175, 55, 0.032);
-}
-
-.musicals__glow--right {
-  right: -360px;
-  bottom: 4%;
-  width: 700px;
-  height: 700px;
-  background:
-    rgba(212, 175, 55, 0.02);
-}
-
-/* =========================================================
-   HEADER
-========================================================= */
 
 .musicals__header {
   display: grid;
-  gap: 46px;
-  margin-bottom: 34px;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      minmax(0, 1fr)
-      minmax(320px, 0.68fr);
-    align-items: end;
-  }
-}
-
-.musicals__eyebrow {
-  display: block;
-  color:
-    variables.$color-primary;
-  font-size: 0.55rem;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.musicals__title {
-  max-width: 850px;
-  margin: 14px 0 0;
-  color: #f2f2f2;
-  font-size:
-    clamp(
-      2.8rem,
-      4.8vw,
-      4.6rem
-    );
-  line-height: 0.94;
-  letter-spacing: -0.06em;
-}
-
-.musicals__title span {
-  display: block;
-  color:
-    variables.$color-primary;
-}
-
-.musicals__header-copy {
-  max-width: 500px;
-}
-
-.musicals__header-copy p {
-  margin: 12px 0 0;
-  color: #747474;
-  font-size: 0.76rem;
-  line-height: 1.72;
-}
-
-.musicals__lead {
-  margin-top: 0 !important;
-  color: #c5c5c5 !important;
-  font-size: 0.9rem !important;
-}
-
-/* =========================================================
-   CONCEPT
-========================================================= */
-
-.musicals__concept {
-  display: grid;
-  grid-template-columns:
-    auto
-    1fr
-    auto;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 38px;
-  padding: 15px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.18);
-  border-radius: 12px;
-  background:
-    linear-gradient(
-      120deg,
-      rgba(212, 175, 55, 0.04),
-      rgba(255, 255, 255, 0.006)
-    );
-}
-
-.musicals__concept-mark {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border-radius: 50%;
-  color: #080808;
-  background:
-    variables.$color-primary;
-  font-size: 0.48rem;
-  font-weight: 950;
-}
-
-.musicals__concept-copy small,
-.musicals__concept-copy strong {
-  display: block;
-}
-
-.musicals__concept-copy small {
-  color:
-    variables.$color-primary;
-  font-size: 0.37rem;
-  font-weight: 900;
-  letter-spacing: 0.11em;
-}
-
-.musicals__concept-copy strong {
-  margin-top: 3px;
-  color: #d4d4d4;
-  font-size: 0.68rem;
-}
-
-.musicals__concept-side {
-  text-align: right;
-}
-
-.musicals__concept-side span,
-.musicals__concept-side strong {
-  display: block;
-}
-
-.musicals__concept-side span {
-  color: #525252;
-  font-size: 0.36rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-.musicals__concept-side strong {
-  margin-top: 2px;
-  color:
-    variables.$color-primary;
-  font-size: 0.6rem;
-}
-
-/* =========================================================
-   PRODUCTIONS HEADER
-========================================================= */
-
-.musicals__productions-heading {
-  display: flex;
-  gap: 20px;
+  gap: 26px;
   align-items: end;
-  justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 42px;
 }
 
-.musicals__productions-heading span,
-.musicals__productions-heading strong {
+.eyebrow {
+  color: #e1b532;
+  font-size: .56rem;
+  font-weight: 900;
+  letter-spacing: .15em;
+}
+
+.musicals h2 {
+  max-width: 760px;
+  margin: 13px 0 0;
+  font-size: clamp(3rem,5vw,5rem);
+  line-height: .95;
+  letter-spacing: -.06em;
+}
+
+.musicals h2 strong,
+.musicals__process h3 strong {
   display: block;
+  color: #f0c748;
 }
 
-.musicals__productions-heading span {
-  color:
-    variables.$color-primary;
-  font-size: 0.4rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
+.musicals__header > p {
+  max-width: 520px;
+  margin: 0;
+  color: rgba(255,255,255,.68);
+  font-size: .88rem;
+  line-height: 1.75;
 }
-
-.musicals__productions-heading strong {
-  margin-top: 4px;
-  color: #c4c4c4;
-  font-size: 0.68rem;
-}
-
-.musicals__productions-heading > small {
-  color: #4d4d4d;
-  font-size: 0.4rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-/* =========================================================
-   SHOWCASE
-========================================================= */
 
 .musicals__showcase {
   display: grid;
   gap: 14px;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
 }
 
 .production {
-  display: grid;
   overflow: hidden;
-  border: 1px solid #292929;
-  border-radius: 18px;
-  background: #0c0c0c;
-  transition:
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 20px;
+  background: rgba(255,255,255,.05);
 }
-
-.production:hover {
-  transform: translateY(-3px);
-  border-color:
-    rgba(212, 175, 55, 0.24);
-  box-shadow:
-    0 24px 55px
-    rgba(0, 0, 0, 0.26);
-}
-
-/* =========================================================
-   PRODUCTION VISUAL
-========================================================= */
 
 .production__visual {
   position: relative;
+  min-height: 380px;
   overflow: hidden;
-  min-height: 390px;
-  background: #111;
 }
 
-.production__poster {
+.production__visual img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
-  transition:
-    transform 0.55s ease;
 }
 
-.production:hover .production__poster {
-  transform: scale(1.025);
-}
-
-.production__visual-overlay {
+.production__visual::after {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(
-      to top,
-      rgba(5, 5, 5, 0.96),
-      rgba(5, 5, 5, 0.08) 58%
-    );
+  content: '';
+  background: linear-gradient(180deg, transparent 45%, rgba(10,17,29,.78));
 }
 
-.production__badge {
+.production__status {
   position: absolute;
-  top: 18px;
-  left: 18px;
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  padding: 7px 9px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.2);
+  z-index: 2;
+  top: 16px;
+  left: 16px;
+  padding: 7px 10px;
   border-radius: 999px;
-  color:
-    variables.$color-primary;
-  background:
-    rgba(8, 8, 8, 0.74);
-  font-size: 0.38rem;
-  font-weight: 900;
-  letter-spacing: 0.09em;
-  backdrop-filter: blur(10px);
-}
-
-.production__badge span {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background:
-    variables.$color-primary;
-}
-
-.production__visual-number {
-  position: absolute;
-  right: 18px;
-  bottom: 14px;
-  color:
-    rgba(212, 175, 55, 0.5);
-  font-size: 0.47rem;
+  color: #bdebd7;
+  background: rgba(26,128,87,.72);
+  font-size: .42rem;
   font-weight: 900;
 }
 
-/* =========================================================
-   PRODUCTION CONTENT
-========================================================= */
+.production__status--future {
+  color: #ffe797;
+  background: rgba(145,107,0,.72);
+}
 
 .production__content {
-  display: flex;
-  min-height: 320px;
-  flex-direction: column;
-  padding: 23px;
+  padding: 20px;
 }
 
-.production__meta {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.production__meta > span {
-  color:
-    variables.$color-primary;
-  font-size: 0.39rem;
+.production__content small {
+  color: #e1b532;
+  font-size: .45rem;
   font-weight: 900;
-  letter-spacing: 0.12em;
-}
-
-.production__meta small {
-  color: #5d5d5d;
-  font-size: 0.42rem;
-  font-weight: 900;
+  letter-spacing: .1em;
 }
 
 .production__content h3 {
-  margin: 18px 0 0;
-  color: #f2f2f2;
-  font-family:
-    Georgia,
-    'Times New Roman',
-    serif;
-  font-size:
-    clamp(
-      2.8rem,
-      4.4vw,
-      4.2rem
-    );
-  font-weight: 500;
-  line-height: 0.93;
-  letter-spacing: -0.055em;
-}
-
-.production__title--jack span {
-  display: block;
-  color:
-    variables.$color-primary;
+  margin: 8px 0 0;
+  color: #fff;
+  font-size: 1.45rem;
 }
 
 .production__subtitle {
-  margin: 16px 0 0;
-  color: #c0c0c0;
-  font-size: 0.78rem;
-  line-height: 1.55;
-}
-
-.production__description {
-  margin: 9px 0 0;
-  color: #6e6e6e;
-  font-size: 0.63rem;
-  line-height: 1.62;
-}
-
-.production__features {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-
-.production__features span {
-  padding: 6px 9px;
-  border: 1px solid #2d2d2d;
-  border-radius: 999px;
-  color: #737373;
-  background: #111;
-  font-size: 0.43rem;
+  color: #fff !important;
   font-weight: 800;
 }
 
-.production__link {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 17px;
-  border-top: 1px solid #292929;
-  color:
-    variables.$color-primary;
+.production__content p {
+  margin: 9px 0 0;
+  color: rgba(255,255,255,.58);
+  font-size: .65rem;
+  line-height: 1.55;
+}
+
+.production__content a {
+  display: inline-flex;
+  gap: 7px;
+  margin-top: 16px;
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 900;
   text-decoration: none;
 }
 
-.production__link span {
-  font-size: 0.59rem;
-  font-weight: 900;
-}
-
-.production__link strong {
-  font-size: 0.9rem;
-  transition:
-    transform 0.2s ease;
-}
-
-.production__link:hover strong {
-  transform: translateX(4px);
-}
-
-/* =========================================================
-   PROCESS
-========================================================= */
-
 .musicals__process {
   display: grid;
-  gap: 36px;
-  margin-top: 42px;
-  padding: 27px;
-  border: 1px solid #282828;
-  border-radius: 16px;
-  background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(212, 175, 55, 0.045),
-      transparent 42%
-    ),
-    #0c0c0c;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      0.7fr
-      1.3fr;
-  }
+  gap: 26px;
+  margin-top: 50px;
+  padding: 26px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 18px;
+  background: rgba(255,255,255,.04);
 }
 
-.musicals__process-heading h3 {
-  max-width: 500px;
-  margin: 12px 0 0;
-  color: #ededed;
-  font-size:
-    clamp(
-      1.9rem,
-      3.4vw,
-      3.2rem
-    );
-  line-height: 0.98;
-  letter-spacing: -0.05em;
-}
-
-.musicals__process-heading h3 span {
-  display: block;
-  color:
-    variables.$color-primary;
-}
-
-.musicals__process-heading > p {
-  max-width: 430px;
-  margin: 13px 0 0;
-  color: #686868;
-  font-size: 0.59rem;
-  line-height: 1.6;
+.musicals__process h3 {
+  max-width: 520px;
+  margin: 10px 0 0;
+  font-size: clamp(2rem,3.6vw,3rem);
+  line-height: 1;
+  letter-spacing: -.05em;
 }
 
 .musicals__process-list {
   display: grid;
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid #282828;
-  border-radius: 11px;
-  background: #282828;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
+  gap: 8px;
 }
 
 .musicals__process-list article {
   display: flex;
-  gap: 10px;
-  min-height: 105px;
+  gap: 11px;
   padding: 14px;
-  background: #0b0b0b;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
 }
 
-.musicals__process-number {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.22);
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
-  font-size: 0.4rem;
+.musicals__process-list article > span {
+  color: #e1b532;
+  font-size: .48rem;
   font-weight: 900;
 }
 
@@ -923,270 +304,88 @@ const process = [
 }
 
 .musicals__process-list small {
-  color:
-    variables.$color-primary;
-  font-size: 0.35rem;
+  color: #e1b532;
+  font-size: .4rem;
   font-weight: 900;
-  letter-spacing: 0.09em;
 }
 
 .musicals__process-list strong {
   margin-top: 4px;
-  color: #d1d1d1;
-  font-size: 0.63rem;
+  color: #fff;
+  font-size: .7rem;
 }
 
 .musicals__process-list p {
-  margin: 4px 0 0;
-  color: #636363;
-  font-size: 0.5rem;
+  margin: 5px 0 0;
+  color: rgba(255,255,255,.5);
+  font-size: .55rem;
   line-height: 1.45;
 }
-
-/* =========================================================
-   CLOSING
-========================================================= */
-
-.musicals__closing {
-  display: grid;
-  grid-template-columns:
-    auto
-    1fr
-    auto;
-  gap: 13px;
-  align-items: center;
-  margin-top: 20px;
-  padding: 16px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.18);
-  border-radius: 12px;
-  background:
-    linear-gradient(
-      120deg,
-      rgba(212, 175, 55, 0.04),
-      rgba(255, 255, 255, 0.006)
-    );
-}
-
-.musicals__closing-symbol {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 50%;
-  color: #080808;
-  background:
-    variables.$color-primary;
-}
-
-.musicals__closing-copy small,
-.musicals__closing-copy strong {
-  display: block;
-}
-
-.musicals__closing-copy small {
-  color:
-    variables.$color-primary;
-  font-size: 0.36rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-.musicals__closing-copy strong {
-  margin-top: 3px;
-  color: #d6d6d6;
-  font-size: 0.67rem;
-}
-
-.musicals__closing-copy p {
-  max-width: 640px;
-  margin: 4px 0 0;
-  color: #696969;
-  font-size: 0.53rem;
-  line-height: 1.48;
-}
-
-.musicals__closing-arrow {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.22);
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
-  text-decoration: none;
-  transition:
-    transform 0.2s ease;
-}
-
-.musicals__closing-arrow:hover {
-  transform: translateX(3px);
-}
-
-/* =========================================================
-   ACTIONS
-========================================================= */
 
 .musicals__actions {
   display: flex;
   gap: 9px;
   flex-wrap: wrap;
-  margin-top: 19px;
+  margin-top: 24px;
 }
 
-.musicals__button {
+.button {
   display: inline-flex;
-  min-height: 44px;
-  gap: 9px;
+  min-height: 46px;
+  gap: 8px;
   align-items: center;
   justify-content: center;
   padding: 0 17px;
-  border-radius: 8px;
-  font-size: 0.61rem;
+  border-radius: 10px;
+  font-size: .65rem;
   font-weight: 900;
   text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
-.musicals__button:hover {
-  transform: translateY(-2px);
-}
-
-.musicals__button--primary {
-  border:
-    1px solid
-    variables.$color-primary;
-  color: #080808;
-  background:
-    variables.$color-primary;
-}
-
-.musicals__button--primary:hover {
-  box-shadow:
-    0 14px 35px
-    rgba(212, 175, 55, 0.13);
-}
-
-.musicals__button--secondary {
-  border: 1px solid #333;
-  color: #aaa;
-  background: transparent;
-}
-
-.musicals__button--secondary:hover {
+.button--primary {
   color: #fff;
-  border-color: #505050;
+  background: #9f1945;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+.button--secondary {
+  border: 1px solid rgba(255,255,255,.17);
+  color: #fff;
+  background: rgba(255,255,255,.05);
+}
 
-@media (max-width: 900px) {
-  .musicals {
-    padding: 85px 20px;
+@media (min-width: 850px) {
+  .musicals__header {
+    grid-template-columns: minmax(0,1.1fr) minmax(320px,.9fr);
   }
 
-  .musicals__header {
-    gap: 30px;
+  .musicals__showcase {
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  .musicals__process {
+    grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr);
+  }
+
+  .musicals__process-list {
+    grid-template-columns: repeat(2,1fr);
   }
 }
 
 @media (max-width: 700px) {
   .musicals {
-    padding: 72px 18px;
-  }
-
-  .musicals__title {
-    font-size:
-      clamp(
-        2.55rem,
-        11vw,
-        3.8rem
-      );
-  }
-
-  .musicals__concept {
-    grid-template-columns:
-      auto
-      1fr;
-  }
-
-  .musicals__concept-side {
-    grid-column: 1 / -1;
-    padding-top: 9px;
-    border-top: 1px solid #282828;
-    text-align: left;
-  }
-
-  .musicals__productions-heading {
-    align-items: flex-start;
-    flex-direction: column;
+    padding: 78px 16px;
   }
 
   .production__visual {
-    min-height: 340px;
-  }
-
-  .production__content {
-    min-height: auto;
-    padding: 20px;
-  }
-
-  .musicals__process {
-    padding: 20px;
-  }
-
-  .musicals__closing {
-    grid-template-columns:
-      auto
-      1fr;
-  }
-
-  .musicals__closing-arrow {
-    grid-column: 1 / -1;
-    width: 100%;
-    border-radius: 8px;
+    min-height: 320px;
   }
 
   .musicals__actions {
     flex-direction: column;
   }
 
-  .musicals__button {
+  .button {
     width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .production__visual {
-    min-height: 300px;
-  }
-
-  .production__content h3 {
-    font-size: 2.7rem;
-  }
-
-  .musicals__process-list {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .production,
-  .production__poster,
-  .production__link strong,
-  .musicals__closing-arrow,
-  .musicals__button {
-    transition: none;
   }
 }
 </style>

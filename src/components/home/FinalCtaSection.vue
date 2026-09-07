@@ -1,98 +1,70 @@
 <template>
   <section class="final-cta">
-    <div
-      class="final-cta__glow"
-      aria-hidden="true"
-    ></div>
+    <div class="final-cta__background" aria-hidden="true">
+      <span></span>
+      <span></span>
+    </div>
 
-    <div
-      class="final-cta__line"
-      aria-hidden="true"
-    ></div>
-
-    <div class="final-cta__container">
+    <div class="container final-cta__layout">
       <div class="final-cta__content">
-        <span class="final-cta__eyebrow">
-          ACADEMIA DE TALENTOS AMO MI VOZ
-        </span>
+        <span class="eyebrow">ACADEMIA DE TALENTOS AMO MI VOZ</span>
 
-        <h2 class="final-cta__title">
+        <h2>
           Tu voz tiene algo que decir.
-          <span>Hazla crecer.</span>
+          <strong>Hazla crecer.</strong>
         </h2>
 
-        <p class="final-cta__description">
+        <p>
           Formación musical, experiencias escénicas y una comunidad
           donde cada estudiante puede desarrollar su propia voz.
         </p>
 
         <div class="final-cta__actions">
-          <RouterLink
-            to="/inscripcion"
-            class="button button--primary"
-          >
-            <span>Quiero comenzar</span>
-
-            <span
-              class="button__arrow"
-              aria-hidden="true"
-            >
-              →
-            </span>
+          <RouterLink to="/inscripcion" class="button button--primary">
+            Quiero comenzar
+            <span>→</span>
           </RouterLink>
 
-          <RouterLink
-            to="/academia"
-            class="button button--secondary"
-          >
-            Conocer la academia
+          <RouterLink to="/contacto" class="button button--secondary">
+            Resolver una duda
           </RouterLink>
-        </div>
 
-        <div class="final-cta__meta">
-          <span>Formación musical</span>
-
-          <span
-            class="final-cta__dot"
-            aria-hidden="true"
-          ></span>
-
-          <span>Experiencia escénica</span>
-
-          <span
-            class="final-cta__dot"
-            aria-hidden="true"
-          ></span>
-
-          <span>La Calera</span>
+          <RouterLink to="/aula" class="button button--ghost">
+            Ya soy estudiante · Aula Virtual
+          </RouterLink>
         </div>
       </div>
 
-      <div
-        class="final-cta__mark"
-        aria-hidden="true"
-      >
-        <div class="final-cta__orbit final-cta__orbit--outer"></div>
-        <div class="final-cta__orbit final-cta__orbit--inner"></div>
+      <aside class="final-cta__panel">
+        <small>¿QUÉ QUIERES HACER?</small>
 
-        <div class="final-cta__brand">
-          <span class="final-cta__brand-main">
-            AMO
-          </span>
+        <RouterLink to="/formacion">
+          <span>01</span>
+          <div>
+            <strong>Conocer la formación</strong>
+            <small>Programa, metodología y áreas</small>
+          </div>
+          <b>→</b>
+        </RouterLink>
 
-          <span class="final-cta__brand-accent">
-            MI VOZ
-          </span>
-        </div>
+        <RouterLink to="/inscripcion">
+          <span>02</span>
+          <div>
+            <strong>Inscribirme</strong>
+            <small>Comenzar mi proceso</small>
+          </div>
+          <b>→</b>
+        </RouterLink>
 
-        <span class="final-cta__note final-cta__note--one">
-          ♪
-        </span>
-
-        <span class="final-cta__note final-cta__note--two">
-          ♫
-        </span>
-      </div>
+        <RouterLink to="/aula">
+          <span>03</span>
+          <div>
+            <strong>Entrar al Aula Virtual</strong>
+            <small>Acceso estudiantes y profesores</small>
+          </div>
+          <b>→</b>
+        </RouterLink>
+      </aside>
     </div>
   </section>
 </template>
@@ -101,380 +73,184 @@
 import { RouterLink } from 'vue-router'
 </script>
 
-<style scoped lang="scss">
-@use '@/assets/styles/abstracts/variables' as variables;
-
-/* =========================================================
-   SECTION
-========================================================= */
-
+<style scoped>
 .final-cta {
   position: relative;
   overflow: hidden;
-  padding: clamp(5rem, 8vw, 7rem) 24px;
-  background:
-    radial-gradient(
-      circle at 82% 50%,
-      rgba(244, 196, 48, 0.08),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 50% 120%,
-      rgba(244, 196, 48, 0.08),
-      transparent 35%
-    ),
-    #070707;
+  padding: 105px 24px;
+  color: #fff;
+  background: #101a2d;
 }
 
-.final-cta__glow {
-  position: absolute;
-  right: -220px;
-  bottom: -280px;
-  width: 620px;
-  height: 620px;
-  border-radius: 50%;
-  pointer-events: none;
-  background:
-    rgba(244, 196, 48, 0.05);
-  filter: blur(120px);
-}
-
-.final-cta__line {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: min(1180px, 90%);
-  height: 1px;
-  transform: translateX(-50%);
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(244, 196, 48, 0.3),
-      transparent
-    );
-}
-
-/* =========================================================
-   LAYOUT
-========================================================= */
-
-.final-cta__container {
+.container {
   position: relative;
   z-index: 2;
+  width: min(1180px,100%);
+  margin-inline: auto;
+}
+
+.final-cta__background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.final-cta__background span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+}
+
+.final-cta__background span:first-child {
+  top: -160px;
+  right: -120px;
+  width: 480px;
+  height: 480px;
+  background: rgba(159,25,69,.2);
+}
+
+.final-cta__background span:last-child {
+  bottom: -220px;
+  left: -180px;
+  width: 520px;
+  height: 520px;
+  background: rgba(213,167,32,.08);
+}
+
+.final-cta__layout {
   display: grid;
-  width: min(1180px, 100%);
-  gap: clamp(3rem, 7vw, 7rem);
+  gap: 36px;
   align-items: center;
-  margin: 0 auto;
 }
 
-.final-cta__content {
-  max-width: 720px;
-}
-
-/* =========================================================
-   TYPOGRAPHY
-========================================================= */
-
-.final-cta__eyebrow {
-  display: inline-block;
-  margin-bottom: 18px;
-  color: variables.$color-primary;
-  font-size: 0.56rem;
+.eyebrow {
+  color: #e2b62f;
+  font-size: .56rem;
   font-weight: 900;
-  letter-spacing: 0.2em;
+  letter-spacing: .15em;
 }
 
-.final-cta__title {
-  margin: 0;
-  color: #f0f0f0;
-  font-size:
-    clamp(
-      3rem,
-      5.3vw,
-      5rem
-    );
-  line-height: 0.94;
-  letter-spacing: -0.06em;
+.final-cta h2 {
+  max-width: 760px;
+  margin: 13px 0 0;
+  font-size: clamp(3rem,5vw,5rem);
+  line-height: .95;
+  letter-spacing: -.06em;
 }
 
-.final-cta__title span {
+.final-cta h2 strong {
   display: block;
-  color: variables.$color-primary;
+  color: #f0c748;
 }
 
-.final-cta__description {
-  max-width: 590px;
-  margin: 24px 0 30px;
-  color: #8a8a8a;
-  font-size: 0.9rem;
-  line-height: 1.75;
+.final-cta__content > p {
+  max-width: 620px;
+  margin: 20px 0 0;
+  color: rgba(255,255,255,.68);
+  font-size: .88rem;
+  line-height: 1.7;
 }
-
-/* =========================================================
-   ACTIONS
-========================================================= */
 
 .final-cta__actions {
   display: flex;
-  gap: 10px;
+  gap: 9px;
   flex-wrap: wrap;
+  margin-top: 24px;
 }
 
 .button {
   display: inline-flex;
-  min-height: 46px;
-  min-width: 175px;
-  gap: 14px;
+  min-height: 48px;
+  gap: 8px;
   align-items: center;
   justify-content: center;
-  padding: 0 20px;
-  border-radius: 9px;
-  font-size: 0.67rem;
+  padding: 0 17px;
+  border-radius: 10px;
+  font-size: .65rem;
   font-weight: 900;
-  letter-spacing: 0.02em;
   text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.button:hover {
-  transform: translateY(-2px);
-}
-
-.button:focus-visible {
-  outline:
-    2px solid
-    variables.$color-primary;
-  outline-offset: 4px;
 }
 
 .button--primary {
-  border:
-    1px solid
-    variables.$color-primary;
-  color: #080808;
-  background:
-    variables.$color-primary;
-}
-
-.button--primary:hover {
-  box-shadow:
-    0 15px 36px
-    rgba(244, 196, 48, 0.15);
+  color: #fff;
+  background: #9f1945;
 }
 
 .button--secondary {
-  border: 1px solid #333;
-  color: #aaa;
-  background: #101010;
+  border: 1px solid rgba(255,255,255,.18);
+  color: #fff;
+  background: rgba(255,255,255,.06);
 }
 
-.button--secondary:hover {
-  border-color:
-    rgba(244, 196, 48, 0.45);
-  color: variables.$color-primary;
+.button--ghost {
+  color: #f0c748;
+  background: transparent;
 }
 
-.button__arrow {
-  font-size: 1rem;
+.final-cta__panel {
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  background: rgba(255,255,255,.055);
+  backdrop-filter: blur(12px);
 }
 
-/* =========================================================
-   META
-========================================================= */
-
-.final-cta__meta {
-  display: flex;
-  gap: 11px;
-  align-items: center;
-  margin-top: 32px;
-  color: #505050;
-  font-size: 0.54rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.final-cta__panel > small {
+  color: #e2b62f;
+  font-size: .45rem;
+  font-weight: 900;
+  letter-spacing: .11em;
 }
 
-.final-cta__dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background:
-    variables.$color-primary;
-}
-
-/* =========================================================
-   BRAND MARK
-========================================================= */
-
-.final-cta__mark {
-  position: relative;
+.final-cta__panel > a {
   display: grid;
-  width:
-    clamp(
-      260px,
-      27vw,
-      370px
-    );
-  aspect-ratio: 1;
-  place-items: center;
-  justify-self: center;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 80px;
+  margin-top: 9px;
+  padding: 13px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(255,255,255,.035);
+  text-decoration: none;
 }
 
-.final-cta__orbit {
-  position: absolute;
-  border:
-    1px solid
-    rgba(244, 196, 48, 0.16);
-  border-radius: 50%;
+.final-cta__panel > a > span {
+  color: #e2b62f;
+  font-size: .46rem;
+  font-weight: 900;
 }
 
-.final-cta__orbit--outer {
-  inset: 0;
-}
-
-.final-cta__orbit--inner {
-  inset: 16%;
-  border-color:
-    rgba(255, 255, 255, 0.07);
-}
-
-.final-cta__orbit--outer::before,
-.final-cta__orbit--outer::after {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  content: '';
-  background:
-    variables.$color-primary;
-  box-shadow:
-    0 0 20px
-    rgba(244, 196, 48, 0.4);
-}
-
-.final-cta__orbit--outer::before {
-  top: 21%;
-  left: 4%;
-}
-
-.final-cta__orbit--outer::after {
-  right: 10%;
-  bottom: 17%;
-}
-
-.final-cta__brand {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-}
-
-.final-cta__brand span {
+.final-cta__panel strong,
+.final-cta__panel small {
   display: block;
 }
 
-.final-cta__brand-main {
-  color: #f1f1f1;
-  font-size:
-    clamp(
-      2.2rem,
-      4vw,
-      3.5rem
-    );
-  font-weight: 950;
-  line-height: 0.9;
-  letter-spacing: -0.055em;
+.final-cta__panel strong {
+  font-size: .7rem;
 }
 
-.final-cta__brand-accent {
-  margin-top: 3px;
-  color: variables.$color-primary;
-  font-size:
-    clamp(
-      1.7rem,
-      3vw,
-      2.6rem
-    );
-  font-weight: 950;
-  line-height: 0.9;
-  letter-spacing: -0.05em;
+.final-cta__panel a small {
+  margin-top: 4px;
+  color: rgba(255,255,255,.48);
+  font-size: .52rem;
 }
 
-.final-cta__note {
-  position: absolute;
-  color:
-    rgba(244, 196, 48, 0.34);
+.final-cta__panel b {
+  color: #e2b62f;
 }
-
-.final-cta__note--one {
-  top: 12%;
-  right: 20%;
-  font-size: 1rem;
-}
-
-.final-cta__note--two {
-  bottom: 14%;
-  left: 19%;
-  font-size: 0.8rem;
-}
-
-/* =========================================================
-   DESKTOP
-========================================================= */
 
 @media (min-width: 900px) {
-  .final-cta__container {
-    grid-template-columns:
-      minmax(0, 1.25fr)
-      minmax(280px, 0.75fr);
+  .final-cta__layout {
+    grid-template-columns: minmax(0,1.15fr) minmax(340px,.85fr);
   }
 }
 
-/* =========================================================
-   TABLET
-========================================================= */
-
-@media (max-width: 899px) {
+@media (max-width: 700px) {
   .final-cta {
-    padding: 80px 20px;
-  }
-
-  .final-cta__container {
-    grid-template-columns: 1fr;
-    gap: 55px;
-  }
-
-  .final-cta__mark {
-    justify-self: start;
-  }
-}
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 600px) {
-  .final-cta {
-    padding: 70px 18px;
-  }
-
-  .final-cta__title {
-    font-size:
-      clamp(
-        2.55rem,
-        12vw,
-        3.5rem
-      );
-  }
-
-  .final-cta__description {
-    font-size: 0.82rem;
+    padding: 78px 16px;
   }
 
   .final-cta__actions {
@@ -483,31 +259,6 @@ import { RouterLink } from 'vue-router'
 
   .button {
     width: 100%;
-  }
-
-  .final-cta__meta {
-    gap: 7px;
-    flex-wrap: wrap;
-    line-height: 1.6;
-  }
-
-  .final-cta__mark {
-    width:
-      min(
-        280px,
-        82vw
-      );
-    justify-self: center;
-  }
-}
-
-/* =========================================================
-   ACCESSIBILITY
-========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-  .button {
-    transition: none;
   }
 }
 </style>

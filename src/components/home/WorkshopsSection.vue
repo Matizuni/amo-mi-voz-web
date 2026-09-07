@@ -1,95 +1,55 @@
 <template>
-  <section
-    id="formacion"
-    class="workshops"
-  >
-    <div class="workshops__grid-bg" aria-hidden="true"></div>
-    <div class="workshops__glow workshops__glow--left" aria-hidden="true"></div>
-    <div class="workshops__glow workshops__glow--right" aria-hidden="true"></div>
+  <section id="formacion" class="workshops">
+    <div class="container workshops__header">
+      <div>
+        <span class="eyebrow">PROGRAMA FORMATIVO</span>
+
+        <h2>
+          Formación pensada para
+          <strong>desarrollar artistas.</strong>
+        </h2>
+      </div>
+
+      <div class="workshops__intro">
+        <p>
+          Técnica vocal, teoría musical, entrenamiento auditivo,
+          interpretación y trabajo escénico se conectan para que
+          cada herramienta tenga una aplicación concreta.
+        </p>
+
+        <RouterLink to="/formacion">
+          Ver programa completo
+          <span>→</span>
+        </RouterLink>
+      </div>
+    </div>
 
     <div class="container workshops__layout">
-      <!-- =========================
-           VISUAL
-      ========================== -->
       <div class="workshops__visual">
-        <figure class="workshops__image-frame">
-          <img
-            :src="studentImage"
-            alt="Estudiante de la Academia de Talentos Amo Mi Voz"
-            class="workshops__image"
-            loading="lazy"
-          />
+        <img
+          :src="studentImage"
+          alt="Estudiante desarrollando su formación musical en Amo Mi Voz"
+          loading="lazy"
+        />
 
-          <div class="workshops__image-overlay"></div>
+        <div class="workshops__visual-overlay"></div>
 
-          <div class="workshops__visual-status">
-            <span></span>
-            PROGRAMA FORMATIVO
-          </div>
+        <div class="workshops__visual-copy">
+          <small>FORMACIÓN INTEGRAL</small>
+          <strong>
+            Comprender.
+            <span>Practicar.</span>
+            Aplicar.
+          </strong>
 
-          <figcaption class="workshops__caption">
-            <small>
-              FORMACIÓN INTEGRAL
-            </small>
-
-            <strong>
-              Herramientas para
-              <em>entender y hacer música.</em>
-            </strong>
-
-            <p>
-              Técnica, oído, interpretación y experiencia
-              trabajan juntas dentro del proceso.
-            </p>
-          </figcaption>
-        </figure>
-
-        <div class="workshops__visual-summary">
-          <article>
-            <span>01</span>
-            <div>
-              <small>VOZ</small>
-              <strong>Técnica y control</strong>
-            </div>
-          </article>
-
-          <article>
-            <span>02</span>
-            <div>
-              <small>MÚSICA</small>
-              <strong>Oído y comprensión</strong>
-            </div>
-          </article>
-
-          <article>
-            <span>03</span>
-            <div>
-              <small>ESCENA</small>
-              <strong>Interpretación real</strong>
-            </div>
-          </article>
+          <p>
+            El aprendizaje se conecta con repertorio,
+            ensayos, conciertos y experiencias reales.
+          </p>
         </div>
       </div>
 
-      <!-- =========================
-           CONTENIDO
-      ========================== -->
       <div class="workshops__content">
-        <p class="workshops__eyebrow">
-          PROGRAMA FORMATIVO
-        </p>
-
-        <h2 class="workshops__title">
-          Formación pensada para
-          <span>desarrollar artistas.</span>
-        </h2>
-
-        <p class="workshops__intro">
-          Nuestro programa conecta técnica vocal, teoría musical,
-          entrenamiento auditivo, interpretación y trabajo escénico
-          para que cada herramienta tenga una aplicación concreta.
-        </p>
-
         <div class="workshops__stats">
           <article>
             <small>ENFOQUE</small>
@@ -106,77 +66,41 @@
           <article>
             <small>OBJETIVO</small>
             <strong>Autonomía</strong>
-            <span>Más herramientas para el estudiante</span>
+            <span>Más herramientas para aprender</span>
           </article>
         </div>
 
-        <div class="workshops__units-header">
+        <div class="workshops__units-head">
           <div>
             <span>ÁREAS DE FORMACIÓN</span>
-            <strong>
-              Herramientas que se complementan entre sí.
-            </strong>
+            <strong>Herramientas que se complementan.</strong>
           </div>
 
-          <small>
-            {{ trainingUnits.length }} UNIDADES
-          </small>
+          <small>{{ trainingUnits.length }} UNIDADES</small>
         </div>
 
         <div class="workshops__grid">
           <WorkshopCard
-            v-for="(unit, index) in trainingUnits"
+            v-for="unit in trainingUnits"
             :key="unit.id"
             :title="unit.title"
             :description="unit.description"
             :icon="unit.icon"
-            :style="{
-              transitionDelay: `${index * 60}ms`
-            }"
           />
-        </div>
-
-        <div class="workshops__closing">
-          <div class="workshops__closing-icon">
-            ♪
-          </div>
-
-          <div class="workshops__closing-copy">
-            <small>
-              FORMACIÓN EN CONTEXTO
-            </small>
-
-            <strong>
-              Cada herramienta termina conectándose con repertorio y escenario.
-            </strong>
-
-            <p>
-              Lo aprendido se utiliza en canciones, ensayos,
-              conciertos, musicales y otras experiencias artísticas.
-            </p>
-          </div>
-
-          <RouterLink
-            to="/formacion"
-            class="workshops__closing-link"
-            aria-label="Ver programa formativo"
-          >
-            →
-          </RouterLink>
         </div>
 
         <div class="workshops__actions">
           <RouterLink
             to="/formacion"
-            class="workshops__button workshops__button--primary"
+            class="button button--primary"
           >
-            Explorar programa formativo
+            Explorar formación
             <span>→</span>
           </RouterLink>
 
           <RouterLink
             to="/inscripcion"
-            class="workshops__button workshops__button--secondary"
+            class="button button--secondary"
           >
             Quiero inscribirme
           </RouterLink>
@@ -193,348 +117,150 @@ import { trainingUnits } from '../../data/trainingUnits.js'
 import studentImage from '@/assets/images/alumno-2.png'
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/styles/abstracts/variables' as variables;
-@use '@/assets/styles/abstracts/mixins' as mixins;
-
-/* =========================================================
-   BASE
-========================================================= */
-
+<style scoped>
 .workshops {
-  position: relative;
-  overflow: hidden;
   padding: 105px 24px;
-  color: #f5f5f5;
-  background: #080808;
-}
-
-.workshops__grid-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+  color: #152033;
   background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.011) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      rgba(255, 255, 255, 0.011) 1px,
-      transparent 1px
-    );
-  background-size: 72px 72px;
-  mask-image:
-    linear-gradient(
-      to bottom,
-      transparent,
-      black 12%,
-      black 88%,
-      transparent
-    );
+    radial-gradient(circle at 8% 15%, rgba(159,25,69,.04), transparent 23%),
+    #f5f7fa;
 }
 
-.workshops__glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(150px);
+.container {
+  width: min(1180px,100%);
+  margin-inline: auto;
 }
 
-.workshops__glow--left {
-  top: 14%;
-  left: -320px;
-  width: 620px;
-  height: 620px;
-  background:
-    rgba(212, 175, 55, 0.035);
+.workshops__header {
+  display: grid;
+  gap: 28px;
+  align-items: end;
+  margin-bottom: 44px;
 }
 
-.workshops__glow--right {
-  right: -360px;
-  bottom: -260px;
-  width: 680px;
-  height: 680px;
-  background:
-    rgba(212, 175, 55, 0.022);
+.eyebrow,
+.workshops__units-head span {
+  color: #916b00;
+  font-size: .56rem;
+  font-weight: 900;
+  letter-spacing: .16em;
 }
 
-/* =========================================================
-   LAYOUT
-========================================================= */
+.workshops h2 {
+  max-width: 760px;
+  margin: 13px 0 0;
+  color: #152033;
+  font-size: clamp(3rem,5vw,5rem);
+  line-height: .96;
+  letter-spacing: -.06em;
+}
+
+.workshops h2 strong {
+  display: block;
+  color: #9f1945;
+}
+
+.workshops__intro {
+  max-width: 540px;
+}
+
+.workshops__intro p {
+  margin: 0;
+  color: #59697f;
+  font-size: .88rem;
+  line-height: 1.75;
+}
+
+.workshops__intro > a {
+  display: inline-flex;
+  gap: 7px;
+  margin-top: 14px;
+  color: #9f1945;
+  font-size: .68rem;
+  font-weight: 900;
+  text-decoration: none;
+}
 
 .workshops__layout {
-  position: relative;
-  z-index: 2;
   display: grid;
-  gap: 68px;
+  gap: 32px;
   align-items: start;
-
-  @include mixins.respond-to(lg) {
-    grid-template-columns:
-      minmax(330px, 0.86fr)
-      minmax(0, 1.34fr);
-  }
 }
-
-/* =========================================================
-   VISUAL
-========================================================= */
 
 .workshops__visual {
   position: relative;
-
-  @include mixins.respond-to(lg) {
-    position: sticky;
-    top: 105px;
-  }
-}
-
-.workshops__image-frame {
-  position: relative;
+  min-height: 600px;
   overflow: hidden;
-  min-height: 540px;
-  margin: 0;
-  border: 1px solid #292929;
-  border-radius: 21px;
-  background: #111;
-  box-shadow:
-    0 36px 88px
-    rgba(0, 0, 0, 0.42);
+  border-radius: 24px;
+  background: #152033;
+  box-shadow: 0 22px 50px rgba(31,48,73,.1);
 }
 
-.workshops__image {
+.workshops__visual img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
-  filter:
-    saturate(0.84)
-    contrast(1.03)
-    brightness(0.9);
-  transition:
-    transform 0.7s ease;
 }
 
-.workshops__image-frame:hover .workshops__image {
-  transform: scale(1.02);
-}
-
-.workshops__image-overlay {
+.workshops__visual-overlay {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.95),
-      rgba(0, 0, 0, 0.03) 60%
-    );
+  background: linear-gradient(180deg, transparent 38%, rgba(9,18,31,.9) 100%);
 }
 
-/* =========================================================
-   VISUAL STATUS
-========================================================= */
-
-.workshops__visual-status {
+.workshops__visual-copy {
   position: absolute;
-  top: 21px;
-  left: 21px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 7px 10px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.2);
-  border-radius: 999px;
-  color:
-    variables.$color-primary;
-  background:
-    rgba(8, 8, 8, 0.72);
-  font-size: 0.4rem;
+  right: 25px;
+  bottom: 26px;
+  left: 25px;
+}
+
+.workshops__visual-copy small {
+  color: #e7bc37;
+  font-size: .45rem;
   font-weight: 900;
-  letter-spacing: 0.13em;
-  backdrop-filter: blur(10px);
+  letter-spacing: .13em;
 }
 
-.workshops__visual-status > span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background:
-    variables.$color-primary;
-  box-shadow:
-    0 0 11px
-    rgba(212, 175, 55, 0.5);
-}
-
-/* =========================================================
-   CAPTION
-========================================================= */
-
-.workshops__caption {
-  position: absolute;
-  right: 24px;
-  bottom: 25px;
-  left: 24px;
-}
-
-.workshops__caption small {
-  color:
-    variables.$color-primary;
-  font-size: 0.43rem;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-}
-
-.workshops__caption strong {
+.workshops__visual-copy strong {
   display: block;
-  max-width: 470px;
   margin-top: 8px;
-  color: #f2f2f2;
-  font-size:
-    clamp(
-      1.9rem,
-      3.5vw,
-      2.9rem
-    );
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  color: #fff;
+  font-size: clamp(2rem,3.5vw,3rem);
+  line-height: .97;
+  letter-spacing: -.05em;
 }
 
-.workshops__caption strong em {
-  display: block;
-  color:
-    variables.$color-primary;
-  font-style: normal;
+.workshops__visual-copy strong span {
+  color: #f0c747;
 }
 
-.workshops__caption p {
-  max-width: 380px;
+.workshops__visual-copy p {
+  max-width: 500px;
   margin: 12px 0 0;
-  color: #8c8c8c;
-  font-size: 0.59rem;
-  line-height: 1.55;
+  color: rgba(255,255,255,.72);
+  font-size: .7rem;
+  line-height: 1.6;
 }
 
-/* =========================================================
-   VISUAL SUMMARY
-========================================================= */
-
-.workshops__visual-summary {
+.workshops__content {
   display: grid;
-  gap: 1px;
-  overflow: hidden;
-  margin-top: 10px;
-  border: 1px solid #272727;
-  border-radius: 11px;
-  background: #272727;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(3, 1fr);
-  }
+  gap: 18px;
 }
-
-.workshops__visual-summary article {
-  display: flex;
-  gap: 9px;
-  padding: 12px;
-  background: #0d0d0d;
-}
-
-.workshops__visual-summary article > span {
-  color:
-    variables.$color-primary;
-  font-size: 0.42rem;
-  font-weight: 900;
-}
-
-.workshops__visual-summary small,
-.workshops__visual-summary strong {
-  display: block;
-}
-
-.workshops__visual-summary small {
-  color: #5c5c5c;
-  font-size: 0.36rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-.workshops__visual-summary strong {
-  margin-top: 3px;
-  color: #d0d0d0;
-  font-size: 0.55rem;
-}
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-.workshops__eyebrow {
-  margin: 0 0 14px;
-  color:
-    variables.$color-primary;
-  font-size: 0.55rem;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.workshops__title {
-  max-width: 800px;
-  margin: 0;
-  color: #f2f2f2;
-  font-size:
-    clamp(
-      2.8rem,
-      4.8vw,
-      4.6rem
-    );
-  line-height: 0.94;
-  letter-spacing: -0.06em;
-}
-
-.workshops__title span {
-  display: block;
-  color:
-    variables.$color-primary;
-}
-
-.workshops__intro {
-  max-width: 680px;
-  margin: 22px 0 0;
-  color: #929292;
-  font-size: 0.82rem;
-  line-height: 1.72;
-}
-
-/* =========================================================
-   STATS
-========================================================= */
 
 .workshops__stats {
   display: grid;
-  gap: 1px;
-  overflow: hidden;
-  margin-top: 24px;
-  margin-bottom: 24px;
-  border: 1px solid #282828;
-  border-radius: 11px;
-  background: #282828;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(3, 1fr);
-  }
+  gap: 10px;
 }
 
 .workshops__stats article {
-  padding: 13px;
-  background: #0d0d0d;
+  min-height: 100px;
+  padding: 16px;
+  border: 1px solid #dce4ed;
+  border-radius: 14px;
+  background: #fff;
 }
 
 .workshops__stats small,
@@ -544,324 +270,115 @@ import studentImage from '@/assets/images/alumno-2.png'
 }
 
 .workshops__stats small {
-  color: #565656;
-  font-size: 0.38rem;
+  color: #8b98a8;
+  font-size: .48rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
 }
 
 .workshops__stats strong {
-  margin-top: 4px;
-  color:
-    variables.$color-primary;
-  font-size: 0.68rem;
+  margin-top: 7px;
+  color: #152033;
+  font-size: .92rem;
 }
 
 .workshops__stats span {
-  margin-top: 3px;
-  color: #656565;
-  font-size: 0.5rem;
+  margin-top: 4px;
+  color: #6f7c8f;
+  font-size: .58rem;
 }
 
-/* =========================================================
-   UNITS HEADER
-========================================================= */
-
-.workshops__units-header {
+.workshops__units-head {
   display: flex;
-  gap: 20px;
   align-items: end;
   justify-content: space-between;
-  margin-bottom: 15px;
+  gap: 16px;
+  margin-top: 8px;
 }
 
-.workshops__units-header span,
-.workshops__units-header strong {
+.workshops__units-head strong {
   display: block;
+  margin-top: 5px;
+  color: #152033;
+  font-size: .8rem;
 }
 
-.workshops__units-header span {
-  color:
-    variables.$color-primary;
-  font-size: 0.4rem;
+.workshops__units-head > small {
+  color: #7a8798;
+  font-size: .52rem;
   font-weight: 900;
-  letter-spacing: 0.12em;
 }
-
-.workshops__units-header strong {
-  margin-top: 4px;
-  color: #c9c9c9;
-  font-size: 0.69rem;
-}
-
-.workshops__units-header > small {
-  color: #4d4d4d;
-  font-size: 0.41rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-/* =========================================================
-   UNITS GRID
-========================================================= */
 
 .workshops__grid {
   display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr;
-
-  @include mixins.respond-to(md) {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-  @include mixins.respond-to(xl) {
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
-  }
+  gap: 9px;
 }
-
-/* =========================================================
-   CLOSING
-========================================================= */
-
-.workshops__closing {
-  display: grid;
-  grid-template-columns:
-    auto
-    1fr
-    auto;
-  gap: 14px;
-  align-items: center;
-  margin-top: 20px;
-  padding: 16px;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.19);
-  border-radius: 12px;
-  background:
-    linear-gradient(
-      120deg,
-      rgba(212, 175, 55, 0.045),
-      rgba(255, 255, 255, 0.008)
-    );
-}
-
-.workshops__closing-icon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 50%;
-  color: #080808;
-  background:
-    variables.$color-primary;
-  font-size: 0.9rem;
-}
-
-.workshops__closing-copy small,
-.workshops__closing-copy strong {
-  display: block;
-}
-
-.workshops__closing-copy small {
-  color:
-    variables.$color-primary;
-  font-size: 0.37rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-.workshops__closing-copy strong {
-  margin-top: 3px;
-  color: #d7d7d7;
-  font-size: 0.68rem;
-}
-
-.workshops__closing-copy p {
-  max-width: 650px;
-  margin: 4px 0 0;
-  color: #6c6c6c;
-  font-size: 0.54rem;
-  line-height: 1.48;
-}
-
-.workshops__closing-link {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border:
-    1px solid
-    rgba(212, 175, 55, 0.24);
-  border-radius: 50%;
-  color:
-    variables.$color-primary;
-  text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease;
-}
-
-.workshops__closing-link:hover {
-  transform: translateX(3px);
-  background:
-    rgba(212, 175, 55, 0.06);
-}
-
-/* =========================================================
-   ACTIONS
-========================================================= */
 
 .workshops__actions {
   display: flex;
   gap: 9px;
   flex-wrap: wrap;
-  margin-top: 19px;
+  margin-top: 4px;
 }
 
-.workshops__button {
+.button {
   display: inline-flex;
-  min-height: 44px;
-  gap: 9px;
+  min-height: 46px;
+  gap: 8px;
   align-items: center;
   justify-content: center;
   padding: 0 17px;
-  border-radius: 8px;
-  font-size: 0.61rem;
+  border-radius: 10px;
+  font-size: .65rem;
   font-weight: 900;
   text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
-.workshops__button:hover {
-  transform: translateY(-2px);
-}
-
-.workshops__button--primary {
-  border:
-    1px solid
-    variables.$color-primary;
-  color: #080808;
-  background:
-    variables.$color-primary;
-}
-
-.workshops__button--primary:hover {
-  box-shadow:
-    0 14px 35px
-    rgba(212, 175, 55, 0.13);
-}
-
-.workshops__button--secondary {
-  border: 1px solid #333;
-  color: #aaa;
-  background: transparent;
-}
-
-.workshops__button--secondary:hover {
+.button--primary {
   color: #fff;
-  border-color: #505050;
+  background: #9f1945;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+.button--secondary {
+  border: 1px solid #d7e0e9;
+  color: #344359;
+  background: #fff;
+}
 
-@media (max-width: 1050px) {
-  .workshops {
-    padding: 85px 22px;
+@media (min-width: 900px) {
+  .workshops__header {
+    grid-template-columns: minmax(0,1.1fr) minmax(330px,.9fr);
   }
 
   .workshops__layout {
-    grid-template-columns: 1fr;
-    gap: 50px;
+    grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr);
+    gap: 48px;
   }
 
-  .workshops__visual {
-    position: relative;
-    top: auto;
-    width: min(720px, 100%);
-    margin: 0 auto;
+  .workshops__stats {
+    grid-template-columns: repeat(3,1fr);
   }
 
-  .workshops__image-frame {
-    min-height: 610px;
+  .workshops__grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
   }
 }
 
 @media (max-width: 700px) {
   .workshops {
-    padding: 72px 18px;
+    padding: 76px 16px;
   }
 
-  .workshops__image-frame {
-    min-height: 500px;
-    border-radius: 17px;
-  }
-
-  .workshops__title {
-    font-size:
-      clamp(
-        2.55rem,
-        11vw,
-        3.8rem
-      );
-  }
-
-  .workshops__intro {
-    font-size: 0.78rem;
-  }
-
-  .workshops__closing {
-    grid-template-columns:
-      auto
-      1fr;
-  }
-
-  .workshops__closing-link {
-    grid-column: 1 / -1;
-    width: 100%;
-    border-radius: 8px;
+  .workshops__visual {
+    min-height: 470px;
   }
 
   .workshops__actions {
     flex-direction: column;
   }
 
-  .workshops__button {
+  .button {
     width: 100%;
-  }
-}
-
-@media (max-width: 500px) {
-  .workshops__image-frame {
-    min-height: 440px;
-  }
-
-  .workshops__caption strong {
-    font-size: 1.85rem;
-  }
-
-  .workshops__units-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .workshops__visual-summary {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .workshops__image,
-  .workshops__button,
-  .workshops__closing-link {
-    transition: none;
+    min-height: 48px;
   }
 }
 </style>

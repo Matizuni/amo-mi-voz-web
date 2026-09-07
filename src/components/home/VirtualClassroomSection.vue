@@ -1,125 +1,100 @@
 <template>
   <section class="virtual-classroom">
-    <div class="virtual-classroom__glow" aria-hidden="true"></div>
-
-    <div class="container virtual-classroom__container">
-      <div class="virtual-classroom__content">
-        <span class="section-eyebrow">
-          FORMACIÓN · COMUNIDAD · TECNOLOGÍA
+    <div class="container virtual-classroom__layout">
+      <div class="virtual-classroom__copy">
+        <span class="eyebrow">
+          AULA VIRTUAL · TECNOLOGÍA EDUCATIVA
         </span>
 
         <h2>
-          Tu formación continúa
-          <span>más allá del escenario.</span>
+          La clase termina.
+          <strong>El aprendizaje continúa.</strong>
         </h2>
 
         <p class="virtual-classroom__lead">
-          Nuestra Aula Virtual reúne en un solo espacio las clases,
-          materiales, repertorio, tareas y el seguimiento del proceso
-          formativo de nuestros estudiantes.
+          Nuestra Aula Virtual reúne clases, materiales, repertorio,
+          tareas, evaluaciones y progreso en un espacio diseñado
+          para acompañar a cada estudiante.
         </p>
 
         <div class="virtual-classroom__features">
-          <article class="feature">
-            <span class="feature__number">01</span>
-
+          <article>
+            <span>01</span>
             <div>
               <strong>Clases y contenidos</strong>
-
-              <p>
-                Revisa el programa formativo y los contenidos de cada sesión.
-              </p>
+              <p>Programa formativo organizado y fácil de recorrer.</p>
             </div>
           </article>
 
-          <article class="feature">
-            <span class="feature__number">02</span>
-
+          <article>
+            <span>02</span>
             <div>
-              <strong>Material de estudio</strong>
-
-              <p>
-                Accede a repertorio, audios y recursos preparados
-                para cada etapa del aprendizaje.
-              </p>
+              <strong>Materiales y repertorio</strong>
+              <p>PDF, partituras, audios y recursos en un solo lugar.</p>
             </div>
           </article>
 
-          <article class="feature">
-            <span class="feature__number">03</span>
-
+          <article>
+            <span>03</span>
             <div>
-              <strong>Seguimiento personal</strong>
-
-              <p>
-                Cada estudiante puede consultar sus tareas
-                y su propio proceso formativo.
-              </p>
+              <strong>Evaluaciones y progreso</strong>
+              <p>Seguimiento claro para estudiantes y profesores.</p>
             </div>
           </article>
         </div>
 
-        <RouterLink
-          to="/aula"
-          class="aula-button"
-        >
-          <span class="aula-button__icon">
-            ♪
-          </span>
-
-          <span>
-            <small>ACCESO ESTUDIANTES</small>
+        <div class="virtual-classroom__actions">
+          <RouterLink to="/aula" class="button button--primary">
             Entrar al Aula Virtual
-          </span>
+            <span>→</span>
+          </RouterLink>
 
-          <span class="aula-button__arrow">
-            →
-          </span>
-        </RouterLink>
+          <RouterLink to="/formacion" class="button button--secondary">
+            Conocer la formación
+          </RouterLink>
+        </div>
       </div>
 
-      <div class="virtual-classroom__visual">
-        <div class="portal-card">
-          <div class="portal-card__top">
-            <span class="portal-card__dot"></span>
-            <span class="portal-card__dot"></span>
-            <span class="portal-card__dot"></span>
-
-            <span class="portal-card__label">
-              AULA · AMO MI VOZ
-            </span>
-          </div>
-
-          <div class="portal-card__body">
-            <div class="portal-card__brand">
-              <span>AMV</span>
+      <div class="virtual-classroom__visual" aria-label="Vista conceptual del Aula Virtual">
+        <div class="portal">
+          <header class="portal__bar">
+            <div>
+              <span></span><span></span><span></span>
             </div>
+            <small>AULA · AMO MI VOZ</small>
+          </header>
 
-            <p>ACADEMIA DE TALENTOS</p>
+          <div class="portal__body">
+            <aside class="portal__side">
+              <div class="portal__brand">AMV</div>
+              <span>Inicio</span>
+              <span>Mi curso</span>
+              <span class="is-active">Contenido</span>
+              <span>Recursos</span>
+              <span>Progreso</span>
+            </aside>
 
-            <h3>
-              Aula
-              <span>Virtual</span>
-            </h3>
-
-            <div class="portal-card__line"></div>
-
-            <div class="portal-card__stats">
-              <div>
-                <strong>Clases</strong>
-                <small>Programa formativo</small>
+            <main class="portal__content">
+              <div class="portal__hero">
+                <small>UNIDAD I · CLASE 01</small>
+                <strong>Del sonido a la música</strong>
+                <span>Tu recorrido académico, claro y ordenado.</span>
               </div>
 
-              <div>
-                <strong>Recursos</strong>
-                <small>Material musical</small>
+              <div class="portal__cards">
+                <article><strong>4</strong><span>Materiales</span></article>
+                <article><strong>1</strong><span>Actividad</span></article>
+                <article><strong>1</strong><span>Evaluación</span></article>
               </div>
 
-              <div>
-                <strong>Progreso</strong>
-                <small>Seguimiento</small>
+              <div class="portal__progress">
+                <div>
+                  <span>Progreso de la unidad</span>
+                  <strong>67%</strong>
+                </div>
+                <i><b></b></i>
               </div>
-            </div>
+            </main>
           </div>
         </div>
       </div>
@@ -131,393 +106,333 @@
 import { RouterLink } from 'vue-router'
 </script>
 
-<style scoped lang="scss">
-@use '@/assets/styles/abstracts/variables' as variables;
-
+<style scoped>
 .virtual-classroom {
-  position: relative;
-  overflow: hidden;
-  padding: 95px 24px;
+  padding: 110px 24px;
   color: #fff;
   background:
-    radial-gradient(
-      circle at 75% 50%,
-      rgba(244, 196, 48, 0.07),
-      transparent 32%
-    ),
-    linear-gradient(
-      180deg,
-      #070707 0%,
-      #0c0c0c 100%
-    );
+    radial-gradient(circle at 86% 22%, rgba(159,25,69,.18), transparent 28%),
+    linear-gradient(135deg,#101a2d,#17253c);
 }
 
-.virtual-classroom::before {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: min(1180px, 90%);
-  height: 1px;
-  content: '';
-  transform: translateX(-50%);
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(244, 196, 48, 0.45),
-      transparent
-    );
+.container {
+  width: min(1180px,100%);
+  margin-inline: auto;
 }
 
-.virtual-classroom__glow {
-  position: absolute;
-  top: 50%;
-  right: -150px;
-  width: 480px;
-  height: 480px;
-  border-radius: 50%;
-  pointer-events: none;
-  background: rgba(244, 196, 48, 0.055);
-  filter: blur(110px);
-  transform: translateY(-50%);
-}
-
-.virtual-classroom__container {
-  position: relative;
-  z-index: 2;
+.virtual-classroom__layout {
   display: grid;
-  width: min(1180px, 100%);
-  gap: 70px;
+  gap: 42px;
   align-items: center;
-  margin: 0 auto;
 }
 
-.section-eyebrow {
-  display: inline-block;
-  margin-bottom: 15px;
-  color: variables.$color-primary;
-  font-size: 0.55rem;
+.eyebrow {
+  color: #e2b72f;
+  font-size: .56rem;
   font-weight: 900;
-  letter-spacing: 0.18em;
+  letter-spacing: .15em;
 }
 
 .virtual-classroom h2 {
-  max-width: 760px;
-  margin: 0;
-  color: #f2f2f2;
-  font-size:
-    clamp(
-      2.8rem,
-      4.8vw,
-      4.6rem
-    );
-  line-height: 0.95;
-  letter-spacing: -0.055em;
+  max-width: 740px;
+  margin: 13px 0 0;
+  font-size: clamp(3rem,5vw,5rem);
+  line-height: .95;
+  letter-spacing: -.06em;
 }
 
-.virtual-classroom h2 span {
+.virtual-classroom h2 strong {
   display: block;
-  color: variables.$color-primary;
+  color: #f1c647;
 }
 
 .virtual-classroom__lead {
-  max-width: 640px;
-  margin: 22px 0 28px;
-  color: #aaa;
-  font-size: 0.9rem;
-  line-height: 1.7;
+  max-width: 620px;
+  margin: 20px 0 0;
+  color: rgba(255,255,255,.7);
+  font-size: .9rem;
+  line-height: 1.72;
 }
 
 .virtual-classroom__features {
   display: grid;
-  gap: 10px;
-  margin-bottom: 28px;
+  gap: 9px;
+  margin-top: 26px;
 }
 
-.feature {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  padding: 14px 16px;
-  border: 1px solid #252525;
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.02);
-  transition:
-    border-color 0.22s ease,
-    transform 0.22s ease,
-    background 0.22s ease;
+.virtual-classroom__features article {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: 12px;
+  min-height: 88px;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 13px;
+  background: rgba(255,255,255,.05);
 }
 
-.feature:hover {
-  border-color:
-    rgba(244, 196, 48, 0.32);
-  background:
-    rgba(244, 196, 48, 0.025);
-  transform: translateX(3px);
-}
-
-.feature__number {
-  color: variables.$color-primary;
-  font-size: 0.48rem;
+.virtual-classroom__features article > span {
+  color: #e2b72f;
+  font-size: .5rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
 }
 
-.feature strong {
-  display: block;
-  margin-bottom: 4px;
-  color: #ddd;
-  font-size: 0.78rem;
+.virtual-classroom__features strong {
+  color: #fff;
+  font-size: .75rem;
 }
 
-.feature p {
-  margin: 0;
-  color: #737373;
-  font-size: 0.64rem;
+.virtual-classroom__features p {
+  margin: 5px 0 0;
+  color: rgba(255,255,255,.56);
+  font-size: .6rem;
   line-height: 1.5;
 }
 
-.aula-button {
-  display: inline-flex;
-  min-width: 285px;
-  gap: 14px;
-  align-items: center;
-  padding: 13px 17px;
-  border-radius: 10px;
-  color: #090909;
-  text-decoration: none;
-  background: variables.$color-primary;
-  box-shadow:
-    0 12px 30px
-    rgba(244, 196, 48, 0.11);
-  transition:
-    transform 0.22s ease,
-    box-shadow 0.22s ease;
-}
-
-.aula-button:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 17px 40px
-    rgba(244, 196, 48, 0.18);
-}
-
-.aula-button__icon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  color: variables.$color-primary;
-  background: #0a0a0a;
-  font-size: 1rem;
-}
-
-.aula-button small {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 0.52rem;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-}
-
-.aula-button > span:nth-child(2) {
-  flex: 1;
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
-.aula-button__arrow {
-  font-size: 1.1rem;
-}
-
-.portal-card {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #292929;
-  border-radius: 18px;
-  background: #111;
-  box-shadow:
-    0 35px 80px
-    rgba(0, 0, 0, 0.48);
-  transform:
-    perspective(1000px)
-    rotateY(-3deg);
-}
-
-.portal-card::after {
-  position: absolute;
-  inset: 0;
-  content: '';
-  pointer-events: none;
-  background:
-    linear-gradient(
-      125deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.025),
-      transparent 65%
-    );
-}
-
-.portal-card__top {
+.virtual-classroom__actions {
   display: flex;
-  gap: 6px;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 48px;
+  gap: 8px;
   align-items: center;
-  padding: 12px 15px;
-  border-bottom: 1px solid #222;
+  justify-content: center;
+  padding: 0 17px;
+  border-radius: 10px;
+  font-size: .65rem;
+  font-weight: 900;
+  text-decoration: none;
 }
 
-.portal-card__dot {
-  width: 6px;
-  height: 6px;
+.button--primary {
+  color: #fff;
+  background: #9f1945;
+}
+
+.button--secondary {
+  border: 1px solid rgba(255,255,255,.18);
+  color: #fff;
+  background: rgba(255,255,255,.06);
+}
+
+.virtual-classroom__visual {
+  min-width: 0;
+}
+
+.portal {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 22px;
+  background: #f5f7fa;
+  box-shadow: 0 32px 70px rgba(0,0,0,.28);
+  transform: perspective(1100px) rotateY(-4deg) rotateX(1deg);
+}
+
+.portal__bar {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border-bottom: 1px solid #dde4ec;
+  background: #fff;
+}
+
+.portal__bar > div {
+  display: flex;
+  gap: 5px;
+}
+
+.portal__bar > div span {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #424242;
+  background: #d8dfe7;
 }
 
-.portal-card__label {
-  margin-left: auto;
-  color: #626262;
-  font-size: 0.48rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+.portal__bar small {
+  color: #7b8797;
+  font-size: .42rem;
+  font-weight: 900;
 }
 
-.portal-card__body {
-  padding: 42px 34px 34px;
-}
-
-.portal-card__brand {
+.portal__body {
   display: grid;
-  width: 54px;
-  height: 54px;
-  margin-bottom: 20px;
+  grid-template-columns: 145px minmax(0,1fr);
+  min-height: 410px;
+}
+
+.portal__side {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 16px 12px;
+  color: #aab6c6;
+  background: #142138;
+}
+
+.portal__brand {
+  display: grid;
+  width: 44px;
+  height: 44px;
   place-items: center;
-  border-radius: 14px;
-  color: #080808;
-  background: variables.$color-primary;
-  font-size: 0.72rem;
-  font-weight: 950;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  color: #fff;
+  background: #9f1945;
+  font-size: .7rem;
+  font-weight: 900;
 }
 
-.portal-card__body > p {
-  margin: 0 0 7px;
-  color: #727272;
-  font-size: 0.56rem;
+.portal__side > span {
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: .5rem;
   font-weight: 800;
-  letter-spacing: 0.18em;
 }
 
-.portal-card h3 {
-  margin: 0;
-  color: #eee;
-  font-size:
-    clamp(
-      2.8rem,
-      4vw,
-      4rem
-    );
-  line-height: 0.9;
-  letter-spacing: -0.055em;
+.portal__side .is-active {
+  color: #fff;
+  background: rgba(159,25,69,.28);
 }
 
-.portal-card h3 span {
-  display: block;
-  color: variables.$color-primary;
+.portal__content {
+  padding: 22px;
+  color: #152033;
 }
 
-.portal-card__line {
-  height: 1px;
-  margin: 30px 0 20px;
-  background: #292929;
-}
-
-.portal-card__stats {
+.portal__hero {
   display: grid;
-  grid-template-columns:
-    repeat(3, 1fr);
+  gap: 6px;
+  padding: 20px;
+  border-radius: 15px;
+  color: #fff;
+  background: linear-gradient(135deg,#142138,#23324c);
+}
+
+.portal__hero small {
+  color: #e7bc3b;
+  font-size: .42rem;
+  font-weight: 900;
+}
+
+.portal__hero strong {
+  font-size: 1.2rem;
+}
+
+.portal__hero span {
+  color: rgba(255,255,255,.65);
+  font-size: .55rem;
+}
+
+.portal__cards {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.portal__cards article {
+  display: grid;
+  min-height: 82px;
+  align-content: center;
+  padding: 12px;
+  border: 1px solid #dce4ed;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.portal__cards strong {
+  color: #9f1945;
+  font-size: 1.05rem;
+}
+
+.portal__cards span {
+  margin-top: 4px;
+  color: #6f7c8f;
+  font-size: .5rem;
+}
+
+.portal__progress {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid #dce4ed;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.portal__progress > div {
+  display: flex;
+  justify-content: space-between;
   gap: 10px;
+  color: #67768a;
+  font-size: .5rem;
 }
 
-.portal-card__stats strong,
-.portal-card__stats small {
+.portal__progress > div strong {
+  color: #916b00;
+}
+
+.portal__progress i {
   display: block;
+  height: 7px;
+  margin-top: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1f5;
 }
 
-.portal-card__stats strong {
-  margin-bottom: 3px;
-  color: #ccc;
-  font-size: 0.64rem;
+.portal__progress b {
+  display: block;
+  width: 67%;
+  height: 100%;
+  border-radius: inherit;
+  background: #9f1945;
 }
 
-.portal-card__stats small {
-  color: #626262;
-  font-size: 0.53rem;
-}
-
-@media (min-width: 900px) {
-  .virtual-classroom__container {
-    grid-template-columns:
-      1.05fr
-      0.95fr;
+@media (min-width: 930px) {
+  .virtual-classroom__layout {
+    grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .virtual-classroom {
-    padding: 82px 20px;
+    padding: 78px 16px;
   }
 
-  .virtual-classroom__container {
-    grid-template-columns: 1fr;
-    gap: 48px;
-  }
-
-  .portal-card {
-    max-width: 620px;
-    margin: 0 auto;
+  .portal {
     transform: none;
   }
-}
 
-@media (max-width: 600px) {
-  .virtual-classroom {
-    padding:
-      70px
-      18px;
+  .portal__body {
+    grid-template-columns: 95px minmax(0,1fr);
+    min-height: 340px;
   }
 
-  .virtual-classroom h2 {
-    font-size:
-      clamp(
-        2.45rem,
-        11vw,
-        3.5rem
-      );
+  .portal__content {
+    padding: 14px;
   }
 
-  .aula-button {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .portal-card__body {
-    padding:
-      34px
-      23px
-      27px;
-  }
-
-  .portal-card__stats {
+  .portal__cards {
     grid-template-columns: 1fr;
-    gap: 14px;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .feature,
-  .aula-button {
-    transition: none;
+  .portal__cards article {
+    min-height: 60px;
+  }
+
+  .virtual-classroom__actions {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
   }
 }
 </style>

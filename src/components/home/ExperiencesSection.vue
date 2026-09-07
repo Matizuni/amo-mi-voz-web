@@ -1,428 +1,255 @@
 <template>
   <section class="experiences">
-    <div class="experiences__container">
-
-      <div class="section-heading">
-        <span class="section-eyebrow">
-          EXPERIENCIAS REALES
-        </span>
-
-        <h2>
-          Aprender música también es
-          <span>vivir el escenario.</span>
-        </h2>
+    <div class="container">
+      <header class="experiences__header">
+        <div>
+          <span class="eyebrow">EXPERIENCIAS REALES</span>
+          <h2>
+            Aprender música también es
+            <strong>vivir el escenario.</strong>
+          </h2>
+        </div>
 
         <p>
-          En Amo Mi Voz entendemos la formación artística como una
-          experiencia completa: aprender, ensayar, compartir y finalmente
-          presentar el trabajo frente al público.
+          Ensayar, compartir y presentar el trabajo frente al público
+          convierte el aprendizaje en una experiencia que se recuerda.
         </p>
-      </div>
+      </header>
 
       <div class="experiences__grid">
-
-        <article class="experience-card">
-          <div class="experience-card__image">
-            <img
-              :src="conciertoImage"
-              alt="Concierto de alumnos de la Academia de Talentos Amo Mi Voz"
-              loading="lazy"
-            />
-
-            <div
-              class="experience-card__overlay"
-              aria-hidden="true"
-            ></div>
-
-            <span class="experience-card__tag">
-              CONCIERTOS
-            </span>
+        <article class="experience">
+          <div class="experience__image">
+            <img :src="conciertoImage" alt="Concierto de estudiantes de Amo Mi Voz" loading="lazy" />
+            <span>CONCIERTOS</span>
           </div>
 
-          <div class="experience-card__content">
-            <span class="experience-card__category">
-              EXPERIENCIA ESCÉNICA
-            </span>
-
-            <h3>
-              Conciertos de alumnos
-            </h3>
-
+          <div class="experience__copy">
+            <small>EXPERIENCIA ESCÉNICA</small>
+            <h3>Conciertos de estudiantes</h3>
             <p>
-              Creamos instancias donde nuestros estudiantes pueden llevar
-              al escenario lo aprendido durante su proceso de formación.
+              Instancias donde nuestros estudiantes llevan al escenario
+              lo aprendido durante su proceso formativo.
             </p>
-
-            <div class="experience-card__footer">
-              <span>La Calera</span>
-              <span aria-hidden="true">•</span>
-              <span>Amo Mi Voz</span>
-            </div>
           </div>
         </article>
 
-        <article class="experience-card experience-card--featured">
-          <div class="experience-card__image">
-            <img
-              :src="cocoImage"
-              alt="Presentación musical inspirada en COCO de la Academia de Talentos Amo Mi Voz"
-              loading="lazy"
-            />
-
-            <div
-              class="experience-card__overlay"
-              aria-hidden="true"
-            ></div>
-
-            <span class="experience-card__tag">
-              MUSICALES
-            </span>
+        <article class="experience experience--featured">
+          <div class="experience__image">
+            <img :src="cocoImage" alt="Producción escénico-musical de Amo Mi Voz" loading="lazy" />
+            <span>MUSICALES</span>
           </div>
 
-          <div class="experience-card__content">
-            <span class="experience-card__category">
-              PRODUCCIÓN ARTÍSTICA
-            </span>
-
-            <h3>
-              Musicales y grandes experiencias
-            </h3>
-
+          <div class="experience__copy">
+            <small>PRODUCCIÓN ARTÍSTICA</small>
+            <h3>Musicales y grandes experiencias</h3>
             <p>
-              Música, interpretación y puesta en escena se unen en
-              producciones que permiten a los estudiantes vivir una
-              experiencia artística integral.
+              Música, interpretación y puesta en escena se integran
+              en experiencias artísticas construidas en comunidad.
             </p>
-
-            <div class="experience-card__footer">
-              <span>Presentaciones</span>
-              <span aria-hidden="true">•</span>
-              <span>Comunidad</span>
-            </div>
           </div>
         </article>
-
       </div>
 
-      <div class="experiences__statement">
-        <span
-          class="experiences__statement-line"
-          aria-hidden="true"
-        ></span>
-
+      <div class="experiences__closing">
         <p>
           No formamos solamente voces.
-          <strong>
-            Formamos artistas capaces de vivir la música.
-          </strong>
+          <strong>Formamos artistas capaces de vivir la música.</strong>
         </p>
 
-        <span
-          class="experiences__statement-line"
-          aria-hidden="true"
-        ></span>
+        <RouterLink to="/galeria">
+          Ver galería
+          <span>→</span>
+        </RouterLink>
       </div>
-
     </div>
   </section>
 </template>
 
 <script setup>
+import { RouterLink } from 'vue-router'
 import conciertoImage from '@/assets/images/concierto-alumnos.png'
 import cocoImage from '@/assets/images/musical-coco.png'
 </script>
 
-<style scoped lang="scss">
-@use '@/assets/styles/abstracts/variables' as variables;
-
+<style scoped>
 .experiences {
-  position: relative;
-  padding: 100px 24px;
-  background:
-    radial-gradient(
-      circle at 15% 20%,
-      rgba(244, 196, 48, 0.035),
-      transparent 28%
-    ),
-    #090909;
+  padding: 105px 24px;
+  color: #152033;
+  background: #f5f7fa;
 }
 
-.experiences::before {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: min(1180px, 90%);
-  height: 1px;
-  content: '';
-  transform: translateX(-50%);
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(244, 196, 48, 0.24),
-      transparent
-    );
+.container {
+  width: min(1180px,100%);
+  margin-inline: auto;
 }
 
-.experiences__container {
-  position: relative;
-  z-index: 2;
-  width: min(1180px, 100%);
-  margin: 0 auto;
-}
-
-.section-eyebrow {
-  display: inline-block;
-  margin-bottom: 16px;
-  color: variables.$color-primary;
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.19em;
-  text-transform: uppercase;
-}
-
-.section-heading {
+.experiences__header {
   display: grid;
-  max-width: 820px;
-  margin-bottom: 48px;
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 40px;
+}
+
+.eyebrow {
+  color: #916b00;
+  font-size: .56rem;
+  font-weight: 900;
+  letter-spacing: .16em;
 }
 
 .experiences h2 {
-  margin: 0;
-  color: #f2f2f2;
-  font-size:
-    clamp(
-      2.8rem,
-      4.8vw,
-      4.6rem
-    );
-  line-height: 0.95;
-  letter-spacing: -0.055em;
+  max-width: 760px;
+  margin: 13px 0 0;
+  font-size: clamp(3rem,5vw,5rem);
+  line-height: .96;
+  letter-spacing: -.06em;
 }
 
-.experiences h2 span {
+.experiences h2 strong {
   display: block;
-  color: variables.$color-primary;
+  color: #9f1945;
 }
 
-.section-heading > p {
-  max-width: 650px;
-  margin: 22px 0 0;
-  color: #8c8c8c;
-  font-size: 0.9rem;
-  line-height: 1.72;
+.experiences__header > p {
+  max-width: 500px;
+  margin: 0;
+  color: #59697f;
+  font-size: .88rem;
+  line-height: 1.75;
 }
 
 .experiences__grid {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
-.experience-card {
+.experience {
   overflow: hidden;
-  border: 1px solid #252525;
-  border-radius: 16px;
-  background: #101010;
-  transition:
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+  border: 1px solid #dce4ed;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(31,48,73,.05);
 }
 
-.experience-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(244, 196, 48, 0.3);
-  box-shadow:
-    0 22px 50px
-    rgba(0, 0, 0, 0.26);
-}
-
-.experience-card__image {
+.experience__image {
   position: relative;
-  height: 390px;
+  min-height: 360px;
   overflow: hidden;
-  background: #151515;
 }
 
-.experience-card__image img {
-  display: block;
+.experience__image img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform .5s ease;
 }
 
-.experience-card:hover img {
+.experience:hover .experience__image img {
   transform: scale(1.025);
 }
 
-.experience-card__overlay {
+.experience__image::after {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.02) 35%,
-      rgba(0, 0, 0, 0.75) 100%
-    );
+  content: '';
+  background: linear-gradient(180deg, transparent 48%, rgba(10,18,31,.72));
 }
 
-.experience-card__tag {
+.experience__image > span {
   position: absolute;
+  z-index: 2;
   top: 16px;
   left: 16px;
   padding: 7px 10px;
   border-radius: 999px;
-  color: #080808;
-  background: variables.$color-primary;
-  font-size: 0.52rem;
+  color: #fff;
+  background: rgba(17,28,49,.68);
+  font-size: .43rem;
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: .11em;
+  backdrop-filter: blur(8px);
 }
 
-.experience-card__content {
-  padding: 24px;
+.experience__copy {
+  padding: 20px;
 }
 
-.experience-card__category {
-  color: variables.$color-primary;
-  font-size: 0.51rem;
+.experience__copy small {
+  color: #916b00;
+  font-size: .47rem;
   font-weight: 900;
-  letter-spacing: 0.17em;
+  letter-spacing: .11em;
 }
 
-.experience-card h3 {
-  margin: 9px 0 11px;
-  color: #e8e8e8;
-  font-size: 1.4rem;
-  line-height: 1.12;
-  letter-spacing: -0.03em;
+.experience__copy h3 {
+  margin: 7px 0 0;
+  color: #152033;
+  font-size: 1.15rem;
 }
 
-.experience-card p {
-  max-width: 540px;
-  margin: 0;
-  color: #797979;
-  font-size: 0.72rem;
-  line-height: 1.62;
+.experience__copy p {
+  margin: 9px 0 0;
+  color: #6f7c8f;
+  font-size: .68rem;
+  line-height: 1.6;
 }
 
-.experience-card__footer {
+.experiences__closing {
   display: flex;
-  gap: 8px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #242424;
-  color: #606060;
-  font-size: 0.58rem;
-  font-weight: 700;
-}
-
-.experiences__statement {
-  display: flex;
-  gap: 22px;
+  gap: 18px;
   align-items: center;
-  margin-top: 42px;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #e4d69d;
+  border-radius: 16px;
+  background: #fffaf0;
 }
 
-.experiences__statement-line {
-  flex: 1;
-  height: 1px;
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      #2b2b2b
-    );
-}
-
-.experiences__statement-line:last-child {
-  background:
-    linear-gradient(
-      90deg,
-      #2b2b2b,
-      transparent
-    );
-}
-
-.experiences__statement p {
-  max-width: 590px;
+.experiences__closing p {
   margin: 0;
-  color: #666;
-  text-align: center;
-  font-size: 0.72rem;
-  line-height: 1.55;
+  color: #344359;
+  font-size: .8rem;
 }
 
-.experiences__statement strong {
-  display: block;
-  margin-top: 3px;
-  color: #d7d7d7;
+.experiences__closing p strong {
+  color: #9f1945;
 }
 
-@media (min-width: 800px) {
+.experiences__closing a {
+  display: inline-flex;
+  gap: 7px;
+  flex: 0 0 auto;
+  color: #9f1945;
+  font-size: .66rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+@media (min-width: 850px) {
+  .experiences__header {
+    grid-template-columns: minmax(0,1.1fr) minmax(320px,.9fr);
+  }
+
   .experiences__grid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2,1fr);
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .experiences {
-    padding: 82px 20px;
+    padding: 76px 16px;
   }
 
-  .experience-card__image {
-    height: 470px;
-  }
-}
-
-@media (max-width: 600px) {
-  .experiences {
-    padding: 70px 18px;
+  .experience__image {
+    min-height: 300px;
   }
 
-  .experiences h2 {
-    font-size:
-      clamp(
-        2.45rem,
-        11vw,
-        3.5rem
-      );
-  }
-
-  .section-heading {
-    margin-bottom: 34px;
-  }
-
-  .experience-card__image {
-    height: 370px;
-  }
-
-  .experience-card__content {
-    padding: 20px;
-  }
-
-  .experiences__statement {
-    margin-top: 32px;
-  }
-
-  .experiences__statement-line {
-    display: none;
-  }
-}
-
-@media (max-width: 400px) {
-  .experience-card__image {
-    height: 330px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .experience-card,
-  .experience-card__image img {
-    transition: none;
+  .experiences__closing {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 </style>
