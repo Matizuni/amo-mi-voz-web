@@ -5453,4 +5453,233 @@ textarea:focus {
   }
 }
 
+
+
+/* =========================================================
+   V7.5 · SUBMIT MODAL FIX
+   El modal usa Teleport a <body>, por eso NO hereda las
+   variables CSS definidas dentro de .quiz-page.
+   Aquí usamos colores directos para asegurar contraste real.
+========================================================= */
+
+.modal-backdrop {
+  position: fixed !important;
+  z-index: 9999 !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 22px !important;
+  overflow-y: auto !important;
+  background: rgba(15, 23, 42, .56) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.submit-dialog {
+  position: relative !important;
+  width: min(620px, 100%) !important;
+  max-height: calc(100dvh - 44px) !important;
+  overflow-y: auto !important;
+  padding: 30px !important;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 22px !important;
+  color: #152033 !important;
+  background:
+    radial-gradient(circle at 95% 3%, rgba(217,169,29,.10), transparent 28%),
+    #ffffff !important;
+  box-shadow: 0 34px 90px rgba(15, 23, 42, .24) !important;
+}
+
+.submit-dialog::before {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 122px !important;
+  height: 3px !important;
+  content: '' !important;
+  background: linear-gradient(90deg, #9f1945, #d9a91d) !important;
+}
+
+.submit-dialog__icon {
+  display: grid !important;
+  width: 54px !important;
+  height: 54px !important;
+  place-items: center !important;
+  margin-bottom: 18px !important;
+  border: 1px solid #bfe0cd !important;
+  border-radius: 15px !important;
+  color: #ffffff !important;
+  background: #2d8a63 !important;
+  box-shadow: 0 8px 20px rgba(45, 138, 99, .15) !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+}
+
+.submit-dialog__eyebrow {
+  display: block !important;
+  margin-bottom: 6px !important;
+  color: #987000 !important;
+  font-size: .58rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .13em !important;
+}
+
+.submit-dialog h2 {
+  margin: 0 !important;
+  color: #152033 !important;
+  font-size: clamp(1.75rem, 4vw, 2.45rem) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.035em !important;
+}
+
+.submit-dialog > p {
+  margin: 11px 0 0 !important;
+  color: #6f7c8f !important;
+  font-size: .78rem !important;
+  line-height: 1.65 !important;
+}
+
+.submit-dialog > p strong {
+  color: #344359 !important;
+  font-weight: 900 !important;
+}
+
+/* Estados */
+.submit-warning,
+.submit-notice,
+.submit-success {
+  margin-top: 18px !important;
+  padding: 15px 16px !important;
+  border-radius: 13px !important;
+}
+
+.submit-warning {
+  border: 1px solid #ead79c !important;
+  background: #fff8e7 !important;
+}
+
+.submit-warning strong {
+  display: block !important;
+  color: #8a6500 !important;
+  font-size: .72rem !important;
+}
+
+.submit-warning p {
+  margin: 5px 0 0 !important;
+  color: #7b704f !important;
+  font-size: .65rem !important;
+  line-height: 1.5 !important;
+}
+
+.submit-notice {
+  border: 1px solid #d7e2ed !important;
+  color: #456a95 !important;
+  background: #eef5fc !important;
+  font-size: .7rem !important;
+  font-weight: 750 !important;
+}
+
+.submit-success {
+  border: 1px solid #c7e0d2 !important;
+  background: #edf8f3 !important;
+}
+
+.submit-success strong {
+  display: block !important;
+  color: #2d8a63 !important;
+  font-size: .78rem !important;
+  font-weight: 900 !important;
+}
+
+.submit-success p {
+  margin: 5px 0 0 !important;
+  color: #5c7868 !important;
+  font-size: .65rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Footer de acciones */
+.submit-dialog__actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1.15fr !important;
+  gap: 10px !important;
+  margin-top: 22px !important;
+  padding-top: 18px !important;
+  border-top: 1px solid #e7ecf1 !important;
+}
+
+.submit-dialog__actions .button {
+  display: inline-flex !important;
+  min-height: 48px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 17px !important;
+  border-radius: 10px !important;
+  font-size: .7rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    background .18s ease !important;
+}
+
+.submit-dialog__actions .button--secondary {
+  border: 1px solid #cbd6e2 !important;
+  color: #344359 !important;
+  background: #ffffff !important;
+}
+
+.submit-dialog__actions .button--secondary:hover:not(:disabled) {
+  border-color: #b7c4d2 !important;
+  background: #f8fafc !important;
+}
+
+.submit-dialog__actions .button--primary {
+  border: 1px solid #9f1945 !important;
+  color: #ffffff !important;
+  background: #9f1945 !important;
+  box-shadow: 0 8px 20px rgba(159,25,69,.14) !important;
+}
+
+.submit-dialog__actions .button--primary:hover:not(:disabled) {
+  background: #7f1237 !important;
+  transform: translateY(-1px) !important;
+}
+
+.submit-dialog__actions .button:disabled {
+  border-color: #d8dee5 !important;
+  color: #9aa4b0 !important;
+  background: #edf1f5 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
+/* Evita que estilos globales de la web pública coloreen el modal */
+.submit-dialog,
+.submit-dialog * {
+  text-shadow: none !important;
+}
+
+@media (max-width: 600px) {
+  .modal-backdrop {
+    align-items: end !important;
+    padding: 10px !important;
+  }
+
+  .submit-dialog {
+    width: 100% !important;
+    max-height: 92dvh !important;
+    padding: 22px !important;
+    border-radius: 20px 20px 14px 14px !important;
+  }
+
+  .submit-dialog__actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .submit-dialog__actions .button--primary {
+    order: -1 !important;
+  }
+}
+
 </style>
