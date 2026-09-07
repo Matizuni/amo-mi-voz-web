@@ -4,7 +4,7 @@ const BUCKET =
   'aula-materiales'
 
 const STORAGE_KEY =
-  'amv.lesson.appearance.v1'
+  'amv.unit.appearance.v1'
 
 /* =========================================================
    LOCAL STORAGE
@@ -32,7 +32,7 @@ const safeWrite = data => {
     )
   } catch (error) {
     console.warn(
-      'No fue posible guardar la apariencia local de la clase.',
+      'No fue posible guardar la apariencia local de la unidad.',
       error,
     )
   }
@@ -42,14 +42,14 @@ const safeWrite = data => {
    OBTENER APARIENCIA
 ========================================================= */
 
-export const getLessonAppearance =
-  lessonId => {
+export const getUnitAppearance =
+  unitId => {
     const data =
       safeRead()
 
     return (
       data[
-      String(lessonId)
+      String(unitId)
       ] || {
         coverUrl: '',
         coverPath: '',
@@ -63,19 +63,19 @@ export const getLessonAppearance =
    GUARDAR APARIENCIA LOCAL
 ========================================================= */
 
-export const saveLessonAppearance = (
-  lessonId,
+export const saveUnitAppearance = (
+  unitId,
   patch = {},
 ) => {
   const data =
     safeRead()
 
   const key =
-    String(lessonId)
+    String(unitId)
 
   data[key] = {
-    ...getLessonAppearance(
-      lessonId,
+    ...getUnitAppearance(
+      unitId,
     ),
 
     ...patch,
@@ -89,12 +89,12 @@ export const saveLessonAppearance = (
 
   window.dispatchEvent(
     new CustomEvent(
-      'amv:lesson-appearance',
+      'amv:unit-appearance',
       {
         detail: {
-          lessonId:
+          unitId:
             Number(
-              lessonId,
+              unitId,
             ),
         },
       },
@@ -108,8 +108,8 @@ export const saveLessonAppearance = (
    GUARDAR PORTADA EN DATABASE
 ========================================================= */
 
-export async function saveLessonCoverToDatabase(
-  lessonId,
+export async function saveUnitCoverToDatabase(
+  unitId,
   {
     coverUrl = '',
     coverPath = '',
@@ -120,7 +120,7 @@ export async function saveLessonCoverToDatabase(
   } =
     await supabase
       .from(
-        'lessons',
+        'units',
       )
       .update({
         cover_url:
@@ -134,7 +134,7 @@ export async function saveLessonCoverToDatabase(
       .eq(
         'id',
         Number(
-          lessonId,
+          unitId,
         ),
       )
 
@@ -147,16 +147,16 @@ export async function saveLessonCoverToDatabase(
    QUITAR PORTADA
 ========================================================= */
 
-export async function clearLessonCover(
-  lessonId,
+export async function clearUnitCover(
+  unitId,
 ) {
   const previous =
-    getLessonAppearance(
-      lessonId,
+    getUnitAppearance(
+      unitId,
     )
 
-  saveLessonAppearance(
-    lessonId,
+  saveUnitAppearance(
+    unitId,
     {
       coverUrl: '',
       coverPath: '',
@@ -164,8 +164,8 @@ export async function clearLessonCover(
   )
 
   try {
-    await saveLessonCoverToDatabase(
-      lessonId,
+    await saveUnitCoverToDatabase(
+      unitId,
       {
         coverUrl: '',
         coverPath: '',
@@ -176,8 +176,8 @@ export async function clearLessonCover(
      * Restauramos el estado local
      * si Database falla.
      */
-    saveLessonAppearance(
-      lessonId,
+    saveUnitAppearance(
+      unitId,
       previous,
     )
 
@@ -193,7 +193,7 @@ const sanitize =
   name =>
     String(
       name ||
-      'portada',
+      'portada-unidad',
     )
       .normalize(
         'NFD',
@@ -215,13 +215,13 @@ const sanitize =
    SUBIR PORTADA
 ========================================================= */
 
-export async function uploadLessonCover({
-  lessonId,
+export async function uploadUnitCover({
+  unitId,
   file,
 }) {
-  if (!lessonId) {
+  if (!unitId) {
     throw new Error(
-      'La clase no es válida.',
+      'La unidad no es válida.',
     )
   }
 
@@ -255,8 +255,8 @@ export async function uploadLessonCover({
 
   const path =
     [
-      `clase-${Number(
-        lessonId,
+      `unidad-${Number(
+        unitId,
       )}`,
       'portada',
       `${Date.now()}-${sanitize(
@@ -332,8 +332,8 @@ export async function uploadLessonCover({
   ====================================================== */
 
   try {
-    await saveLessonCoverToDatabase(
-      lessonId,
+    await saveUnitCoverToDatabase(
+      unitId,
       {
         coverUrl,
 
@@ -366,8 +366,8 @@ export async function uploadLessonCover({
      4. GUARDAR COPIA LOCAL
   ====================================================== */
 
-  return saveLessonAppearance(
-    lessonId,
+  return saveUnitAppearance(
+    unitId,
     {
       coverUrl,
 
@@ -381,7 +381,7 @@ export async function uploadLessonCover({
    MIGRAR PORTADAS ANTIGUAS
 ========================================================= */
 
-export async function syncLocalLessonCoversToDatabase() {
+export async function syncLocalUnitCoversToDatabase() {
   const stored =
     safeRead()
 
@@ -416,13 +416,13 @@ export async function syncLocalLessonCoversToDatabase() {
 
   const {
     data:
-    lessons,
+    units,
 
     error,
   } =
     await supabase
       .from(
-        'lessons',
+        'units',
       )
       .select(
         `
@@ -438,7 +438,7 @@ export async function syncLocalLessonCoversToDatabase() {
 
   if (error) {
     console.warn(
-      'No fue posible sincronizar las portadas antiguas de las clases.',
+      'No fue posible sincronizar las portadas antiguas de las unidades.',
       error,
     )
 
@@ -449,15 +449,11 @@ export async function syncLocalLessonCoversToDatabase() {
     0
 
   for (
-    const lesson
-    of lessons || []
+    const unit
+    of units || []
   ) {
-    /*
-     * Si ya tiene portada en DB,
-     * no hacemos nada.
-     */
     if (
-      lesson.cover_url
+      unit.cover_url
     ) {
       continue
     }
@@ -465,7 +461,7 @@ export async function syncLocalLessonCoversToDatabase() {
     const local =
       stored[
       String(
-        lesson.id,
+        unit.id,
       )
       ]
 
@@ -481,7 +477,7 @@ export async function syncLocalLessonCoversToDatabase() {
     } =
       await supabase
         .from(
-          'lessons',
+          'units',
         )
         .update({
           cover_url:
@@ -493,7 +489,7 @@ export async function syncLocalLessonCoversToDatabase() {
         })
         .eq(
           'id',
-          lesson.id,
+          unit.id,
         )
 
     if (

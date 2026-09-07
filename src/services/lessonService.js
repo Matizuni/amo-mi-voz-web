@@ -133,13 +133,25 @@ const normalizeLesson = lesson => {
     supportMaterials:
       lesson.support_materials || '',
 
-    notes: lesson.notes || '',
+    notes:
+      lesson.notes ||
+      '',
+
+    /* =====================================================
+       PORTADA
+    ===================================================== */
+
+    coverUrl:
+      lesson.cover_url ||
+      '',
+
+    coverPath:
+      lesson.cover_path ||
+      '',
 
     createdAt:
-      lesson.created_at || null,
-
-    updatedAt:
-      lesson.updated_at || null,
+      lesson.created_at ||
+      null,
   }
 }
 
