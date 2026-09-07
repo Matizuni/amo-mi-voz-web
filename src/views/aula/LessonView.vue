@@ -253,33 +253,46 @@
         class="lesson-tabs"
         aria-label="Secciones de la clase"
       >
-        <a href="#ruta-clase">
+        <button
+          type="button"
+          @click="scrollToSection('resumen-clase')"
+        >
           <span>01</span>
           Resumen y progreso
-        </a>
+        </button>
 
-        <a href="#material-principal">
+        <button
+          type="button"
+          @click="scrollToSection('material-principal')"
+        >
           <span>02</span>
           Materiales
-        </a>
+        </button>
 
-        <a href="#actividades">
+        <button
+          type="button"
+          @click="scrollToSection('actividades')"
+        >
           <span>03</span>
           Actividades
-        </a>
+        </button>
 
-        <a href="#evaluaciones">
+        <button
+          type="button"
+          @click="scrollToSection('evaluaciones')"
+        >
           <span>04</span>
           Evaluaciones
-        </a>
+        </button>
 
-        <a
+        <button
           v-if="hasAcademicContent"
-          href="#contenido-academico"
+          type="button"
+          @click="scrollToSection('contenido-academico')"
         >
           <span>05</span>
           Objetivos y contenidos
-        </a>
+        </button>
       </nav>
 
       <!-- ===================================================
@@ -355,7 +368,7 @@
       <!-- ===================================================
            QUICK INFO
       ==================================================== -->
-      <section class="quick-info">
+      <section id="resumen-clase" class="quick-info">
         <article>
           <span>
             Materiales
@@ -2446,6 +2459,25 @@ const showAcademicContent =
 
 const toastMessage = ref('')
 const toastType = ref('success')
+
+/*
+ * Navegación interna robusta.
+ * No usamos href="#..." porque en algunos despliegues el hash
+ * puede ser interpretado por Vue Router y devolver la vista al inicio.
+ */
+const scrollToSection = sectionId => {
+  const target =
+    document.getElementById(sectionId)
+
+  if (!target) {
+    return
+  }
+
+  target.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  })
+}
 const lessonAppearance = ref({
   coverUrl: '',
   focalPoint: 'center',
@@ -10392,6 +10424,70 @@ a.lesson-navigation__item:hover,
   .lesson-page--max .student-progress-card__continue {
     width: 100%;
     min-height: 44px;
+  }
+}
+
+
+/* =========================================================
+   V11.2 · NAVEGACIÓN INTERNA SIN HASH / VUE ROUTER SAFE
+========================================================= */
+
+.lesson-page--max .lesson-tabs button {
+  min-height: 42px !important;
+  padding: 0 13px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: #5b6980 !important;
+  font: inherit !important;
+  font-size: .72rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.lesson-page--max .lesson-tabs button:first-child {
+  background: var(--max-wine-soft) !important;
+  color: var(--max-wine) !important;
+}
+
+.lesson-page--max .lesson-tabs button:hover {
+  background: #f7f9fc !important;
+  color: var(--max-ink) !important;
+}
+
+.lesson-page--max .lesson-tabs button:first-child:hover {
+  background: #ffe8f0 !important;
+  color: var(--max-wine-dark) !important;
+}
+
+.lesson-page--max .lesson-tabs button span {
+  color: var(--max-gold-dark) !important;
+  font-size: .59rem !important;
+  font-weight: 900 !important;
+}
+
+#resumen-clase,
+#material-principal,
+#actividades,
+#evaluaciones,
+#contenido-academico {
+  scroll-margin-top: 145px !important;
+}
+
+@media (max-width: 760px) {
+  .lesson-page--max .lesson-tabs button {
+    min-height: 44px !important;
+    padding: 0 12px !important;
+    font-size: .74rem !important;
+  }
+
+  #resumen-clase,
+  #material-principal,
+  #actividades,
+  #evaluaciones,
+  #contenido-academico {
+    scroll-margin-top: 125px !important;
   }
 }
 
