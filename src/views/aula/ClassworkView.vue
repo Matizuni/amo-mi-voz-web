@@ -390,17 +390,34 @@
 
             </div>
 
-            <button
+            <div class="resource-card__actions">
+              <button
+                type="button"
+                class="resource-card__action resource-card__action--view"
+                @click.stop="openMaterial(material)"
+              >
+                Ver material
+                <span aria-hidden="true">→</span>
+              </button>
 
-              type="button"
+              <template v-if="isTeacher">
+                <button
+                  type="button"
+                  class="resource-card__action resource-card__action--edit"
+                  @click.stop="openEditMaterial(material)"
+                >
+                  Editar
+                </button>
 
-              @click.stop="openMaterial(material)"
-
-            >
-
-              Ver material →
-
-            </button>
+                <button
+                  type="button"
+                  class="resource-card__action resource-card__action--delete"
+                  @click.stop="askDeleteMaterial(material)"
+                >
+                  Eliminar
+                </button>
+              </template>
+            </div>
 
           </article>
 
@@ -1378,6 +1395,237 @@
 
     </Teleport>
 
+    <!-- =====================================================
+         EDITAR MATERIAL · SOLO PROFESOR
+    ====================================================== -->
+    <Teleport to="body">
+      <Transition name="admin-modal">
+        <div
+          v-if="editingMaterial"
+          class="material-admin-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="material-edit-title"
+          @click.self="closeEditMaterial"
+        >
+          <section class="material-admin-modal__window">
+            <header class="material-admin-modal__header">
+              <div>
+                <span>GESTIÓN DE RECURSO</span>
+                <h2 id="material-edit-title">
+                  Editar material
+                </h2>
+                <p>
+                  Actualiza la información o reemplaza el archivo
+                  publicado para esta clase.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="material-admin-modal__close"
+                aria-label="Cerrar edición"
+                :disabled="isSavingMaterial"
+                @click="closeEditMaterial"
+              >
+                ×
+              </button>
+            </header>
+
+            <form
+              class="material-edit-form"
+              @submit.prevent="saveEditedMaterial"
+            >
+              <label class="material-edit-field material-edit-field--wide">
+                <span>Título</span>
+                <input
+                  v-model="editMaterialForm.title"
+                  type="text"
+                  maxlength="140"
+                  required
+                >
+              </label>
+
+              <label class="material-edit-field">
+                <span>Tipo de recurso</span>
+                <select v-model="editMaterialForm.type">
+                  <option value="pdf">PDF</option>
+                  <option value="score">Partitura</option>
+                  <option value="audio">Audio</option>
+                  <option value="video">Video</option>
+                  <option value="image">Imagen</option>
+                  <option value="other">Otro</option>
+                </select>
+              </label>
+
+              <label class="material-edit-field">
+                <span>Dirigido a</span>
+                <select v-model="editMaterialForm.voice">
+                  <option value="general">General</option>
+                  <option value="Soprano">Soprano</option>
+                  <option value="Alto">Alto</option>
+                  <option value="Tenor">Tenor</option>
+                  <option value="Bajo">Bajo</option>
+                </select>
+              </label>
+
+              <label class="material-edit-field material-edit-field--wide">
+                <span>Descripción</span>
+                <textarea
+                  v-model="editMaterialForm.description"
+                  rows="4"
+                  maxlength="600"
+                ></textarea>
+              </label>
+
+              <section class="material-file-editor material-edit-field--wide">
+                <div class="material-file-editor__head">
+                  <div>
+                    <span>ARCHIVO ACTUAL</span>
+                    <strong>
+                      {{ editingMaterial.fileName || 'Archivo publicado' }}
+                    </strong>
+                  </div>
+
+                  <small v-if="editingMaterial.fileSize">
+                    {{ formatBytes(editingMaterial.fileSize) }}
+                  </small>
+                </div>
+
+                <label class="material-file-editor__picker">
+                  <input
+                    ref="replacementMaterialInput"
+                    type="file"
+                    :accept="replacementMaterialAccept"
+                    @change="handleReplacementMaterial"
+                  >
+                  <span>Reemplazar archivo</span>
+                  <small>
+                    Opcional · máximo 50 MB
+                  </small>
+                </label>
+
+                <div
+                  v-if="replacementMaterialFile"
+                  class="material-file-editor__selected"
+                >
+                  <div>
+                    <strong>{{ replacementMaterialFile.name }}</strong>
+                    <small>{{ formatBytes(replacementMaterialFile.size) }}</small>
+                  </div>
+
+                  <button
+                    type="button"
+                    @click="clearReplacementMaterial"
+                  >
+                    Quitar
+                  </button>
+                </div>
+
+                <p
+                  v-if="materialEditError"
+                  class="material-edit-error"
+                >
+                  {{ materialEditError }}
+                </p>
+              </section>
+
+              <footer class="material-edit-form__actions material-edit-field--wide">
+                <button
+                  type="button"
+                  class="material-admin-button material-admin-button--secondary"
+                  :disabled="isSavingMaterial"
+                  @click="closeEditMaterial"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  class="material-admin-button material-admin-button--primary"
+                  :disabled="isSavingMaterial || !editMaterialForm.title.trim()"
+                >
+                  {{
+                    isSavingMaterial
+                      ? 'Guardando...'
+                      : 'Guardar cambios'
+                  }}
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- =====================================================
+         ELIMINAR MATERIAL · SOLO PROFESOR
+    ====================================================== -->
+    <Teleport to="body">
+      <Transition name="admin-modal">
+        <div
+          v-if="materialToDelete"
+          class="material-admin-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="material-delete-title"
+          @click.self="closeDeleteMaterial"
+        >
+          <section class="material-delete-dialog">
+            <div class="material-delete-dialog__icon">
+              !
+            </div>
+
+            <span>ELIMINAR RECURSO</span>
+
+            <h2 id="material-delete-title">
+              ¿Eliminar este material?
+            </h2>
+
+            <strong>
+              {{ materialToDelete.title }}
+            </strong>
+
+            <p>
+              El recurso dejará de estar disponible para los alumnos.
+              Esta acción no se puede deshacer.
+            </p>
+
+            <div
+              v-if="materialToDelete.storagePath"
+              class="material-delete-dialog__notice"
+            >
+              También eliminaremos el archivo asociado de Supabase Storage.
+            </div>
+
+            <footer class="material-delete-dialog__actions">
+              <button
+                type="button"
+                class="material-admin-button material-admin-button--secondary"
+                :disabled="isDeletingMaterial"
+                @click="closeDeleteMaterial"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                class="material-admin-button material-admin-button--danger"
+                :disabled="isDeletingMaterial"
+                @click="deleteSelectedMaterial"
+              >
+                {{
+                  isDeletingMaterial
+                    ? 'Eliminando...'
+                    : 'Eliminar definitivamente'
+                }}
+              </button>
+            </footer>
+          </section>
+        </div>
+      </Transition>
+    </Teleport>
+
     <Teleport to="body">
       <Transition name="notice">
         <div
@@ -1407,6 +1655,8 @@ import {
 
   nextTick,
 
+  reactive,
+
   onMounted,
 
   onUnmounted,
@@ -1433,7 +1683,15 @@ import {
 
 import {
 
-  fetchMaterialsByLesson
+  fetchMaterialsByLesson,
+
+  updateMaterial,
+
+  removeMaterial,
+
+  uploadMaterialFile,
+
+  removeMaterialFile
 
 } from '@/services/materialService'
 
@@ -1494,6 +1752,47 @@ const nowMs = ref(Date.now())
 
 const uiMessage = ref('')
 const uiMessageType = ref('success')
+
+/* =========================================================
+   ADMINISTRACIÓN DE MATERIALES · PROFESOR
+========================================================= */
+const editingMaterial = ref(null)
+const materialToDelete = ref(null)
+
+const isSavingMaterial = ref(false)
+const isDeletingMaterial = ref(false)
+
+const replacementMaterialFile = ref(null)
+const replacementMaterialInput = ref(null)
+const materialEditError = ref('')
+
+const MAX_MATERIAL_FILE_SIZE =
+  50 * 1024 * 1024
+
+const editMaterialForm = reactive({
+  title: '',
+  type: 'pdf',
+  voice: 'general',
+  description: ''
+})
+
+const replacementMaterialAccept = computed(() => {
+  const accepts = {
+    pdf: '.pdf,application/pdf',
+    score:
+      '.pdf,application/pdf,image/png,image/jpeg,.png,.jpg,.jpeg',
+    audio:
+      'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac',
+    video:
+      'video/*,.mp4,.webm,.mov,.m4v',
+    image:
+      'image/*,.png,.jpg,.jpeg,.webp',
+    other:
+      '*/*'
+  }
+
+  return accepts[editMaterialForm.type] || '*/*'
+})
 
 let availabilityTimer = null
 let uiMessageTimer = null
@@ -2288,6 +2587,342 @@ const destroyPdfResources = async () => {
       // Documento ya liberado.
     }
     pdfDocument.value = null
+  }
+}
+
+const resetMaterialEditor = () => {
+  replacementMaterialFile.value = null
+  materialEditError.value = ''
+
+  if (replacementMaterialInput.value) {
+    replacementMaterialInput.value.value = ''
+  }
+}
+
+const openEditMaterial = material => {
+  if (!isTeacher.value || !material) {
+    return
+  }
+
+  editingMaterial.value = material
+
+  editMaterialForm.title =
+    material.title || ''
+
+  editMaterialForm.type =
+    material.type || 'pdf'
+
+  editMaterialForm.voice =
+    material.voice || 'general'
+
+  editMaterialForm.description =
+    material.description || ''
+
+  resetMaterialEditor()
+
+  previousBodyOverflow =
+    document.body.style.overflow
+
+  document.body.style.overflow =
+    'hidden'
+}
+
+const closeEditMaterial = () => {
+  if (isSavingMaterial.value) {
+    return
+  }
+
+  editingMaterial.value = null
+  resetMaterialEditor()
+
+  document.body.style.overflow =
+    previousBodyOverflow || ''
+}
+
+const handleReplacementMaterial = event => {
+  const file =
+    event.target.files?.[0]
+
+  materialEditError.value = ''
+
+  if (!file) {
+    replacementMaterialFile.value = null
+    return
+  }
+
+  if (
+    file.size >
+    MAX_MATERIAL_FILE_SIZE
+  ) {
+    materialEditError.value =
+      'El archivo supera el máximo permitido de 50 MB.'
+
+    event.target.value = ''
+    replacementMaterialFile.value = null
+    return
+  }
+
+  replacementMaterialFile.value =
+    file
+}
+
+const clearReplacementMaterial = () => {
+  replacementMaterialFile.value = null
+  materialEditError.value = ''
+
+  if (replacementMaterialInput.value) {
+    replacementMaterialInput.value.value = ''
+  }
+}
+
+const saveEditedMaterial = async () => {
+  if (
+    !isTeacher.value ||
+    !editingMaterial.value ||
+    !editMaterialForm.title.trim() ||
+    isSavingMaterial.value
+  ) {
+    return
+  }
+
+  isSavingMaterial.value = true
+  materialEditError.value = ''
+
+  const original =
+    editingMaterial.value
+
+  let uploadedReplacement = null
+
+  try {
+    if (replacementMaterialFile.value) {
+      uploadedReplacement =
+        await uploadMaterialFile({
+          file:
+            replacementMaterialFile.value,
+
+          lessonId:
+            lessonId.value,
+
+          folder:
+            String(
+              editMaterialForm.voice ||
+              'general'
+            )
+              .toLowerCase()
+              .replace(/\s+/g, '-')
+        })
+    }
+
+    const payload = {
+      lessonId:
+        lessonId.value,
+
+      title:
+        editMaterialForm.title.trim(),
+
+      type:
+        editMaterialForm.type,
+
+      voice:
+        editMaterialForm.voice,
+
+      description:
+        editMaterialForm.description.trim()
+    }
+
+    if (uploadedReplacement) {
+      payload.url =
+        uploadedReplacement.url
+
+      payload.storagePath =
+        uploadedReplacement.storagePath
+
+      payload.fileName =
+        uploadedReplacement.fileName
+
+      payload.fileSize =
+        uploadedReplacement.fileSize
+
+      payload.mimeType =
+        uploadedReplacement.mimeType
+    }
+
+    const updated =
+      await updateMaterial(
+        original.id,
+        payload
+      )
+
+    if (
+      uploadedReplacement &&
+      original.storagePath &&
+      original.storagePath !==
+        uploadedReplacement.storagePath
+    ) {
+      try {
+        await removeMaterialFile(
+          original.storagePath
+        )
+      } catch (cleanupError) {
+        console.warn(
+          'El recurso fue actualizado, pero no se pudo limpiar el archivo anterior:',
+          cleanupError
+        )
+      }
+    }
+
+    const index =
+      materials.value.findIndex(
+        item =>
+          Number(item.id) ===
+          Number(updated.id)
+      )
+
+    if (index !== -1) {
+      materials.value.splice(
+        index,
+        1,
+        updated
+      )
+    } else {
+      materials.value =
+        await fetchMaterialsByLesson(
+          lessonId.value
+        )
+    }
+
+    editingMaterial.value = null
+    resetMaterialEditor()
+
+    document.body.style.overflow =
+      previousBodyOverflow || ''
+
+    showUiMessage(
+      uploadedReplacement
+        ? 'Material y archivo actualizados correctamente.'
+        : 'Material actualizado correctamente.'
+    )
+  } catch (error) {
+    console.error(
+      'Error actualizando material:',
+      error
+    )
+
+    if (
+      uploadedReplacement?.storagePath
+    ) {
+      try {
+        await removeMaterialFile(
+          uploadedReplacement.storagePath
+        )
+      } catch {
+        // Evita dejar un archivo huérfano cuando sea posible.
+      }
+    }
+
+    materialEditError.value =
+      error?.message ||
+      'No se pudo actualizar el material.'
+
+    showUiMessage(
+      materialEditError.value,
+      'error'
+    )
+  } finally {
+    isSavingMaterial.value = false
+  }
+}
+
+const askDeleteMaterial = material => {
+  if (
+    !isTeacher.value ||
+    !material
+  ) {
+    return
+  }
+
+  materialToDelete.value = material
+
+  previousBodyOverflow =
+    document.body.style.overflow
+
+  document.body.style.overflow =
+    'hidden'
+}
+
+const closeDeleteMaterial = () => {
+  if (isDeletingMaterial.value) {
+    return
+  }
+
+  materialToDelete.value = null
+
+  document.body.style.overflow =
+    previousBodyOverflow || ''
+}
+
+const deleteSelectedMaterial = async () => {
+  const material =
+    materialToDelete.value
+
+  if (
+    !isTeacher.value ||
+    !material?.id ||
+    isDeletingMaterial.value
+  ) {
+    return
+  }
+
+  isDeletingMaterial.value = true
+
+  try {
+    /*
+     * Primero eliminamos el registro.
+     * Solo después intentamos limpiar Storage.
+     */
+    await removeMaterial(material.id)
+
+    if (material.storagePath) {
+      try {
+        await removeMaterialFile(
+          material.storagePath
+        )
+      } catch (storageError) {
+        console.warn(
+          'El material fue eliminado, pero no se pudo limpiar el archivo de Storage:',
+          storageError
+        )
+      }
+    }
+
+    materials.value =
+      materials.value.filter(
+        item =>
+          Number(item.id) !==
+          Number(material.id)
+      )
+
+    materialToDelete.value = null
+
+    document.body.style.overflow =
+      previousBodyOverflow || ''
+
+    showUiMessage(
+      'Material eliminado correctamente.'
+    )
+  } catch (error) {
+    console.error(
+      'Error eliminando material:',
+      error
+    )
+
+    showUiMessage(
+      error?.message ||
+      'No se pudo eliminar el material.',
+      'error'
+    )
+  } finally {
+    isDeletingMaterial.value = false
   }
 }
 
@@ -5610,6 +6245,489 @@ onUnmounted(() => {
   .classwork__grid,
   .quiz-grid { grid-template-columns: 1fr; }
   .class-activity { grid-template-columns: 1fr; }
+}
+
+
+/* =========================================================
+   CLASSWORK · ADMINISTRACIÓN DE MATERIALES
+========================================================= */
+
+.resource-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.resource-card__action {
+  display: inline-flex !important;
+  width: auto !important;
+  min-height: 40px !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  font-size: .72rem !important;
+  font-weight: 850 !important;
+  cursor: pointer;
+}
+
+.resource-card__action--view {
+  border: 1px solid transparent !important;
+  color: #a81748 !important;
+  background: #fff2f6 !important;
+}
+
+.resource-card__action--edit {
+  border: 1px solid #d8e1eb !important;
+  color: #344359 !important;
+  background: #fff !important;
+}
+
+.resource-card__action--delete {
+  border: 1px solid #f0cdd3 !important;
+  color: #b63b4f !important;
+  background: #fff5f6 !important;
+}
+
+.resource-card__action:hover {
+  transform: translateY(-1px);
+}
+
+.resource-card__action--view:hover {
+  color: #fff !important;
+  background: #a81748 !important;
+}
+
+.resource-card__action--edit:hover {
+  border-color: #bccada !important;
+  background: #f7f9fc !important;
+}
+
+.resource-card__action--delete:hover {
+  border-color: #dca7b0 !important;
+  background: #ffeaed !important;
+}
+
+/* MODAL */
+.material-admin-modal {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(10,18,31,.55);
+  backdrop-filter: blur(8px);
+}
+
+.material-admin-modal__window {
+  display: flex;
+  width: min(760px,100%);
+  max-height: min(820px,calc(100vh - 48px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dbe3ec;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 34px 90px rgba(10,18,31,.24);
+}
+
+.material-admin-modal__header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 26px 28px 20px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.material-admin-modal__header > div > span {
+  color: #9a7200;
+  font-size: .63rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.material-admin-modal__header h2 {
+  margin: 7px 0 0;
+  color: #152033;
+  font-size: 1.65rem;
+  line-height: 1.1;
+}
+
+.material-admin-modal__header p {
+  max-width: 550px;
+  margin: 8px 0 0;
+  color: #6f7c8f;
+  font-size: .76rem;
+  line-height: 1.55;
+}
+
+.material-admin-modal__close {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border: 1px solid #dbe3ec;
+  border-radius: 11px;
+  color: #637186;
+  background: #fff;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.material-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 16px;
+  overflow-y: auto;
+  padding: 22px 28px 28px;
+}
+
+.material-edit-field {
+  display: grid;
+  gap: 7px;
+}
+
+.material-edit-field--wide {
+  grid-column: 1 / -1;
+}
+
+.material-edit-field > span {
+  color: #59687d;
+  font-size: .68rem;
+  font-weight: 850;
+}
+
+.material-edit-field :is(input,select,textarea) {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid #ccd7e3;
+  border-radius: 10px;
+  outline: none;
+  color: #152033;
+  background: #fff;
+  font: inherit;
+}
+
+.material-edit-field textarea {
+  min-height: 110px;
+  padding-top: 11px;
+  resize: vertical;
+}
+
+.material-edit-field :is(input,select,textarea):focus {
+  border-color: #a81748;
+  box-shadow: 0 0 0 4px rgba(168,23,72,.08);
+}
+
+.material-file-editor {
+  padding: 16px;
+  border: 1px solid #dbe3ec;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.material-file-editor__head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.material-file-editor__head span,
+.material-file-editor__head strong,
+.material-file-editor__head small {
+  display: block;
+}
+
+.material-file-editor__head span {
+  color: #9a7200;
+  font-size: .57rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.material-file-editor__head strong {
+  max-width: 510px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #152033;
+  font-size: .76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.material-file-editor__head small {
+  color: #708097;
+  font-size: .64rem;
+}
+
+.material-file-editor__picker {
+  display: flex;
+  min-height: 70px;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-top: 13px;
+  border: 1px dashed #c5d2df;
+  border-radius: 11px;
+  color: #344359;
+  background: #fff;
+  cursor: pointer;
+}
+
+.material-file-editor__picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.material-file-editor__picker > span {
+  font-size: .72rem;
+  font-weight: 850;
+}
+
+.material-file-editor__picker > small {
+  color: #8090a4;
+  font-size: .6rem;
+}
+
+.material-file-editor__selected {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding: 11px;
+  border: 1px solid #cfe7dc;
+  border-radius: 10px;
+  background: #f0faf5;
+}
+
+.material-file-editor__selected strong,
+.material-file-editor__selected small {
+  display: block;
+}
+
+.material-file-editor__selected strong {
+  color: #235f48;
+  font-size: .7rem;
+}
+
+.material-file-editor__selected small {
+  margin-top: 3px;
+  color: #688479;
+  font-size: .58rem;
+}
+
+.material-file-editor__selected button {
+  border: 0;
+  color: #a81748;
+  background: transparent;
+  font-size: .65rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.material-edit-error {
+  margin: 10px 0 0;
+  color: #b63b4f;
+  font-size: .68rem;
+}
+
+.material-edit-form__actions {
+  position: sticky;
+  bottom: -28px;
+  display: flex;
+  gap: 9px;
+  justify-content: flex-end;
+  margin: 4px -28px -28px;
+  padding: 16px 28px;
+  border-top: 1px solid #edf1f5;
+  background: #fff;
+}
+
+.material-admin-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border-radius: 10px;
+  font-size: .7rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.material-admin-button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.material-admin-button--secondary {
+  border: 1px solid #d1dbe6;
+  color: #344359;
+  background: #fff;
+}
+
+.material-admin-button--primary {
+  border: 1px solid #a81748;
+  color: #fff;
+  background: #a81748;
+}
+
+.material-admin-button--danger {
+  border: 1px solid #b63b4f;
+  color: #fff;
+  background: #b63b4f;
+}
+
+/* DELETE */
+.material-delete-dialog {
+  width: min(500px,100%);
+  padding: 30px;
+  border: 1px solid #efd1d7;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 34px 90px rgba(10,18,31,.24);
+  text-align: center;
+}
+
+.material-delete-dialog__icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  place-items: center;
+  border-radius: 16px;
+  color: #b63b4f;
+  background: #fff0f2;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.material-delete-dialog > span {
+  color: #b63b4f;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.material-delete-dialog h2 {
+  margin: 8px 0 0;
+  color: #152033;
+  font-size: 1.45rem;
+}
+
+.material-delete-dialog > strong {
+  display: block;
+  margin-top: 9px;
+  color: #344359;
+  font-size: .78rem;
+}
+
+.material-delete-dialog > p {
+  margin: 10px 0 0;
+  color: #6f7c8f;
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.material-delete-dialog__notice {
+  margin-top: 14px;
+  padding: 11px;
+  border: 1px solid #f0d5da;
+  border-radius: 10px;
+  color: #8a3b49;
+  background: #fff6f7;
+  font-size: .65rem;
+}
+
+.material-delete-dialog__actions {
+  display: flex;
+  gap: 9px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.admin-modal-enter-active,
+.admin-modal-leave-active {
+  transition: opacity .18s ease;
+}
+
+.admin-modal-enter-active > *,
+.admin-modal-leave-active > * {
+  transition: transform .18s ease;
+}
+
+.admin-modal-enter-from,
+.admin-modal-leave-to {
+  opacity: 0;
+}
+
+.admin-modal-enter-from > *,
+.admin-modal-leave-to > * {
+  transform: translateY(10px) scale(.98);
+}
+
+@media (max-width: 700px) {
+  .resource-card__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .resource-card__action--view {
+    grid-column: 1 / -1;
+  }
+
+  .material-admin-modal {
+    align-items: end;
+    padding: 10px;
+  }
+
+  .material-admin-modal__window {
+    max-height: calc(100vh - 20px);
+    border-radius: 18px;
+  }
+
+  .material-admin-modal__header {
+    padding: 20px 18px 16px;
+  }
+
+  .material-edit-form {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .material-edit-field--wide {
+    grid-column: auto;
+  }
+
+  .material-edit-form__actions {
+    grid-column: auto;
+    margin: 4px -18px -18px;
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .material-edit-form__actions,
+  .material-delete-dialog__actions {
+    flex-direction: column;
+  }
+
+  .material-admin-button {
+    width: 100%;
+    min-height: 48px;
+  }
 }
 
 </style>
