@@ -618,6 +618,10 @@
               >
                 Obligatoria
               </span>
+
+              <span class="question-format-badge">
+                {{ questionTypeLabel(currentQuestion.type) }}
+              </span>
             </div>
 
             <strong>
@@ -639,12 +643,22 @@
               v-if="currentQuestion.mediaUrl"
               class="question-media"
             >
-              <audio
+              <div
                 v-if="currentQuestion.mediaType === 'audio'"
-                :src="currentQuestion.mediaUrl"
-                controls
-                preload="metadata"
-              ></audio>
+                class="audio-experience"
+              >
+                <div class="audio-experience__icon" aria-hidden="true">♪</div>
+                <div class="audio-experience__content">
+                  <span>ESCUCHA CON ATENCIÓN</span>
+                  <strong>Reproduce el audio antes de responder</strong>
+                  <audio
+                    :src="currentQuestion.mediaUrl"
+                    controls
+                    preload="metadata"
+                  ></audio>
+                  <small>Puedes volver a escucharlo mientras la evaluación esté abierta.</small>
+                </div>
+              </div>
 
               <img
                 v-else-if="currentQuestion.mediaType === 'image'"
@@ -657,7 +671,8 @@
             <div
               v-if="
                 currentQuestion.type === 'single_choice' ||
-                currentQuestion.type === 'true_false'
+                currentQuestion.type === 'true_false' ||
+                currentQuestion.type === 'audio_choice'
               "
               class="options-list"
             >
@@ -759,6 +774,110 @@
                   {{ option.text }}
                 </strong>
               </label>
+            </div>
+
+            <!-- EMPAREJAMIENTO -->
+            <div
+              v-else-if="currentQuestion.type === 'matching'"
+              class="matching-question interactive-question"
+            >
+              <div class="interactive-question__intro">
+                <div>
+                  <span>EMPAREJAMIENTO</span>
+                  <p class="question-hint">Relaciona cada concepto con una respuesta. Cada alternativa puede usarse una sola vez.</p>
+                </div>
+                <strong>{{ getMatchingCompletedCount(currentQuestion) }}/{{ getMatchingPairs(currentQuestion).length }}</strong>
+              </div>
+
+              <div class="matching-question__list">
+                <label
+                  v-for="(pair, pairIndex) in getMatchingPairs(currentQuestion)"
+                  :key="`${pair.left}-${pairIndex}`"
+                  class="matching-question__row"
+                  :class="{
+                    'matching-question__row--complete': getMatchingSelection(currentQuestion.id, pair.left)
+                  }"
+                >
+                  <span class="matching-question__number">{{ pairIndex + 1 }}</span>
+                  <strong>{{ pair.left }}</strong>
+                  <span class="matching-question__arrow" aria-hidden="true">→</span>
+                  <select
+                    :value="getMatchingSelection(currentQuestion.id, pair.left)"
+                    :aria-label="`Relacionar ${pair.left}`"
+                    @change="updateMatchingSelection(currentQuestion, pair.left, $event.target.value)"
+                  >
+                    <option value="">Selecciona una respuesta...</option>
+                    <option
+                      v-for="choice in getMatchingChoices(currentQuestion)"
+                      :key="choice"
+                      :value="choice"
+                      :disabled="isMatchingChoiceUsed(currentQuestion, pair.left, choice)"
+                    >
+                      {{ choice }}
+                    </option>
+                  </select>
+                  <button
+                    v-if="getMatchingSelection(currentQuestion.id, pair.left)"
+                    type="button"
+                    class="matching-question__clear"
+                    :aria-label="`Borrar relación de ${pair.left}`"
+                    @click="updateMatchingSelection(currentQuestion, pair.left, '')"
+                  >
+                    ×
+                  </button>
+                </label>
+              </div>
+            </div>
+
+            <!-- ORDENAR ELEMENTOS -->
+            <div
+              v-else-if="currentQuestion.type === 'ordering'"
+              class="ordering-question interactive-question"
+            >
+              <div class="interactive-question__intro">
+                <div>
+                  <span>ORDENAMIENTO</span>
+                  <p class="question-hint">Arrastra los elementos o usa las flechas. Cuando estés conforme, confirma el orden.</p>
+                </div>
+                <strong>{{ getOrderingAnswer(currentQuestion).length }} elementos</strong>
+              </div>
+
+              <div class="ordering-question__list">
+                <article
+                  v-for="(item, itemIndex) in getOrderingAnswer(currentQuestion)"
+                  :key="item.id"
+                  class="ordering-question__item"
+                  :class="{ 'ordering-question__item--dragging': draggedOrderingIndex === itemIndex }"
+                  draggable="true"
+                  @dragstart="startOrderingDrag(itemIndex)"
+                  @dragover.prevent
+                  @drop="dropOrderingItem(currentQuestion, itemIndex)"
+                  @dragend="endOrderingDrag"
+                >
+                  <span class="ordering-question__position">{{ itemIndex + 1 }}</span>
+                  <span class="ordering-question__handle" aria-hidden="true">⋮⋮</span>
+                  <strong>{{ item.text }}</strong>
+                  <div class="ordering-question__controls">
+                    <button
+                      type="button"
+                      :disabled="itemIndex === 0"
+                      :aria-label="`Mover ${item.text} arriba`"
+                      @click="moveOrderingAnswer(currentQuestion, itemIndex, -1)"
+                    >↑</button>
+                    <button
+                      type="button"
+                      :disabled="itemIndex === getOrderingAnswer(currentQuestion).length - 1"
+                      :aria-label="`Mover ${item.text} abajo`"
+                      @click="moveOrderingAnswer(currentQuestion, itemIndex, 1)"
+                    >↓</button>
+                  </div>
+                </article>
+              </div>
+
+              <div class="ordering-question__footer">
+                <button type="button" class="interactive-secondary" @click="resetOrderingAnswer(currentQuestion)">Restablecer mezcla</button>
+                <button type="button" class="interactive-primary" @click="confirmOrderingAnswer(currentQuestion)">✓ Confirmar este orden</button>
+              </div>
             </div>
 
             <!-- SHORT -->
@@ -1305,6 +1424,7 @@ const loadError = ref('')
 const saveError = ref('')
 
 const currentQuestionIndex = ref(0)
+const draggedOrderingIndex = ref(null)
 
 const submissionResult = ref(null)
 
@@ -1327,6 +1447,139 @@ let hasAutoSubmitted = false
 /* =========================================================
    CARGA
 ========================================================= */
+
+const normalizeStudentQuestion =
+  question => {
+    /*
+     * V9.1
+     * El contenido del estudiante puede llegar desde:
+     *
+     * - RPC seguro
+     * - consulta normalizada
+     * - relación directa de Supabase
+     *
+     * Dependiendo del origen, las alternativas pueden venir
+     * con nombres distintos.
+     */
+    const rawOptions =
+      question?.options ??
+      question?.quiz_question_options ??
+      question?.quizQuestionOptions ??
+      question?.question_options ??
+      question?.questionOptions ??
+      []
+
+    const options =
+      Array.isArray(rawOptions)
+        ? rawOptions
+        : []
+
+    return {
+      ...question,
+
+      id:
+        Number(
+          question?.id ??
+          question?.questionId ??
+          question?.question_id,
+        ),
+
+      type:
+        question?.type ??
+        question?.questionType ??
+        question?.question_type ??
+        '',
+
+      questionType:
+        question?.questionType ??
+        question?.question_type ??
+        question?.type ??
+        '',
+
+      prompt:
+        question?.prompt ??
+        question?.question ??
+        '',
+
+      mediaType:
+        question?.mediaType ??
+        question?.media_type ??
+        'none',
+
+      mediaUrl:
+        question?.mediaUrl ??
+        question?.media_url ??
+        '',
+
+      points:
+        Number(
+          question?.points ??
+          0,
+        ),
+
+      required:
+        Boolean(
+          question?.required,
+        ),
+
+      autoGradable:
+        Boolean(
+          question?.autoGradable ??
+          question?.auto_gradable,
+        ),
+
+      options:
+        options
+          .map(
+            (option, index) => ({
+              ...option,
+
+              id:
+                Number(
+                  option?.id ??
+                  option?.optionId ??
+                  option?.option_id,
+                ),
+
+              questionId:
+                Number(
+                  option?.questionId ??
+                  option?.question_id ??
+                  question?.id,
+                ),
+
+              text:
+                String(
+                  option?.text ??
+                  option?.optionText ??
+                  option?.option_text ??
+                  '',
+                ).trim(),
+
+              position:
+                Number(
+                  option?.position ??
+                  index + 1,
+                ),
+
+              isCorrect:
+                Boolean(
+                  option?.isCorrect ??
+                  option?.is_correct,
+                ),
+            }),
+          )
+          .filter(
+            option =>
+              option.text,
+          )
+          .sort(
+            (a, b) =>
+              Number(a.position) -
+              Number(b.position),
+          ),
+    }
+  }
 
 const loadQuiz =
   async () => {
@@ -1390,6 +1643,9 @@ const loadQuiz =
           loadedQuiz?.questions,
         )
           ? loadedQuiz.questions
+              .map(
+                normalizeStudentQuestion,
+              )
           : []
 
       /*
@@ -1600,6 +1856,17 @@ const lessonNumberLabel =
    PREGUNTA ACTUAL
 ========================================================= */
 
+const questionTypeLabel = type => ({
+  single_choice: 'Selección única',
+  multiple_choice: 'Selección múltiple',
+  true_false: 'Verdadero / falso',
+  short_answer: 'Respuesta corta',
+  essay: 'Desarrollo',
+  matching: 'Emparejamiento',
+  ordering: 'Ordenamiento',
+  audio_choice: 'Escucha y responde',
+}[type] || 'Pregunta')
+
 const currentQuestion =
   computed(() =>
     questions.value[
@@ -1636,12 +1903,7 @@ const isQuestionAnswered = (
   question,
   answer,
 ) => {
-  if (
-    !question ||
-    !answer
-  ) {
-    return false
-  }
+  if (!question || !answer) return false
 
   const selectedOptionIds =
     answer.selectedOptionIds ??
@@ -1659,49 +1921,40 @@ const isQuestionAnswered = (
     question.question_type ??
     ''
 
-  if (
-    questionType ===
-      'single_choice' ||
-    questionType ===
-      'multiple_choice' ||
-    questionType ===
-      'true_false'
-  ) {
-    return (
-      Array.isArray(
-        selectedOptionIds,
-      ) &&
-      selectedOptionIds.length >
-        0
-    )
+  if ([
+    'single_choice',
+    'multiple_choice',
+    'true_false',
+    'audio_choice',
+  ].includes(questionType)) {
+    return Array.isArray(selectedOptionIds) && selectedOptionIds.length > 0
   }
 
-  if (
-    questionType ===
-      'short_answer' ||
-    questionType ===
-      'short' ||
-    questionType ===
-      'essay'
-  ) {
-    return Boolean(
-      String(
-        textAnswer || '',
-      ).trim(),
-    )
+  if (['short_answer', 'short', 'essay'].includes(questionType)) {
+    return Boolean(String(textAnswer || '').trim())
+  }
+
+  if (questionType === 'matching') {
+    let parsed = null
+    try { parsed = JSON.parse(String(textAnswer || '')) } catch { parsed = null }
+    const pairs = getMatchingPairs(question)
+    if (parsed?.kind !== 'matching' || !pairs.length) return false
+    const values = pairs.map(pair => String(parsed.matches?.[pair.left] || '').trim())
+    return values.every(Boolean) && new Set(values).size === values.length
+  }
+
+  if (questionType === 'ordering') {
+    let parsed = null
+    try { parsed = JSON.parse(String(textAnswer || '')) } catch { parsed = null }
+    return parsed?.kind === 'ordering' &&
+      parsed?.confirmed === true &&
+      Array.isArray(parsed.items) &&
+      parsed.items.length === (question?.options || []).length
   }
 
   return Boolean(
-    (
-      Array.isArray(
-        selectedOptionIds,
-      ) &&
-      selectedOptionIds.length >
-        0
-    ) ||
-    String(
-      textAnswer || '',
-    ).trim(),
+    (Array.isArray(selectedOptionIds) && selectedOptionIds.length > 0) ||
+    String(textAnswer || '').trim(),
   )
 }
 
@@ -1880,6 +2133,175 @@ const toggleMultipleOption = (
     question.id,
     250,
   )
+}
+
+/* =========================================================
+   EMPAREJAMIENTO · V9
+========================================================= */
+
+const parseMatchingOption = option => {
+  const raw = String(
+    option?.text ?? option?.optionText ?? option?.option_text ?? '',
+  )
+  const separatorIndex = raw.indexOf('|||')
+
+  if (option?.left && option?.right) {
+    return {
+      left: String(option.left).trim(),
+      right: String(option.right).trim(),
+    }
+  }
+
+  if (separatorIndex < 0) {
+    return { left: raw.trim(), right: raw.trim() }
+  }
+
+  return {
+    left: raw.slice(0, separatorIndex).trim(),
+    right: raw.slice(separatorIndex + 3).trim(),
+  }
+}
+
+const getMatchingPairs = question =>
+  (question?.options || [])
+    .map(parseMatchingOption)
+    .filter(pair => pair.left && pair.right)
+
+const stableShuffle = (values, seedValue = 1) => {
+  const result = [...values]
+  let seed = Math.max(1, Number(seedValue) || 1)
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    seed = (seed * 9301 + 49297) % 233280
+    const target = Math.floor((seed / 233280) * (index + 1))
+    ;[result[index], result[target]] = [result[target], result[index]]
+  }
+  return result
+}
+
+const getMatchingChoices = question => {
+  const choices = getMatchingPairs(question).map(pair => pair.right)
+  return stableShuffle(choices, Number(question?.id) + 17)
+}
+
+const readStructuredAnswer = questionId => {
+  const raw = getAnswer(questionId).textAnswer
+  if (!raw) return null
+  try { return JSON.parse(raw) } catch { return null }
+}
+
+const getMatchingSelection = (questionId, left) => {
+  const parsed = readStructuredAnswer(questionId)
+  return parsed?.kind === 'matching' ? parsed.matches?.[left] || '' : ''
+}
+
+const getMatchingCompletedCount = question =>
+  getMatchingPairs(question).filter(pair =>
+    Boolean(getMatchingSelection(question.id, pair.left)),
+  ).length
+
+const isMatchingChoiceUsed = (question, currentLeft, choice) => {
+  const parsed = readStructuredAnswer(question.id)
+  if (parsed?.kind !== 'matching') return false
+  return Object.entries(parsed.matches || {}).some(([left, selected]) =>
+    left !== currentLeft && selected === choice,
+  )
+}
+
+const updateMatchingSelection = (question, left, value) => {
+  const current = readStructuredAnswer(question.id)
+  const matches = {
+    ...(current?.kind === 'matching' ? current.matches : {}),
+  }
+
+  const normalizedValue = String(value || '')
+  if (normalizedValue) {
+    Object.keys(matches).forEach(key => {
+      if (key !== left && matches[key] === normalizedValue) matches[key] = ''
+    })
+  }
+  matches[left] = normalizedValue
+
+  answers.value = {
+    ...answers.value,
+    [question.id]: {
+      ...getAnswer(question.id),
+      textAnswer: JSON.stringify({ kind: 'matching', matches }),
+    },
+  }
+  scheduleAnswerSave(question.id, 200)
+}
+
+/* =========================================================
+   ORDENAR · V9
+========================================================= */
+
+const makeInitialOrdering = question => {
+  const base = (question?.options || []).map(option => ({
+    id: Number(option.id),
+    text: option.text,
+  }))
+  const mixed = stableShuffle(base, Number(question?.id) + 31)
+
+  // Garantiza que no se muestre accidentalmente el orden correcto.
+  if (mixed.length > 1 && mixed.every((item, index) => item.id === base[index]?.id)) {
+    mixed.push(mixed.shift())
+  }
+  return mixed
+}
+
+const getOrderingAnswer = question => {
+  const parsed = readStructuredAnswer(question.id)
+  if (parsed?.kind === 'ordering' && Array.isArray(parsed.items)) return parsed.items
+  return makeInitialOrdering(question)
+}
+
+const persistOrderingState = (question, items, confirmed = false) => {
+  answers.value = {
+    ...answers.value,
+    [question.id]: {
+      ...getAnswer(question.id),
+      textAnswer: JSON.stringify({ kind: 'ordering', items, confirmed }),
+    },
+  }
+  scheduleAnswerSave(question.id, 200)
+}
+
+const moveOrderingAnswer = (question, index, direction) => {
+  const items = [...getOrderingAnswer(question)]
+  const target = index + direction
+  if (target < 0 || target >= items.length) return
+  const [item] = items.splice(index, 1)
+  items.splice(target, 0, item)
+  persistOrderingState(question, items, false)
+}
+
+const startOrderingDrag = index => {
+  draggedOrderingIndex.value = index
+}
+
+const endOrderingDrag = () => {
+  draggedOrderingIndex.value = null
+}
+
+const dropOrderingItem = (question, targetIndex) => {
+  const sourceIndex = draggedOrderingIndex.value
+  if (sourceIndex === null || sourceIndex === targetIndex) {
+    endOrderingDrag()
+    return
+  }
+  const items = [...getOrderingAnswer(question)]
+  const [item] = items.splice(sourceIndex, 1)
+  items.splice(targetIndex, 0, item)
+  persistOrderingState(question, items, false)
+  endOrderingDrag()
+}
+
+const resetOrderingAnswer = question => {
+  persistOrderingState(question, makeInitialOrdering(question), false)
+}
+
+const confirmOrderingAnswer = question => {
+  persistOrderingState(question, [...getOrderingAnswer(question)], true)
 }
 
 /* =========================================================
@@ -5823,6 +6245,239 @@ textarea:focus {
   .result-action {
     min-height: 76px !important;
   }
+}
+
+
+/* =========================================================
+   QUIZ V8 · EXPERIENCIAS INTERACTIVAS
+========================================================= */
+
+.matching-question,
+.ordering-question {
+  display: grid;
+  gap: 14px;
+}
+
+.matching-question__list,
+.ordering-question__list {
+  display: grid;
+  gap: 9px;
+}
+
+.matching-question__row {
+  display: grid;
+  grid-template-columns:
+    minmax(0,1fr)
+    34px
+    minmax(0,1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 68px;
+  padding: 12px;
+  border: 1px solid #dbe3ec;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.matching-question__row > strong {
+  color: #152033;
+  font-size: .82rem;
+}
+
+.matching-question__row > span {
+  color: #b18400;
+  text-align: center;
+  font-weight: 900;
+}
+
+.matching-question__row select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid #cbd6e2;
+  border-radius: 10px;
+  color: #344359;
+  background: #f8fafc;
+  font: inherit;
+}
+
+.matching-question__row select:focus {
+  border-color: #9f1945;
+  outline: none;
+  box-shadow:
+    0 0 0 4px
+    rgba(159,25,69,.08);
+}
+
+.ordering-question__item {
+  display: grid;
+  grid-template-columns:
+    40px
+    minmax(0,1fr)
+    auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 66px;
+  padding: 11px 12px;
+  border: 1px solid #dbe3ec;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.ordering-question__item > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  color: #9f1945;
+  background: #fff1f5;
+  font-size: .7rem;
+  font-weight: 900;
+}
+
+.ordering-question__item > strong {
+  color: #152033;
+  font-size: .82rem;
+}
+
+.ordering-question__item > div {
+  display: flex;
+  gap: 6px;
+}
+
+.ordering-question__item button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #d3dde8;
+  border-radius: 10px;
+  color: #344359;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.ordering-question__item button:hover:not(:disabled) {
+  border-color: #9f1945;
+  color: #9f1945;
+  background: #fff1f5;
+}
+
+.ordering-question__item button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+  .matching-question__row {
+    grid-template-columns: 1fr;
+  }
+
+  .matching-question__row > span {
+    transform: rotate(90deg);
+  }
+
+  .ordering-question__item {
+    grid-template-columns:
+      36px
+      minmax(0,1fr);
+  }
+
+  .ordering-question__item > div {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .ordering-question__item button {
+    width: 46px;
+    height: 42px;
+  }
+}
+
+
+
+/* =========================================================
+   QUIZ V9 · INTERACCIÓN PREMIUM / ACCESIBILIDAD
+========================================================= */
+.question-format-badge {
+  display: inline-flex; align-items: center; min-height: 26px; padding: 0 9px;
+  border: 1px solid #dbe3ec; border-radius: 999px; color: #516177;
+  background: #f8fafc; font-size: .58rem; font-weight: 900; letter-spacing: .05em;
+}
+
+.audio-experience {
+  display: grid; grid-template-columns: 56px minmax(0,1fr); gap: 16px; align-items: start;
+  padding: 18px; border: 1px solid #d8e1eb; border-radius: 16px;
+  background: linear-gradient(135deg,#fff 0%,#f8fafc 100%);
+  box-shadow: 0 10px 28px rgba(31,48,73,.05);
+}
+.audio-experience__icon {
+  display: grid; width: 56px; height: 56px; place-items: center; border-radius: 15px;
+  color: #fff; background: #9f1945; font-size: 1.45rem; font-weight: 900;
+}
+.audio-experience__content { display: grid; gap: 7px; min-width: 0; }
+.audio-experience__content > span { color:#987000; font-size:.58rem; font-weight:900; letter-spacing:.1em; }
+.audio-experience__content > strong { color:#152033; font-size:.88rem; }
+.audio-experience__content audio { width:100%; margin-top:4px; }
+.audio-experience__content small { color:#718096; font-size:.7rem; }
+
+.interactive-question { gap: 16px !important; }
+.interactive-question__intro {
+  display:flex; justify-content:space-between; gap:16px; align-items:flex-start;
+  padding:14px 16px; border:1px solid #e0e7ef; border-radius:14px; background:#f8fafc;
+}
+.interactive-question__intro > div > span { color:#987000; font-size:.58rem; font-weight:900; letter-spacing:.1em; }
+.interactive-question__intro .question-hint { margin:.3rem 0 0; color:#5f6f84; }
+.interactive-question__intro > strong { flex:0 0 auto; padding:6px 9px; border-radius:999px; color:#9f1945; background:#fff1f5; font-size:.66rem; }
+
+.matching-question__row {
+  grid-template-columns: 34px minmax(120px,.9fr) 28px minmax(180px,1.2fr) 34px !important;
+  min-height:72px !important; padding:12px 13px !important; transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.matching-question__row--complete { border-color:#bfe0cd !important; background:#fbfffd !important; box-shadow:0 8px 22px rgba(45,138,99,.055); }
+.matching-question__number { display:grid; width:30px; height:30px; place-items:center; border-radius:9px; color:#9f1945 !important; background:#fff1f5; font-size:.65rem; font-weight:900; }
+.matching-question__arrow { color:#b18400 !important; font-size:1rem; }
+.matching-question__row select { min-height:46px !important; background:#fff !important; cursor:pointer; }
+.matching-question__row select option:disabled { color:#a2acb9; }
+.matching-question__clear {
+  display:grid; width:32px; height:32px; place-items:center; border:1px solid #d9e1ea; border-radius:9px;
+  color:#7b8798; background:#fff; cursor:pointer; font-size:1rem;
+}
+.matching-question__clear:hover { border-color:#be4856; color:#be4856; background:#fff5f6; }
+
+.ordering-question__item {
+  grid-template-columns:40px 26px minmax(0,1fr) auto !important; cursor:grab; user-select:none;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,opacity .16s ease;
+}
+.ordering-question__item:hover { border-color:#c7d3e0; box-shadow:0 8px 22px rgba(31,48,73,.055); }
+.ordering-question__item--dragging { opacity:.5; transform:scale(.985); }
+.ordering-question__item:active { cursor:grabbing; }
+.ordering-question__position { background:#fff1f5 !important; color:#9f1945 !important; }
+.ordering-question__handle { color:#9ba8b8; font-size:1rem; letter-spacing:-.2em; }
+.ordering-question__controls { display:flex; gap:6px; }
+.ordering-question__footer { display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; padding-top:4px; }
+.interactive-secondary,.interactive-primary {
+  min-height:42px; padding:0 14px; border-radius:11px; font:inherit; font-size:.7rem; font-weight:900; cursor:pointer;
+}
+.interactive-secondary { border:1px solid #cdd8e4; color:#44546a; background:#fff; }
+.interactive-primary { border:1px solid #9f1945; color:#fff; background:#9f1945; box-shadow:0 8px 18px rgba(159,25,69,.12); }
+.interactive-primary:hover { background:#7f1237; }
+.interactive-secondary:hover { background:#f8fafc; }
+
+@media (max-width: 720px) {
+  .audio-experience { grid-template-columns:1fr; }
+  .audio-experience__icon { width:48px; height:48px; }
+  .interactive-question__intro { flex-direction:column; }
+  .matching-question__row { grid-template-columns:34px minmax(0,1fr) 34px !important; }
+  .matching-question__row > strong { grid-column:2 / 3; }
+  .matching-question__arrow { grid-column:1 / 2; grid-row:2; transform:rotate(90deg); }
+  .matching-question__row select { grid-column:2 / 3; }
+  .matching-question__clear { grid-column:3 / 4; grid-row:2; }
+  .ordering-question__item { grid-template-columns:36px 22px minmax(0,1fr) !important; }
+  .ordering-question__controls { grid-column:1 / -1; justify-content:flex-end; }
+  .ordering-question__footer { display:grid; grid-template-columns:1fr; }
+  .interactive-secondary,.interactive-primary { width:100%; }
 }
 
 </style>

@@ -104,22 +104,54 @@ const normalizeStudentOption =
       return null
     }
 
+    const id =
+      Number(
+        option.id ??
+        option.optionId ??
+        option.option_id,
+      )
+
+    const questionId =
+      Number(
+        option.questionId ??
+        option.question_id ??
+        0,
+      )
+
+    const text =
+      String(
+        option.text ??
+        option.optionText ??
+        option.option_text ??
+        '',
+      ).trim()
+
+    const position =
+      Number(
+        option.position ??
+        option.order ??
+        1,
+      )
+
     return {
+      ...option,
+
       id:
-        Number(option.id),
+        Number.isFinite(id)
+          ? id
+          : null,
 
       questionId:
-        Number(
-          option.questionId,
-        ),
+        Number.isFinite(questionId)
+          ? questionId
+          : null,
 
-      text:
-        option.text || '',
+      text,
 
       position:
-        Number(
-          option.position || 1,
-        ),
+        Number.isFinite(position)
+          ? position
+          : 1,
     }
   }
 
@@ -129,28 +161,75 @@ const normalizeStudentQuestion =
       return null
     }
 
+    /*
+     * El RPC puede entregar las alternativas
+     * con distintos nombres según la versión
+     * de la función PostgreSQL.
+     */
+    const rawOptions =
+      question.options ??
+      question.quiz_question_options ??
+      question.quizQuestionOptions ??
+      question.question_options ??
+      question.questionOptions ??
+      []
+
+    const normalizedOptions =
+      Array.isArray(rawOptions)
+        ? rawOptions
+          .map(
+            normalizeStudentOption,
+          )
+          .filter(Boolean)
+          .filter(
+            option =>
+              option.text,
+          )
+          .sort(
+            (a, b) =>
+              Number(a.position) -
+              Number(b.position),
+          )
+        : []
+
     return {
+      ...question,
+
       id:
-        Number(question.id),
+        Number(
+          question.id ??
+          question.questionId ??
+          question.question_id,
+        ),
 
       quizId:
-        Number(question.quizId),
+        Number(
+          question.quizId ??
+          question.quiz_id ??
+          0,
+        ),
 
       type:
-        question.type ||
+        question.type ??
+        question.questionType ??
+        question.question_type ??
         'single_choice',
 
       prompt:
-        question.prompt || '',
+        question.prompt ??
+        question.question ??
+        '',
 
       points:
         Number(
-          question.points || 0,
+          question.points ??
+          0,
         ),
 
       position:
         Number(
-          question.position || 1,
+          question.position ??
+          1,
         ),
 
       required:
@@ -158,27 +237,24 @@ const normalizeStudentQuestion =
           question.required,
         ),
 
+      autoGradable:
+        Boolean(
+          question.autoGradable ??
+          question.auto_gradable,
+        ),
+
       mediaType:
-        question.mediaType ||
+        question.mediaType ??
+        question.media_type ??
         'none',
 
       mediaUrl:
-        question.mediaUrl || '',
+        question.mediaUrl ??
+        question.media_url ??
+        '',
 
       options:
-        Array.isArray(
-          question.options,
-        )
-          ? question.options
-            .map(
-              normalizeStudentOption,
-            )
-            .sort(
-              (a, b) =>
-                a.position -
-                b.position,
-            )
-          : [],
+        normalizedOptions,
     }
   }
 
@@ -606,6 +682,9 @@ export function questionHasOptions(
     'single_choice',
     'multiple_choice',
     'true_false',
+    'audio_choice',
+    'matching',
+    'ordering',
   ].includes(type)
 }
 
@@ -615,6 +694,8 @@ export function isManualQuestion(
   return [
     'short_answer',
     'essay',
+    'matching',
+    'ordering',
   ].includes(type)
 }
 

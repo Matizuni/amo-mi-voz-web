@@ -615,6 +615,18 @@
                     <option value="essay">
                       Desarrollo
                     </option>
+
+                    <option value="matching">
+                      Emparejamiento
+                    </option>
+
+                    <option value="ordering">
+                      Ordenar elementos
+                    </option>
+
+                    <option value="audio_choice">
+                      Escucha y responde
+                    </option>
                   </select>
                 </label>
 
@@ -653,12 +665,12 @@
                 ></textarea>
               </label>
 
-              <!-- FUTURO AUDIO / IMAGEN -->
+              <!-- AUDIO / IMAGEN -->
               <div
                 v-if="question.mediaType !== 'none'"
-                class="media-placeholder"
+                class="media-editor"
               >
-                <div>
+                <div class="media-editor__icon">
                   {{
                     question.mediaType === 'audio'
                       ? '♪'
@@ -670,22 +682,300 @@
                   <strong>
                     {{
                       question.mediaType === 'audio'
-                        ? 'Pregunta con audio'
-                        : 'Pregunta con imagen'
+                        ? 'Recurso de audio'
+                        : 'Recurso visual'
                     }}
                   </strong>
 
                   <p>
-                    La arquitectura ya está preparada.
-                    En el siguiente módulo conectaremos
-                    la subida de archivos multimedia.
+                    Puedes pegar una URL pública, subir un archivo de
+                    hasta 50 MB o, si es audio, grabarlo directamente
+                    con el micrófono de tu computador o celular.
                   </p>
+
+                  <label class="media-editor__url">
+                    <span>URL pública</span>
+                    <input
+                      v-model="question.mediaUrl"
+                      type="url"
+                      :placeholder="
+                        question.mediaType === 'audio'
+                          ? 'https://.../audio.mp3'
+                          : 'https://.../imagen.jpg'
+                      "
+                    >
+                  </label>
+
+                  <div class="media-editor__actions">
+                    <label
+                      class="media-action media-action--upload"
+                      :class="{
+                        'is-disabled':
+                          question.mediaUploading ||
+                          question.isRecording
+                      }"
+                    >
+                      <input
+                        type="file"
+                        :accept="
+                          question.mediaType === 'audio'
+                            ? 'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.webm'
+                            : 'image/*,.png,.jpg,.jpeg,.webp'
+                        "
+                        :disabled="
+                          question.mediaUploading ||
+                          question.isRecording
+                        "
+                        @change="
+                          handleQuizMediaUpload(
+                            question,
+                            $event
+                          )
+                        "
+                      >
+
+                      <span aria-hidden="true">↑</span>
+
+                      {{
+                        question.mediaUploading
+                          ? 'Subiendo...'
+                          : 'Subir archivo'
+                      }}
+                    </label>
+
+                    <template
+                      v-if="question.mediaType === 'audio'"
+                    >
+                      <button
+                        v-if="!question.isRecording"
+                        type="button"
+                        class="media-action media-action--record"
+                        :disabled="question.mediaUploading"
+                        @click="startQuestionRecording(question)"
+                      >
+                        <span aria-hidden="true">●</span>
+                        Grabar audio
+                      </button>
+
+                      <button
+                        v-else
+                        type="button"
+                        class="media-action media-action--stop"
+                        @click="stopQuestionRecording(question)"
+                      >
+                        <span
+                          class="recording-dot"
+                          aria-hidden="true"
+                        ></span>
+
+                        Detener ·
+                        {{ formatRecordingTime(question.recordingSeconds) }}
+                      </button>
+                    </template>
+                  </div>
+
+                  <div
+                    v-if="question.mediaUploadName"
+                    class="media-editor__uploaded"
+                  >
+                    <div>
+                      <span>
+                        {{
+                          question.mediaSource === 'recording'
+                            ? 'GRABACIÓN'
+                            : 'ARCHIVO'
+                        }}
+                      </span>
+                      <strong>{{ question.mediaUploadName }}</strong>
+                      <small>
+                        {{ formatMediaSize(question.mediaUploadSize) }}
+                      </small>
+                    </div>
+
+                    <button
+                      type="button"
+                      @click="clearQuestionMedia(question)"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+
+                  <p
+                    v-if="question.mediaError"
+                    class="media-editor__error"
+                    role="alert"
+                  >
+                    {{ question.mediaError }}
+                  </p>
+
+                  <audio
+                    v-if="
+                      question.mediaType === 'audio' &&
+                      question.mediaUrl
+                    "
+                    :src="question.mediaUrl"
+                    controls
+                    preload="metadata"
+                  ></audio>
+
+                  <img
+                    v-else-if="
+                      question.mediaType === 'image' &&
+                      question.mediaUrl
+                    "
+                    :src="question.mediaUrl"
+                    alt="Vista previa del recurso de la pregunta"
+                  >
                 </section>
+              </div>
+
+              <!-- EMPAREJAMIENTO -->
+              <div
+                v-if="question.type === 'matching'"
+                class="interactive-editor"
+              >
+                <header class="interactive-editor__header">
+                  <div>
+                    <span>EMPAREJAMIENTO</span>
+                    <strong>
+                      Crea las relaciones correctas
+                    </strong>
+                    <p>
+                      El alumno verá la columna derecha mezclada
+                      y deberá relacionarla con cada concepto.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    @click="addMatchingPair(question)"
+                  >
+                    + Pareja
+                  </button>
+                </header>
+
+                <div class="matching-builder">
+                  <div
+                    v-for="(pair, pairIndex) in question.matchingPairs"
+                    :key="pair.localId"
+                    class="matching-builder__row"
+                  >
+                    <span class="matching-builder__number">
+                      {{ pairIndex + 1 }}
+                    </span>
+
+                    <input
+                      v-model="pair.left"
+                      type="text"
+                      :placeholder="`Concepto ${pairIndex + 1}`"
+                    >
+
+                    <span class="matching-builder__arrow">
+                      ↔
+                    </span>
+
+                    <input
+                      v-model="pair.right"
+                      type="text"
+                      :placeholder="`Respuesta ${pairIndex + 1}`"
+                    >
+
+                    <button
+                      type="button"
+                      aria-label="Eliminar pareja"
+                      :disabled="question.matchingPairs.length <= 2"
+                      @click="removeMatchingPair(question, pairIndex)"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+
+                <div class="interactive-editor__example">
+                  <span>EJEMPLO</span>
+                  Redonda ↔ 4 tiempos · Blanca ↔ 2 tiempos
+                </div>
+              </div>
+
+              <!-- ORDENAR -->
+              <div
+                v-else-if="question.type === 'ordering'"
+                class="interactive-editor"
+              >
+                <header class="interactive-editor__header">
+                  <div>
+                    <span>ORDEN CORRECTO</span>
+                    <strong>
+                      Define la secuencia
+                    </strong>
+                    <p>
+                      Escribe los elementos en el orden correcto.
+                      Al alumno se le mostrarán mezclados.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    @click="addOrderingItem(question)"
+                  >
+                    + Elemento
+                  </button>
+                </header>
+
+                <div class="ordering-builder">
+                  <div
+                    v-for="(item, itemIndex) in question.orderingItems"
+                    :key="item.localId"
+                    class="ordering-builder__row"
+                  >
+                    <span>
+                      {{ itemIndex + 1 }}
+                    </span>
+
+                    <input
+                      v-model="item.text"
+                      type="text"
+                      :placeholder="`Elemento ${itemIndex + 1}`"
+                    >
+
+                    <div>
+                      <button
+                        type="button"
+                        :disabled="itemIndex === 0"
+                        aria-label="Mover arriba"
+                        @click="moveOrderingItem(question, itemIndex, -1)"
+                      >
+                        ↑
+                      </button>
+
+                      <button
+                        type="button"
+                        :disabled="
+                          itemIndex ===
+                          question.orderingItems.length - 1
+                        "
+                        aria-label="Mover abajo"
+                        @click="moveOrderingItem(question, itemIndex, 1)"
+                      >
+                        ↓
+                      </button>
+
+                      <button
+                        type="button"
+                        :disabled="question.orderingItems.length <= 2"
+                        aria-label="Eliminar elemento"
+                        @click="removeOrderingItem(question, itemIndex)"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- OPCIONES -->
               <div
-                v-if="
+                v-else-if="
                   questionHasOptions(
                     question.type
                   )
@@ -794,7 +1084,10 @@
 
               <!-- RESPUESTA MANUAL -->
               <div
-                v-else
+                v-else-if="
+                  question.type === 'short_answer' ||
+                  question.type === 'essay'
+                "
                 class="manual-question"
               >
                 <div class="manual-question__icon">
@@ -849,8 +1142,8 @@
             </strong>
 
             <small>
-              Selección, verdadero/falso, respuesta
-              corta o desarrollo
+              Selección, audio, emparejamiento,
+              orden, respuesta corta o desarrollo
             </small>
           </div>
         </button>
@@ -1028,6 +1321,7 @@
 <script setup>
 import {
   computed,
+  onBeforeUnmount,
   onMounted,
   ref,
 } from 'vue'
@@ -1052,6 +1346,10 @@ import {
 import {
   useAuth,
 } from '@/composables/useAuth'
+
+import {
+  uploadQuizMediaFile,
+} from '@/services/quizMediaService'
 
 const route = useRoute()
 const router = useRouter()
@@ -1230,6 +1528,33 @@ const createQuestion =
 
     options:
       createDefaultOptions(),
+
+    matchingPairs:
+      [],
+
+    orderingItems:
+      [],
+
+    mediaUploading:
+      false,
+
+    mediaUploadName:
+      '',
+
+    mediaUploadSize:
+      0,
+
+    mediaSource:
+      '',
+
+    mediaError:
+      '',
+
+    isRecording:
+      false,
+
+    recordingSeconds:
+      0,
   })
 
 const addQuestion = () => {
@@ -1270,6 +1595,22 @@ const duplicateQuestion =
               ),
           }),
         ),
+
+      matchingPairs:
+        (original.matchingPairs || [])
+          .map(pair => ({
+            ...pair,
+            localId:
+              createLocalId('pair'),
+          })),
+
+      orderingItems:
+        (original.orderingItems || [])
+          .map(item => ({
+            ...item,
+            localId:
+              createLocalId('order-item'),
+          })),
     }
 
     questions.value.splice(
@@ -1335,8 +1676,49 @@ const questionHasOptions =
       'single_choice',
       'multiple_choice',
       'true_false',
+      'audio_choice',
     ].includes(type)
   }
+
+const createMatchingPairs = () => [
+  {
+    localId:
+      createLocalId('pair'),
+    left:
+      '',
+    right:
+      '',
+  },
+  {
+    localId:
+      createLocalId('pair'),
+    left:
+      '',
+    right:
+      '',
+  },
+]
+
+const createOrderingItems = () => [
+  {
+    localId:
+      createLocalId('order-item'),
+    text:
+      '',
+  },
+  {
+    localId:
+      createLocalId('order-item'),
+    text:
+      '',
+  },
+  {
+    localId:
+      createLocalId('order-item'),
+    text:
+      '',
+  },
+]
 
 const handleQuestionTypeChange =
   question => {
@@ -1347,9 +1729,9 @@ const handleQuestionTypeChange =
       question.options =
         createTrueFalseOptions()
 
-      question.autoGradable =
-        true
-
+      question.matchingPairs = []
+      question.orderingItems = []
+      question.autoGradable = true
       return
     }
 
@@ -1357,7 +1739,9 @@ const handleQuestionTypeChange =
       question.type ===
         'single_choice' ||
       question.type ===
-        'multiple_choice'
+        'multiple_choice' ||
+      question.type ===
+        'audio_choice'
     ) {
       if (
         !question.options?.length
@@ -1366,16 +1750,148 @@ const handleQuestionTypeChange =
           createDefaultOptions()
       }
 
-      question.autoGradable =
-        true
+      question.matchingPairs = []
+      question.orderingItems = []
+      question.autoGradable = true
+
+      if (
+        question.type ===
+        'audio_choice'
+      ) {
+        question.mediaType = 'audio'
+      }
 
       return
     }
 
+    if (
+      question.type ===
+      'matching'
+    ) {
+      question.options = []
+      question.orderingItems = []
+
+      if (
+        !question.matchingPairs?.length
+      ) {
+        question.matchingPairs =
+          createMatchingPairs()
+      }
+
+      /*
+       * La respuesta se guarda estructurada en text_answer.
+       * La corrección queda manual hasta instalar el RPC v8.
+       */
+      question.autoGradable = false
+      return
+    }
+
+    if (
+      question.type ===
+      'ordering'
+    ) {
+      question.options = []
+      question.matchingPairs = []
+
+      if (
+        !question.orderingItems?.length
+      ) {
+        question.orderingItems =
+          createOrderingItems()
+      }
+
+      question.autoGradable = false
+      return
+    }
+
     question.options = []
-    question.autoGradable =
-      false
+    question.matchingPairs = []
+    question.orderingItems = []
+    question.autoGradable = false
   }
+
+const addMatchingPair =
+  question => {
+    question.matchingPairs.push({
+      localId:
+        createLocalId('pair'),
+      left:
+        '',
+      right:
+        '',
+    })
+  }
+
+const removeMatchingPair = (
+  question,
+  index,
+) => {
+  if (
+    question.matchingPairs.length <= 2
+  ) {
+    return
+  }
+
+  question.matchingPairs.splice(
+    index,
+    1,
+  )
+}
+
+const addOrderingItem =
+  question => {
+    question.orderingItems.push({
+      localId:
+        createLocalId('order-item'),
+      text:
+        '',
+    })
+  }
+
+const removeOrderingItem = (
+  question,
+  index,
+) => {
+  if (
+    question.orderingItems.length <= 2
+  ) {
+    return
+  }
+
+  question.orderingItems.splice(
+    index,
+    1,
+  )
+}
+
+const moveOrderingItem = (
+  question,
+  index,
+  direction,
+) => {
+  const target =
+    index + direction
+
+  if (
+    target < 0 ||
+    target >=
+      question.orderingItems.length
+  ) {
+    return
+  }
+
+  const [item] =
+    question.orderingItems.splice(
+      index,
+      1,
+    )
+
+  question.orderingItems.splice(
+    target,
+    0,
+    item,
+  )
+}
 
 /* =========================================================
    OPCIONES
@@ -1458,6 +1974,15 @@ const getQuestionTypeLabel =
 
       essay:
         'Desarrollo',
+
+      matching:
+        'Emparejamiento',
+
+      ordering:
+        'Ordenar elementos',
+
+      audio_choice:
+        'Escucha y responde',
     }
 
     return (
@@ -1520,6 +2045,462 @@ const toIsoDate =
     }
 
     return date.toISOString()
+  }
+
+/* =========================================================
+   MULTIMEDIA · ARCHIVO + MICRÓFONO
+========================================================= */
+
+const MAX_QUIZ_MEDIA_SIZE =
+  50 * 1024 * 1024
+
+const activeRecordings =
+  new Map()
+
+const formatMediaSize =
+  bytes => {
+    const value =
+      Number(bytes || 0)
+
+    if (!value) {
+      return ''
+    }
+
+    if (
+      value <
+      1024 * 1024
+    ) {
+      return `${(
+        value / 1024
+      ).toFixed(1)} KB`
+    }
+
+    return `${(
+      value /
+      (1024 * 1024)
+    ).toFixed(1)} MB`
+  }
+
+const formatRecordingTime =
+  seconds => {
+    const total =
+      Math.max(
+        0,
+        Number(seconds || 0),
+      )
+
+    const minutes =
+      Math.floor(
+        total / 60,
+      )
+
+    const rest =
+      total % 60
+
+    return `${String(minutes)
+      .padStart(2, '0')}:${String(rest)
+      .padStart(2, '0')}`
+  }
+
+const setQuestionMedia = (
+  question,
+  uploaded,
+  source,
+) => {
+  question.mediaUrl =
+    uploaded.url || ''
+
+  question.mediaUploadName =
+    uploaded.fileName || ''
+
+  question.mediaUploadSize =
+    Number(
+      uploaded.fileSize || 0,
+    )
+
+  question.mediaSource =
+    source
+
+  question.mediaError =
+    ''
+}
+
+const handleQuizMediaUpload =
+  async (
+    question,
+    event,
+  ) => {
+    const file =
+      event.target
+        .files?.[0]
+
+    event.target.value = ''
+
+    if (!file) {
+      return
+    }
+
+    question.mediaError = ''
+
+    if (
+      file.size >
+      MAX_QUIZ_MEDIA_SIZE
+    ) {
+      question.mediaError =
+        'El archivo supera el máximo permitido de 50 MB.'
+
+      return
+    }
+
+    if (
+      question.mediaType ===
+        'audio' &&
+      !String(file.type || '')
+        .startsWith('audio/')
+    ) {
+      question.mediaError =
+        'Selecciona un archivo de audio válido.'
+
+      return
+    }
+
+    if (
+      question.mediaType ===
+        'image' &&
+      !String(file.type || '')
+        .startsWith('image/')
+    ) {
+      question.mediaError =
+        'Selecciona una imagen válida.'
+
+      return
+    }
+
+    question.mediaUploading =
+      true
+
+    try {
+      const uploaded =
+        await uploadQuizMediaFile({
+          file,
+          lessonId:
+            lessonId.value,
+          questionKey:
+            question.localId,
+          kind:
+            question.mediaType,
+        })
+
+      setQuestionMedia(
+        question,
+        uploaded,
+        'upload',
+      )
+    } catch (error) {
+      console.error(
+        'Error subiendo multimedia:',
+        error,
+      )
+
+      question.mediaError =
+        error?.message ||
+        'No se pudo subir el archivo.'
+    } finally {
+      question.mediaUploading =
+        false
+    }
+  }
+
+const getRecordingMimeType =
+  () => {
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus',
+    ]
+
+    return (
+      candidates.find(
+        type =>
+          window.MediaRecorder
+            ?.isTypeSupported?.(
+              type,
+            ),
+      ) ||
+      ''
+    )
+  }
+
+const getRecordingExtension =
+  mimeType => {
+    const value =
+      String(mimeType || '')
+
+    if (value.includes('mp4')) {
+      return 'm4a'
+    }
+
+    if (value.includes('ogg')) {
+      return 'ogg'
+    }
+
+    return 'webm'
+  }
+
+const stopRecordingTracks =
+  stream => {
+    stream
+      ?.getTracks?.()
+      .forEach(
+        track =>
+          track.stop(),
+      )
+  }
+
+const startQuestionRecording =
+  async question => {
+    question.mediaError = ''
+
+    if (
+      !navigator.mediaDevices
+        ?.getUserMedia ||
+      typeof MediaRecorder ===
+        'undefined'
+    ) {
+      question.mediaError =
+        'Este navegador no permite grabar audio. Prueba con Chrome, Edge o Safari actualizado.'
+      return
+    }
+
+    if (
+      activeRecordings.has(
+        question.localId,
+      )
+    ) {
+      return
+    }
+
+    try {
+      const stream =
+        await navigator
+          .mediaDevices
+          .getUserMedia({
+            audio: {
+              echoCancellation:
+                true,
+              noiseSuppression:
+                true,
+              autoGainControl:
+                false,
+            },
+          })
+
+      const mimeType =
+        getRecordingMimeType()
+
+      const recorder =
+        mimeType
+          ? new MediaRecorder(
+              stream,
+              { mimeType },
+            )
+          : new MediaRecorder(
+              stream,
+            )
+
+      const chunks = []
+
+      recorder.ondataavailable =
+        event => {
+          if (event.data?.size) {
+            chunks.push(event.data)
+          }
+        }
+
+      recorder.onerror =
+        () => {
+          question.mediaError =
+            'La grabación se interrumpió inesperadamente.'
+        }
+
+      recorder.onstop =
+        async () => {
+          const finalType =
+            recorder.mimeType ||
+            mimeType ||
+            'audio/webm'
+
+          const blob =
+            new Blob(
+              chunks,
+              { type: finalType },
+            )
+
+          stopRecordingTracks(stream)
+          activeRecordings.delete(
+            question.localId,
+          )
+
+          question.isRecording =
+            false
+
+          if (!blob.size) {
+            question.mediaError =
+              'La grabación quedó vacía. Intenta nuevamente.'
+            return
+          }
+
+          if (
+            blob.size >
+            MAX_QUIZ_MEDIA_SIZE
+          ) {
+            question.mediaError =
+              'La grabación supera el máximo de 50 MB.'
+            return
+          }
+
+          const extension =
+            getRecordingExtension(
+              finalType,
+            )
+
+          const file =
+            new File(
+              [blob],
+              `grabacion-pregunta-${Date.now()}.${extension}`,
+              { type: finalType },
+            )
+
+          question.mediaUploading =
+            true
+
+          try {
+            const uploaded =
+              await uploadQuizMediaFile({
+                file,
+                lessonId:
+                  lessonId.value,
+                questionKey:
+                  question.localId,
+                kind:
+                  'audio',
+              })
+
+            setQuestionMedia(
+              question,
+              uploaded,
+              'recording',
+            )
+          } catch (error) {
+            console.error(
+              'Error subiendo grabación:',
+              error,
+            )
+
+            question.mediaError =
+              error?.message ||
+              'La grabación terminó, pero no se pudo subir.'
+          } finally {
+            question.mediaUploading =
+              false
+          }
+        }
+
+      recorder.start(1000)
+
+      const timer =
+        window.setInterval(
+          () => {
+            question.recordingSeconds +=
+              1
+          },
+          1000,
+        )
+
+      activeRecordings.set(
+        question.localId,
+        {
+          recorder,
+          stream,
+          timer,
+        },
+      )
+
+      question.recordingSeconds = 0
+      question.isRecording = true
+    } catch (error) {
+      console.error(
+        'No se pudo acceder al micrófono:',
+        error,
+      )
+
+      question.mediaError =
+        error?.name ===
+          'NotAllowedError'
+          ? 'Debes permitir el acceso al micrófono para grabar.'
+          : 'No se pudo iniciar el micrófono. Revisa los permisos del navegador.'
+    }
+  }
+
+const stopQuestionRecording =
+  question => {
+    const active =
+      activeRecordings.get(
+        question.localId,
+      )
+
+    if (!active) {
+      return
+    }
+
+    window.clearInterval(
+      active.timer,
+    )
+
+    if (
+      active.recorder.state !==
+      'inactive'
+    ) {
+      active.recorder.stop()
+    }
+  }
+
+const clearQuestionMedia =
+  question => {
+    question.mediaUrl = ''
+    question.mediaUploadName = ''
+    question.mediaUploadSize = 0
+    question.mediaSource = ''
+    question.mediaError = ''
+  }
+
+const stopAllQuestionRecordings =
+  () => {
+    activeRecordings.forEach(
+      active => {
+        window.clearInterval(
+          active.timer,
+        )
+
+        try {
+          if (
+            active.recorder.state !==
+            'inactive'
+          ) {
+            active.recorder.stop()
+          }
+        } catch {
+          // Sin acción.
+        }
+
+        stopRecordingTracks(
+          active.stream,
+        )
+      },
+    )
+
+    activeRecordings.clear()
   }
 
 /* =========================================================
@@ -1624,6 +2605,70 @@ const validateQuiz =
       ) {
         validationError.value =
           `La pregunta ${index + 1} tiene un puntaje inválido.`
+
+        return false
+      }
+
+      if (
+        question.type ===
+        'matching'
+      ) {
+        const pairs =
+          (question.matchingPairs || [])
+            .filter(
+              pair =>
+                pair.left.trim() &&
+                pair.right.trim(),
+            )
+
+        if (
+          pairs.length < 2
+        ) {
+          validationError.value =
+            `La pregunta ${index + 1} necesita al menos dos parejas completas.`
+
+          return false
+        }
+      }
+
+      if (
+        question.type ===
+        'ordering'
+      ) {
+        const items =
+          (question.orderingItems || [])
+            .filter(
+              item =>
+                item.text.trim(),
+            )
+
+        if (
+          items.length < 2
+        ) {
+          validationError.value =
+            `La pregunta ${index + 1} necesita al menos dos elementos para ordenar.`
+
+          return false
+        }
+      }
+
+      if (
+        question.mediaUploading ||
+        question.isRecording
+      ) {
+        validationError.value =
+          `Espera a que termine la carga o grabación de la pregunta ${index + 1}.`
+
+        return false
+      }
+
+      if (
+        question.type ===
+        'audio_choice' &&
+        !question.mediaUrl.trim()
+      ) {
+        validationError.value =
+          `Agrega la URL del audio en la pregunta ${index + 1}.`
 
         return false
       }
@@ -1828,23 +2873,54 @@ const saveQuiz =
             question.mediaUrl,
 
           options:
-            question.options
-              .filter(
-                option =>
-                  option.text
-                    .trim(),
-              )
-              .map(
-                option => ({
-                  text:
-                    option.text
-                      .trim(),
+            question.type === 'matching'
+              ? (question.matchingPairs || [])
+                  .filter(
+                    pair =>
+                      pair.left.trim() &&
+                      pair.right.trim(),
+                  )
+                  .map(
+                    pair => ({
+                      text:
+                        `${pair.left.trim()}|||${pair.right.trim()}`,
 
-                  isCorrect:
-                    option
-                      .isCorrect,
-                }),
-              ),
+                      isCorrect:
+                        true,
+                    }),
+                  )
+              : question.type === 'ordering'
+                ? (question.orderingItems || [])
+                    .filter(
+                      item =>
+                        item.text.trim(),
+                    )
+                    .map(
+                      item => ({
+                        text:
+                          item.text.trim(),
+
+                        isCorrect:
+                          true,
+                      }),
+                    )
+                : question.options
+                    .filter(
+                      option =>
+                        option.text
+                          .trim(),
+                    )
+                    .map(
+                      option => ({
+                        text:
+                          option.text
+                            .trim(),
+
+                        isCorrect:
+                          option
+                            .isCorrect,
+                      }),
+                    ),
         })
       }
 
@@ -1993,6 +3069,10 @@ const selectAssessmentType =
  * selector de tipo.
  */
 void selectAssessmentType
+
+onBeforeUnmount(() => {
+  stopAllQuestionRecordings()
+})
 
 onMounted(() => {
   loadPage()
@@ -4097,5 +5177,389 @@ onMounted(() => {
   color: var(--muted);
 }
 
+
+
+/* =========================================================
+   QUIZ V8 · PREGUNTAS INTERACTIVAS
+========================================================= */
+.interactive-editor {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #dbe3ec;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.interactive-editor__header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.interactive-editor__header span {
+  color: #9a7200;
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.interactive-editor__header strong {
+  display: block;
+  margin-top: 5px;
+  color: #152033;
+  font-size: .85rem;
+}
+
+.interactive-editor__header p {
+  max-width: 590px;
+  margin: 5px 0 0;
+  color: #6f7c8f;
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.interactive-editor__header > button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d5a720;
+  border-radius: 10px;
+  color: #7d5c00;
+  background: #fff8e8;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.matching-builder,
+.ordering-builder {
+  display: grid;
+  gap: 8px;
+}
+
+.matching-builder__row {
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) 32px minmax(0,1fr) 38px;
+  gap: 8px;
+  align-items: center;
+}
+
+.matching-builder__number,
+.ordering-builder__row > span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 9px;
+  color: #9f1945;
+  background: #fff1f5;
+  font-size: .62rem;
+  font-weight: 900;
+}
+
+.matching-builder__row input,
+.ordering-builder__row input,
+.media-editor input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 1px solid #ccd7e3;
+  border-radius: 10px;
+  color: #152033;
+  background: #fff;
+}
+
+.matching-builder__arrow {
+  color: #9a7200;
+  text-align: center;
+  font-weight: 900;
+}
+
+.matching-builder__row > button,
+.ordering-builder__row button {
+  min-width: 34px;
+  min-height: 34px;
+  border: 1px solid #e3d7db;
+  border-radius: 9px;
+  color: #a81748;
+  background: #fff;
+  cursor: pointer;
+}
+
+.matching-builder__row > button:disabled,
+.ordering-builder__row button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.ordering-builder__row {
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.ordering-builder__row > div {
+  display: flex;
+  gap: 5px;
+}
+
+.interactive-editor__example {
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #526177;
+  background: #fff;
+  font-size: .65rem;
+}
+
+.interactive-editor__example span {
+  margin-right: 7px;
+  color: #9a7200;
+  font-size: .55rem;
+  font-weight: 900;
+}
+
+.media-editor {
+  display: grid;
+  grid-template-columns: 52px minmax(0,1fr);
+  gap: 13px;
+  padding: 16px;
+  border: 1px solid #dbe3ec;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.media-editor__icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 14px;
+  color: #9f1945;
+  background: #fff1f5;
+  font-weight: 900;
+}
+
+.media-editor strong {
+  color: #152033;
+}
+
+.media-editor p {
+  margin: 4px 0 10px;
+  color: #6f7c8f;
+  font-size: .65rem;
+}
+
+.media-editor audio {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.media-editor img {
+  display: block;
+  max-width: 260px;
+  max-height: 170px;
+  margin-top: 10px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+@media (max-width: 700px) {
+  .interactive-editor__header {
+    flex-direction: column;
+  }
+
+  .interactive-editor__header > button {
+    width: 100%;
+  }
+
+  .matching-builder__row {
+    grid-template-columns: 32px minmax(0,1fr) 34px;
+  }
+
+  .matching-builder__arrow {
+    display: none;
+  }
+
+  .matching-builder__row input:first-of-type {
+    grid-column: 2 / 3;
+  }
+
+  .matching-builder__row input:last-of-type {
+    grid-column: 2 / 3;
+  }
+
+  .matching-builder__row > button {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .media-editor {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   QUIZ V8.1 · SUBIR / GRABAR AUDIO
+========================================================= */
+
+.media-editor__url {
+  display: grid;
+  gap: 6px;
+}
+
+.media-editor__url > span {
+  color: #59687d;
+  font-size: .63rem;
+  font-weight: 850;
+}
+
+.media-editor__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.media-action {
+  display: inline-flex;
+  min-height: 43px;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.media-action input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.media-action--upload {
+  border: 1px solid #cbd6e2;
+  color: #344359;
+  background: #fff;
+}
+
+.media-action--record {
+  border: 1px solid #d8b6c3;
+  color: #9f1945;
+  background: #fff1f5;
+}
+
+.media-action--stop {
+  border: 1px solid #be4856;
+  color: #fff;
+  background: #be4856;
+}
+
+.media-action.is-disabled,
+.media-action:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.recording-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.16);
+  animation: amv-recording-pulse 1s ease-in-out infinite;
+}
+
+@keyframes amv-recording-pulse {
+  50% {
+    opacity: .35;
+    transform: scale(.82);
+  }
+}
+
+.media-editor__uploaded {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding: 11px 12px;
+  border: 1px solid #cce7da;
+  border-radius: 10px;
+  background: #f0faf5;
+}
+
+.media-editor__uploaded span,
+.media-editor__uploaded strong,
+.media-editor__uploaded small {
+  display: block;
+}
+
+.media-editor__uploaded span {
+  color: #2d8a63;
+  font-size: .53rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.media-editor__uploaded strong {
+  max-width: 500px;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #235f48;
+  font-size: .68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-editor__uploaded small {
+  margin-top: 3px;
+  color: #6c887d;
+  font-size: .57rem;
+}
+
+.media-editor__uploaded > button {
+  border: 0;
+  color: #9f1945;
+  background: transparent;
+  font-size: .64rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.media-editor__error {
+  margin: 10px 0 0 !important;
+  padding: 9px 11px;
+  border: 1px solid #f0cdd4;
+  border-radius: 9px;
+  color: #a53b4d !important;
+  background: #fff4f6;
+  font-size: .64rem !important;
+}
+
+@media (max-width: 650px) {
+  .media-editor__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .media-action {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recording-dot {
+    animation: none !important;
+  }
+}
 
 </style>

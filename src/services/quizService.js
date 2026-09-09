@@ -1270,6 +1270,9 @@ export async function createQuestionWithOptions(
       'single_choice',
       'multiple_choice',
       'true_false',
+      'audio_choice',
+      'matching',
+      'ordering',
     ])
 
   if (
@@ -1360,6 +1363,9 @@ export async function updateQuestionWithOptions(
       'single_choice',
       'multiple_choice',
       'true_false',
+      'audio_choice',
+      'matching',
+      'ordering',
     ])
 
   if (
