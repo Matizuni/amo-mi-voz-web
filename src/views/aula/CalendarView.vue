@@ -198,39 +198,167 @@ function normalizeText(value = '') {
 }
 
 function parseDateValue(value) {
-  if (!value) return null
-  if (value instanceof Date && !Number.isNaN(value.getTime())) return value
+  if (!value) {
+    return null
+  }
 
-  const raw = String(value).trim()
+  if (
+    value instanceof Date &&
+    !Number.isNaN(
+      value.getTime(),
+    )
+  ) {
+    return value
+  }
 
-  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  const raw =
+    String(value).trim()
+
+  /* =======================================================
+     1. FORMATO ISO
+
+     2026-09-12
+  ======================================================= */
+
+  const iso =
+    raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})/,
+    )
+
   if (iso) {
-    return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+    return new Date(
+      Number(iso[1]),
+      Number(iso[2]) - 1,
+      Number(iso[3]),
+    )
   }
 
-  const cl = raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/)
+
+  /* =======================================================
+     2. FORMATO CHILENO
+
+     12-09-2026
+  ======================================================= */
+
+  const cl =
+    raw.match(
+      /^(\d{1,2})-(\d{1,2})-(\d{4})/,
+    )
+
   if (cl) {
-    return new Date(Number(cl[3]), Number(cl[2]) - 1, Number(cl[1]))
+    return new Date(
+      Number(cl[3]),
+      Number(cl[2]) - 1,
+      Number(cl[1]),
+    )
   }
 
-  const spanish = raw.match(
-    /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+de\s+(\d{4})/i
+
+  /* =======================================================
+     MESES EN ESPAÑOL
+  ======================================================= */
+
+  const monthMap = {
+    enero: 0,
+    febrero: 1,
+    marzo: 2,
+    abril: 3,
+    mayo: 4,
+    junio: 5,
+    julio: 6,
+    agosto: 7,
+    septiembre: 8,
+    setiembre: 8,
+    octubre: 9,
+    noviembre: 10,
+    diciembre: 11,
+  }
+
+
+  /* =======================================================
+     3. FORMATO ESPAÑOL CON AÑO
+
+     12 de septiembre de 2026
+  ======================================================= */
+
+  const spanishWithYear =
+    raw.match(
+      /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+de\s+(\d{4})/i,
+    )
+
+  if (spanishWithYear) {
+    const month =
+      monthMap[
+        normalizeText(
+          spanishWithYear[2],
+        )
+      ]
+
+    if (
+      month !== undefined
+    ) {
+      return new Date(
+        Number(
+          spanishWithYear[3],
+        ),
+        month,
+        Number(
+          spanishWithYear[1],
+        ),
+      )
+    }
+  }
+
+
+  /* =======================================================
+     4. COMPATIBILIDAD CON CLASES ANTIGUAS
+
+     Ej:
+     12 de septiembre
+
+     Estas clases antiguas no guardaban año.
+     Para mantenerlas visibles usamos el año actual.
+  ======================================================= */
+
+  const spanishWithoutYear =
+    raw.match(
+      /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)$/i,
+    )
+
+  if (spanishWithoutYear) {
+    const month =
+      monthMap[
+        normalizeText(
+          spanishWithoutYear[2],
+        )
+      ]
+
+    if (
+      month !== undefined
+    ) {
+      return new Date(
+        new Date().getFullYear(),
+        month,
+        Number(
+          spanishWithoutYear[1],
+        ),
+      )
+    }
+  }
+
+
+  /* =======================================================
+     5. ÚLTIMO INTENTO NATIVO
+  ======================================================= */
+
+  const parsed =
+    new Date(raw)
+
+  return Number.isNaN(
+    parsed.getTime(),
   )
-
-  if (spanish) {
-    const map = {
-      enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
-      julio: 6, agosto: 7, septiembre: 8, setiembre: 8,
-      octubre: 9, noviembre: 10, diciembre: 11,
-    }
-    const month = map[normalizeText(spanish[2])]
-    if (month !== undefined) {
-      return new Date(Number(spanish[3]), month, Number(spanish[1]))
-    }
-  }
-
-  const parsed = new Date(raw)
-  return Number.isNaN(parsed.getTime()) ? null : parsed
+    ? null
+    : parsed
 }
 
 const events = computed(() => {

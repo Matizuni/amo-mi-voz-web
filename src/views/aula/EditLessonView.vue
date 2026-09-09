@@ -271,13 +271,14 @@
 
               <input
                 id="date"
-                v-model.trim="form.date"
-                type="text"
-                maxlength="80"
+                v-model="form.date"
+                type="date"
                 required
-                autocomplete="off"
-                placeholder="Ej. 12 de septiembre"
               />
+
+              <small class="date-calendar-note">
+                La clase se agregará automáticamente al calendario del aula.
+              </small>
             </div>
 
             <div class="field">
@@ -944,8 +945,7 @@
 
             <span>
               {{
-                form.date ||
-                'Fecha por definir'
+                formattedLessonDate
               }}
             </span>
 
@@ -1767,6 +1767,154 @@ const getMaterialDisplayName =
   }
 
 /* =========================================================
+   FECHAS
+========================================================= */
+
+const monthMap = {
+  enero: 0,
+  febrero: 1,
+  marzo: 2,
+  abril: 3,
+  mayo: 4,
+  junio: 5,
+  julio: 6,
+  agosto: 7,
+  septiembre: 8,
+  setiembre: 8,
+  octubre: 9,
+  noviembre: 10,
+  diciembre: 11,
+}
+
+const normalizeDateInputValue =
+  value => {
+    const raw =
+      String(
+        value ||
+        '',
+      ).trim()
+
+    if (!raw) {
+      return ''
+    }
+
+    const iso =
+      raw.match(
+        /^(\d{4})-(\d{2})-(\d{2})/,
+      )
+
+    if (iso) {
+      return `${iso[1]}-${iso[2]}-${iso[3]}`
+    }
+
+    const spanish =
+      raw
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(
+          /[\u0300-\u036f]/g,
+          '',
+        )
+        .match(
+          /^(\d{1,2})\s+de\s+([a-z]+)(?:\s+de\s+(\d{4}))?$/,
+        )
+
+    if (spanish) {
+      const day =
+        Number(spanish[1])
+
+      const month =
+        monthMap[
+          spanish[2]
+        ]
+
+      const year =
+        Number(
+          spanish[3] ||
+          new Date().getFullYear(),
+        )
+
+      if (
+        month !== undefined &&
+        Number.isFinite(day) &&
+        day >= 1 &&
+        day <= 31
+      ) {
+        return [
+          String(year)
+            .padStart(4, '0'),
+          String(month + 1)
+            .padStart(2, '0'),
+          String(day)
+            .padStart(2, '0'),
+        ].join('-')
+      }
+    }
+
+    const parsed =
+      new Date(raw)
+
+    if (
+      Number.isNaN(
+        parsed.getTime(),
+      )
+    ) {
+      return ''
+    }
+
+    return [
+      parsed.getFullYear(),
+      String(
+        parsed.getMonth() + 1,
+      ).padStart(2, '0'),
+      String(
+        parsed.getDate(),
+      ).padStart(2, '0'),
+    ].join('-')
+  }
+
+const formattedLessonDate =
+  computed(() => {
+    if (!form.date) {
+      return 'Fecha por definir'
+    }
+
+    const [
+      year,
+      month,
+      day,
+    ] =
+      form.date
+        .split('-')
+        .map(Number)
+
+    if (
+      !year ||
+      !month ||
+      !day
+    ) {
+      return form.date
+    }
+
+    const date =
+      new Date(
+        year,
+        month - 1,
+        day,
+      )
+
+    return new Intl.DateTimeFormat(
+      'es-CL',
+      {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      },
+    ).format(date)
+  })
+
+/* =========================================================
    FORM FILL
 ========================================================= */
 
@@ -1781,8 +1929,9 @@ const fillForm = data => {
     ''
 
   form.date =
-    data.date ||
-    ''
+    normalizeDateInputValue(
+      data.date,
+    )
 
   form.time =
     data.time ||

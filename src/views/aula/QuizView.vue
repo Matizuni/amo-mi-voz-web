@@ -63,220 +63,176 @@
     </section>
 
     <!-- =====================================================
-         RESULTADO
+         RESULTADO · PREMIUM LIGHT
     ====================================================== -->
     <section
       v-else-if="submissionResult"
-      class="result-screen"
+      class="result-screen result-screen--premium"
     >
-      <div
-        class="result-screen__icon"
-        :class="{
-          'result-screen__icon--pending':
+      <header class="result-hero">
+        <div
+          class="result-hero__status"
+          :class="{
+            'result-hero__status--pending':
+              submissionResult.requiresManualGrading,
+            'result-hero__status--success':
+              !submissionResult.requiresManualGrading &&
+              submissionResult.passed === true,
+            'result-hero__status--reinforce':
+              !submissionResult.requiresManualGrading &&
+              submissionResult.passed === false
+          }"
+        >
+          <span>
+            {{
+              submissionResult.requiresManualGrading
+                ? '…'
+                : submissionResult.passed === false
+                  ? '↗'
+                  : '✓'
+            }}
+          </span>
+        </div>
+
+        <span class="result-screen__eyebrow">
+          {{
             submissionResult.requiresManualGrading
-        }"
-      >
-        {{
-          submissionResult.requiresManualGrading
-            ? '…'
-            : '✓'
-        }}
-      </div>
+              ? 'EVALUACIÓN ENTREGADA'
+              : 'RESULTADO DISPONIBLE'
+          }}
+        </span>
 
-      <span class="result-screen__eyebrow">
-        EVALUACIÓN ENTREGADA
-      </span>
+        <h1>
+          {{
+            submissionResult.requiresManualGrading
+              ? 'Tu evaluación fue enviada'
+              : 'Tu evaluación fue corregida'
+          }}
+        </h1>
 
-      <h1>
-        {{
-          submissionResult.requiresManualGrading
-            ? 'Tu evaluación fue enviada'
-            : 'Tu evaluación fue corregida'
-        }}
-      </h1>
-
-      <p>
-        {{
-          submissionResult.requiresManualGrading
-            ? 'Hay respuestas que deben ser revisadas por tu profesor. Tu entrega quedó registrada correctamente.'
-            : 'Tu entrega quedó registrada correctamente.'
-        }}
-      </p>
+        <p>
+          {{
+            submissionResult.requiresManualGrading
+              ? 'Tu entrega quedó registrada correctamente. Algunas respuestas necesitan revisión del profesor.'
+              : 'Tu entrega quedó registrada correctamente. Revisa el resultado y continúa con el siguiente paso.'
+          }}
+        </p>
+      </header>
 
       <div
         v-if="
           submissionResult.score !== null &&
           submissionResult.score !== undefined
         "
-        class="result-score"
+        class="result-score result-score--premium"
       >
-        <div>
-          <small>
-            PUNTAJE
-          </small>
+        <article>
+          <span class="result-score__visual">#</span>
+          <div>
+            <small>PUNTAJE</small>
+            <strong>
+              {{ formatScore(submissionResult.score) }}
+              <em>/ {{ formatScore(submissionResult.maxScore) }}</em>
+            </strong>
+          </div>
+        </article>
 
-          <strong>
-            {{ formatScore(submissionResult.score) }}
-            /
-            {{ formatScore(submissionResult.maxScore) }}
-          </strong>
-        </div>
-
-        <div
+        <article
           v-if="
             submissionResult.percentage !== null &&
             submissionResult.percentage !== undefined
           "
         >
-          <small>
-            RESULTADO
-          </small>
+          <span class="result-score__visual">%</span>
+          <div>
+            <small>RESULTADO</small>
+            <strong>{{ Math.round(submissionResult.percentage) }}%</strong>
+          </div>
+        </article>
 
-          <strong>
-            {{ Math.round(submissionResult.percentage) }}%
-          </strong>
-        </div>
-
-        <div
+        <article
           v-if="
             submissionResult.passed !== null &&
             submissionResult.passed !== undefined
           "
         >
-          <small>
-            ESTADO
-          </small>
-
-          <strong
-            :class="{
-              'result-score__passed':
-                submissionResult.passed,
-              'result-score__failed':
-                !submissionResult.passed
-            }"
-          >
-            {{
-              submissionResult.passed
-                ? 'Aprobada'
-                : 'Por reforzar'
-            }}
-          </strong>
-        </div>
+          <span class="result-score__visual">✓</span>
+          <div>
+            <small>ESTADO</small>
+            <strong
+              :class="{
+                'result-score__passed':
+                  submissionResult.passed,
+                'result-score__failed':
+                  !submissionResult.passed
+              }"
+            >
+              {{
+                submissionResult.passed
+                  ? 'Aprobada'
+                  : 'Por reforzar'
+              }}
+            </strong>
+          </div>
+        </article>
       </div>
 
       <div
         v-else
-        class="result-notice"
+        class="result-notice result-notice--premium"
       >
-        <strong>
-          Entrega registrada
-        </strong>
-
-        <p>
-          El resultado no está configurado para mostrarse
-          inmediatamente.
-        </p>
+        <span>✓</span>
+        <div>
+          <strong>Entrega registrada</strong>
+          <p>
+            El resultado no está configurado para mostrarse
+            inmediatamente.
+          </p>
+        </div>
       </div>
 
-      <section class="result-guidance">
-        <div>
-          <small>
-            TIPO DE EVALUACIÓN
-          </small>
+      <section class="result-guidance result-guidance--premium">
+        <article>
+          <span>01</span>
+          <div>
+            <small>TIPO DE EVALUACIÓN</small>
+            <strong>
+              {{
+                quiz?.assessmentType === 'test'
+                  ? 'Prueba evaluada'
+                  : 'Quiz formativo'
+              }}
+            </strong>
+          </div>
+        </article>
 
-          <strong>
-            {{
-              quiz?.assessmentType === 'test'
-                ? 'Prueba evaluada'
-                : 'Quiz formativo'
-            }}
-          </strong>
-        </div>
+        <article>
+          <span>02</span>
+          <div>
+            <small>INTENTOS</small>
+            <strong>{{ attemptRuleLabel }}</strong>
+          </div>
+        </article>
 
-        <div>
-          <small>
-            INTENTOS
-          </small>
-
-          <strong>
-            {{ attemptRuleLabel }}
-          </strong>
-        </div>
-
-        <div>
-          <small>
-            SIGUIENTE PASO
-          </small>
-
-          <strong>
-            {{ resultNextStepLabel }}
-          </strong>
-        </div>
+        <article>
+          <span>03</span>
+          <div>
+            <small>SIGUIENTE PASO</small>
+            <strong>{{ resultNextStepLabel }}</strong>
+          </div>
+        </article>
       </section>
 
-      <div
-        v-if="
-          quiz?.assessmentType === 'quiz' &&
-          canRetakeQuiz
-        "
-        class="result-learning-box"
-      >
-        <span>
-          QUIZ FORMATIVO
-        </span>
-
-        <h2>
-          Puedes volver a intentarlo
-        </h2>
-
-        <p>
-          Los quiz están pensados para practicar,
-          detectar qué contenidos debes reforzar y
-          comparar tu progreso entre intentos.
-        </p>
-
-        <button
-          type="button"
-          class="button button--primary"
-          @click="startNewPracticeAttempt"
-        >
-          Reintentar quiz
-        </button>
-      </div>
-
-      <div
-        v-else-if="
-          quiz?.assessmentType === 'test'
-        "
-        class="result-learning-box result-learning-box--locked"
-      >
-        <span>
-          PRUEBA EVALUADA
-        </span>
-
-        <h2>
-          Intento registrado
-        </h2>
-
-        <p>
-          Las pruebas respetan el número de intentos
-          definido por el profesor. Si el límite es uno,
-          no podrás rendirla nuevamente.
-        </p>
-      </div>
-
-      <section class="result-next-step">
+      <section class="result-next-step result-next-step--premium">
         <div class="result-next-step__copy">
-          <span>
-            SIGUIENTE PASO
-          </span>
+          <span>SIGUIENTE PASO</span>
 
           <h2>
             {{
               submissionResult.requiresManualGrading
                 ? 'Espera la revisión del profesor'
                 : submissionResult.percentage >= 80
-                  ? 'Revisa tus respuestas y consolida lo aprendido'
+                  ? 'Consolida lo aprendido'
                   : 'Revisa tus errores antes de volver a practicar'
             }}
           </h2>
@@ -284,8 +240,8 @@
           <p>
             {{
               submissionResult.requiresManualGrading
-                ? 'Tu entrega quedó registrada. Cuando el profesor termine la corrección podrás revisar el resultado desde Mis evaluaciones.'
-                : 'Abre la revisión completa para ver qué respuestas estuvieron correctas, cuáles debes reforzar y la explicación disponible para cada pregunta.'
+                ? 'Cuando el profesor termine la corrección podrás revisar el resultado desde Mis evaluaciones.'
+                : 'Abre la revisión para ver tus respuestas, detectar qué conceptos reforzar y consultar las explicaciones disponibles.'
             }}
           </p>
         </div>
@@ -296,80 +252,47 @@
             :to="`/aula/evaluaciones/intento/${reviewAttemptId}`"
             class="result-action result-action--primary"
           >
-            <span class="result-action__icon">
-              ✓
-            </span>
-
+            <span class="result-action__icon">✓</span>
             <div>
-              <small>
-                APRENDER DEL RESULTADO
-              </small>
-
-              <strong>
-                Ver revisión completa
-              </strong>
+              <small>APRENDER DEL RESULTADO</small>
+              <strong>Ver revisión completa</strong>
             </div>
-
-            <b>
-              →
-            </b>
+            <b>→</b>
           </RouterLink>
 
           <RouterLink
             to="/aula/evaluaciones"
             class="result-action"
           >
-            <span class="result-action__icon">
-              %
-            </span>
-
+            <span class="result-action__icon">%</span>
             <div>
-              <small>
-                MI HISTORIAL
-              </small>
-
-              <strong>
-                Mis evaluaciones
-              </strong>
+              <small>MI HISTORIAL</small>
+              <strong>Mis evaluaciones</strong>
             </div>
-
-            <b>
-              →
-            </b>
+            <b>→</b>
           </RouterLink>
 
           <RouterLink
             :to="lessonRoute"
             class="result-action"
           >
-            <span class="result-action__icon">
-              ♪
-            </span>
-
+            <span class="result-action__icon">♪</span>
             <div>
-              <small>
-                VOLVER A ESTUDIAR
-              </small>
-
-              <strong>
-                Material de la clase
-              </strong>
+              <small>VOLVER A ESTUDIAR</small>
+              <strong>Material de la clase</strong>
             </div>
-
-            <b>
-              →
-            </b>
+            <b>→</b>
           </RouterLink>
         </div>
       </section>
 
-      <div
+      <section
         v-if="
           !submissionResult.requiresManualGrading &&
           submissionResult.percentage !== null &&
           submissionResult.percentage !== undefined
         "
-        class="result-learning-summary"
+        class="result-learning-summary result-learning-summary--premium"
         :class="{
           'result-learning-summary--excellent':
             submissionResult.percentage >= 90,
@@ -390,10 +313,8 @@
           }}
         </div>
 
-        <div>
-          <span>
-            LECTURA PEDAGÓGICA
-          </span>
+        <div class="result-learning-summary__content">
+          <span>LECTURA PEDAGÓGICA</span>
 
           <h2>
             {{
@@ -408,23 +329,74 @@
           <p>
             {{
               submissionResult.percentage >= 90
-                ? 'Tu resultado muestra un dominio muy sólido de los contenidos evaluados. Revisa igualmente las preguntas para consolidar los conceptos.'
+                ? 'Tu resultado muestra un dominio muy sólido. Revisa igualmente las preguntas para consolidar lo aprendido.'
                 : submissionResult.percentage >= 70
                   ? 'Vas por buen camino. La revisión te ayudará a detectar los conceptos que todavía necesitan práctica.'
                   : 'Antes de repetir el quiz, revisa las preguntas incorrectas y vuelve al material de la clase.'
             }}
           </p>
+
+          <div class="result-learning-summary__tips">
+            <span>Revisa tus respuestas</span>
+            <span>Vuelve al material</span>
+            <span>Inténtalo nuevamente</span>
+          </div>
+        </div>
+      </section>
+
+      <div
+        v-if="
+          quiz?.assessmentType === 'quiz' &&
+          canRetakeQuiz
+        "
+        class="result-practice-card"
+      >
+        <div>
+          <span>PRÁCTICA DISPONIBLE</span>
+          <strong>¿Quieres intentarlo nuevamente?</strong>
+          <p>
+            Repite el quiz cuando quieras comparar tu progreso.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="button button--primary"
+          @click="startNewPracticeAttempt"
+        >
+          Reintentar quiz
+        </button>
+      </div>
+
+      <div
+        v-else-if="quiz?.assessmentType === 'test'"
+        class="result-practice-card result-practice-card--locked"
+      >
+        <div>
+          <span>PRUEBA EVALUADA</span>
+          <strong>Intento registrado</strong>
+          <p>
+            Los intentos disponibles dependen de la configuración
+            definida por tu profesor.
+          </p>
         </div>
       </div>
 
-      <div class="result-screen__actions result-screen__actions--secondary">
+      <footer class="result-screen__footer">
         <RouterLink
           to="/aula/programa-formativo"
           class="button button--secondary"
         >
-          Ver programa completo
+          ← Ver programa completo
         </RouterLink>
-      </div>
+
+        <RouterLink
+          :to="lessonRoute"
+          class="button button--primary"
+        >
+          Volver a la clase →
+        </RouterLink>
+      </footer>
     </section>
 
     <!-- =====================================================
@@ -1450,28 +1422,11 @@ let hasAutoSubmitted = false
 
 const normalizeStudentQuestion =
   question => {
-    /*
-     * V9.1
-     * El contenido del estudiante puede llegar desde:
-     *
-     * - RPC seguro
-     * - consulta normalizada
-     * - relación directa de Supabase
-     *
-     * Dependiendo del origen, las alternativas pueden venir
-     * con nombres distintos.
-     */
-    const rawOptions =
-      question?.options ??
-      question?.quiz_question_options ??
-      question?.quizQuestionOptions ??
-      question?.question_options ??
-      question?.questionOptions ??
-      []
-
     const options =
-      Array.isArray(rawOptions)
-        ? rawOptions
+      Array.isArray(
+        question?.options,
+      )
+        ? question.options
         : []
 
     return {
@@ -1479,9 +1434,7 @@ const normalizeStudentQuestion =
 
       id:
         Number(
-          question?.id ??
-          question?.questionId ??
-          question?.question_id,
+          question?.id,
         ),
 
       type:
@@ -1531,52 +1484,35 @@ const normalizeStudentQuestion =
       options:
         options
           .map(
-            (option, index) => ({
+            option => ({
               ...option,
 
               id:
                 Number(
-                  option?.id ??
-                  option?.optionId ??
-                  option?.option_id,
-                ),
-
-              questionId:
-                Number(
-                  option?.questionId ??
-                  option?.question_id ??
-                  question?.id,
+                  option?.id,
                 ),
 
               text:
-                String(
-                  option?.text ??
-                  option?.optionText ??
-                  option?.option_text ??
-                  '',
-                ).trim(),
+                option?.text ??
+                option?.optionText ??
+                option?.option_text ??
+                '',
 
               position:
                 Number(
                   option?.position ??
-                  index + 1,
-                ),
-
-              isCorrect:
-                Boolean(
-                  option?.isCorrect ??
-                  option?.is_correct,
+                  0,
                 ),
             }),
           )
-          .filter(
-            option =>
-              option.text,
-          )
           .sort(
             (a, b) =>
-              Number(a.position) -
-              Number(b.position),
+              Number(
+                a.position,
+              ) -
+              Number(
+                b.position,
+              ),
           ),
     }
   }
@@ -6478,6 +6414,340 @@ textarea:focus {
   .ordering-question__controls { grid-column:1 / -1; justify-content:flex-end; }
   .ordering-question__footer { display:grid; grid-template-columns:1fr; }
   .interactive-secondary,.interactive-primary { width:100%; }
+}
+
+
+/* =========================================================
+   V9.2 · RESULTADO PREMIUM LIGHT
+   Pantalla de resultados sin bloques oscuros.
+========================================================= */
+
+.result-screen--premium {
+  width: min(1120px, 100%) !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  padding: clamp(1.25rem, 3vw, 2.35rem) !important;
+  gap: 1.15rem !important;
+  place-items: stretch !important;
+  align-content: start !important;
+  border: 1px solid #dce4ed !important;
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at 92% 5%, rgba(217,169,29,.09), transparent 29%),
+    radial-gradient(circle at 8% 0%, rgba(159,25,69,.045), transparent 24%),
+    #ffffff !important;
+  box-shadow: 0 20px 50px rgba(31,48,73,.07) !important;
+  text-align: left !important;
+}
+
+.result-hero {
+  display: grid;
+  justify-items: center;
+  gap: .65rem;
+  padding: .5rem 0 1.1rem;
+  text-align: center;
+}
+
+.result-hero__status {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  margin-bottom: .15rem;
+  border: 1px solid #d6e5dc;
+  border-radius: 50%;
+  color: #2d8a63;
+  background: #f3fbf6;
+  box-shadow: 0 8px 20px rgba(45,138,99,.08);
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+
+.result-hero__status--reinforce {
+  border-color: #f0d2d7;
+  color: #be4856;
+  background: #fff7f8;
+  box-shadow: 0 8px 20px rgba(190,72,86,.06);
+}
+
+.result-hero__status--pending {
+  border-color: #eadcae;
+  color: #987000;
+  background: #fffaf0;
+  box-shadow: 0 8px 20px rgba(217,169,29,.07);
+}
+
+.result-screen--premium .result-screen__eyebrow {
+  color: #9b7300 !important;
+  font-size: .64rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .16em !important;
+}
+
+.result-screen--premium h1 {
+  max-width: 820px !important;
+  color: #152033 !important;
+  font-size: clamp(2.15rem, 5vw, 3.75rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.045em !important;
+}
+
+.result-screen--premium > .result-hero > p {
+  max-width: 720px;
+  margin: 0;
+  color: #6f7c8f !important;
+  font-size: .9rem !important;
+  line-height: 1.65 !important;
+}
+
+.result-score--premium {
+  width: 100% !important;
+  gap: .85rem !important;
+  margin-top: 0 !important;
+}
+
+.result-score--premium > article {
+  display: flex;
+  min-height: 104px;
+  gap: .85rem;
+  align-items: center;
+  padding: 1rem 1.1rem !important;
+  border: 1px solid #dfe6ee !important;
+  border-radius: 17px !important;
+  background: linear-gradient(145deg,#fff,#f8fafc) !important;
+  box-shadow: 0 8px 22px rgba(31,48,73,.035);
+}
+
+.result-score__visual {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 13px;
+  color: #9f1945;
+  background: #fff1f5;
+  font-size: .92rem;
+  font-weight: 900;
+}
+
+.result-score--premium small {
+  margin-bottom: .3rem !important;
+  color: #7c899b !important;
+  font-size: .58rem !important;
+  letter-spacing: .08em;
+}
+
+.result-score--premium strong {
+  color: #152033 !important;
+  font-size: 1.35rem !important;
+}
+
+.result-score--premium strong em {
+  color: #7d8999;
+  font-size: .82rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.result-score--premium .result-score__passed { color: #2d8a63 !important; }
+.result-score--premium .result-score__failed { color: #be4856 !important; }
+
+.result-guidance--premium {
+  display: grid !important;
+  width: 100% !important;
+  gap: .85rem !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+}
+
+.result-guidance--premium > article {
+  display: flex;
+  min-height: 78px;
+  gap: .75rem;
+  align-items: center;
+  padding: .9rem 1rem;
+  border: 1px solid #e0e7ef;
+  border-radius: 15px;
+  background: #fbfcfe;
+}
+
+.result-guidance--premium > article > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 10px;
+  color: #987000;
+  background: #fff8e7;
+  font-size: .58rem;
+  font-weight: 900;
+}
+
+.result-guidance--premium small,
+.result-guidance--premium strong { display: block; }
+.result-guidance--premium small { color:#8692a2 !important; font-size:.55rem !important; letter-spacing:.07em; }
+.result-guidance--premium strong { margin-top:.25rem; color:#223047 !important; font-size:.8rem !important; }
+
+.result-next-step--premium {
+  width: 100% !important;
+  padding: clamp(1.1rem,2.5vw,1.45rem) !important;
+  border-color: #ecd7df !important;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(159,25,69,.055),transparent 35%),
+    #fffafb !important;
+  box-shadow: none !important;
+}
+
+.result-next-step--premium .result-next-step__copy > span { color:#9f1945 !important; }
+.result-next-step--premium .result-next-step__copy h2 { color:#152033 !important; }
+.result-next-step--premium .result-next-step__copy p { color:#67768a !important; font-size:.8rem !important; }
+
+.result-next-step--premium .result-action {
+  min-height: 90px !important;
+  border-color: #e1e7ee !important;
+  color: #152033 !important;
+  background: rgba(255,255,255,.88) !important;
+}
+.result-next-step--premium .result-action:hover {
+  border-color: #d2bcc5 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 20px rgba(31,48,73,.045) !important;
+}
+.result-next-step--premium .result-action--primary {
+  border-color: #e6b9c8 !important;
+  background: #fff2f6 !important;
+}
+.result-next-step--premium .result-action__icon {
+  border-color: #efccd7 !important;
+  color: #9f1945 !important;
+  background: #fff !important;
+}
+.result-next-step--premium .result-action small { color:#9a6979 !important; }
+.result-next-step--premium .result-action strong { color:#172033 !important; }
+.result-next-step--premium .result-action b { color:#9f1945 !important; }
+
+.result-learning-summary--premium {
+  width: 100% !important;
+  gap: 1rem !important;
+  padding: clamp(1.1rem,2.7vw,1.5rem) !important;
+  border: 1px solid #dde5ed !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 26px rgba(31,48,73,.035) !important;
+}
+
+.result-learning-summary--premium.result-learning-summary--excellent {
+  border-color: #cde3d5 !important;
+  background: linear-gradient(145deg,#fff,#f5fbf7) !important;
+}
+.result-learning-summary--premium.result-learning-summary--good {
+  border-color: #e7ddbd !important;
+  background: linear-gradient(145deg,#fff,#fffaf0) !important;
+}
+.result-learning-summary--premium.result-learning-summary--reinforce {
+  border-color: #edd3d8 !important;
+  background: linear-gradient(145deg,#fff,#fff7f8) !important;
+}
+
+.result-learning-summary--premium .result-learning-summary__icon {
+  width: 52px !important;
+  height: 52px !important;
+  border-color: #e4c6d0 !important;
+  color: #9f1945 !important;
+  background: rgba(255,255,255,.9);
+}
+.result-learning-summary--premium.result-learning-summary--excellent .result-learning-summary__icon {
+  border-color:#b9ddc7 !important; color:#2d8a63 !important; background:#fff !important;
+}
+.result-learning-summary--premium.result-learning-summary--good .result-learning-summary__icon {
+  border-color:#e6d395 !important; color:#987000 !important; background:#fff !important;
+}
+.result-learning-summary--premium.result-learning-summary--reinforce .result-learning-summary__icon {
+  border-color:#ecc3ca !important; color:#be4856 !important; background:#fff !important;
+}
+
+.result-learning-summary--premium span { color:#9f1945 !important; }
+.result-learning-summary--premium h2 { color:#152033 !important; margin-top:.3rem !important; }
+.result-learning-summary--premium p { color:#637287 !important; font-size:.8rem !important; line-height:1.65 !important; }
+
+.result-learning-summary__tips {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: .9rem;
+}
+.result-learning-summary__tips > span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 .75rem;
+  border: 1px solid #e1e7ee;
+  border-radius: 999px;
+  color: #596a80 !important;
+  background: #fff;
+  font-size: .6rem !important;
+  letter-spacing: 0 !important;
+}
+
+.result-practice-card {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.15rem;
+  border: 1px solid #dbe6df;
+  border-radius: 16px;
+  background: #f7fcf9;
+}
+.result-practice-card > div > span { color:#2d8a63; font-size:.57rem; font-weight:900; letter-spacing:.09em; }
+.result-practice-card strong { display:block; margin-top:.22rem; color:#152033; font-size:.9rem; }
+.result-practice-card p { margin:.25rem 0 0; color:#6d7b8d; font-size:.72rem; }
+.result-practice-card--locked { border-color:#e8ddbb; background:#fffaf0; }
+.result-practice-card--locked > div > span { color:#987000; }
+
+.result-screen__footer {
+  display: flex;
+  width: 100%;
+  gap: .75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: .3rem;
+}
+.result-screen__footer .button { min-height:46px; }
+
+.result-notice--premium {
+  display:flex;
+  width:100% !important;
+  gap:.8rem;
+  align-items:center;
+  text-align:left;
+  border-color:#e3e8ee !important;
+  background:#f8fafc !important;
+}
+.result-notice--premium > span {
+  display:grid; width:40px; height:40px; flex:0 0 40px; place-items:center;
+  border-radius:12px; color:#2d8a63; background:#edf8f1; font-weight:900;
+}
+.result-notice--premium p { margin:.25rem 0 0; }
+
+@media (max-width: 860px) {
+  .result-score--premium,
+  .result-guidance--premium,
+  .result-next-step--premium .result-next-step__actions {
+    grid-template-columns: 1fr !important;
+  }
+  .result-score--premium > article { min-height:82px; }
+}
+
+@media (max-width: 620px) {
+  .result-screen--premium { padding:1rem !important; border-radius:20px !important; }
+  .result-learning-summary--premium { grid-template-columns:1fr !important; }
+  .result-practice-card,
+  .result-screen__footer { align-items:stretch; flex-direction:column; }
+  .result-practice-card .button,
+  .result-screen__footer .button { width:100%; justify-content:center; }
 }
 
 </style>

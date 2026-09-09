@@ -184,14 +184,11 @@
             </label>
 
             <input
-              id="date"
-              v-model.trim="form.date"
-              type="text"
-              maxlength="80"
-              required
-              autocomplete="off"
-              placeholder="Ej. 12 de septiembre"
-            />
+  id="date"
+  v-model="form.date"
+  type="date"
+  required
+>
           </div>
 
           <div class="field">

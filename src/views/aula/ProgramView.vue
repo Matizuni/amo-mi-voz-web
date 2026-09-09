@@ -728,11 +728,11 @@
                             </span>
 
                             <span
-                              v-if="lessonItem.date"
-                              class="lesson-card__visual-date"
-                            >
-                              {{ lessonItem.date }}
-                            </span>
+  v-if="lessonItem.date"
+  class="lesson-card__visual-date"
+>
+  {{ formatLessonDate(lessonItem.date) }}
+</span>
                           </div>
 
                           <h4>
@@ -744,11 +744,12 @@
                       <div class="lesson-content lesson-content--cinematic">
                         <div class="lesson-content__top">
                           <span class="lesson-date">
-                            {{
-                              lessonItem.date ||
-                              'Fecha por definir'
-                            }}
-                          </span>
+  {{
+    formatLessonDate(
+      lessonItem.date
+    )
+  }}
+</span>
 
                           <span
                             class="lesson-status"
@@ -2215,6 +2216,161 @@ const getLessonCover = lesson =>
   lesson?.imageUrl ||
   lesson?.image_url ||
   ''
+
+const formatLessonDate =
+  value => {
+    if (!value) {
+      return 'FECHA POR DEFINIR'
+    }
+
+    const raw =
+      String(value).trim()
+
+    const monthMap = {
+      enero: 0,
+      febrero: 1,
+      marzo: 2,
+      abril: 3,
+      mayo: 4,
+      junio: 5,
+      julio: 6,
+      agosto: 7,
+      septiembre: 8,
+      setiembre: 8,
+      octubre: 9,
+      noviembre: 10,
+      diciembre: 11,
+    }
+
+    let parsed = null
+
+    /*
+     * ISO
+     * 2026-09-26
+     */
+    const iso =
+      raw.match(
+        /^(\d{4})-(\d{2})-(\d{2})/,
+      )
+
+    if (iso) {
+      parsed =
+        new Date(
+          Number(iso[1]),
+          Number(iso[2]) - 1,
+          Number(iso[3]),
+        )
+    }
+
+    /*
+     * Chileno
+     * 26-09-2026
+     */
+    if (!parsed) {
+      const cl =
+        raw.match(
+          /^(\d{1,2})-(\d{1,2})-(\d{4})/,
+        )
+
+      if (cl) {
+        parsed =
+          new Date(
+            Number(cl[3]),
+            Number(cl[2]) - 1,
+            Number(cl[1]),
+          )
+      }
+    }
+
+    /*
+     * Español con año
+     * 26 de septiembre de 2026
+     */
+    if (!parsed) {
+      const spanishWithYear =
+        raw.match(
+          /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+de\s+(\d{4})$/i,
+        )
+
+      if (spanishWithYear) {
+        const month =
+          monthMap[
+            spanishWithYear[2]
+              .toLowerCase()
+          ]
+
+        if (
+          month !== undefined
+        ) {
+          parsed =
+            new Date(
+              Number(
+                spanishWithYear[3],
+              ),
+              month,
+              Number(
+                spanishWithYear[1],
+              ),
+            )
+        }
+      }
+    }
+
+    /*
+     * Español antiguo sin año
+     * 26 de septiembre
+     *
+     * Para las clases antiguas
+     * asumimos el año actual.
+     */
+    if (!parsed) {
+      const spanishWithoutYear =
+        raw.match(
+          /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)$/i,
+        )
+
+      if (spanishWithoutYear) {
+        const month =
+          monthMap[
+            spanishWithoutYear[2]
+              .toLowerCase()
+          ]
+
+        if (
+          month !== undefined
+        ) {
+          parsed =
+            new Date(
+              new Date().getFullYear(),
+              month,
+              Number(
+                spanishWithoutYear[1],
+              ),
+            )
+        }
+      }
+    }
+
+    if (
+      !parsed ||
+      Number.isNaN(
+        parsed.getTime(),
+      )
+    ) {
+      return raw.toUpperCase()
+    }
+
+    return new Intl.DateTimeFormat(
+      'es-CL',
+      {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      },
+    )
+      .format(parsed)
+      .toUpperCase()
+}
 
 const getUnitCover = unit => {
   const direct =
@@ -6341,6 +6497,113 @@ onUnmounted(() => {
   .unit-admin button {
     flex: 1 1 auto;
   }
+}
+
+/* =========================================================
+   V8.3 · CONTRASTE DE PORTADAS DE CLASE
+========================================================= */
+
+.lesson-card__visual {
+  position: relative;
+}
+
+.lesson-card__visual-overlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8, 14, 30, 0.94) 0%,
+      rgba(8, 14, 30, 0.78) 42%,
+      rgba(8, 14, 30, 0.38) 74%,
+      rgba(8, 14, 30, 0.12) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(8, 14, 30, 0.42),
+      rgba(8, 14, 30, 0.04) 70%
+    );
+}
+
+.lesson-card__visual-copy {
+  position: relative;
+  z-index: 3;
+}
+
+.lesson-card__visual-copy h4 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+
+  font-weight: 900;
+
+  text-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.85),
+    0 5px 18px rgba(0, 0, 0, 0.72),
+    0 0 28px rgba(0, 0, 0, 0.28);
+}
+
+.lesson-card__visual-date {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.94
+    ) !important;
+
+  text-shadow:
+    0 2px 8px
+      rgba(
+        0,
+        0,
+        0,
+        0.75
+      );
+}
+
+.lesson-card__visual-badge {
+  color:
+    #ffffff !important;
+}
+
+.lesson-card__visual img {
+  filter:
+    brightness(0.88)
+    saturate(0.92);
+}
+
+/* =========================================================
+   V8.4 · CONTRASTE DE UNIDAD CON PORTADA
+   FIX SIN ALTERAR LAYOUT
+========================================================= */
+
+.unit-header--covered .unit-title h3 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 900;
+
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.85),
+    0 6px 20px rgba(0, 0, 0, 0.58);
+}
+
+.unit-header--covered .unit-title p {
+  color: rgba(255, 255, 255, 0.88) !important;
+
+  text-shadow:
+    0 1px 7px rgba(0, 0, 0, 0.6);
+}
+
+.unit-header--covered .unit-number {
+  color: #ffffff !important;
+}
+
+.unit-header--covered .collapse-button {
+  color: #ffffff !important;
+}
+
+.unit-header--covered
+.unit-title__eyebrow
+> span:first-child {
+  color: #ffffff !important;
 }
 
 </style>

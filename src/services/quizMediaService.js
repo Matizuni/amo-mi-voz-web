@@ -6,15 +6,89 @@ const BUCKET =
 const MAX_FILE_SIZE =
   50 * 1024 * 1024
 
+const ALLOWED_KINDS =
+  new Set([
+    'audio',
+    'image',
+  ])
+
 const sanitizeFileName =
   value =>
-    String(value || 'archivo')
+    String(
+      value ||
+      'archivo',
+    )
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9._-]+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '') ||
+      .replace(
+        /[\u0300-\u036f]/g,
+        '',
+      )
+      .replace(
+        /[^a-zA-Z0-9._-]+/g,
+        '-',
+      )
+      .replace(
+        /-+/g,
+        '-',
+      )
+      .replace(
+        /^-|-$/g,
+        '',
+      ) ||
     'archivo'
+
+const getSafeKind =
+  kind => {
+    return ALLOWED_KINDS.has(
+      kind,
+    )
+      ? kind
+      : 'audio'
+  }
+
+const validateMimeType = (
+  file,
+  kind,
+) => {
+  const mimeType =
+    String(
+      file?.type ||
+      '',
+    ).toLowerCase()
+
+  /*
+   * Algunos navegadores pueden entregar
+   * un Blob sin MIME type.
+   *
+   * En ese caso dejamos continuar y
+   * Supabase intentará almacenar el archivo.
+   */
+  if (!mimeType) {
+    return
+  }
+
+  if (
+    kind === 'audio' &&
+    !mimeType.startsWith(
+      'audio/',
+    )
+  ) {
+    throw new Error(
+      'Selecciona un archivo de audio válido.',
+    )
+  }
+
+  if (
+    kind === 'image' &&
+    !mimeType.startsWith(
+      'image/',
+    )
+  ) {
+    throw new Error(
+      'Selecciona una imagen válida.',
+    )
+  }
+}
 
 export async function uploadQuizMediaFile({
   file,
@@ -22,14 +96,24 @@ export async function uploadQuizMediaFile({
   questionKey,
   kind = 'audio',
 }) {
+  /*
+   * File hereda de Blob.
+   * También aceptamos Blob porque
+   * MediaRecorder genera blobs.
+   */
   if (!(file instanceof Blob)) {
     throw new Error(
       'No se recibió un archivo válido.',
     )
   }
 
+  /*
+   * Máximo 50 MB.
+   */
   if (
-    Number(file.size) >
+    Number(
+      file.size,
+    ) >
     MAX_FILE_SIZE
   ) {
     throw new Error(
@@ -37,11 +121,31 @@ export async function uploadQuizMediaFile({
     )
   }
 
+  /*
+   * Evitamos subir archivos vacíos.
+   */
+  if (
+    !Number(
+      file.size,
+    )
+  ) {
+    throw new Error(
+      'El archivo está vacío.',
+    )
+  }
+
+  /*
+   * Validar clase.
+   */
   const parsedLessonId =
-    Number(lessonId)
+    Number(
+      lessonId,
+    )
 
   if (
-    !Number.isFinite(parsedLessonId) ||
+    !Number.isFinite(
+      parsedLessonId,
+    ) ||
     parsedLessonId <= 0
   ) {
     throw new Error(
@@ -49,32 +153,85 @@ export async function uploadQuizMediaFile({
     )
   }
 
-  const fileName =
-    sanitizeFileName(
-      file.name ||
-      `recurso-${kind}`,
+  /*
+   * Tipo permitido.
+   */
+  const safeKind =
+    getSafeKind(
+      kind,
     )
 
+  /*
+   * Validación básica MIME.
+   */
+  validateMimeType(
+    file,
+    safeKind,
+  )
+
+  /*
+   * Nombre del archivo.
+   *
+   * File normalmente tiene .name.
+   * Blob de grabación puede no tenerlo.
+   */
+  const originalFileName =
+    file.name ||
+    `recurso-${safeKind}`
+
+  const fileName =
+    sanitizeFileName(
+      originalFileName,
+    )
+
+  /*
+   * Identificador local de la pregunta.
+   */
   const safeQuestionKey =
     sanitizeFileName(
       questionKey ||
       'pregunta',
     )
 
+  /*
+   * Organización del Storage:
+   *
+   * evaluaciones/
+   *   clase-12/
+   *     preguntas/
+   *       question-xxx/
+   *         timestamp-audio.webm
+   */
   const path =
-    `clase-${parsedLessonId}/evaluaciones/${safeQuestionKey}/${Date.now()}-${fileName}`
+    [
+      'evaluaciones',
+      `clase-${parsedLessonId}`,
+      'preguntas',
+      safeQuestionKey,
+      `${Date.now()}-${fileName}`,
+    ].join('/')
 
+  /*
+   * Subir archivo.
+   */
   const {
+    data: uploadData,
     error: uploadError,
   } =
     await supabase.storage
-      .from(BUCKET)
+      .from(
+        BUCKET,
+      )
       .upload(
         path,
         file,
         {
-          cacheControl: '3600',
-          upsert: false,
+          cacheControl:
+            '3600',
+
+          upsert:
+            false,
+
           contentType:
             file.type ||
             undefined,
@@ -82,19 +239,48 @@ export async function uploadQuizMediaFile({
       )
 
   if (uploadError) {
+    console.error(
+      'Error subiendo multimedia del quiz:',
+      uploadError,
+    )
+
     throw new Error(
       uploadError?.message ||
       'No se pudo subir el recurso multimedia.',
     )
   }
 
-  const { data } =
+  /*
+   * La ruta que devuelve Supabase
+   * normalmente coincide con path,
+   * pero usamos el dato retornado
+   * si está disponible.
+   */
+  const storedPath =
+    uploadData?.path ||
+    path
+
+  /*
+   * Obtener URL pública.
+   *
+   * Este sistema supone que
+   * aula-materiales es un bucket público.
+   */
+  const {
+    data: publicUrlData,
+  } =
     supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(path)
+      .from(
+        BUCKET,
+      )
+      .getPublicUrl(
+        storedPath,
+      )
 
   const url =
-    data?.publicUrl || ''
+    publicUrlData
+      ?.publicUrl ||
+    ''
 
   if (!url) {
     throw new Error(
@@ -104,14 +290,25 @@ export async function uploadQuizMediaFile({
 
   return {
     url,
-    storagePath: path,
+
+    storagePath:
+      storedPath,
+
     fileName:
       file.name ||
       fileName,
+
     fileSize:
-      Number(file.size || 0),
+      Number(
+        file.size ||
+        0,
+      ),
+
     mimeType:
-      file.type || '',
-    kind,
+      file.type ||
+      '',
+
+    kind:
+      safeKind,
   }
 }

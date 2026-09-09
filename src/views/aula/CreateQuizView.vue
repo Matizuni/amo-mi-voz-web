@@ -1779,10 +1779,10 @@ const handleQuestionTypeChange =
       }
 
       /*
-       * La respuesta se guarda estructurada en text_answer.
-       * La corrección queda manual hasta instalar el RPC v8.
+       * La respuesta se guarda estructurada en text_answer
+       * y PostgreSQL la autocorrige al entregar.
        */
-      question.autoGradable = false
+      question.autoGradable = true
       return
     }
 
@@ -1800,7 +1800,7 @@ const handleQuestionTypeChange =
           createOrderingItems()
       }
 
-      question.autoGradable = false
+      question.autoGradable = true
       return
     }
 
@@ -2668,7 +2668,7 @@ const validateQuiz =
         !question.mediaUrl.trim()
       ) {
         validationError.value =
-          `Agrega la URL del audio en la pregunta ${index + 1}.`
+          `Agrega, sube o graba un audio en la pregunta ${index + 1}.`
 
         return false
       }
