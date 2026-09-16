@@ -2,11 +2,7 @@
 
   <section class="my-tasks">
 
-    *<!-- =====================================================
-
-         HERO
-
-    ====================================================== -->*
+    
 
     <header class="tasks-hero">
 
@@ -44,11 +40,7 @@
 
     </header>
 
-    *<!-- =====================================================
-
-         ESTADOS DE CARGA
-
-    ====================================================== -->*
+    
 
     <section
 
@@ -90,11 +82,7 @@
 
     <template v-else>
 
-      *<!-- =====================================================
-
-           RESUMEN
-
-      ====================================================== -->*
+      
 
       <section class="tasks-summary" aria-label="Resumen de tareas" v-show="isTasksTab('resumen')">
 
@@ -164,29 +152,42 @@
 
       </section>
 
-      *<!-- =====================================================*
-
-*           NAVEGACIÓN CONTEXTUAL · V10*
-
-*      ====================================================== -->*
+      
 
       <section v-show="isTasksTab('resumen')" class="tasks-priority" :class="{ 'is-clear': !nextPendingTask }">
+
         <div class="tasks-priority__icon">{{ nextPendingTask ? '!' : '✓' }}</div>
+
         <div class="tasks-priority__copy">
+
           <span>{{ nextPendingTask ? 'PRÓXIMA TAREA PENDIENTE' : 'AGENDA DE TAREAS' }}</span>
+
           <strong>{{ nextPendingTask ? nextPendingTask.assignment.title : 'No tienes entregas pendientes' }}</strong>
+
           <p v-if="nextPendingTask">
+
             {{ nextPendingTask.assignment.dueDate
+
               ? `Fecha límite: ${formatDate(nextPendingTask.assignment.dueDate)}`
+
               : 'Esta actividad no tiene fecha límite definida.' }}
+
           </p>
+
           <p v-else>Todo lo publicado hasta ahora está entregado o revisado.</p>
+
         </div>
+
         <RouterLink
+
           v-if="nextPendingTask"
+
           :to="`/aula/clase/${nextPendingTask.assignment.lessonId}/tarea/${nextPendingTask.assignment.id}`"
+
           class="tasks-priority__action"
+
         >Continuar tarea →</RouterLink>
+
       </section>
 
       <nav
@@ -373,21 +374,19 @@
 
 
 
-      *<!-- =====================================================
 
-           FILTROS
 
-      ====================================================== -->*
+      
 
 
 
 
 
-      *<!-- =====================================================
 
-           LISTADO
 
-      ====================================================== -->*
+
+
+      
 
       <section class="tasks-section" v-show="!isTasksTab('resumen')">
 
@@ -400,6 +399,7 @@
             <div>
 
               <small>{{ activeTaskPanelMeta.eyebrow }}</small>
+
               <h2>{{ activeTaskPanelMeta.title }}</h2>
 
             </div>
@@ -778,6 +778,8 @@ const setTasksTab = tab => {
 
 
 
+
+
 const loadPage = async () => {
 
   isLoading.value = true
@@ -941,17 +943,27 @@ const reviewedCount = computed(() =>
 )
 
 const nextPendingTask = computed(() => {
+
   const pending = taskItems.value.filter(item => item.status === 'pending')
 
   return [...pending].sort((a, b) => {
+
     const dateA = a.assignment.dueDate
+
       ? new Date(`${a.assignment.dueDate}T12:00:00`).getTime()
+
       : Number.POSITIVE_INFINITY
+
     const dateB = b.assignment.dueDate
+
       ? new Date(`${b.assignment.dueDate}T12:00:00`).getTime()
+
       : Number.POSITIVE_INFINITY
+
     return dateA - dateB
+
   })[0] || null
+
 })
 
 const filteredTasks = computed(() => {
@@ -973,13 +985,21 @@ const filteredTasks = computed(() => {
 })
 
 const activeTaskPanelMeta = computed(() => {
+
   const metaByTab = {
+
     pendientes: { eyebrow: 'POR HACER', title: 'Tareas pendientes', description: 'Actividades que todavía requieren una entrega.' },
+
     entregadas: { eyebrow: 'EN REVISIÓN', title: 'Tareas entregadas', description: 'Entregas registradas que están esperando revisión.' },
+
     revisadas: { eyebrow: 'RETROALIMENTACIÓN', title: 'Tareas revisadas', description: 'Actividades con evaluación o retroalimentación disponible.' },
+
     todas: { eyebrow: 'ACTIVIDADES', title: 'Todas las tareas', description: 'Consulta el historial completo de actividades publicadas.' }
+
   }
+
   return metaByTab[activeTasksTab.value] || metaByTab.todas
+
 })
 
 const getStatusLabel = status => {
@@ -2528,33 +2548,33 @@ onMounted(() => {
 
 }
 
-.my-tasks :where(.card, [class\\*="-card"], [class\\*="__card"]) {
+.my-tasks :where(.card, [class*="-card"], [class*="__card"]) {
 
   transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
 
 }
 
-.my-tasks :where(.card, [class\\*="-card"], [class\\*="__card"]):hover {
+.my-tasks :where(.card, [class*="-card"], [class*="__card"]):hover {
 
   border-color: rgba(159, 25, 69, .16);
 
 }
 
 @media (prefers-reduced-motion: reduce) {
-
-  .my-tasks \\*, .my-tasks \\*::before, .my-tasks \\*::after {
-
+  .my-tasks,
+  .my-tasks *,
+  .my-tasks *::before,
+  .my-tasks *::after {
     scroll-behavior: auto !important;
-
-    animation-duration: .01ms !important;
-
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-
-    transition-duration: .01ms !important;
-
+    transition-duration: 0.01ms !important;
   }
-
 }
+
+
+
+
 
 .my-tasks {
 
@@ -2568,9 +2588,9 @@ onMounted(() => {
 
   [class$="__card"],
 
-  [class\\*="-card"],
+  [class*="-card"],
 
-  [class\\*="_card"]
+  [class*="_card"]
 
 ) {
 
@@ -2594,9 +2614,9 @@ onMounted(() => {
 
     [class$="__card"],
 
-    [class\\*="-card"],
+    [class*="-card"],
 
-    [class\\*="_card"]
+    [class*="_card"]
 
   ):hover {
 
@@ -2612,9 +2632,9 @@ onMounted(() => {
 
     .btn,
 
-    a[class\\*="button"],
+    a[class*="button"],
 
-    a[class\\*="cta"]
+    a[class*="cta"]
 
   ):not(:disabled):hover {
 
@@ -2632,13 +2652,13 @@ onMounted(() => {
 
   .my-tasks :where(
 
-    [class\\*="cover"],
+    [class*="cover"],
 
-    [class\\*="hero"],
+    [class*="hero"],
 
-    [class\\*="visual"],
+    [class*="visual"],
 
-    [class\\*="gallery"]
+    [class*="gallery"]
 
   ):hover img {
 
@@ -2656,9 +2676,9 @@ onMounted(() => {
 
   .btn,
 
-  a[class\\*="button"],
+  a[class*="button"],
 
-  a[class\\*="cta"]
+  a[class*="cta"]
 
 ) {
 
@@ -2674,9 +2694,9 @@ onMounted(() => {
 
 .my-tasks :where(
 
-  [class\\*="progress"] > \\*,
+  [class*="progress"] > *,
 
-  [class\\*="bar"] > \\*,
+  [class*="bar"] > *,
 
   progress
 
@@ -2715,25 +2735,15 @@ onMounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .my-tasks,
-
-  .my-tasks \\*,
-
-  .my-tasks \\*::before,
-
-  .my-tasks \\*::after {
-
-    animation-duration: .01ms !important;
-
-    animation-iteration-count: 1 !important;
-
-    transition-duration: .01ms !important;
-
+  .my-tasks *,
+  .my-tasks *::before,
+  .my-tasks *::after {
     scroll-behavior: auto !important;
-
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-
 }
 
 .tasks-context-nav {
@@ -2974,41 +2984,78 @@ onMounted(() => {
 
 
 
-/* AMV · MY TASKS v11.0 · AGENDA DE ENTREGAS PRO */
+
+
+*/* AMV · MY TASKS v11.0 · AGENDA DE ENTREGAS PRO */*
+
 .tasks-hero{
+
   min-height:210px;padding:34px 36px!important;border-radius:26px!important;
+
   background:radial-gradient(circle at 91% 7%,rgba(217,169,29,.16),transparent 27%),
+
   radial-gradient(circle at 76% 120%,rgba(159,25,69,.08),transparent 34%),
+
   linear-gradient(135deg,#fff 0%,#fbfcfe 66%,#fff9eb 100%)!important;
+
   box-shadow:0 18px 46px rgba(23,32,51,.065)!important
+
 }
+
 .tasks-hero h1{font-size:clamp(3rem,5.6vw,4.8rem)!important;font-weight:950}
+
 .tasks-hero__status{border-color:rgba(159,25,69,.13)!important;background:rgba(255,255,255,.88)!important;box-shadow:0 12px 28px rgba(23,32,51,.055)}
+
 .tasks-context-nav{top:14px!important;margin-bottom:22px!important;border-radius:18px!important}
+
 .tasks-summary{gap:12px!important;margin-bottom:12px!important}
+
 .summary-card{min-height:120px!important;border-radius:18px!important}
+
 .tasks-priority{
+
   display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:15px;align-items:center;
+
   margin:0 0 18px;padding:17px 18px;border:1px solid #ead9de;border-radius:17px;
+
   background:radial-gradient(circle at 100% 0,rgba(217,169,29,.10),transparent 34%),linear-gradient(145deg,#fff,#fff8fa);
+
   box-shadow:0 8px 24px rgba(31,48,73,.035)
+
 }
+
 .tasks-priority.is-clear{border-color:#cee2d7;background:linear-gradient(145deg,#fff,#f4faf7)}
+
 .tasks-priority__icon{display:grid;width:42px;height:42px;place-items:center;border-radius:12px;color:#fff;background:var(--wine);font-size:.72rem;font-weight:950;box-shadow:0 8px 18px rgba(159,25,69,.16)}
+
 .tasks-priority.is-clear .tasks-priority__icon{background:var(--green)}
+
 .tasks-priority__copy{min-width:0}
+
 .tasks-priority__copy span{display:block;color:var(--wine);font-size:.49rem;font-weight:950;letter-spacing:.11em}
+
 .tasks-priority.is-clear .tasks-priority__copy span{color:var(--green)}
+
 .tasks-priority__copy strong{display:block;overflow:hidden;margin-top:4px;color:var(--ink);font-size:.82rem;text-overflow:ellipsis;white-space:nowrap}
+
 .tasks-priority__copy p{margin:4px 0 0;color:var(--muted);font-size:.61rem}
+
 .tasks-priority__action{padding:10px 13px;border:1px solid rgba(159,25,69,.20);border-radius:10px;color:var(--wine);background:#fff;font-size:.62rem;font-weight:900;text-decoration:none;white-space:nowrap}
+
 .tasks-priority__action:hover{color:#fff;background:var(--wine)}
+
 .tasks-overview,.task-card{box-shadow:0 12px 34px rgba(31,48,73,.045)!important}
+
 @media(max-width:720px){
+
   .tasks-priority{grid-template-columns:auto minmax(0,1fr)}
+
   .tasks-priority__action{grid-column:1/-1;text-align:center}
+
   .tasks-context-nav{display:flex!important;overflow-x:auto;justify-content:flex-start!important;scrollbar-width:thin}
+
   .tasks-context-nav button{min-width:150px;flex:0 0 auto}
+
 }
 
 </style>
