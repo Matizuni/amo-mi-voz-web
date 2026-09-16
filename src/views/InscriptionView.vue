@@ -1,5183 +1,1568 @@
 <template>
-
   <main class="inscription-page">
-    <a class="amv-skip-link" href="#amv-main-content">
-      Ir al contenido principal
+    <a class="skip-link" href="#formulario-inscripcion">
+      Ir directamente al formulario
     </a>
 
-    <!-- =====================================================*
-        HERO
-*    ====================================================== -->
+    <section class="hero">
+      <div class="hero__glow"></div>
 
-    <section id="amv-main-content" class="hero">
-
-      <div class="hero__grid"></div>
-
-      <div class="hero__glow hero__glow--right"></div>
-
-      <div class="hero__glow hero__glow--left"></div>
-
-      <div class="container hero__container">
-
-        <div class="hero__content">
-
-          <div class="hero__eyebrow">
-
-            <span class="hero__eyebrow-dot"></span>
-
-            INSCRIPCIONES · AMO MI VOZ
-
-          </div>
+      <div class="container hero__layout">
+        <div class="hero__copy">
+          <span class="eyebrow">INSCRIPCIONES · AMO MI VOZ</span>
 
           <h1>
-
-            Tu voz puede ser
-
-            <span>el comienzo de algo grande.</span>
-
+            Inscribirte es
+            <span>muy sencillo.</span>
           </h1>
 
-          <p class="hero__lead">
-
-            Formación artística y vocal pensada para acompañarte
-
-            desde tu propio punto de partida. No necesitas experiencia
-
-            previa: queremos conocer tu voz, tus intereses y tus metas.
-
+          <p>
+            Completa tus datos de contacto. No necesitas experiencia
+            musical previa y el formulario toma solo unos minutos.
           </p>
 
-          <div class="journey">
-
-            <article class="journey__item">
-
-              <span>01</span>
-
-              <div>
-
-                <strong>Te conocemos</strong>
-
-                <p>
-
-                  Nos cuentas sobre tu experiencia,
-
-                  intereses y objetivos.
-
-                </p>
-
-              </div>
-
-            </article>
-
-            <article class="journey__item">
-
-              <span>02</span>
-
-              <div>
-
-                <strong>Orientamos tu proceso</strong>
-
-                <p>
-
-                  Revisamos tu solicitud y definimos
-
-                  el mejor punto de partida.
-
-                </p>
-
-              </div>
-
-            </article>
-
-            <article class="journey__item">
-
-              <span>03</span>
-
-              <div>
-
-                <strong>Comenzamos a trabajar</strong>
-
-                <p>
-
-                  Técnica vocal, música, repertorio
-
-                  y experiencia escénica.
-
-                </p>
-
-              </div>
-
-            </article>
-
-          </div>
-
+          <a class="hero__cta" href="#formulario-inscripcion">
+            Inscribirme ahora
+            <span aria-hidden="true">↓</span>
+          </a>
         </div>
 
-        <!-- =================================================*
-            TARJETA DE HORARIO
-*        ================================================== -->
-
-        <aside class="schedule-card">
-
-          <div class="schedule-card__status">
-
-            <span></span>
-
-            FORMACIÓN PRESENCIAL
-
-          </div>
-
-          <div class="schedule-card__brand">
-
-            <div class="schedule-card__monogram">
-
-              AMV
-
-            </div>
-
-            <div>
-
-              <small>ACADEMIA DE TALENTOS</small>
-
-              <strong>Amo Mi Voz</strong>
-
-            </div>
-
-          </div>
-
-          <div class="schedule-card__divider"></div>
-
-          <div class="schedule-card__main">
-
-            <small>CLASES REGULARES</small>
-
-            <strong>Sábados</strong>
-
-            <span>
-
-              16:00 — 18:00 hrs
-
-            </span>
-
-          </div>
-
-          <div class="schedule-card__location">
-
-            <div class="schedule-card__location-icon">
-
-              ◆
-
-            </div>
-
-            <div>
-
-              <small>SEDE</small>
-
-              <strong>
-
-                Pueblito Artesanal La Calera
-
-              </strong>
-
-              <span>
-
-                Calle Iriarte 96, La Calera
-
-              </span>
-
-            </div>
-
-          </div>
-
-          <a
-
-            class="schedule-card__map"
-
-            href="https://www.google.com/maps/search/?api=1&query=Pueblito+Artesanal+La+Calera+Calle+Iriarte+96"
-
-            target="_blank"
-
-            rel="noopener noreferrer"
-
-          >
-
-            <span>Ver ubicación</span>
-
-            <span>↗</span>
-
-          </a>
-
-          <div class="schedule-card__footer">
-
-            <span>♪</span>
-
-            <p>
-
-              Canto, teoría musical, interpretación,
-
-              repertorio y experiencia de escenario.
-
-            </p>
-
-          </div>
-
+        <aside class="hero__schedule" aria-label="Información de las clases">
+          <span class="hero__schedule-label">CLASES PRESENCIALES</span>
+          <strong>Sábados</strong>
+          <p>16:00 a 18:00 hrs</p>
+          <div></div>
+          <small>Pueblito Artesanal La Calera</small>
+          <small>Calle Iriarte 96, La Calera</small>
         </aside>
-
       </div>
-
     </section>
-    <nav class="public-jump-nav" aria-label="Explorar esta página">
-      <span>EXPLORAR</span>
-        <a href="#solicitud-inscripcion">Solicitud</a>
-      <RouterLink to="/inscripcion">Inscribirme →</RouterLink>
-    </nav>
 
-
-    <!-- =====================================================*
-        CONTENIDO
-*    ====================================================== -->
-
-    <section id="solicitud-inscripcion" class="content-section">
-
-      <div class="container content-layout">
-
-        <!-- =================================================*
-            COLUMNA INFORMATIVA
-*        ================================================== -->
-
-        <aside class="form-sidebar">
-
-          <span class="section-eyebrow">
-
-            SOLICITUD DE INSCRIPCIÓN
-
-          </span>
-
-          <h2>
-
-            Queremos saber
-
-            <span>un poco sobre ti.</span>
-
-          </h2>
-
-          <p class="form-sidebar__lead">
-
-            Esta solicitud nos permite conocerte antes
-
-            de iniciar el proceso. Completarla no requiere
-
-            experiencia musical previa.
-
+    <section
+      id="formulario-inscripcion"
+      class="form-area"
+    >
+      <div class="container form-layout">
+        <div class="form-intro">
+          <span class="section-label">INSCRIPCIÓN</span>
+          <h2>Queremos conocerte.</h2>
+          <p>
+            Solo necesitamos tus datos básicos. Después de recibirlos,
+            la academia se pondrá en contacto contigo.
           </p>
 
-          <div class="notice-card">
-
-            <div class="notice-card__icon">
-
-              ♪
-
-            </div>
-
+          <div class="help-card">
+            <span class="help-card__icon" aria-hidden="true">✓</span>
             <div>
-
-              <strong>
-
-                No necesitas experiencia previa
-
-              </strong>
-
+              <strong>No necesitas experiencia previa</strong>
               <p>
-
-                Trabajamos desde las características,
-
-                necesidades y nivel de cada estudiante.
-
+                Te orientaremos personalmente para encontrar el mejor
+                punto de partida para tu voz.
               </p>
-
             </div>
-
           </div>
 
-          <div class="academy-details">
-
-            <div>
-
-              <small>MODALIDAD</small>
-
-              <strong>Presencial</strong>
-
-            </div>
-
-            <div>
-
-              <small>DÍA</small>
-
-              <strong>Sábados</strong>
-
-            </div>
-
-            <div>
-
-              <small>HORARIO</small>
-
-              <strong>16:00–18:00</strong>
-
-            </div>
-
-            <div>
-
-              <small>SEDE</small>
-
-              <strong>Pueblito Artesanal</strong>
-
-            </div>
-
+          <div class="contact-note">
+            <strong>¿Necesitas ayuda para inscribirte?</strong>
+            <p>
+              No te preocupes. Puedes pedir ayuda a la academia y
+              completaremos el proceso contigo.
+            </p>
           </div>
-
-          <div class="sidebar-process">
-
-            <small>DESPUÉS DE ENVIAR</small>
-
-            <div class="sidebar-process__step">
-
-              <span>1</span>
-
-              <p>Recibimos tu solicitud.</p>
-
-            </div>
-
-            <div class="sidebar-process__step">
-
-              <span>2</span>
-
-              <p>La academia revisa tus antecedentes.</p>
-
-            </div>
-
-            <div class="sidebar-process__step">
-
-              <span>3</span>
-
-              <p>Nos ponemos en contacto contigo.</p>
-
-            </div>
-
-            <div class="sidebar-process__step">
-
-              <span>4</span>
-
-              <p>
-
-                Una vez aprobada, realizamos tu matrícula.
-
-              </p>
-
-            </div>
-
-          </div>
-
-        </aside>
-
-        <!-- =================================================*
-            ÉXITO FINAL
-*        ================================================== -->
+        </div>
 
         <Transition name="success">
-
           <section
-
             v-if="submissionCompleted"
-
             class="success-card"
-
             aria-live="polite"
-
           >
-
-            <div class="success-card__icon">
-
-              ✓
-
-            </div>
-
-            <span class="section-eyebrow">
-
-              SOLICITUD RECIBIDA
-
-            </span>
-
-            <h2>
-
-              Gracias por querer ser parte de
-
-              <span>Amo Mi Voz.</span>
-
-            </h2>
-
+            <div class="success-card__check">✓</div>
+            <span class="section-label">INSCRIPCIÓN RECIBIDA</span>
+            <h2>¡Gracias por inscribirte!</h2>
             <p>
-
-              Tu solicitud fue enviada correctamente.
-
-              Revisaremos tus antecedentes y nos pondremos
-
-              en contacto utilizando los datos que registraste.
-
+              Recibimos correctamente tus datos. Nos pondremos en
+              contacto contigo para continuar con tu inscripción.
             </p>
 
-            <div class="success-card__timeline">
-
+            <div class="success-card__steps">
               <div>
-
                 <span>✓</span>
-
-                <div>
-
-                  <strong>Solicitud enviada</strong>
-
-                  <small>Completado</small>
-
-                </div>
-
+                <p><strong>Datos enviados</strong><small>Completado</small></p>
               </div>
-
               <div>
-
                 <span>2</span>
-
-                <div>
-
-                  <strong>Revisión de antecedentes</strong>
-
-                  <small>Siguiente etapa</small>
-
-                </div>
-
+                <p><strong>Contacto de la academia</strong><small>Siguiente paso</small></p>
               </div>
-
               <div>
-
                 <span>3</span>
-
-                <div>
-
-                  <strong>Contacto de la academia</strong>
-
-                  <small>Posterior a la revisión</small>
-
-                </div>
-
+                <p><strong>Matrícula y acceso</strong><small>Cuando corresponda</small></p>
               </div>
-
-            </div>
-
-            <div class="success-card__notice">
-
-              <span>i</span>
-
-              <p>
-
-                La solicitud no crea automáticamente una cuenta
-
-                del Aula Virtual. El acceso se habilita únicamente
-
-                una vez realizada la matrícula.
-
-              </p>
-
             </div>
 
             <button
-
               type="button"
-
-              class="secondary-action"
-
+              class="secondary-button"
               @click="createAnotherRequest"
-
             >
-
-              Enviar otra solicitud
-
+              Enviar otra inscripción
             </button>
-
           </section>
-
         </Transition>
 
-        <!-- =================================================*
-            FORMULARIO
-*        ================================================== -->
-
         <form
-
           v-if="!submissionCompleted"
-
-          class="inscription-form"
-
+          class="simple-form"
           novalidate
-
           @submit.prevent="submitForm"
-
         >
+          <header class="simple-form__header">
+            <span>FORMULARIO DE INSCRIPCIÓN</span>
+            <h2>Completa tus datos</h2>
+            <p>Los campos con * son obligatorios.</p>
+          </header>
 
-          <!-- ===============================================*
-              PROGRESO
-*          ================================================ -->
-
-          <div class="form-progress">
-
-            <div
-
-              v-for="step in steps"
-
-              :key="step.number"
-
-              class="form-progress__item"
-
-            >
-
-              <span>
-
-                {{ step.number }}
-
-              </span>
-
-              <small>
-
-                {{ step.label }}
-
+          <div class="fields">
+            <label class="field field--full">
+              <span>Nombre completo <b>*</b></span>
+              <input
+                v-model.trim="form.name"
+                type="text"
+                autocomplete="name"
+                maxlength="120"
+                placeholder="Ej: María González"
+                :class="{ invalid: fieldErrors.name }"
+                required
+                @input="clearFieldError('name')"
+              />
+              <small v-if="fieldErrors.name" class="field__error">
+                {{ fieldErrors.name }}
               </small>
+            </label>
 
-            </div>
+            <label class="field">
+              <span>Edad <b>*</b></span>
+              <input
+                v-model.number="form.age"
+                type="number"
+                inputmode="numeric"
+                min="4"
+                max="100"
+                placeholder="Ej: 65"
+                :class="{ invalid: fieldErrors.age }"
+                required
+                @input="clearFieldError('age')"
+              />
+              <small v-if="fieldErrors.age" class="field__error">
+                {{ fieldErrors.age }}
+              </small>
+            </label>
 
+            <label class="field">
+              <span>Teléfono / WhatsApp <b>*</b></span>
+              <input
+                v-model.trim="form.phone"
+                type="tel"
+                inputmode="tel"
+                autocomplete="tel"
+                maxlength="30"
+                placeholder="Ej: +56 9 1234 5678"
+                :class="{ invalid: fieldErrors.phone }"
+                required
+                @input="clearFieldError('phone')"
+              />
+              <small v-if="fieldErrors.phone" class="field__error">
+                {{ fieldErrors.phone }}
+              </small>
+            </label>
+
+            <label class="field field--full">
+              <span>Correo electrónico <b>*</b></span>
+              <input
+                v-model.trim="form.email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                maxlength="160"
+                placeholder="Ej: maria@gmail.com"
+                :class="{ invalid: fieldErrors.email }"
+                required
+                @input="clearFieldError('email')"
+              />
+              <small class="field__hint">
+                Puede ser Gmail, Hotmail, Outlook u otro correo que utilices.
+              </small>
+              <small v-if="fieldErrors.email" class="field__error">
+                {{ fieldErrors.email }}
+              </small>
+            </label>
           </div>
 
-          <!-- ===============================================*
-              01 DATOS PERSONALES
-*          ================================================ -->
-
-          <section class="form-section">
-
-            <header class="form-section__header">
-
-              <div class="form-section__number">
-
-                01
-
-              </div>
-
-              <div>
-
-                <h3>Datos del estudiante</h3>
-
-                <p>
-
-                  Comencemos con la información básica.
-
-                </p>
-
-              </div>
-
-            </header>
-
-            <div class="form-grid">
-
-              <label class="field field--full">
-
-                <span>
-
-                  Nombre completo
-
-                  <b>\*</b>
-
-                </span>
-
-                <input
-
-                  v-model.trim="form.name"
-
-                  type="text"
-
-                  autocomplete="name"
-
-                  maxlength="120"
-
-                  placeholder="Nombre y apellido"
-
-                  :class="{ invalid: fieldErrors.name }"
-
-                  required
-
-                  @input="clearFieldError('name')"
-
-                />
-
-                <small
-
-                  v-if="fieldErrors.name"
-
-                  class="field__error"
-
-                >
-
-                  {{ fieldErrors.name }}
-
-                </small>
-
-              </label>
-
-              <label class="field">
-
-                <span>
-
-                  Edad
-
-                  <b>\*</b>
-
-                </span>
-
-                <input
-
-                  v-model.number="form.age"
-
-                  type="number"
-
-                  inputmode="numeric"
-
-                  min="4"
-
-                  max="100"
-
-                  placeholder="Ej: 18"
-
-                  :class="{ invalid: fieldErrors.age }"
-
-                  required
-
-                  @input="clearFieldError('age')"
-
-                />
-
-                <small
-
-                  v-if="fieldErrors.age"
-
-                  class="field__error"
-
-                >
-
-                  {{ fieldErrors.age }}
-
-                </small>
-
-              </label>
-
-              <label class="field">
-
-                <span>
-
-                  Teléfono de contacto
-
-                  <b>\*</b>
-
-                </span>
-
-                <input
-
-                  v-model.trim="form.phone"
-
-                  type="tel"
-
-                  autocomplete="tel"
-
-                  maxlength="30"
-
-                  placeholder="+56 9 1234 5678"
-
-                  :class="{ invalid: fieldErrors.phone }"
-
-                  required
-
-                  @input="clearFieldError('phone')"
-
-                />
-
-                <small
-
-                  v-if="fieldErrors.phone"
-
-                  class="field__error"
-
-                >
-
-                  {{ fieldErrors.phone }}
-
-                </small>
-
-              </label>
-
-              <label class="field field--full">
-
-                <span>
-
-                  Correo electrónico
-
-                  <b>\*</b>
-
-                </span>
-
-                <input
-
-                  v-model.trim="form.email"
-
-                  type="email"
-
-                  autocomplete="email"
-
-                  maxlength="160"
-
-                  placeholder="nombre@correo.cl"
-
-                  :class="{ invalid: fieldErrors.email }"
-
-                  required
-
-                  @input="clearFieldError('email')"
-
-                />
-
-                <small
-
-                  v-if="fieldErrors.email"
-
-                  class="field__error"
-
-                >
-
-                  {{ fieldErrors.email }}
-
-                </small>
-
-              </label>
-
-            </div>
-
-            <!-- =============================================*
-                APODERADO
-*            ============================================== -->
-
-            <Transition name="expand">
-
-              <div
-
-                v-if="isMinor"
-
-                class="guardian-card"
-
-              >
-
-                <div class="guardian-card__header">
-
-                  <div>
-
-                    <span>
-
-                      Estudiante menor de edad
-
-                    </span>
-
-                    <small>
-
-                      Necesitamos los datos de una persona
-
-                      adulta responsable.
-
-                    </small>
-
-                  </div>
-
-                  <span class="guardian-card__badge">
-
-                    APODERADO
-
-                  </span>
-
+          <Transition name="expand">
+            <section v-if="isMinor" class="guardian-box">
+              <div class="guardian-box__heading">
+                <div>
+                  <strong>Datos del apoderado</strong>
+                  <p>Como el estudiante es menor de edad, necesitamos un contacto adulto.</p>
                 </div>
-
-                <div class="form-grid">
-
-                  <label class="field">
-
-                    <span>
-
-                      Nombre del apoderado
-
-                      <b>\*</b>
-
-                    </span>
-
-                    <input
-
-                      v-model.trim="form.guardianName"
-
-                      type="text"
-
-                      autocomplete="name"
-
-                      maxlength="120"
-
-                      placeholder="Nombre completo"
-
-                      :class="{
-
-                        invalid:
-
-                          fieldErrors.guardianName
-
-                      }"
-
-                      :required="isMinor"
-
-                      @input="
-
-                        clearFieldError(
-
-                          'guardianName'
-
-                        )
-
-                      "
-
-                    />
-
-                    <small
-
-                      v-if="fieldErrors.guardianName"
-
-                      class="field__error"
-
-                    >
-
-                      {{ fieldErrors.guardianName }}
-
-                    </small>
-
-                  </label>
-
-                  <label class="field">
-
-                    <span>
-
-                      Teléfono del apoderado
-
-                      <b>\*</b>
-
-                    </span>
-
-                    <input
-
-                      v-model.trim="form.guardianPhone"
-
-                      type="tel"
-
-                      autocomplete="tel"
-
-                      maxlength="30"
-
-                      placeholder="+56 9 1234 5678"
-
-                      :class="{
-
-                        invalid:
-
-                          fieldErrors.guardianPhone
-
-                      }"
-
-                      :required="isMinor"
-
-                      @input="
-
-                        clearFieldError(
-
-                          'guardianPhone'
-
-                        )
-
-                      "
-
-                    />
-
-                    <small
-
-                      v-if="fieldErrors.guardianPhone"
-
-                      class="field__error"
-
-                    >
-
-                      {{ fieldErrors.guardianPhone }}
-
-                    </small>
-
-                  </label>
-
-                </div>
-
+                <span>APODERADO</span>
               </div>
 
-            </Transition>
-
-          </section>
-
-          <!-- ===============================================*
-              02 PERFIL ARTÍSTICO
-*          ================================================ -->
-
-          <section class="form-section">
-
-            <header class="form-section__header">
-
-              <div class="form-section__number">
-
-                02
-
-              </div>
-
-              <div>
-
-                <h3>Tu perfil artístico</h3>
-
-                <p>
-
-                  No buscamos respuestas perfectas.
-
-                  Queremos saber qué quieres desarrollar.
-
-                </p>
-
-              </div>
-
-            </header>
-
-            <div class="form-grid">
-
-              <label class="field">
-
-                <span>
-
-                  Área principal de interés
-
-                  <b>\*</b>
-
-                </span>
-
-                <select
-
-                  v-model="form.interest"
-
-                  :class="{
-
-                    invalid:
-
-                      fieldErrors.interest
-
-                  }"
-
-                  required
-
-                  @change="
-
-                    clearFieldError('interest')
-
-                  "
-
-                >
-
-                  <option
-
-                    disabled
-
-                    value=""
-
-                  >
-
-                    Selecciona una opción
-
-                  </option>
-
-                  <option value="Canto y técnica vocal">
-
-                    Canto y técnica vocal
-
-                  </option>
-
-                  <option value="Coro y ensamble">
-
-                    Coro y ensamble
-
-                  </option>
-
-                  <option value="Interpretación escénica">
-
-                    Interpretación escénica
-
-                  </option>
-
-                  <option value="Teatro musical">
-
-                    Teatro musical
-
-                  </option>
-
-                  <option value="Producción musical">
-
-                    Producción musical
-
-                  </option>
-
-                  <option value="Preparación para conciertos">
-
-                    Preparación para conciertos
-
-                  </option>
-
-                  <option value="Quiero orientación">
-
-                    No estoy seguro/a, quiero orientación
-
-                  </option>
-
-                </select>
-
-                <small
-
-                  v-if="fieldErrors.interest"
-
-                  class="field__error"
-
-                >
-
-                  {{ fieldErrors.interest }}
-
-                </small>
-
-              </label>
-
-              <label class="field">
-
-                <span>
-
-                  Experiencia previa
-
-                  <b>\*</b>
-
-                </span>
-
-                <select
-
-                  v-model="form.experience"
-
-                  :class="{
-
-                    invalid:
-
-                      fieldErrors.experience
-
-                  }"
-
-                  required
-
-                  @change="
-
-                    clearFieldError('experience')
-
-                  "
-
-                >
-
-                  <option
-
-                    disabled
-
-                    value=""
-
-                  >
-
-                    Selecciona una opción
-
-                  </option>
-
-                  <option value="Sin experiencia">
-
-                    Estoy comenzando
-
-                  </option>
-
-                  <option value="Hobby">
-
-                    Canto o hago música por hobby
-
-                  </option>
-
-                  <option value="Clases previas">
-
-                    He tomado clases anteriormente
-
-                  </option>
-
-                  <option value="Coro">
-
-                    He participado en coro o ensamble
-
-                  </option>
-
-                  <option value="Escenario">
-
-                    He cantado o actuado en público
-
-                  </option>
-
-                  <option value="Experiencia musical">
-
-                    Tengo experiencia musical previa
-
-                  </option>
-
-                </select>
-
-                <small
-
-                  v-if="fieldErrors.experience"
-
-                  class="field__error"
-
-                >
-
-                  {{ fieldErrors.experience }}
-
-                </small>
-
-              </label>
-
-              <label class="field field--full">
-
-                <span>
-
-                  ¿Qué te gustaría aprender o mejorar?
-
-                  <b>\*</b>
-
-                </span>
-
-                <textarea
-
-                  v-model.trim="form.goals"
-
-                  rows="5"
-
-                  maxlength="1000"
-
-                  placeholder="Por ejemplo: mejorar afinación, respiración, confianza escénica, conocer mejor mi voz, aprender repertorio..."
-
-                  :class="{
-
-                    invalid:
-
-                      fieldErrors.goals
-
-                  }"
-
-                  required
-
-                  @input="
-
-                    clearFieldError('goals')
-
-                  "
-
-                ></textarea>
-
-                <div class="field__bottom">
-
-                  <small
-
-                    v-if="fieldErrors.goals"
-
-                    class="field__error"
-
-                  >
-
-                    {{ fieldErrors.goals }}
-
+              <div class="fields">
+                <label class="field">
+                  <span>Nombre del apoderado <b>*</b></span>
+                  <input
+                    v-model.trim="form.guardianName"
+                    type="text"
+                    autocomplete="name"
+                    maxlength="120"
+                    placeholder="Nombre completo"
+                    :class="{ invalid: fieldErrors.guardianName }"
+                    :required="isMinor"
+                    @input="clearFieldError('guardianName')"
+                  />
+                  <small v-if="fieldErrors.guardianName" class="field__error">
+                    {{ fieldErrors.guardianName }}
                   </small>
+                </label>
 
-                  <small class="field__counter">
-
-                    {{ form.goals.length }}/1000
-
+                <label class="field">
+                  <span>Teléfono del apoderado <b>*</b></span>
+                  <input
+                    v-model.trim="form.guardianPhone"
+                    type="tel"
+                    inputmode="tel"
+                    autocomplete="tel"
+                    maxlength="30"
+                    placeholder="+56 9 1234 5678"
+                    :class="{ invalid: fieldErrors.guardianPhone }"
+                    :required="isMinor"
+                    @input="clearFieldError('guardianPhone')"
+                  />
+                  <small v-if="fieldErrors.guardianPhone" class="field__error">
+                    {{ fieldErrors.guardianPhone }}
                   </small>
+                </label>
+              </div>
+            </section>
+          </Transition>
 
-                </div>
+          <label class="consent" :class="{ 'consent--invalid': fieldErrors.accepted }">
+            <input
+              v-model="form.accepted"
+              type="checkbox"
+              required
+              @change="clearFieldError('accepted')"
+            />
+            <span>
+              Autorizo a la Academia de Talentos Amo Mi Voz a utilizar
+              estos datos únicamente para contactarme y gestionar mi inscripción.
+            </span>
+          </label>
 
-              </label>
+          <small v-if="fieldErrors.accepted" class="consent-error">
+            {{ fieldErrors.accepted }}
+          </small>
 
+          <label class="website-field" aria-hidden="true">
+            Website
+            <input
+              v-model="form.website"
+              type="text"
+              tabindex="-1"
+              autocomplete="off"
+            />
+          </label>
+
+          <div
+            v-if="errorMessage"
+            class="form-error"
+            role="alert"
+          >
+            <span>!</span>
+            <div>
+              <strong>No pudimos enviar tu inscripción</strong>
+              <p>{{ errorMessage }}</p>
             </div>
-
-          </section>
-
-          <!-- ===============================================*
-              03 ASISTENCIA
-*          ================================================ -->
-
-          <section class="form-section">
-
-            <header class="form-section__header">
-
-              <div class="form-section__number">
-
-                03
-
-              </div>
-
-              <div>
-
-                <h3>Clases y asistencia</h3>
-
-                <p>
-
-                  Confirma que conoces el horario
-
-                  antes de enviar tu solicitud.
-
-                </p>
-
-              </div>
-
-            </header>
-
-            <div class="class-information">
-
-              <article>
-
-                <div class="class-information__icon">
-
-                  S
-
-                </div>
-
-                <div>
-
-                  <small>DÍA</small>
-
-                  <strong>Todos los sábados</strong>
-
-                </div>
-
-              </article>
-
-              <article>
-
-                <div class="class-information__icon">
-
-                  16
-
-                </div>
-
-                <div>
-
-                  <small>HORARIO</small>
-
-                  <strong>16:00 a 18:00 hrs</strong>
-
-                </div>
-
-              </article>
-
-              <article>
-
-                <div class="class-information__icon">
-
-                  P
-
-                </div>
-
-                <div>
-
-                  <small>SEDE</small>
-
-                  <strong>Pueblito Artesanal</strong>
-
-                </div>
-
-              </article>
-
-              <article>
-
-                <div class="class-information__icon">
-
-                  LC
-
-                </div>
-
-                <div>
-
-                  <small>DIRECCIÓN</small>
-
-                  <strong>
-
-                    Calle Iriarte 96, La Calera
-
-                  </strong>
-
-                </div>
-
-              </article>
-
-            </div>
-
-            <div class="form-grid">
-
-              <label class="field field--full">
-
-                <span>
-
-                  ¿Puedes asistir los sábados
-
-                  de 16:00 a 18:00?
-
-                  <b>\*</b>
-
-                </span>
-
-                <select
-
-                  v-model="form.availability"
-
-                  :class="{
-
-                    invalid:
-
-                      fieldErrors.availability
-
-                  }"
-
-                  required
-
-                  @change="
-
-                    clearFieldError(
-
-                      'availability'
-
-                    )
-
-                  "
-
-                >
-
-                  <option
-
-                    disabled
-
-                    value=""
-
-                  >
-
-                    Selecciona una opción
-
-                  </option>
-
-                  <option value="yes">
-
-                    Sí, puedo asistir en ese horario
-
-                  </option>
-
-                  <option value="question">
-
-                    Necesito conversar mi situación
-
-                  </option>
-
-                </select>
-
-                <small
-
-                  v-if="fieldErrors.availability"
-
-                  class="field__error"
-
-                >
-
-                  {{ fieldErrors.availability }}
-
-                </small>
-
-              </label>
-
-              <Transition name="expand">
-
-                <div
-
-                  v-if="form.availability === 'question'"
-
-                  class="availability-notice field--full"
-
-                >
-
-                  <span>i</span>
-
-                  <p>
-
-                    No hay problema. Cuéntanos tu situación
-
-                    en el mensaje de abajo para poder
-
-                    considerarla al revisar tu solicitud.
-
-                  </p>
-
-                </div>
-
-              </Transition>
-
-              <label class="field field--full">
-
-                <span>
-
-                  ¿Hay algo más que quieras contarnos?
-
-                </span>
-
-                <textarea
-
-                  v-model.trim="form.message"
-
-                  rows="4"
-
-                  maxlength="1000"
-
-                  placeholder="Puedes contarnos cualquier antecedente, necesidad, experiencia o consulta que consideres importante."
-
-                ></textarea>
-
-                <small class="field__counter">
-
-                  {{ form.message.length }}/1000
-
-                </small>
-
-              </label>
-
-            </div>
-
-          </section>
-
-          <!-- ===============================================*
-              04 CONFIRMACIÓN
-*          ================================================ -->
-
-          <section class="form-section form-section--final">
-
-            <header class="form-section__header">
-
-              <div class="form-section__number">
-
-                04
-
-              </div>
-
-              <div>
-
-                <h3>Revisión y envío</h3>
-
-                <p>
-
-                  Verifica tus datos antes de enviarnos
-
-                  la solicitud.
-
-                </p>
-
-              </div>
-
-            </header>
-
-            <div class="request-summary">
-
-              <div>
-
-                <small>ESTUDIANTE</small>
-
-                <strong>
-
-                  {{ form.name || 'Por completar' }}
-
-                </strong>
-
-              </div>
-
-              <div>
-
-                <small>INTERÉS</small>
-
-                <strong>
-
-                  {{ form.interest || 'Por seleccionar' }}
-
-                </strong>
-
-              </div>
-
-              <div>
-
-                <small>CLASES</small>
-
-                <strong>
-
-                  Sábados · 16:00–18:00
-
-                </strong>
-
-              </div>
-
-              <div>
-
-                <small>SEDE</small>
-
-                <strong>
-
-                  Pueblito Artesanal La Calera
-
-                </strong>
-
-              </div>
-
-            </div>
-
-            <!-- Honeypot antispam -->
-
-            <label
-
-              class="website-field"
-
-              aria-hidden="true"
-
-            >
-
-              Website
-
-              <input
-
-                v-model="form.website"
-
-                type="text"
-
-                tabindex="-1"
-
-                autocomplete="off"
-
-              />
-
-            </label>
-
-            <label
-
-              class="consent"
-
-              :class="{
-
-                'consent--invalid':
-
-                  fieldErrors.accepted
-
-              }"
-
-            >
-
-              <input
-
-                v-model="form.accepted"
-
-                type="checkbox"
-
-                required
-
-                @change="
-
-                  clearFieldError('accepted')
-
-                "
-
-              />
-
-              <span>
-
-                Confirmo que los datos ingresados son correctos
-
-                y autorizo a la Academia de Talentos Amo Mi Voz
-
-                a utilizar esta información exclusivamente para
-
-                gestionar y contactarme respecto de esta solicitud
-
-                de inscripción.
-
-              </span>
-
-            </label>
-
-            <small
-
-              v-if="fieldErrors.accepted"
-
-              class="consent-error"
-
-            >
-
-              {{ fieldErrors.accepted }}
-
-            </small>
-
-            <div
-
-              v-if="errorMessage"
-
-              class="form-feedback form-feedback--error"
-
-              role="alert"
-
-            >
-
-              <span>!</span>
-
-              <div>
-
-                <strong>
-
-                  No pudimos enviar tu solicitud
-
-                </strong>
-
-                <p>
-
-                  {{ errorMessage }}
-
-                </p>
-
-              </div>
-
-            </div>
-
-            <button
-
-              class="submit-button"
-
-              type="submit"
-
-              :disabled="isSubmitting"
-
-            >
-
-              <template v-if="isSubmitting">
-
-                <span class="submit-spinner"></span>
-
-                Enviando solicitud...
-
-              </template>
-
-              <template v-else>
-
-                <span>
-
-                  Enviar solicitud de inscripción
-
-                </span>
-
-                <span class="submit-button__arrow">
-
-                  →
-
-                </span>
-
-              </template>
-
-            </button>
-
-            <div class="form-security">
-
-              <span>●</span>
-
-              <p>
-
-                Tus datos se envían de forma segura y serán
-
-                utilizados únicamente para gestionar tu
-
-                proceso de inscripción.
-
-              </p>
-
-            </div>
-
-          </section>
-
+          </div>
+
+          <button
+            class="submit-button"
+            type="submit"
+            :disabled="isSubmitting"
+          >
+            <template v-if="isSubmitting">
+              <span class="spinner"></span>
+              Enviando...
+            </template>
+            <template v-else>
+              Enviar mi inscripción
+              <span aria-hidden="true">→</span>
+            </template>
+          </button>
+
+          <p class="privacy-note">
+            Tus datos se envían de forma segura y no se utilizarán para otros fines.
+          </p>
         </form>
-
       </div>
-
     </section>
 
-      <PublicQuickActions />
-  </main>
+    <section class="information-section">
+      <div class="container">
+        <header class="information-section__header">
+          <span class="section-label">INFORMACIÓN DE LAS CLASES</span>
+          <h2>Todo lo importante, después del formulario.</h2>
+          <p>
+            Si quieres conocer más antes de comenzar, aquí tienes la información principal.
+          </p>
+        </header>
 
+        <div class="info-grid">
+          <article>
+            <span>01</span>
+            <h3>¿Cuándo?</h3>
+            <p><strong>Sábados</strong><br />16:00 a 18:00 hrs.</p>
+          </article>
+
+          <article>
+            <span>02</span>
+            <h3>¿Dónde?</h3>
+            <p><strong>Pueblito Artesanal</strong><br />Calle Iriarte 96, La Calera.</p>
+          </article>
+
+          <article>
+            <span>03</span>
+            <h3>¿Necesito experiencia?</h3>
+            <p>No. Trabajamos desde el nivel y las características de cada estudiante.</p>
+          </article>
+
+          <article>
+            <span>04</span>
+            <h3>¿Qué aprenderé?</h3>
+            <p>Técnica vocal, teoría musical, repertorio, interpretación y escenario.</p>
+          </article>
+        </div>
+
+        <div class="after-send">
+          <div>
+            <span>1</span>
+            <p><strong>Envías tus datos</strong><small>Desde este formulario.</small></p>
+          </div>
+          <div class="after-send__line"></div>
+          <div>
+            <span>2</span>
+            <p><strong>Te contactamos</strong><small>Conversamos contigo personalmente.</small></p>
+          </div>
+          <div class="after-send__line"></div>
+          <div>
+            <span>3</span>
+            <p><strong>Comienzas</strong><small>Te orientamos para ingresar a la academia.</small></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <PublicQuickActions />
+  </main>
 </template>
 
 <script setup>
-import PublicQuickActions from '@/components/public/PublicQuickActions.vue'
-
-
 import {
-
   computed,
-
   nextTick,
-
   reactive,
-
   ref
-
 } from 'vue'
 
+import PublicQuickActions from '@/components/public/PublicQuickActions.vue'
 import { supabase } from '@/lib/supabase'
 
-/* =========================================================*
-   ESTADO
-*========================================================= */
-
 const isSubmitting = ref(false)
-
 const submissionCompleted = ref(false)
-
 const errorMessage = ref('')
-
 const fieldErrors = reactive({})
 
-const steps = [
-
-  {
-
-    number: '01',
-
-    label: 'Datos'
-
-  },
-
-  {
-
-    number: '02',
-
-    label: 'Perfil'
-
-  },
-
-  {
-
-    number: '03',
-
-    label: 'Clases'
-
-  },
-
-  {
-
-    number: '04',
-
-    label: 'Enviar'
-
-  }
-
-]
-
-/* =========================================================*
-   FORMULARIO
-*========================================================= */
-
 const form = reactive({
-
   name: '',
-
   age: '',
-
   phone: '',
-
   email: '',
-
   guardianName: '',
-
   guardianPhone: '',
-
-  interest: '',
-
-  experience: '',
-
-  goals: '',
-
-  availability: '',
-
-  message: '',
-
   accepted: false,
-
-  /**
-
-*   \* Honeypot.*
-
-*   \* Las personas reales nunca ven este campo.*
-
-*   */
-
   website: ''
-
 })
 
-/* =========================================================*
-   COMPUTADOS
-*========================================================= */
-
 const isMinor = computed(() => {
-
   const age = Number(form.age)
 
   return (
-
     Number.isFinite(age) &&
-
     age >= 4 &&
-
     age < 18
-
   )
-
 })
 
-/* =========================================================*
-   VALIDACIÓN
-*========================================================= */
-
 function clearErrors() {
-
-  Object.keys(fieldErrors)
-
-    .forEach(key => {
-
-      delete fieldErrors[key]
-
-    })
+  Object.keys(fieldErrors).forEach(key => {
+    delete fieldErrors[key]
+  })
 
   errorMessage.value = ''
-
 }
 
 function clearFieldError(field) {
-
   if (fieldErrors[field]) {
-
     delete fieldErrors[field]
-
   }
 
   if (errorMessage.value) {
-
     errorMessage.value = ''
-
   }
-
 }
 
 function isValidEmail(email) {
-
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-    .test(email)
-
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 function normalizePhone(phone) {
-
   return String(phone || '')
-
     .trim()
-
     .replace(/\s+/g, ' ')
-
 }
 
 function hasEnoughPhoneDigits(phone) {
-
-  const digits =
-
-    String(phone || '')
-
-      .replace(/\D/g, '')
-
-  return digits.length >= 8
-
+  return String(phone || '')
+    .replace(/\D/g, '')
+    .length >= 8
 }
 
 function validateForm() {
-
   clearErrors()
 
   const age = Number(form.age)
 
-  if (
-
-    !form.name ||
-
-    form.name.trim().length < 3
-
-  ) {
-
-    fieldErrors.name =
-
-      'Ingresa el nombre completo del estudiante.'
-
+  if (!form.name || form.name.trim().length < 3) {
+    fieldErrors.name = 'Escribe tu nombre completo.'
   }
 
-  if (
-
-    !Number.isInteger(age) ||
-
-    age < 4 ||
-
-    age > 100
-
-  ) {
-
-    fieldErrors.age =
-
-      'Ingresa una edad válida entre 4 y 100 años.'
-
+  if (!Number.isInteger(age) || age < 4 || age > 100) {
+    fieldErrors.age = 'Escribe una edad válida.'
   }
 
-  if (
-
-    !form.phone ||
-
-    !hasEnoughPhoneDigits(form.phone)
-
-  ) {
-
-    fieldErrors.phone =
-
-      'Ingresa un teléfono de contacto válido.'
-
+  if (!form.phone || !hasEnoughPhoneDigits(form.phone)) {
+    fieldErrors.phone = 'Escribe un teléfono de contacto válido.'
   }
 
-  if (
-
-    !form.email ||
-
-    !isValidEmail(
-
-      form.email.trim()
-
-    )
-
-  ) {
-
-    fieldErrors.email =
-
-      'Ingresa un correo electrónico válido.'
-
+  if (!form.email || !isValidEmail(form.email.trim())) {
+    fieldErrors.email = 'Escribe un correo electrónico válido.'
   }
 
   if (isMinor.value) {
-
-    if (
-
-      !form.guardianName ||
-
-      form.guardianName.trim().length < 3
-
-    ) {
-
-      fieldErrors.guardianName =
-
-        'Ingresa el nombre del apoderado.'
-
+    if (!form.guardianName || form.guardianName.trim().length < 3) {
+      fieldErrors.guardianName = 'Escribe el nombre del apoderado.'
     }
 
-    if (
-
-      !form.guardianPhone ||
-
-      !hasEnoughPhoneDigits(
-
-        form.guardianPhone
-
-      )
-
-    ) {
-
-      fieldErrors.guardianPhone =
-
-        'Ingresa un teléfono válido del apoderado.'
-
+    if (!form.guardianPhone || !hasEnoughPhoneDigits(form.guardianPhone)) {
+      fieldErrors.guardianPhone = 'Escribe un teléfono válido del apoderado.'
     }
-
-  }
-
-  if (!form.interest) {
-
-    fieldErrors.interest =
-
-      'Selecciona el área que más te interesa.'
-
-  }
-
-  if (!form.experience) {
-
-    fieldErrors.experience =
-
-      'Selecciona tu nivel de experiencia.'
-
-  }
-
-  if (
-
-    !form.goals ||
-
-    form.goals.trim().length < 10
-
-  ) {
-
-    fieldErrors.goals =
-
-      'Cuéntanos un poco más sobre lo que quieres aprender o mejorar.'
-
-  }
-
-  if (!form.availability) {
-
-    fieldErrors.availability =
-
-      'Confirma tu disponibilidad para asistir.'
-
   }
 
   if (!form.accepted) {
-
-    fieldErrors.accepted =
-
-      'Debes aceptar esta autorización para enviar la solicitud.'
-
+    fieldErrors.accepted = 'Marca esta casilla para poder enviar la inscripción.'
   }
 
-  return (
-
-    Object.keys(fieldErrors)
-
-      .length === 0
-
-  )
-
+  return Object.keys(fieldErrors).length === 0
 }
 
-/* =========================================================*
-   SCROLL AL PRIMER ERROR
-*========================================================= */
-
 async function focusFirstError() {
-
   await nextTick()
 
-  const firstInvalid =
-
-    document.querySelector(
-
-      '.inscription-form .invalid, .consent--invalid'
-
-    )
+  const firstInvalid = document.querySelector(
+    '.simple-form .invalid, .consent--invalid'
+  )
 
   if (!firstInvalid) {
-
     return
-
   }
 
   firstInvalid.scrollIntoView({
-
     behavior: 'smooth',
-
     block: 'center'
-
   })
 
-  const input =
-
-    firstInvalid.matches(
-
-      'input, select, textarea'
-
-    )
-
-      ? firstInvalid
-
-      : firstInvalid.querySelector(
-
-          'input, select, textarea'
-
-        )
+  const input = firstInvalid.matches('input')
+    ? firstInvalid
+    : firstInvalid.querySelector('input')
 
   input?.focus?.()
-
 }
 
-/* =========================================================*
-   ENVIAR
-*========================================================= */
-
 async function submitForm() {
-
   if (isSubmitting.value) {
-
     return
-
   }
 
-  /**
-
-*   \* Honeypot:*
-
-*   \* si un bot completó este campo,*
-
-*   \* simulamos éxito sin insertar datos.*
-
-*   */
-
   if (form.website) {
-
     submissionCompleted.value = true
-
     return
-
   }
 
   if (!validateForm()) {
-
-    errorMessage.value =
-
-      'Revisa los campos marcados antes de enviar tu solicitud.'
-
+    errorMessage.value = 'Revisa los campos marcados para continuar.'
     await focusFirstError()
-
     return
-
   }
 
   isSubmitting.value = true
-
   errorMessage.value = ''
 
   try {
-
+    /*
+     * Conservamos las columnas del sistema actual para no romper
+     * el panel administrativo ni exigir una migración de Supabase.
+     * Los datos que ya no pedimos públicamente quedan con valores
+     * neutros y se conversan después con la academia.
+     */
     const payload = {
+      name: form.name
+        .trim()
+        .replace(/\s+/g, ' '),
 
-      name:
+      age: Number(form.age),
 
-        form.name
+      phone: normalizePhone(form.phone),
 
-          .trim()
+      email: form.email
+        .trim()
+        .toLowerCase(),
 
-          .replace(/\s+/g, ' '),
+      guardian_name: isMinor.value
+        ? form.guardianName
+            .trim()
+            .replace(/\s+/g, ' ')
+        : null,
 
-      age:
+      guardian_phone: isMinor.value
+        ? normalizePhone(form.guardianPhone)
+        : null,
 
-        Number(form.age),
-
-      phone:
-
-        normalizePhone(
-
-          form.phone
-
-        ),
-
-      email:
-
-        form.email
-
-          .trim()
-
-          .toLowerCase(),
-
-      guardian_name:
-
-        isMinor.value
-
-          ? form.guardianName
-
-              .trim()
-
-              .replace(/\s+/g, ' ')
-
-          : null,
-
-      guardian_phone:
-
-        isMinor.value
-
-          ? normalizePhone(
-
-              form.guardianPhone
-
-            )
-
-          : null,
-
-      interest:
-
-        form.interest,
-
-      experience:
-
-        form.experience,
-
-      goals:
-
-        form.goals.trim(),
-
-      availability:
-
-        form.availability,
-
-      message:
-
-        form.message.trim() ||
-
-        null,
-
-      status:
-
-        'pending'
-
+      interest: 'Quiero orientación',
+      experience: 'Sin especificar',
+      goals: 'Por conversar con la academia',
+      availability: 'question',
+      message: null,
+      status: 'pending'
     }
 
-    const {
-
-      error
-
-    } =
-
-      await supabase
-
-        .from('inscriptions')
-
-        .insert(payload)
+    const { error } = await supabase
+      .from('inscriptions')
+      .insert(payload)
 
     if (error) {
-
       throw error
-
     }
 
-    submissionCompleted.value =
-
-      true
-
+    submissionCompleted.value = true
     resetForm()
 
     await nextTick()
 
-    window.scrollTo({
-
-      top:
-
-        document.querySelector(
-
-          '.content-section'
-
-        )?.offsetTop ?? 0,
-
-      behavior:
-
-        'smooth'
-
-    })
-
+    document
+      .querySelector('#formulario-inscripcion')
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      })
   } catch (error) {
+    console.error('Error enviando inscripción:', error)
 
-    console.error(
-
-      'Error enviando inscripción:',
-
-      error
-
-    )
-
-    errorMessage.value =
-
-      getSubmitErrorMessage(error)
+    errorMessage.value = getSubmitErrorMessage(error)
 
     await nextTick()
 
     document
-
-      .querySelector(
-
-        '.form-feedback--error'
-
-      )
-
+      .querySelector('.form-error')
       ?.scrollIntoView({
-
         behavior: 'smooth',
-
         block: 'center'
-
       })
-
   } finally {
-
     isSubmitting.value = false
-
   }
-
 }
-
-/* =========================================================*
-   MENSAJES DE ERROR
-*========================================================= */
 
 function getSubmitErrorMessage(error) {
-
-  const message =
-
-    String(
-
-      error?.message || ''
-
-    )
-
-      .toLowerCase()
+  const message = String(error?.message || '').toLowerCase()
 
   if (
-
     message.includes('network') ||
-
     message.includes('fetch')
-
   ) {
-
-    return 'No pudimos conectarnos con el servidor. Revisa tu conexión a internet e inténtalo nuevamente.'
-
+    return 'No pudimos conectarnos. Revisa tu conexión a internet e inténtalo nuevamente.'
   }
 
   if (
-
     message.includes('row-level') ||
-
     message.includes('policy')
-
   ) {
-
-    return 'El formulario no tiene autorización para registrar la solicitud. Contacta a la academia.'
-
+    return 'El formulario no tiene autorización para registrar la inscripción. Contacta a la academia.'
   }
 
-  return 'Ocurrió un problema al enviar tu solicitud. Tus datos no fueron registrados. Inténtalo nuevamente.'
-
+  return 'Ocurrió un problema al enviar tu inscripción. Inténtalo nuevamente.'
 }
 
-/* =========================================================*
-   REINICIAR
-*========================================================= */
-
 function resetForm() {
-
   form.name = ''
-
   form.age = ''
-
   form.phone = ''
-
   form.email = ''
-
   form.guardianName = ''
-
   form.guardianPhone = ''
-
-  form.interest = ''
-
-  form.experience = ''
-
-  form.goals = ''
-
-  form.availability = ''
-
-  form.message = ''
-
   form.accepted = false
-
   form.website = ''
 
   clearErrors()
-
 }
 
 function createAnotherRequest() {
-
-  submissionCompleted.value =
-
-    false
-
+  submissionCompleted.value = false
   resetForm()
 
   nextTick(() => {
-
     document
-
-      .querySelector(
-
-        '.content-section'
-
-      )
-
+      .querySelector('#formulario-inscripcion')
       ?.scrollIntoView({
-
         behavior: 'smooth',
-
         block: 'start'
-
       })
-
   })
-
 }
-
 </script>
 
 <style scoped lang="scss">
-
-@use '@/assets/styles/abstracts/variables' as variables;
-
-@use '@/assets/styles/abstracts/mixins' as mixins;
-
-/* =========================================================*
-   BASE
-*========================================================= */
-
 .inscription-page {
+  --wine: #9f1945;
+  --wine-dark: #7f1237;
+  --wine-soft: #fff1f5;
+  --gold: #d9a91d;
+  --navy: #152033;
+  --text: #344359;
+  --muted: #667085;
+  --line: #dbe3ec;
+  --canvas: #f5f7fb;
+  --soft: #f8fafc;
 
   min-height: 100vh;
+  overflow: clip;
+  color: var(--navy);
+  background: var(--canvas);
+}
 
-  color: #f5f5f5;
-
-  background: #080808;
-
+* {
+  box-sizing: border-box;
 }
 
 .container {
-
-  width: min(1180px, 100%);
-
+  width: min(1120px, calc(100% - 40px));
   margin: 0 auto;
-
 }
 
-.section-eyebrow {
-
-  display: block;
-
-  color: variables.$color-primary;
-
-  font-size: 0.65rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.2em;
-
-  text-transform: uppercase;
-
+.skip-link {
+  position: fixed;
+  z-index: 9999;
+  top: 10px;
+  left: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #fff;
+  background: var(--wine);
+  font-weight: 800;
+  text-decoration: none;
+  transform: translateY(-160%);
 }
 
-/* =========================================================*
-   HERO
-*========================================================= */
+.skip-link:focus {
+  transform: translateY(0);
+}
 
 .hero {
-
   position: relative;
-
   overflow: hidden;
-
-  padding: 175px 24px 110px;
-
+  padding: 150px 0 72px;
+  color: #fff;
   background:
-
-    linear-gradient(
-
-      180deg,
-
-      rgba(255, 255, 255, 0.015),
-
-      transparent 45%
-
-    ),
-
-    #090909;
-
-}
-
-.hero__grid {
-
-  position: absolute;
-
-  inset: 0;
-
-  pointer-events: none;
-
-  background:
-
-    linear-gradient(
-
-      90deg,
-
-      rgba(255, 255, 255, 0.014) 1px,
-
-      transparent 1px
-
-    ),
-
-    linear-gradient(
-
-      rgba(255, 255, 255, 0.014) 1px,
-
-      transparent 1px
-
-    );
-
-  background-size: 72px 72px;
-
-  mask-image:
-
-    linear-gradient(
-
-      to bottom,
-
-      black,
-
-      transparent 90%
-
-    );
-
+    radial-gradient(circle at 82% 18%, rgba(217, 169, 29, 0.16), transparent 27%),
+    radial-gradient(circle at 18% 88%, rgba(159, 25, 69, 0.22), transparent 32%),
+    linear-gradient(135deg, #101a2d, #18263e);
 }
 
 .hero__glow {
-
   position: absolute;
-
-  border-radius: 50%;
-
+  inset: 0;
   pointer-events: none;
-
-  filter: blur(130px);
-
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to bottom, #000, transparent 92%);
 }
 
-.hero__glow--right {
-
-  top: 80px;
-
-  right: -180px;
-
-  width: 580px;
-
-  height: 580px;
-
-  background:
-
-    rgba(212, 175, 55, 0.11);
-
-}
-
-.hero__glow--left {
-
-  bottom: -220px;
-
-  left: -180px;
-
-  width: 480px;
-
-  height: 480px;
-
-  background:
-
-    rgba(212, 175, 55, 0.035);
-
-}
-
-.hero__container {
-
+.hero__layout {
   position: relative;
-
-  z-index: 2;
-
+  z-index: 1;
   display: grid;
-
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr);
   gap: 70px;
-
-  @include mixins.respond-to(lg) {
-
-    grid-template-columns:
-
-      minmax(0, 1.35fr)
-
-      minmax(340px, 0.65fr);
-
-    align-items: center;
-
-  }
-
-}
-
-.hero__eyebrow {
-
-  display: flex;
-
-  gap: 9px;
-
   align-items: center;
-
-  color: variables.$color-primary;
-
-  font-size: 0.67rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.2em;
-
 }
 
-.hero__eyebrow-dot {
-
+.eyebrow,
+.section-label {
   display: block;
-
-  width: 7px;
-
-  height: 7px;
-
-  border-radius: 50%;
-
-  background: variables.$color-primary;
-
-  box-shadow:
-
-    0 0 14px
-
-    rgba(212, 175, 55, 0.65);
-
+  color: var(--gold);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
 
 .hero h1 {
-
-  max-width: 900px;
-
-  margin: 22px 0 0;
-
-  font-size:
-
-    clamp(3.4rem, 6.6vw, 6.5rem);
-
-  line-height: 0.91;
-
-  letter-spacing: -0.065em;
-
+  max-width: 760px;
+  margin: 20px 0 0;
+  color: #fff;
+  font-size: clamp(3.2rem, 6vw, 5.8rem);
+  line-height: .94;
+  letter-spacing: -.055em;
 }
 
 .hero h1 span {
-
   display: block;
-
-  margin-top: 8px;
-
-  color: variables.$color-primary;
-
-}
-
-.hero__lead {
-
-  max-width: 760px;
-
-  margin: 31px 0 0;
-
-  color: #999;
-
-  font-size: 1rem;
-
-  line-height: 1.85;
-
-}
-
-/* =========================================================*
-   JOURNEY
-*========================================================= */
-
-.journey {
-
-  display: grid;
-
-  gap: 11px;
-
-  margin-top: 40px;
-
-  @include mixins.respond-to(md) {
-
-    grid-template-columns:
-
-      repeat(3, minmax(0, 1fr));
-
-  }
-
-}
-
-.journey__item {
-
-  display: flex;
-
-  gap: 14px;
-
-  min-height: 118px;
-
-  padding: 18px;
-
-  border: 1px solid #262626;
-
-  border-radius: 14px;
-
-  background:
-
-    rgba(255, 255, 255, 0.02);
-
-  transition:
-
-    transform 0.25s ease,
-
-    border-color 0.25s ease;
-
-}
-
-.journey__item:hover {
-
-  transform: translateY(-3px);
-
-  border-color:
-
-    rgba(212, 175, 55, 0.3);
-
-}
-
-.journey__item > span {
-
-  color: variables.$color-primary;
-
-  font-size: 0.63rem;
-
-  font-weight: 900;
-
-}
-
-.journey__item strong {
-
-  display: block;
-
-  margin-bottom: 6px;
-
-  font-size: 0.8rem;
-
-}
-
-.journey__item p {
-
-  margin: 0;
-
-  color: #6d6d6d;
-
-  font-size: 0.68rem;
-
-  line-height: 1.55;
-
-}
-
-/* =========================================================*
-   SCHEDULE CARD
-*========================================================= */
-
-.schedule-card {
-
-  overflow: hidden;
-
-  padding: 29px;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.27);
-
-  border-radius: 24px;
-
-  background:
-
-    linear-gradient(
-
-      145deg,
-
-      rgba(212, 175, 55, 0.075),
-
-      rgba(255, 255, 255, 0.018)
-
-    ),
-
-    #0d0d0d;
-
-  box-shadow:
-
-    0 40px 100px
-
-    rgba(0, 0, 0, 0.48);
-
-}
-
-.schedule-card__status {
-
-  display: flex;
-
-  gap: 9px;
-
-  align-items: center;
-
-  color: #777;
-
-  font-size: 0.56rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.16em;
-
-}
-
-.schedule-card__status > span {
-
-  width: 7px;
-
-  height: 7px;
-
-  border-radius: 50%;
-
-  background: variables.$color-primary;
-
-  box-shadow:
-
-    0 0 12px
-
-    rgba(212, 175, 55, 0.55);
-
-}
-
-.schedule-card__brand {
-
-  display: flex;
-
-  gap: 14px;
-
-  align-items: center;
-
-  margin-top: 28px;
-
-}
-
-.schedule-card__monogram {
-
-  display: grid;
-
-  width: 55px;
-
-  height: 55px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 15px;
-
-  color: #090909;
-
-  background: variables.$color-primary;
-
-  font-weight: 950;
-
-}
-
-.schedule-card__brand small,
-
-.schedule-card__brand strong {
-
-  display: block;
-
-}
-
-.schedule-card__brand small {
-
-  margin-bottom: 4px;
-
-  color: #6c6c6c;
-
-  font-size: 0.52rem;
-
-  letter-spacing: 0.14em;
-
-}
-
-.schedule-card__brand strong {
-
-  font-size: 1.05rem;
-
-}
-
-.schedule-card__divider {
-
-  height: 1px;
-
-  margin: 29px 0;
-
-  background: #292929;
-
-}
-
-.schedule-card__main small,
-
-.schedule-card__main strong,
-
-.schedule-card__main span {
-
-  display: block;
-
-}
-
-.schedule-card__main small {
-
-  margin-bottom: 7px;
-
-  color: variables.$color-primary;
-
-  font-size: 0.57rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.16em;
-
-}
-
-.schedule-card__main strong {
-
-  font-size: 3rem;
-
-  line-height: 1;
-
-}
-
-.schedule-card__main span {
-
-  margin-top: 8px;
-
-  color: #9c9c9c;
-
-}
-
-.schedule-card__location {
-
-  display: flex;
-
-  gap: 14px;
-
-  margin-top: 28px;
-
-  padding: 17px;
-
-  border: 1px solid #292929;
-
-  border-radius: 13px;
-
-  background:
-
-    rgba(0, 0, 0, 0.25);
-
-}
-
-.schedule-card__location-icon {
-
-  display: grid;
-
-  width: 38px;
-
-  height: 38px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color: variables.$color-primary;
-
-  background:
-
-    rgba(212, 175, 55, 0.08);
-
-}
-
-.schedule-card__location small,
-
-.schedule-card__location strong,
-
-.schedule-card__location span {
-
-  display: block;
-
-}
-
-.schedule-card__location small {
-
-  color: variables.$color-primary;
-
-  font-size: 0.53rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.13em;
-
-}
-
-.schedule-card__location strong {
-
-  margin: 4px 0;
-
-  font-size: 0.8rem;
-
-}
-
-.schedule-card__location span {
-
-  color: #737373;
-
-  font-size: 0.68rem;
-
-}
-
-.schedule-card__map {
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  margin-top: 13px;
-
-  padding: 13px 15px;
-
-  border: 1px solid #303030;
-
-  border-radius: 10px;
-
-  color: #ddd;
-
-  text-decoration: none;
-
-  font-size: 0.7rem;
-
-  font-weight: 800;
-
-  transition: 0.2s ease;
-
-}
-
-.schedule-card__map:hover {
-
-  color: variables.$color-primary;
-
-  border-color:
-
-    variables.$color-primary;
-
-}
-
-.schedule-card__footer {
-
-  display: flex;
-
-  gap: 10px;
-
-  margin-top: 17px;
-
-  padding-top: 17px;
-
-  border-top: 1px solid #292929;
-
-}
-
-.schedule-card__footer > span {
-
-  color: variables.$color-primary;
-
-}
-
-.schedule-card__footer p {
-
-  margin: 0;
-
-  color: #666;
-
-  font-size: 0.63rem;
-
-  line-height: 1.55;
-
-}
-
-/* =========================================================*
-   CONTENT
-*========================================================= */
-
-.content-section {
-
-  padding: 115px 24px 140px;
-
-  background:
-
-    linear-gradient(
-
-      180deg,
-
-      #080808,
-
-      #0a0a0a
-
-    );
-
-}
-
-.content-layout {
-
-  display: grid;
-
-  gap: 65px;
-
-  @include mixins.respond-to(lg) {
-
-    grid-template-columns:
-
-      minmax(270px, 0.43fr)
-
-      minmax(0, 1.57fr);
-
-    align-items: start;
-
-  }
-
-}
-
-/* =========================================================*
-   SIDEBAR
-*========================================================= */
-
-.form-sidebar {
-
-  @include mixins.respond-to(lg) {
-
-    position: sticky;
-
-    top: 125px;
-
-  }
-
-}
-
-.form-sidebar h2 {
-
-  margin: 18px 0 0;
-
-  font-size:
-
-    clamp(2.7rem, 4vw, 4.3rem);
-
-  line-height: 0.98;
-
-  letter-spacing: -0.045em;
-
-}
-
-.form-sidebar h2 span {
-
-  display: block;
-
-  color: variables.$color-primary;
-
-}
-
-.form-sidebar__lead {
-
-  margin-top: 24px;
-
-  color: #858585;
-
-  font-size: 0.88rem;
-
-  line-height: 1.75;
-
-}
-
-.notice-card {
-
-  display: flex;
-
-  gap: 14px;
-
-  margin-top: 28px;
-
-  padding: 17px;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.18);
-
-  border-radius: 13px;
-
-  background:
-
-    rgba(212, 175, 55, 0.035);
-
-}
-
-.notice-card__icon {
-
-  color: variables.$color-primary;
-
-  font-size: 1.05rem;
-
-}
-
-.notice-card strong {
-
-  display: block;
-
-  font-size: 0.76rem;
-
-}
-
-.notice-card p {
-
-  margin: 5px 0 0;
-
-  color: #777;
-
-  font-size: 0.67rem;
-
-  line-height: 1.55;
-
-}
-
-.academy-details {
-
-  display: grid;
-
-  grid-template-columns:
-
-    repeat(2, 1fr);
-
-  gap: 1px;
-
-  overflow: hidden;
-
-  margin-top: 18px;
-
-  border: 1px solid #242424;
-
-  border-radius: 12px;
-
-  background: #242424;
-
-}
-
-.academy-details > div {
-
-  padding: 14px;
-
-  background: #0e0e0e;
-
-}
-
-.academy-details small,
-
-.academy-details strong {
-
-  display: block;
-
-}
-
-.academy-details small {
-
-  margin-bottom: 5px;
-
-  color: #606060;
-
-  font-size: 0.5rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.12em;
-
-}
-
-.academy-details strong {
-
-  font-size: 0.68rem;
-
-}
-
-.sidebar-process {
-
-  margin-top: 20px;
-
-  padding: 18px;
-
-  border: 1px solid #242424;
-
-  border-radius: 12px;
-
-  background: #0d0d0d;
-
-}
-
-.sidebar-process > small {
-
-  display: block;
-
-  margin-bottom: 15px;
-
-  color: #5d5d5d;
-
-  font-size: 0.5rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.14em;
-
-}
-
-.sidebar-process__step {
-
-  display: flex;
-
-  gap: 10px;
-
-  align-items: center;
-
-}
-
-.sidebar-process__step + .sidebar-process__step {
-
-  margin-top: 11px;
-
-}
-
-.sidebar-process__step > span {
-
-  display: grid;
-
-  width: 22px;
-
-  height: 22px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.25);
-
-  border-radius: 50%;
-
-  color: variables.$color-primary;
-
-  font-size: 0.5rem;
-
-  font-weight: 900;
-
-}
-
-.sidebar-process__step p {
-
-  margin: 0;
-
-  color: #777;
-
-  font-size: 0.65rem;
-
-}
-
-/* =========================================================*
-   FORM
-*========================================================= */
-
-.inscription-form {
-
-  overflow: hidden;
-
-  border: 1px solid #282828;
-
-  border-radius: 24px;
-
-  background: #101010;
-
-  box-shadow:
-
-    0 40px 100px
-
-    rgba(0, 0, 0, 0.35);
-
-}
-
-.form-progress {
-
-  display: grid;
-
-  grid-template-columns:
-
-    repeat(4, 1fr);
-
-  gap: 1px;
-
-  border-bottom: 1px solid #252525;
-
-  background: #252525;
-
-}
-
-.form-progress__item {
-
-  display: flex;
-
-  gap: 9px;
-
-  align-items: center;
-
-  padding: 14px 18px;
-
-  background: #0c0c0c;
-
-}
-
-.form-progress__item > span {
-
-  color: variables.$color-primary;
-
-  font-size: 0.56rem;
-
-  font-weight: 900;
-
-}
-
-.form-progress__item small {
-
-  color: #676767;
-
-  font-size: 0.57rem;
-
-  font-weight: 800;
-
-  letter-spacing: 0.05em;
-
-}
-
-.form-section {
-
-  padding: 38px;
-
-  border-bottom: 1px solid #262626;
-
-}
-
-.form-section--final {
-
-  border-bottom: 0;
-
-}
-
-.form-section__header {
-
-  display: flex;
-
-  gap: 17px;
-
-  margin-bottom: 29px;
-
-}
-
-.form-section__number {
-
-  display: grid;
-
-  width: 36px;
-
-  height: 36px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.3);
-
-  border-radius: 50%;
-
-  color: variables.$color-primary;
-
-  font-size: 0.6rem;
-
-  font-weight: 900;
-
-}
-
-.form-section__header h3 {
-
-  margin: 0 0 5px;
-
-  font-size: 1.13rem;
-
-}
-
-.form-section__header p {
-
-  margin: 0;
-
-  color: #747474;
-
-  font-size: 0.74rem;
-
-}
-
-/* =========================================================*
-   FIELDS
-*========================================================= */
-
-.form-grid {
-
-  display: grid;
-
-  gap: 20px;
-
-  @include mixins.respond-to(md) {
-
-    grid-template-columns:
-
-      repeat(2, minmax(0, 1fr));
-
-  }
-
-}
-
-.field {
-
-  position: relative;
-
-  display: grid;
-
-  gap: 9px;
-
-}
-
-.field--full {
-
-  grid-column: 1 / -1;
-
-}
-
-.field > span {
-
-  color: #cacaca;
-
-  font-size: 0.71rem;
-
-  font-weight: 700;
-
-}
-
-.field > span b {
-
-  color: variables.$color-primary;
-
-  font-weight: 900;
-
-}
-
-.field input,
-
-.field select,
-
-.field textarea {
-
-  width: 100%;
-
-  padding: 15px 16px;
-
-  border: 1px solid #323232;
-
-  border-radius: 10px;
-
-  outline: 0;
-
-  color: #f2f2f2;
-
-  background: #090909;
-
-  font: inherit;
-
-  transition:
-
-    border-color 0.2s ease,
-
-    box-shadow 0.2s ease,
-
-    background 0.2s ease;
-
-}
-
-.field input::placeholder,
-
-.field textarea::placeholder {
-
-  color: #505050;
-
-}
-
-.field textarea {
-
-  min-height: 120px;
-
-  resize: vertical;
-
-}
-
-.field select {
-
-  cursor: pointer;
-
-}
-
-.field input:focus,
-
-.field select:focus,
-
-.field textarea:focus {
-
-  border-color:
-
-    variables.$color-primary;
-
-  background: #0b0b0b;
-
-  box-shadow:
-
-    0 0 0 3px
-
-    rgba(212, 175, 55, 0.07);
-
-}
-
-.field input.invalid,
-
-.field select.invalid,
-
-.field textarea.invalid {
-
-  border-color:
-
-    rgba(230, 85, 85, 0.75);
-
-}
-
-.field__bottom {
-
-  display: flex;
-
-  gap: 10px;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-}
-
-.field__counter {
-
-  margin-left: auto;
-
-  color: #555;
-
-  font-size: 0.58rem;
-
-}
-
-.field__error {
-
-  color: #e88888;
-
-  font-size: 0.61rem;
-
-  line-height: 1.4;
-
-}
-
-/* =========================================================*
-   GUARDIAN
-*========================================================= */
-
-.guardian-card {
-
-  margin-top: 25px;
-
-  padding: 22px;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.22);
-
-  border-radius: 14px;
-
-  background:
-
-    rgba(212, 175, 55, 0.025);
-
-}
-
-.guardian-card__header {
-
-  display: flex;
-
-  gap: 20px;
-
-  align-items: flex-start;
-
-  justify-content: space-between;
-
-  margin-bottom: 20px;
-
-}
-
-.guardian-card__header > div > span,
-
-.guardian-card__header > div > small {
-
-  display: block;
-
-}
-
-.guardian-card__header > div > span {
-
-  color: variables.$color-primary;
-
-  font-size: 0.76rem;
-
-  font-weight: 800;
-
-}
-
-.guardian-card__header > div > small {
-
-  margin-top: 4px;
-
-  color: #737373;
-
-  font-size: 0.65rem;
-
-}
-
-.guardian-card__badge {
-
-  padding: 6px 9px;
-
-  border-radius: 999px;
-
-  color: variables.$color-primary;
-
-  background:
-
-    rgba(212, 175, 55, 0.08);
-
-  font-size: 0.48rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.1em;
-
-}
-
-/* =========================================================*
-   CLASS INFO
-*========================================================= */
-
-.class-information {
-
-  display: grid;
-
-  grid-template-columns:
-
-    repeat(2, minmax(0, 1fr));
-
-  gap: 11px;
-
-  margin-bottom: 25px;
-
-}
-
-.class-information article {
-
-  display: flex;
-
-  gap: 13px;
-
-  align-items: center;
-
-  min-height: 86px;
-
-  padding: 16px;
-
-  border: 1px solid #2d2d2d;
-
-  border-radius: 13px;
-
-  background:
-
-    linear-gradient(
-
-      135deg,
-
-      rgba(212, 175, 55, 0.035),
-
-      rgba(255, 255, 255, 0.012)
-
-    );
-
-}
-
-.class-information__icon {
-
-  display: grid;
-
-  width: 39px;
-
-  height: 39px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.3);
-
-  border-radius: 50%;
-
-  color: variables.$color-primary;
-
-  font-size: 0.59rem;
-
-  font-weight: 900;
-
-}
-
-.class-information small,
-
-.class-information strong {
-
-  display: block;
-
-}
-
-.class-information small {
-
-  margin-bottom: 4px;
-
-  color: variables.$color-primary;
-
-  font-size: 0.5rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.12em;
-
-}
-
-.class-information strong {
-
-  font-size: 0.75rem;
-
-  line-height: 1.4;
-
-}
-
-.availability-notice {
-
-  display: flex;
-
-  gap: 11px;
-
-  padding: 14px;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.17);
-
-  border-radius: 10px;
-
-  background:
-
-    rgba(212, 175, 55, 0.025);
-
-}
-
-.availability-notice > span {
-
-  display: grid;
-
-  width: 24px;
-
-  height: 24px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color: #090909;
-
-  background: variables.$color-primary;
-
-  font-size: 0.6rem;
-
-  font-weight: 900;
-
-}
-
-.availability-notice p {
-
-  margin: 2px 0 0;
-
-  color: #818181;
-
-  font-size: 0.66rem;
-
-  line-height: 1.55;
-
-}
-
-/* =========================================================*
-   SUMMARY
-*========================================================= */
-
-.request-summary {
-
-  display: grid;
-
-  grid-template-columns:
-
-    repeat(2, minmax(0, 1fr));
-
-  gap: 1px;
-
-  overflow: hidden;
-
-  margin-bottom: 24px;
-
-  border: 1px solid #292929;
-
-  border-radius: 12px;
-
-  background: #292929;
-
-}
-
-.request-summary > div {
-
-  padding: 15px;
-
-  background: #0c0c0c;
-
-}
-
-.request-summary small,
-
-.request-summary strong {
-
-  display: block;
-
-}
-
-.request-summary small {
-
-  margin-bottom: 5px;
-
-  color: #5d5d5d;
-
-  font-size: 0.49rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.12em;
-
-}
-
-.request-summary strong {
-
-  color: #ccc;
-
-  font-size: 0.69rem;
-
-}
-
-/* =========================================================*
-   CONSENT
-*========================================================= */
-
-.website-field {
-
-  position: absolute !important;
-
-  width: 1px !important;
-
-  height: 1px !important;
-
-  overflow: hidden !important;
-
-  clip: rect(0, 0, 0, 0) !important;
-
-  white-space: nowrap !important;
-
-}
-
-.consent {
-
-  display: flex;
-
-  gap: 12px;
-
-  align-items: flex-start;
-
-  padding: 14px;
-
-  border: 1px solid transparent;
-
-  border-radius: 10px;
-
-  color: #7d7d7d;
-
-  font-size: 0.68rem;
-
-  line-height: 1.6;
-
-  cursor: pointer;
-
-}
-
-.consent--invalid {
-
-  border-color:
-
-    rgba(220, 70, 70, 0.24);
-
-  background:
-
-    rgba(220, 70, 70, 0.025);
-
-}
-
-.consent input {
-
-  flex: 0 0 auto;
-
-  margin-top: 4px;
-
-  accent-color:
-
-    variables.$color-primary;
-
-}
-
-.consent-error {
-
-  display: block;
-
-  margin:
-
-    5px 0
-
-    0 14px;
-
-  color: #e88888;
-
-  font-size: 0.6rem;
-
-}
-
-/* =========================================================*
-   FEEDBACK
-*========================================================= */
-
-.form-feedback {
-
-  display: flex;
-
-  gap: 12px;
-
-  margin-top: 20px;
-
-  padding: 15px;
-
-  border-radius: 11px;
-
-}
-
-.form-feedback > span {
-
-  display: grid;
-
-  width: 28px;
-
-  height: 28px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  font-size: 0.65rem;
-
-  font-weight: 900;
-
-}
-
-.form-feedback strong,
-
-.form-feedback p {
-
-  display: block;
-
-  margin: 0;
-
-}
-
-.form-feedback strong {
-
-  font-size: 0.72rem;
-
-}
-
-.form-feedback p {
-
-  margin-top: 4px;
-
-  font-size: 0.66rem;
-
-  line-height: 1.5;
-
-}
-
-.form-feedback--error {
-
-  border:
-
-    1px solid
-
-    rgba(220, 70, 70, 0.25);
-
-  color: #e98c8c;
-
-  background:
-
-    rgba(220, 70, 70, 0.05);
-
-}
-
-.form-feedback--error > span {
-
-  color: #190707;
-
-  background: #e98c8c;
-
-}
-
-/* =========================================================*
-   SUBMIT
-*========================================================= */
-
-.submit-button {
-
-  display: flex;
-
-  gap: 12px;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  width: 100%;
-
-  min-height: 54px;
-
-  margin-top: 24px;
-
-  padding: 15px 19px;
-
-  border: 0;
-
-  border-radius: 11px;
-
-  color: #090909;
-
-  background: variables.$color-primary;
-
-  font: inherit;
-
-  font-size: 0.8rem;
-
-  font-weight: 900;
-
-  cursor: pointer;
-
-  transition:
-
-    transform 0.2s ease,
-
-    box-shadow 0.2s ease,
-
-    opacity 0.2s ease;
-
-}
-
-.submit-button:not(:disabled):hover {
-
-  transform: translateY(-2px);
-
-  box-shadow:
-
-    0 18px 40px
-
-    rgba(212, 175, 55, 0.17);
-
-}
-
-.submit-button:disabled {
-
-  opacity: 0.65;
-
-  cursor: wait;
-
-}
-
-.submit-button__arrow {
-
-  font-size: 1.1rem;
-
-}
-
-.submit-spinner {
-
-  width: 15px;
-
-  height: 15px;
-
-  border:
-
-    2px solid
-
-    rgba(0, 0, 0, 0.22);
-
-  border-top-color: #090909;
-
-  border-radius: 50%;
-
-  animation:
-
-    spin 0.65s linear infinite;
-
-}
-
-.form-security {
-
-  display: flex;
-
-  gap: 8px;
-
-  align-items: flex-start;
-
-  justify-content: center;
-
-  max-width: 530px;
-
-  margin: 13px auto 0;
-
-  color: #555;
-
-  text-align: center;
-
-}
-
-.form-security > span {
-
-  color: #69816f;
-
-  font-size: 0.43rem;
-
-  margin-top: 5px;
-
-}
-
-.form-security p {
-
-  margin: 0;
-
-  font-size: 0.58rem;
-
-  line-height: 1.45;
-
-}
-
-/* =========================================================*
-   SUCCESS
-*========================================================= */
-
-.success-card {
-
-  padding:
-
-    55px
-
-    clamp(25px, 5vw, 60px);
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.25);
-
-  border-radius: 24px;
-
-  background:
-
-    radial-gradient(
-
-      circle at top right,
-
-      rgba(212, 175, 55, 0.07),
-
-      transparent 40%
-
-    ),
-
-    #101010;
-
-  box-shadow:
-
-    0 40px 100px
-
-    rgba(0, 0, 0, 0.35);
-
-}
-
-.success-card__icon {
-
-  display: grid;
-
-  width: 62px;
-
-  height: 62px;
-
-  margin-bottom: 28px;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color: #090909;
-
-  background: variables.$color-primary;
-
-  font-size: 1.3rem;
-
-  font-weight: 900;
-
-  box-shadow:
-
-    0 0 35px
-
-    rgba(212, 175, 55, 0.16);
-
-}
-
-.success-card h2 {
-
-  max-width: 650px;
-
-  margin: 17px 0 0;
-
-  font-size:
-
-    clamp(2.4rem, 5vw, 4rem);
-
-  line-height: 1;
-
-  letter-spacing: -0.045em;
-
-}
-
-.success-card h2 span {
-
-  display: block;
-
-  color: variables.$color-primary;
-
-}
-
-.success-card > p {
-
-  max-width: 650px;
-
-  margin: 22px 0 0;
-
-  color: #8c8c8c;
-
-  font-size: 0.86rem;
-
-  line-height: 1.75;
-
-}
-
-.success-card__timeline {
-
-  display: grid;
-
-  gap: 1px;
-
-  overflow: hidden;
-
-  margin-top: 30px;
-
-  border: 1px solid #282828;
-
-  border-radius: 13px;
-
-  background: #282828;
-
-}
-
-.success-card__timeline > div {
-
-  display: flex;
-
-  gap: 13px;
-
-  align-items: center;
-
-  padding: 16px;
-
-  background: #0c0c0c;
-
-}
-
-.success-card__timeline > div > span {
-
-  display: grid;
-
-  width: 29px;
-
-  height: 29px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.28);
-
-  border-radius: 50%;
-
-  color: variables.$color-primary;
-
-  font-size: 0.57rem;
-
-  font-weight: 900;
-
-}
-
-.success-card__timeline strong,
-
-.success-card__timeline small {
-
-  display: block;
-
-}
-
-.success-card__timeline strong {
-
-  font-size: 0.72rem;
-
-}
-
-.success-card__timeline small {
-
-  margin-top: 3px;
-
-  color: #5e5e5e;
-
-  font-size: 0.58rem;
-
-}
-
-.success-card__notice {
-
-  display: flex;
-
-  gap: 11px;
-
-  margin-top: 21px;
-
-  padding: 14px;
-
-  border:
-
-    1px solid
-
-    rgba(212, 175, 55, 0.16);
-
-  border-radius: 10px;
-
-  background:
-
-    rgba(212, 175, 55, 0.025);
-
-}
-
-.success-card__notice > span {
-
-  display: grid;
-
-  width: 24px;
-
-  height: 24px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color: #090909;
-
-  background: variables.$color-primary;
-
-  font-size: 0.6rem;
-
-  font-weight: 900;
-
-}
-
-.success-card__notice p {
-
-  margin: 2px 0 0;
-
-  color: #777;
-
-  font-size: 0.64rem;
-
-  line-height: 1.55;
-
-}
-
-.secondary-action {
-
-  margin-top: 24px;
-
-  padding: 12px 16px;
-
-  border: 1px solid #373737;
-
-  border-radius: 9px;
-
-  color: #bbb;
-
-  background: transparent;
-
-  font: inherit;
-
-  font-size: 0.68rem;
-
-  font-weight: 800;
-
-  cursor: pointer;
-
-}
-
-.secondary-action:hover {
-
-  color: variables.$color-primary;
-
-  border-color:
-
-    variables.$color-primary;
-
-}
-
-/* =========================================================*
-   TRANSITIONS
-*========================================================= */
-
-.expand-enter-active,
-
-.expand-leave-active {
-
-  transition:
-
-    opacity 0.2s ease,
-
-    transform 0.2s ease;
-
-}
-
-.expand-enter-from,
-
-.expand-leave-to {
-
-  opacity: 0;
-
-  transform: translateY(-6px);
-
-}
-
-.success-enter-active {
-
-  transition:
-
-    opacity 0.35s ease,
-
-    transform 0.35s ease;
-
-}
-
-.success-enter-from {
-
-  opacity: 0;
-
-  transform: translateY(15px);
-
-}
-
-@keyframes spin {
-
-  to {
-
-    transform: rotate(360deg);
-
-  }
-
-}
-
-/* =========================================================*
-   RESPONSIVE
-*========================================================= */
-
-@media (max-width: 900px) {
-
-  .hero {
-
-    padding:
-
-      145px 20px
-
-      90px;
-
-  }
-
-  .content-section {
-
-    padding:
-
-      90px 20px
-
-      110px;
-
-  }
-
-}
-
-@media (max-width: 700px) {
-
-  .hero h1 {
-
-    font-size:
-
-      clamp(
-
-        3rem,
-
-        13vw,
-
-        4.8rem
-
-      );
-
-  }
-
-  .form-progress {
-
-    grid-template-columns:
-
-      repeat(2, 1fr);
-
-  }
-
-  .class-information {
-
-    grid-template-columns: 1fr;
-
-  }
-
-  .request-summary {
-
-    grid-template-columns: 1fr;
-
-  }
-
-  .form-section {
-
-    padding: 28px 22px;
-
-  }
-
-}
-
-@media (max-width: 520px) {
-
-  .hero {
-
-    padding:
-
-      130px 17px
-
-      75px;
-
-  }
-
-  .content-section {
-
-    padding:
-
-      75px 17px
-
-      90px;
-
-  }
-
-  .schedule-card {
-
-    padding: 22px;
-
-  }
-
-  .schedule-card__main strong {
-
-    font-size: 2.4rem;
-
-  }
-
-  .academy-details {
-
-    grid-template-columns: 1fr;
-
-  }
-
-  .guardian-card {
-
-    padding: 17px;
-
-  }
-
-  .guardian-card__header {
-
-    flex-direction: column;
-
-  }
-
-  .form-progress__item {
-
-    padding: 12px;
-
-  }
-
-  .success-card {
-
-    padding: 35px 22px;
-
-  }
-
-}
-
-
-
-/* =========================================================
-   AMV PUBLIC MAX · 2026
-   Diseño institucional light-first + marketing + accesibilidad
-========================================================= */
-
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page) {
-  --amv-bg: #f4f6f9;
-  --amv-surface: #ffffff;
-  --amv-soft: #f8fafc;
-  --amv-ink: #152033;
-  --amv-copy: #344359;
-  --amv-muted: #6f7c8f;
-  --amv-line: #dbe3ec;
-  --amv-line-strong: #c8d4e1;
-  --amv-wine: #9f1945;
-  --amv-wine-dark: #771333;
-  --amv-wine-soft: #fff1f5;
-  --amv-gold: #d5a720;
-  --amv-gold-dark: #916b00;
-  --amv-gold-soft: #fff8e8;
-  --amv-green: #2d8f66;
-  --amv-shadow: 0 12px 30px rgba(31,48,73,.055);
-
-  min-height: 100vh !important;
-  overflow: clip !important;
-  color: var(--amv-ink) !important;
-  background: var(--amv-bg) !important;
-}
-
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  :is(a,button,input,select,textarea) {
-  -webkit-tap-highlight-color: transparent;
-}
-
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  :focus-visible {
-  outline: 3px solid rgba(159,25,69,.28) !important;
-  outline-offset: 3px !important;
-}
-
-/* HERO: cinematic, pero no toda la web negra */
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > :is(.hero,.academy-hero) {
-  color: #fff !important;
-  background:
-    radial-gradient(circle at 82% 20%, rgba(159,25,69,.18), transparent 28%),
-    linear-gradient(135deg,#101a2d,#18263e) !important;
-}
-
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > :is(.hero,.academy-hero) :is(h1,h2,h3,strong) {
-  color: #fff;
-}
-
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > :is(.hero,.academy-hero) :is(em,h1 span) {
   color: #f0c748;
 }
 
-/* Navegación contextual — 3 clics / orientación */
-.public-jump-nav {
-  position: sticky;
-  z-index: 70;
-  top: 76px;
-  display: flex;
-  min-height: 58px;
-  gap: 4px;
-  align-items: center;
-  width: min(1180px,calc(100% - 32px));
-  margin: -1px auto 0;
-  padding: 7px 9px;
-  overflow-x: auto;
-  border: 1px solid var(--amv-line);
-  border-radius: 0 0 15px 15px;
-  background: rgba(255,255,255,.96);
-  box-shadow: 0 12px 26px rgba(31,48,73,.07);
-  backdrop-filter: blur(12px);
-  scrollbar-width: none;
+.hero__copy > p {
+  max-width: 650px;
+  margin: 25px 0 0;
+  color: rgba(255,255,255,.78);
+  font-size: 1.08rem;
+  line-height: 1.7;
 }
 
-.public-jump-nav::-webkit-scrollbar { display: none; }
-
-.public-jump-nav > span {
-  flex: 0 0 auto;
-  padding: 0 9px;
-  color: var(--amv-gold-dark);
-  font-size: .52rem;
-  font-weight: 900;
-  letter-spacing: .12em;
-}
-
-.public-jump-nav a {
+.hero__cta {
   display: inline-flex;
-  min-height: 42px;
-  flex: 0 0 auto;
+  min-height: 58px;
+  gap: 22px;
   align-items: center;
-  padding: 0 12px;
-  border-radius: 9px;
-  color: #56657a;
-  font-size: .68rem;
+  justify-content: center;
+  margin-top: 30px;
+  padding: 0 25px;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--wine);
+  box-shadow: 0 14px 30px rgba(159,25,69,.25);
+  font-size: 1rem;
   font-weight: 850;
   text-decoration: none;
+  transition: transform .2s ease, background .2s ease;
 }
 
-.public-jump-nav a:hover {
-  color: var(--amv-wine);
-  background: var(--amv-wine-soft);
+.hero__cta:hover {
+  transform: translateY(-2px);
+  background: var(--wine-dark);
 }
 
-.public-jump-nav a:last-child {
-  margin-left: auto;
+.hero__schedule {
+  padding: 28px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 22px;
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 28px 70px rgba(0,0,0,.2);
+  backdrop-filter: blur(16px);
+}
+
+.hero__schedule-label {
+  display: block;
+  color: #f0c748;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.hero__schedule strong {
+  display: block;
+  margin-top: 17px;
   color: #fff;
-  background: var(--amv-wine);
+  font-size: 2.4rem;
 }
 
-/* Todas las secciones editoriales pasan a superficies claras */
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero):not(.academy-cta):not(.cta):not(.final-cta) {
-  color: var(--amv-ink) !important;
-  background: var(--amv-surface) !important;
+.hero__schedule p {
+  margin: 5px 0 0;
+  color: rgba(255,255,255,.82);
+  font-size: 1.05rem;
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:nth-of-type(odd):not(.hero):not(.academy-hero):not(.academy-cta):not(.cta):not(.final-cta) {
-  background:
-    linear-gradient(180deg,#f8fafc,#f3f6f9) !important;
+.hero__schedule div {
+  height: 1px;
+  margin: 22px 0;
+  background: rgba(255,255,255,.14);
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero)
-  :is(h2,h3,h4,strong) {
-  color: var(--amv-ink);
+.hero__schedule small {
+  display: block;
+  margin-top: 5px;
+  color: rgba(255,255,255,.72);
+  font-size: .86rem;
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero)
-  :is(p,li) {
-  color: var(--amv-muted);
+.form-area {
+  scroll-margin-top: 100px;
+  padding: 80px 0 92px;
+  background: var(--canvas);
 }
 
-/* Cards heredadas: mismo lenguaje */
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero)
-  [class*="card"]:not([class*="cta"]) {
-  border-color: var(--amv-line) !important;
-  background: #fff !important;
-  color: var(--amv-ink) !important;
-  box-shadow: var(--amv-shadow) !important;
+.form-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, .65fr) minmax(0, 1.35fr);
+  gap: 56px;
+  align-items: start;
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero)
-  [class*="card"]:not([class*="cta"]) :is(h2,h3,h4,strong) {
-  color: var(--amv-ink) !important;
+.form-intro {
+  position: sticky;
+  top: 110px;
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero)
-  [class*="card"]:not([class*="cta"]) :is(p,small) {
-  color: var(--amv-muted) !important;
+.form-intro h2,
+.information-section h2,
+.success-card h2,
+.simple-form__header h2 {
+  color: var(--navy);
 }
 
-/* Eyebrows y acentos */
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero)
-  [class*="eyebrow"] {
-  color: var(--amv-gold-dark) !important;
+.form-intro h2 {
+  margin: 14px 0 0;
+  font-size: clamp(2.4rem, 4vw, 3.7rem);
+  line-height: 1;
+  letter-spacing: -.04em;
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > section:not(.hero):not(.academy-hero)
-  :is(h1,h2,h3) em {
-  color: var(--amv-wine) !important;
+.form-intro > p {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
-/* CTAs finales */
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > :is(.academy-cta,.cta,.final-cta) {
-  color: #fff !important;
-  background:
-    radial-gradient(circle at 85% 10%, rgba(159,25,69,.2), transparent 30%),
-    linear-gradient(135deg,#101a2d,#1b2941) !important;
+.help-card,
+.contact-note {
+  margin-top: 24px;
+  padding: 19px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > :is(.academy-cta,.cta,.final-cta) :is(h2,h3,strong) {
-  color: #fff !important;
+.help-card {
+  display: flex;
+  gap: 13px;
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  > :is(.academy-cta,.cta,.final-cta) p {
-  color: rgba(255,255,255,.68) !important;
+.help-card__icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #2d8a63;
+  font-weight: 900;
 }
 
-/* Forms */
-.inscription-page :is(input,select,textarea),
-.contact-page :is(input,select,textarea) {
-  min-height: 48px !important;
-  border: 1px solid var(--amv-line-strong) !important;
-  border-radius: 11px !important;
-  color: var(--amv-ink) !important;
-  background: #fff !important;
+.help-card strong,
+.contact-note strong {
+  color: var(--navy);
+  font-size: .94rem;
 }
 
-.inscription-page textarea,
-.contact-page textarea {
-  min-height: 130px !important;
+.help-card p,
+.contact-note p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.55;
 }
 
-.inscription-page :is(input,select,textarea):focus,
-.contact-page :is(input,select,textarea):focus {
-  border-color: var(--amv-wine) !important;
-  box-shadow: 0 0 0 4px rgba(159,25,69,.08) !important;
+.contact-note {
+  border-color: #eadfae;
+  background: #fffaf0;
 }
 
-/* Buttons */
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  :is(.button,.academy-button,[class*="button--primary"]) {
-  min-height: 46px;
+.simple-form,
+.success-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(31,48,73,.08);
 }
 
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-  :is(.button--primary,.academy-button--primary,.cta__button) {
-  border-color: var(--amv-wine) !important;
-  color: #fff !important;
-  background: var(--amv-wine) !important;
+.simple-form {
+  padding: 34px;
 }
 
-/* Mejora lectura en desktop */
-:where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
+.simple-form__header {
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--line);
+}
+
+.simple-form__header > span {
+  color: var(--wine);
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.simple-form__header h2 {
+  margin: 8px 0 0;
+  font-size: 2rem;
+  letter-spacing: -.03em;
+}
+
+.simple-form__header p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.field--full {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: block;
+}
+
+.field > span {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--navy);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.field b {
+  color: var(--wine);
+}
+
+.field input {
+  width: 100%;
+  min-height: 58px;
+  padding: 0 16px;
+  border: 1.5px solid #cfd9e5;
+  border-radius: 11px;
+  outline: none;
+  color: var(--navy);
+  background: #fff;
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.field input::placeholder {
+  color: #98a2b3;
+}
+
+.field input:focus {
+  border-color: var(--wine);
+  box-shadow: 0 0 0 4px rgba(159,25,69,.10);
+}
+
+.field input.invalid {
+  border-color: #be4856;
+  background: #fffafb;
+}
+
+.field__hint,
+.field__error {
+  display: block;
+  margin-top: 7px;
+  line-height: 1.45;
+}
+
+.field__hint {
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.field__error,
+.consent-error {
+  color: #a82f3d;
+  font-size: .82rem;
+  font-weight: 750;
+}
+
+.guardian-box {
+  margin-top: 26px;
+  padding: 22px;
+  border: 1px solid #eadfae;
+  border-radius: 16px;
+  background: #fffaf0;
+}
+
+.guardian-box__heading {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.guardian-box__heading strong {
+  color: var(--navy);
+  font-size: 1rem;
+}
+
+.guardian-box__heading p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+.guardian-box__heading > span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #7b5b00;
+  background: #fff1b8;
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.guardian-box .fields {
+  margin-top: 20px;
+}
+
+.consent {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  margin-top: 28px;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--soft);
+  cursor: pointer;
+}
+
+.consent input {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  margin: 1px 0 0;
+  accent-color: var(--wine);
+}
+
+.consent span {
+  color: var(--text);
+  font-size: .91rem;
+  line-height: 1.55;
+}
+
+.consent--invalid {
+  border-color: #be4856;
+  background: #fff6f7;
+}
+
+.consent-error {
+  display: block;
+  margin-top: 7px;
+}
+
+.website-field {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.form-error {
+  display: flex;
+  gap: 13px;
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #efc5ca;
+  border-radius: 12px;
+  background: #fff5f6;
+}
+
+.form-error > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #be4856;
+  font-weight: 900;
+}
+
+.form-error strong {
+  color: #8f2532;
+}
+
+.form-error p {
+  margin: 4px 0 0;
+  color: #8f4750;
+  font-size: .87rem;
+}
+
+.submit-button {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--wine);
+  box-shadow: 0 12px 26px rgba(159,25,69,.20);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: var(--wine-dark);
+}
+
+.submit-button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.spinner {
+  width: 19px;
+  height: 19px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+.privacy-note {
+  margin: 13px 0 0;
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.success-card {
+  padding: 42px;
+  text-align: center;
+}
+
+.success-card__check {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  color: #fff;
+  background: #2d8a63;
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+
+.success-card .section-label {
+  text-align: center;
+}
+
+.success-card h2 {
+  margin: 10px 0 0;
+  font-size: 2.2rem;
+}
+
+.success-card > p {
+  max-width: 580px;
+  margin: 15px auto 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.success-card__steps {
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
+  text-align: left;
+}
+
+.success-card__steps > div {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.success-card__steps > div > span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--wine);
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.success-card__steps p {
+  margin: 0;
+}
+
+.success-card__steps strong,
+.success-card__steps small {
+  display: block;
+}
+
+.success-card__steps strong {
+  color: var(--navy);
+}
+
+.success-card__steps small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.secondary-button {
+  min-height: 50px;
+  margin-top: 25px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--wine);
+  background: #fff;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.information-section {
+  padding: 90px 0 100px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.information-section__header {
+  max-width: 720px;
+}
+
+.information-section__header h2 {
+  margin: 12px 0 0;
+  font-size: clamp(2.3rem, 4vw, 3.7rem);
+  line-height: 1.05;
+  letter-spacing: -.04em;
+}
+
+.information-section__header p {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 38px;
+}
+
+.info-grid article {
+  min-height: 190px;
+  padding: 23px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--soft);
+}
+
+.info-grid article > span {
+  color: var(--gold);
+  font-size: .7rem;
+  font-weight: 900;
+}
+
+.info-grid h3 {
+  margin: 22px 0 0;
+  color: var(--navy);
+  font-size: 1.08rem;
+}
+
+.info-grid p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.info-grid strong {
+  color: var(--navy);
+}
+
+.after-send {
+  display: flex;
+  align-items: center;
+  margin-top: 28px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.after-send > div:not(.after-send__line) {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  gap: 12px;
+  align-items: center;
+}
+
+.after-send > div > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--wine);
+  font-size: .76rem;
+  font-weight: 900;
+}
+
+.after-send p {
+  margin: 0;
+}
+
+.after-send strong,
+.after-send small {
+  display: block;
+}
+
+.after-send strong {
+  color: var(--navy);
+  font-size: .88rem;
+}
+
+.after-send small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .76rem;
+}
+
+.after-send__line {
+  width: 45px;
+  height: 1px;
+  flex: 0 0 auto !important;
+  margin: 0 15px;
+  background: var(--line);
+}
+
+:where(a, button, input):focus-visible {
+  outline: 3px solid rgba(159,25,69,.28);
+  outline-offset: 3px;
+}
+
+.success-enter-active,
+.success-leave-active,
+.expand-enter-active,
+.expand-leave-active {
+  transition: all .25s ease;
+}
+
+.success-enter-from,
+.success-leave-to,
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding: 125px 0 60px;
+  }
+
+  .hero__layout,
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__layout {
+    gap: 34px;
+  }
+
+  .form-layout {
+    gap: 30px;
+  }
+
+  .form-intro {
+    position: static;
+  }
+
+  .info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
   .container {
-  width: min(1180px,100%) !important;
-}
-
-/* Scroll target */
-:where(
-  #formacion-academia,#metodo-academia,#experiencia-academia,#comunidad-academia,
-  #canales-contacto,#ubicacion-contacto,#cierre-contacto,
-  #historia-galeria,#explorar-galeria,#proceso-galeria,#cierre-galeria,
-  #solicitud-inscripcion,#concepto-musicales,#formato-musicales,#producciones,
-  #proceso-musicales,#programa,#pilares-formacion,#recorrido-formacion,#faq-formacion
-) {
-  scroll-margin-top: 150px;
-}
-
-@media (max-width: 760px) {
-  .public-jump-nav {
-    top: 66px;
-    width: calc(100% - 20px);
-    min-height: 54px;
-    padding-inline: 6px;
+    width: min(100% - 24px, 1120px);
   }
 
-  .public-jump-nav > span {
+  .hero {
+    padding: 105px 0 38px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.75rem, 14vw, 4rem);
+  }
+
+  .hero__copy > p {
+    font-size: 1rem;
+  }
+
+  .hero__cta {
+    width: 100%;
+    min-height: 62px;
+    font-size: 1.05rem;
+  }
+
+  .hero__schedule {
+    padding: 21px;
+  }
+
+  .hero__schedule strong {
+    font-size: 2rem;
+  }
+
+  .form-area {
+    padding: 44px 0 60px;
+  }
+
+  .form-intro h2 {
+    font-size: 2.35rem;
+  }
+
+  .simple-form,
+  .success-card {
+    border-radius: 17px;
+  }
+
+  .simple-form {
+    padding: 22px 17px;
+  }
+
+  .simple-form__header h2 {
+    font-size: 1.7rem;
+  }
+
+  .fields {
+    grid-template-columns: 1fr;
+    gap: 19px;
+  }
+
+  .field--full {
+    grid-column: auto;
+  }
+
+  .field > span {
+    font-size: 1.04rem;
+  }
+
+  .field input {
+    min-height: 62px;
+    font-size: 16px;
+  }
+
+  .consent {
+    padding: 15px;
+  }
+
+  .consent span {
+    font-size: .94rem;
+  }
+
+  .submit-button {
+    min-height: 66px;
+    font-size: 1.08rem;
+  }
+
+  .success-card {
+    padding: 30px 19px;
+  }
+
+  .information-section {
+    padding: 60px 0 70px;
+  }
+
+  .information-section__header h2 {
+    font-size: 2.25rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-grid article {
+    min-height: auto;
+  }
+
+  .after-send {
+    display: grid;
+    gap: 12px;
+  }
+
+  .after-send__line {
     display: none;
-  }
-
-  .public-jump-nav a {
-    min-height: 44px;
-    font-size: .7rem;
-  }
-
-  .public-jump-nav a:last-child {
-    margin-left: 0;
-  }
-
-  :where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page)
-    :is(.button,.academy-button,a[class*="button"]) {
-    min-height: 48px !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page) *,
-  :where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page) *::before,
-  :where(.academy-page,.contact-page,.gallery-page,.inscription-page,.musicals-page,.training-page) *::after {
+  *,
+  *::before,
+  *::after {
     scroll-behavior: auto !important;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
 }
-
-
-/* Inscription */
-.content-section { background: #f5f7fa !important; }
-.form-sidebar,
-.form-shell,
-.success-card {
-  border: 1px solid var(--amv-line) !important;
-  border-radius: 18px !important;
-  background: #fff !important;
-  box-shadow: var(--amv-shadow) !important;
-}
-.notice-card,
-.academy-details,
-.sidebar-process {
-  border-color: var(--amv-line) !important;
-  background: var(--amv-soft) !important;
-}
-.form-section {
-  border-color: var(--amv-line) !important;
-  background: #fff !important;
-}
-
-
-.amv-skip-link {
-  position: fixed;
-  z-index: 9999;
-  top: 8px;
-  left: 8px;
-  padding: 10px 14px;
-  border-radius: 9px;
-  color: #fff !important;
-  background: #9f1945;
-  font-size: .75rem;
-  font-weight: 900;
-  text-decoration: none;
-  transform: translateY(-150%);
-}
-.amv-skip-link:focus { transform: translateY(0); }
-
 </style>
