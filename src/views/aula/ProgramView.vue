@@ -6606,4 +6606,181 @@ onUnmounted(() => {
   color: #ffffff !important;
 }
 
+
+
+/* =========================================================
+   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
+   Sistema visual común para el SaaS
+========================================================= */
+.program {
+  --amv-canvas: #f5f7fb;
+  --amv-card: #ffffff;
+  --amv-ink: #172033;
+  --amv-body: #344359;
+  --amv-muted: #667085;
+  --amv-line: #dbe3ec;
+  --amv-wine: #9f1945;
+  --amv-wine-dark: #7f1237;
+  --amv-gold: #d9a91d;
+  --amv-gold-soft: #fff8e7;
+  --amv-green: #2d8a63;
+  --amv-red: #be4856;
+  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
+  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
+  --amv-radius-sm: 12px;
+  --amv-radius-md: 18px;
+  --amv-radius-lg: 24px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.program :where(a, button, input, textarea, select, [role="button"]) {
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
+}
+
+.program :where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 3px solid rgba(159, 25, 69, .22) !important;
+  outline-offset: 3px;
+}
+
+.program :where(button, [role="button"], .button, .btn):not(:disabled):active {
+  transform: translateY(1px) scale(.99);
+}
+
+.program :where(input, textarea, select) {
+  font-size: max(16px, 1em);
+}
+
+.program :where(table tbody tr) {
+  transition: background-color .18s ease;
+}
+
+.program :where(table tbody tr):hover {
+  background-color: rgba(159, 25, 69, .025);
+}
+
+.program :where(.card, [class*="-card"], [class*="__card"]) {
+  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
+}
+
+.program :where(.card, [class*="-card"], [class*="__card"]):hover {
+  border-color: rgba(159, 25, 69, .16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .program *, .program *::before, .program *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* =========================================================
+   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
+   Capa visual segura: no modifica lógica, datos ni estructura.
+========================================================= */
+.program {
+  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.program :where(
+  article,
+  [class$="__card"],
+  [class*="-card"],
+  [class*="_card"]
+) {
+  transition:
+    transform .24s cubic-bezier(.2,.75,.25,1),
+    box-shadow .24s ease,
+    border-color .24s ease,
+    background-color .24s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .program :where(
+    article,
+    [class$="__card"],
+    [class*="-card"],
+    [class*="_card"]
+  ):hover {
+    transform: translateY(-2px);
+  }
+
+  .program :where(
+    button,
+    .button,
+    .btn,
+    a[class*="button"],
+    a[class*="cta"]
+  ):not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: saturate(1.04);
+  }
+
+  .program :where(img) {
+    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+  }
+
+  .program :where(
+    [class*="cover"],
+    [class*="hero"],
+    [class*="visual"],
+    [class*="gallery"]
+  ):hover img {
+    transform: scale(1.018);
+  }
+}
+
+.program :where(
+  button,
+  .button,
+  .btn,
+  a[class*="button"],
+  a[class*="cta"]
+) {
+  will-change: transform;
+}
+
+.program :where(input, textarea, select):focus {
+  transform: translateY(-1px);
+}
+
+.program :where(
+  [class*="progress"] > *,
+  [class*="bar"] > *,
+  progress
+) {
+  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
+}
+
+.program ::selection {
+  color: #ffffff;
+  background: #9f1945;
+}
+
+@keyframes amvViewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .program,
+  .program *,
+  .program *::before,
+  .program *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 </style>

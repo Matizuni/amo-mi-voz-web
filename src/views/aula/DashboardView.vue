@@ -2065,4 +2065,181 @@ onMounted(
 @media(max-width:1100px){.metric-grid{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}.attention-panel,.quick-panel,.progress-panel,.latest-panel{min-height:auto}}
 @media(max-width:680px){.page-hero{display:block}.hero-actions{margin-top:17px}.hero-actions .button{flex:1}.metric-grid,.metric-grid--student{grid-template-columns:1fr 1fr}.metric-card{min-height:125px;padding:16px}.next-lesson{grid-template-columns:auto 1fr;padding:18px;gap:14px}.next-lesson .button{grid-column:1/-1}.lesson-index{width:45px;height:45px}.panel{padding:16px}.metric-card>strong{font-size:1.7rem}}
 @media(max-width:420px){.metric-grid,.metric-grid--student{grid-template-columns:1fr}.page-hero h1{font-size:2rem}.metric-card{min-height:112px}.activity-value{display:none}}
+
+
+/* =========================================================
+   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
+   Sistema visual común para el SaaS
+========================================================= */
+.saas-dashboard {
+  --amv-canvas: #f5f7fb;
+  --amv-card: #ffffff;
+  --amv-ink: #172033;
+  --amv-body: #344359;
+  --amv-muted: #667085;
+  --amv-line: #dbe3ec;
+  --amv-wine: #9f1945;
+  --amv-wine-dark: #7f1237;
+  --amv-gold: #d9a91d;
+  --amv-gold-soft: #fff8e7;
+  --amv-green: #2d8a63;
+  --amv-red: #be4856;
+  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
+  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
+  --amv-radius-sm: 12px;
+  --amv-radius-md: 18px;
+  --amv-radius-lg: 24px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.saas-dashboard :where(a, button, input, textarea, select, [role="button"]) {
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
+}
+
+.saas-dashboard :where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 3px solid rgba(159, 25, 69, .22) !important;
+  outline-offset: 3px;
+}
+
+.saas-dashboard :where(button, [role="button"], .button, .btn):not(:disabled):active {
+  transform: translateY(1px) scale(.99);
+}
+
+.saas-dashboard :where(input, textarea, select) {
+  font-size: max(16px, 1em);
+}
+
+.saas-dashboard :where(table tbody tr) {
+  transition: background-color .18s ease;
+}
+
+.saas-dashboard :where(table tbody tr):hover {
+  background-color: rgba(159, 25, 69, .025);
+}
+
+.saas-dashboard :where(.card, [class*="-card"], [class*="__card"]) {
+  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
+}
+
+.saas-dashboard :where(.card, [class*="-card"], [class*="__card"]):hover {
+  border-color: rgba(159, 25, 69, .16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saas-dashboard *, .saas-dashboard *::before, .saas-dashboard *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* =========================================================
+   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
+   Capa visual segura: no modifica lógica, datos ni estructura.
+========================================================= */
+.saas-dashboard {
+  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.saas-dashboard :where(
+  article,
+  [class$="__card"],
+  [class*="-card"],
+  [class*="_card"]
+) {
+  transition:
+    transform .24s cubic-bezier(.2,.75,.25,1),
+    box-shadow .24s ease,
+    border-color .24s ease,
+    background-color .24s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .saas-dashboard :where(
+    article,
+    [class$="__card"],
+    [class*="-card"],
+    [class*="_card"]
+  ):hover {
+    transform: translateY(-2px);
+  }
+
+  .saas-dashboard :where(
+    button,
+    .button,
+    .btn,
+    a[class*="button"],
+    a[class*="cta"]
+  ):not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: saturate(1.04);
+  }
+
+  .saas-dashboard :where(img) {
+    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+  }
+
+  .saas-dashboard :where(
+    [class*="cover"],
+    [class*="hero"],
+    [class*="visual"],
+    [class*="gallery"]
+  ):hover img {
+    transform: scale(1.018);
+  }
+}
+
+.saas-dashboard :where(
+  button,
+  .button,
+  .btn,
+  a[class*="button"],
+  a[class*="cta"]
+) {
+  will-change: transform;
+}
+
+.saas-dashboard :where(input, textarea, select):focus {
+  transform: translateY(-1px);
+}
+
+.saas-dashboard :where(
+  [class*="progress"] > *,
+  [class*="bar"] > *,
+  progress
+) {
+  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
+}
+
+.saas-dashboard ::selection {
+  color: #ffffff;
+  background: #9f1945;
+}
+
+@keyframes amvViewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saas-dashboard,
+  .saas-dashboard *,
+  .saas-dashboard *::before,
+  .saas-dashboard *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 </style>

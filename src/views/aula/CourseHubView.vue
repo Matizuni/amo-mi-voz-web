@@ -207,4 +207,181 @@ onMounted(loadCourse)
 .next-class--with-cover{position:relative;overflow:hidden;isolation:isolate}.next-class--with-cover:before{content:'';position:absolute;inset:0;z-index:-2;background-image:var(--next-cover);background-size:cover;background-position:center;opacity:.15}.next-class--with-cover:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(248,250,251,.98),rgba(248,250,251,.9) 65%,rgba(248,250,251,.74))}
 @media(max-width:1050px){.course-cover,.overview-grid{grid-template-columns:1fr}.course-cover__status{max-width:500px}.next-class{grid-template-columns:auto 1fr}.next-class .primary-action{grid-column:1/-1}.overview-side{grid-template-columns:repeat(2,1fr)}.announcement-card{grid-column:1/-1}.module-row{grid-template-columns:auto 1fr}.module-tags,.module-row>a{grid-column:2}.timeline-event{grid-template-columns:50px 20px 1fr}.timeline-event>a{grid-column:3}}
 @media(max-width:650px){.course-cover{padding:27px 21px;border-radius:17px}.course-cover h1{font-size:2.45rem}.course-cover__status{display:none}.course-tabs button{padding:9px 11px}.overview-side{grid-template-columns:1fr}.next-class{grid-template-columns:1fr}.date-block{width:52px;height:55px}.next-class .primary-action{grid-column:auto}.panel{padding:17px}.section-intro{padding:20px;flex-direction:column}.module-row{grid-template-columns:auto 1fr;padding:14px 4px}.module-tags{display:none}.timeline{padding:5px 14px 18px}.timeline-event{grid-template-columns:44px 14px 1fr}.timeline-copy p{display:none}}
+
+
+/* =========================================================
+   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
+   Sistema visual común para el SaaS
+========================================================= */
+.course-hub {
+  --amv-canvas: #f5f7fb;
+  --amv-card: #ffffff;
+  --amv-ink: #172033;
+  --amv-body: #344359;
+  --amv-muted: #667085;
+  --amv-line: #dbe3ec;
+  --amv-wine: #9f1945;
+  --amv-wine-dark: #7f1237;
+  --amv-gold: #d9a91d;
+  --amv-gold-soft: #fff8e7;
+  --amv-green: #2d8a63;
+  --amv-red: #be4856;
+  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
+  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
+  --amv-radius-sm: 12px;
+  --amv-radius-md: 18px;
+  --amv-radius-lg: 24px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.course-hub :where(a, button, input, textarea, select, [role="button"]) {
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
+}
+
+.course-hub :where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 3px solid rgba(159, 25, 69, .22) !important;
+  outline-offset: 3px;
+}
+
+.course-hub :where(button, [role="button"], .button, .btn):not(:disabled):active {
+  transform: translateY(1px) scale(.99);
+}
+
+.course-hub :where(input, textarea, select) {
+  font-size: max(16px, 1em);
+}
+
+.course-hub :where(table tbody tr) {
+  transition: background-color .18s ease;
+}
+
+.course-hub :where(table tbody tr):hover {
+  background-color: rgba(159, 25, 69, .025);
+}
+
+.course-hub :where(.card, [class*="-card"], [class*="__card"]) {
+  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
+}
+
+.course-hub :where(.card, [class*="-card"], [class*="__card"]):hover {
+  border-color: rgba(159, 25, 69, .16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-hub *, .course-hub *::before, .course-hub *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* =========================================================
+   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
+   Capa visual segura: no modifica lógica, datos ni estructura.
+========================================================= */
+.course-hub {
+  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.course-hub :where(
+  article,
+  [class$="__card"],
+  [class*="-card"],
+  [class*="_card"]
+) {
+  transition:
+    transform .24s cubic-bezier(.2,.75,.25,1),
+    box-shadow .24s ease,
+    border-color .24s ease,
+    background-color .24s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .course-hub :where(
+    article,
+    [class$="__card"],
+    [class*="-card"],
+    [class*="_card"]
+  ):hover {
+    transform: translateY(-2px);
+  }
+
+  .course-hub :where(
+    button,
+    .button,
+    .btn,
+    a[class*="button"],
+    a[class*="cta"]
+  ):not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: saturate(1.04);
+  }
+
+  .course-hub :where(img) {
+    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+  }
+
+  .course-hub :where(
+    [class*="cover"],
+    [class*="hero"],
+    [class*="visual"],
+    [class*="gallery"]
+  ):hover img {
+    transform: scale(1.018);
+  }
+}
+
+.course-hub :where(
+  button,
+  .button,
+  .btn,
+  a[class*="button"],
+  a[class*="cta"]
+) {
+  will-change: transform;
+}
+
+.course-hub :where(input, textarea, select):focus {
+  transform: translateY(-1px);
+}
+
+.course-hub :where(
+  [class*="progress"] > *,
+  [class*="bar"] > *,
+  progress
+) {
+  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
+}
+
+.course-hub ::selection {
+  color: #ffffff;
+  background: #9f1945;
+}
+
+@keyframes amvViewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-hub,
+  .course-hub *,
+  .course-hub *::before,
+  .course-hub *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 </style>

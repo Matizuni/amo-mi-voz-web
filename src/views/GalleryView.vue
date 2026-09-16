@@ -3236,4 +3236,167 @@ onUnmounted(() => {
 
 }
 
+
+
+/* =========================================================
+   AMV UI SYSTEM · PUBLIC EXPERIENCE v1.0
+   Consistencia, accesibilidad y movimiento fluido
+========================================================= */
+.gallery-page {
+  --amv-ink: #172033;
+  --amv-body: #344359;
+  --amv-muted: #667085;
+  --amv-wine: #9f1945;
+  --amv-wine-dark: #7f1237;
+  --amv-gold: #d9a91d;
+  --amv-line: #dbe3ec;
+  --amv-canvas: #f5f7fb;
+  --amv-card: #ffffff;
+  --amv-shadow: 0 18px 48px rgba(23, 32, 51, .09);
+  --amv-radius: 20px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.gallery-page :where(a, button, input, textarea, select) {
+  transition: color .22s ease, background-color .22s ease, border-color .22s ease, box-shadow .22s ease, transform .22s ease, opacity .22s ease;
+}
+
+.gallery-page :where(a, button, input, textarea, select):focus-visible {
+  outline: 3px solid rgba(159, 25, 69, .22) !important;
+  outline-offset: 3px;
+}
+
+.gallery-page :where(button, [role="button"], .button, .btn):not(:disabled):active {
+  transform: translateY(1px) scale(.99);
+}
+
+.gallery-page :where(img) {
+  transition: transform .45s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+}
+
+.gallery-page :where(article, .card, [class*="__card"]):hover {
+  transition: transform .28s cubic-bezier(.2,.75,.25,1), box-shadow .28s ease, border-color .28s ease;
+}
+
+.gallery-page :where(input, textarea, select) {
+  font-size: max(16px, 1em);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-page *, .gallery-page *::before, .gallery-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* =========================================================
+   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
+   Capa visual segura: no modifica lógica, datos ni estructura.
+========================================================= */
+.gallery-page {
+  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.gallery-page :where(
+  article,
+  [class$="__card"],
+  [class*="-card"],
+  [class*="_card"]
+) {
+  transition:
+    transform .24s cubic-bezier(.2,.75,.25,1),
+    box-shadow .24s ease,
+    border-color .24s ease,
+    background-color .24s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gallery-page :where(
+    article,
+    [class$="__card"],
+    [class*="-card"],
+    [class*="_card"]
+  ):hover {
+    transform: translateY(-2px);
+  }
+
+  .gallery-page :where(
+    button,
+    .button,
+    .btn,
+    a[class*="button"],
+    a[class*="cta"]
+  ):not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: saturate(1.04);
+  }
+
+  .gallery-page :where(img) {
+    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+  }
+
+  .gallery-page :where(
+    [class*="cover"],
+    [class*="hero"],
+    [class*="visual"],
+    [class*="gallery"]
+  ):hover img {
+    transform: scale(1.018);
+  }
+}
+
+.gallery-page :where(
+  button,
+  .button,
+  .btn,
+  a[class*="button"],
+  a[class*="cta"]
+) {
+  will-change: transform;
+}
+
+.gallery-page :where(input, textarea, select):focus {
+  transform: translateY(-1px);
+}
+
+.gallery-page :where(
+  [class*="progress"] > *,
+  [class*="bar"] > *,
+  progress
+) {
+  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
+}
+
+.gallery-page ::selection {
+  color: #ffffff;
+  background: #9f1945;
+}
+
+@keyframes amvViewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-page,
+  .gallery-page *,
+  .gallery-page *::before,
+  .gallery-page *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 </style>

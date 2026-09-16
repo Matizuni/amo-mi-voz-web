@@ -1,685 +1,492 @@
 <template>
-  <section class="gradebook">
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
-    <header class="gradebook__header">
+  <main class="gradebook">
+    <header class="gradebook__hero">
       <div>
-        <p class="gradebook__eyebrow">
-          Profesor · Aula Virtual
-        </p>
-
-        <h1>
-          Libro de notas
-        </h1>
-
-        <p class="gradebook__description">
-          Revisa calificaciones, entregas
-          y avance académico en un solo lugar.
+        <p class="eyebrow">PROFESOR · AULA VIRTUAL</p>
+        <h1>Libro de notas</h1>
+        <p class="hero-copy">
+          Seguimiento académico integral de tareas, evaluaciones e intentos
+          de tus estudiantes.
         </p>
       </div>
 
-      <div
-        v-if="!isLoading"
-        class="gradebook__enrollment"
-      >
-        <span>
-          Matrícula activa
-        </span>
-
-        <strong>
-          {{ students.length }}
-        </strong>
-
-        <small>
-          estudiantes
-        </small>
+      <div class="hero-status">
+        <span>Matrícula activa</span>
+        <strong>{{ students.length }}</strong>
+        <small>estudiantes</small>
       </div>
     </header>
 
-    <!-- =====================================================
-         CARGA
-    ====================================================== -->
-    <section
-      v-if="isLoading"
-      class="state-card"
-      role="status"
-      aria-live="polite"
-    >
-      <div class="loading-spinner"></div>
-
+    <section v-if="isLoading" class="state-card">
+      <div class="spinner"></div>
       <div>
-        <strong>
-          Preparando el libro de notas
-        </strong>
-
-        <p>
-          Estamos cargando estudiantes,
-          clases, tareas y entregas.
-        </p>
+        <strong>Cargando libro de notas…</strong>
+        <p>Sincronizando estudiantes, tareas y evaluaciones desde Supabase.</p>
       </div>
     </section>
 
-    <!-- =====================================================
-         ERROR
-    ====================================================== -->
-    <section
-      v-else-if="loadError"
-      class="state-card state-card--error"
-      role="alert"
-    >
-      <span>
-        !
-      </span>
-
+    <section v-else-if="loadError" class="state-card state-card--error">
+      <span class="state-icon">!</span>
       <div>
-        <h3>
-          No pudimos cargar las calificaciones
-        </h3>
-
-        <p>
-          {{ loadError }}
-        </p>
-
-        <button
-          type="button"
-          @click="loadGradebook"
-        >
+        <h2>No pudimos cargar las calificaciones</h2>
+        <p>{{ loadError }}</p>
+        <button type="button" class="button button--primary" @click="loadGradebook">
           Reintentar
         </button>
       </div>
     </section>
 
     <template v-else>
-      <!-- =====================================================
-           RESUMEN
-      ====================================================== -->
-      <section
-        class="gradebook__summary"
-        aria-label="Resumen general"
-      >
-        <article class="summary-card summary-card--primary">
-          <span>
-            Promedio general
-          </span>
-
-          <strong>
-            {{ globalAverage }}
-          </strong>
-
-          <small>
-            notas registradas
-          </small>
+      <section class="summary-grid" aria-label="Resumen del libro de notas">
+        <article class="metric-card">
+          <span>Estudiantes</span>
+          <strong>{{ students.length }}</strong>
+          <small>matrícula activa</small>
         </article>
 
-        <article>
-          <span>
-            Estudiantes
-          </span>
-
-          <strong>
-            {{ students.length }}
-          </strong>
-
-          <small>
-            activos
-          </small>
+        <article class="metric-card">
+          <span>Tareas</span>
+          <strong>{{ assignments.length }}</strong>
+          <small>publicadas</small>
         </article>
 
-        <article>
-          <span>
-            Tareas
-          </span>
-
-          <strong>
-            {{ assignments.length }}
-          </strong>
-
-          <small>
-            publicadas
-          </small>
+        <article class="metric-card">
+          <span>Evaluaciones</span>
+          <strong>{{ quizzes.length }}</strong>
+          <small>quiz y pruebas</small>
         </article>
 
-        <article>
-          <span>
-            Calificadas
-          </span>
-
-          <strong>
-            {{ reviewedCount }}
-          </strong>
-
-          <small>
-            entregas
-          </small>
+        <article class="metric-card">
+          <span>Intentos</span>
+          <strong>{{ finishedQuizAttempts.length }}</strong>
+          <small>entregados</small>
         </article>
 
-        <article
-          :class="{
-            'summary-card--attention':
-              deliveredNotReviewedCount > 0
-          }"
-        >
-          <span>
-            Por revisar
-          </span>
-
-          <strong>
-            {{ deliveredNotReviewedCount }}
-          </strong>
-
-          <small>
-            entregas
-          </small>
+        <article class="metric-card" :class="{ 'metric-card--alert': pendingManualCount }">
+          <span>Por revisar</span>
+          <strong>{{ pendingManualCount }}</strong>
+          <small>intentos con revisión manual</small>
         </article>
       </section>
 
-      <!-- =====================================================
-           HERRAMIENTAS
-      ====================================================== -->
-      <section
-        v-if="students.length || assignments.length"
-        class="gradebook-toolbar"
-      >
-        <div class="gradebook-toolbar__search">
-          <label for="gradebook-search">
-            Buscar
-          </label>
-
-          <div class="gradebook-search">
-            <span aria-hidden="true">
-              ⌕
-            </span>
-
-            <input
-              id="gradebook-search"
-              v-model.trim="searchTerm"
-              type="search"
-              autocomplete="off"
-              placeholder="Buscar estudiante..."
-            />
-
-            <button
-              v-if="searchTerm"
-              type="button"
-              aria-label="Limpiar búsqueda"
-              @click="searchTerm = ''"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        <div class="gradebook-toolbar__meta">
-          <span>
-            Mostrando
-          </span>
-
-          <strong>
-            {{ filteredStudentRows.length }}
-            de
-            {{ students.length }}
-          </strong>
-        </div>
-      </section>
-
-      <!-- =====================================================
-           01 · MATRIZ DE CALIFICACIONES
-      ====================================================== -->
-      <section class="gradebook__section">
-        <div class="gradebook__section-header">
-          <div class="gradebook__section-title">
-            <span>
-              01
-            </span>
-
-            <div>
-              <p>
-                Evaluación
-              </p>
-
-              <h2>
-                Calificaciones por estudiante
-              </h2>
-            </div>
-          </div>
-
-          <p
-            v-if="assignments.length"
-            class="gradebook__section-description"
+      <section class="toolbar">
+        <div class="tabs" role="tablist" aria-label="Tipo de calificación">
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="activeTab === 'tasks'"
+            :class="{ 'tab--active': activeTab === 'tasks' }"
+            @click="activeTab = 'tasks'"
           >
-            Selecciona una nota o entrega
-            para abrir su revisión.
-          </p>
+            <span>Tareas</span>
+            <strong>{{ assignments.length }}</strong>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="activeTab === 'quizzes'"
+            :class="{ 'tab--active': activeTab === 'quizzes' }"
+            @click="activeTab = 'quizzes'"
+          >
+            <span>Evaluaciones / Quiz</span>
+            <strong>{{ quizzes.length }}</strong>
+            <i v-if="pendingManualCount">{{ pendingManualCount }}</i>
+          </button>
         </div>
 
-        <!-- SIN ESTUDIANTES -->
-        <div
-          v-if="students.length === 0"
-          class="empty-state"
-        >
-          <span>
-            +
-          </span>
+        <label class="search-box">
+          <span class="sr-only">Buscar estudiante</span>
+          <span aria-hidden="true">⌕</span>
+          <input
+            v-model="searchQuery"
+            type="search"
+            placeholder="Buscar estudiante…"
+          />
+        </label>
+      </section>
 
+      <!-- =====================================================
+           TAREAS
+      ====================================================== -->
+      <section v-if="activeTab === 'tasks'" class="workspace">
+        <header class="section-heading">
           <div>
-            <h3>
-              No hay estudiantes activos
-            </h3>
-
+            <p class="eyebrow">CALIFICACIÓN DE ACTIVIDADES</p>
+            <h2>Tareas</h2>
             <p>
-              Cuando existan estudiantes matriculados
-              aparecerán aquí.
-            </p>
-
-            <RouterLink
-              to="/aula/alumnos"
-              class="empty-state__link"
-            >
-              Administrar estudiantes
-              <span aria-hidden="true">→</span>
-            </RouterLink>
-          </div>
-        </div>
-
-        <!-- SIN TAREAS -->
-        <div
-          v-else-if="assignments.length === 0"
-          class="empty-state"
-        >
-          <span>
-            ♪
-          </span>
-
-          <div>
-            <h3>
-              Todavía no hay tareas evaluables
-            </h3>
-
-            <p>
-              Las tareas publicadas aparecerán
-              automáticamente en este libro.
+              Consulta entregas, revisiones y notas sin mezclar la escala
+              chilena 1–7 con los porcentajes de los quiz.
             </p>
           </div>
+        </header>
+
+        <div v-if="!assignments.length" class="empty-card">
+          <strong>Aún no hay tareas publicadas.</strong>
+          <p>Cuando publiques actividades aparecerán automáticamente aquí.</p>
         </div>
 
-        <!-- SIN RESULTADOS -->
-        <div
-          v-else-if="filteredStudentRows.length === 0"
-          class="empty-state"
-        >
-          <span>
-            ?
-          </span>
-
-          <div>
-            <h3>
-              No encontramos estudiantes
-            </h3>
-
-            <p>
-              Prueba con otro nombre.
-            </p>
-
-            <button
-              type="button"
-              class="empty-state__button"
-              @click="searchTerm = ''"
-            >
-              Limpiar búsqueda
-            </button>
-          </div>
-        </div>
-
-        <!-- TABLA -->
-        <div
-          v-else
-          class="gradebook-table-wrapper"
-        >
-          <table class="gradebook-table">
+        <div v-else class="table-shell">
+          <table class="grade-table">
             <thead>
               <tr>
-                <th
-                  class="
-                    gradebook-table__student-column
-                    gradebook-table__sticky
-                  "
-                >
-                  Estudiante
+                <th class="student-column">Estudiante</th>
+                <th v-for="assignment in assignments" :key="assignment.id">
+                  <span class="column-kicker">Tarea</span>
+                  {{ assignment.title }}
                 </th>
-
-                <th>
-                  Voz
-                </th>
-
-                <th
-                  v-for="task in assignments"
-                  :key="task.id"
-                  class="gradebook-table__task"
-                >
-                  <span>
-                    Clase
-                    {{ getAcademicLessonNumberById(task.lessonId) }}
-                  </span>
-
-                  <strong>
-                    {{ task.title }}
-                  </strong>
-                </th>
-
-                <th class="gradebook-table__compact">
-                  Evaluadas
-                </th>
-
-                <th class="gradebook-table__compact">
-                  Promedio
-                </th>
+                <th>Promedio</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr
-                v-for="row in filteredStudentRows"
-                :key="row.student.id"
-              >
-                <!-- ESTUDIANTE -->
-                <td
-                  class="
-                    gradebook-table__student
-                    gradebook-table__sticky
-                  "
-                >
-                  <RouterLink
-                    :to="`/aula/estudiante/${row.student.id}`"
-                  >
-                    <div class="gradebook-table__avatar">
-                      {{ getInitials(row.student.name) }}
-                    </div>
-
-                    <div>
-                      <strong>
-                        {{ row.student.name }}
-                      </strong>
-
-                      <span>
-                        Ver ficha
-                      </span>
-                    </div>
-                  </RouterLink>
-                </td>
-
-                <!-- VOZ -->
-                <td>
-                  <span class="voice-badge">
-                    {{
-                      row.student.voice ||
-                      'Sin clasificación'
-                    }}
-                  </span>
-                </td>
-
-                <!-- TAREAS -->
-                <td
-                  v-for="taskResult in row.tasks"
-                  :key="taskResult.task.id"
-                  class="gradebook-table__grade-cell"
-                >
-                  <!-- CON NOTA -->
-                  <RouterLink
-                    v-if="
-                      taskResult.submission &&
-                      hasGrade(taskResult.submission)
-                    "
-                    :to="reviewLink(taskResult)"
-                    class="grade-pill grade-pill--graded"
-                    :title="
-                      `Abrir revisión de ${taskResult.task.title}`
-                    "
-                  >
-                    {{
-                      formatGrade(
-                        taskResult.submission.grade
-                      )
-                    }}
-                  </RouterLink>
-
-                  <!-- ENTREGADA -->
-                  <RouterLink
-                    v-else-if="taskResult.submission"
-                    :to="reviewLink(taskResult)"
-                    class="grade-status grade-status--submitted"
-                  >
+              <tr v-for="row in filteredTaskRows" :key="row.student.id">
+                <th class="student-cell">
+                  <RouterLink :to="`/aula/estudiante/${row.student.id}`">
+                    <span class="avatar">{{ initials(row.student.name) }}</span>
                     <span>
-                      {{ getSubmissionStatus(taskResult.submission) }}
+                      <strong>{{ row.student.name }}</strong>
+                      <small>{{ row.student.voice || 'Sin clasificar' }}</small>
                     </span>
                   </RouterLink>
+                </th>
 
-                  <!-- SIN ENTREGA -->
-                  <span
-                    v-else
-                    class="grade-status grade-status--empty"
-                    title="Sin entrega"
+                <td v-for="cell in row.cells" :key="cell.assignment.id">
+                  <RouterLink
+                    v-if="cell.submission"
+                    :to="`/aula/clase/${cell.assignment.lessonId}/tarea/${cell.assignment.id}/entregas/${cell.submission.id}`"
+                    class="grade-cell"
                   >
-                    —
-                  </span>
+                    <strong v-if="hasGrade(cell.submission)">
+                      {{ formatGrade(cell.submission.grade) }}
+                    </strong>
+                    <strong v-else>—</strong>
+                    <small :class="taskStatusClass(cell.submission)">
+                      {{ taskStatusLabel(cell.submission) }}
+                    </small>
+                  </RouterLink>
+
+                  <div v-else class="grade-cell grade-cell--empty">
+                    <strong>—</strong>
+                    <small>Sin entrega</small>
+                  </div>
                 </td>
 
-                <!-- EVALUADAS -->
-                <td class="gradebook-table__center">
-                  <strong>
-                    {{ row.reviewed }}
-                  </strong>
-
-                  <span>
-                    / {{ assignments.length }}
-                  </span>
-                </td>
-
-                <!-- PROMEDIO -->
-                <td class="gradebook-table__average">
-                  <strong>
-                    {{ row.average }}
-                  </strong>
+                <td class="average-cell">
+                  <strong>{{ row.average }}</strong>
+                  <small>{{ row.reviewed }}/{{ assignments.length }} evaluadas</small>
                 </td>
               </tr>
             </tbody>
           </table>
+
+          <div v-if="!filteredTaskRows.length" class="empty-inline">
+            No encontramos estudiantes con esa búsqueda.
+          </div>
         </div>
       </section>
 
       <!-- =====================================================
-           02 · RENDIMIENTO INDIVIDUAL
+           QUIZZES
       ====================================================== -->
-      <section
-        v-if="
-          students.length &&
-          filteredStudentRows.length
-        "
-        class="gradebook__section"
-      >
-        <div class="gradebook__section-header">
-          <div class="gradebook__section-title">
-            <span>
-              02
-            </span>
-
-            <div>
-              <p>
-                Seguimiento
-              </p>
-
-              <h2>
-                Rendimiento individual
-              </h2>
-            </div>
+      <section v-else class="workspace">
+        <header class="section-heading section-heading--quiz">
+          <div>
+            <p class="eyebrow">EVALUACIÓN DEL APRENDIZAJE</p>
+            <h2>Evaluaciones y quiz</h2>
+            <p>
+              Mejor resultado por estudiante, historial de intentos y acceso
+              directo a la revisión pedagógica.
+            </p>
           </div>
 
-          <p class="gradebook__section-description">
-            Una vista rápida antes de entrar
-            a la ficha completa del estudiante.
-          </p>
+          <div class="legend">
+            <span><i class="dot dot--success"></i> Corregida</span>
+            <span><i class="dot dot--warning"></i> Por revisar</span>
+            <span><i class="dot"></i> Sin realizar</span>
+          </div>
+        </header>
+
+        <div v-if="!quizzes.length" class="empty-card">
+          <strong>Aún no hay evaluaciones publicadas.</strong>
+          <p>Los quiz y pruebas publicados aparecerán en este panel.</p>
         </div>
 
-        <div class="student-grade-grid">
+        <div v-else class="quiz-stack">
+          <article
+            v-for="quiz in filteredQuizCards"
+            :key="quiz.id"
+            class="quiz-card"
+          >
+            <header class="quiz-card__header">
+              <div>
+                <div class="quiz-card__meta">
+                  <span>{{ assessmentLabel(quiz.assessmentType) }}</span>
+                  <span>{{ lessonLabel(quiz.lessonId) }}</span>
+                </div>
+                <h3>{{ quiz.title }}</h3>
+                <p v-if="quiz.description">{{ quiz.description }}</p>
+              </div>
+
+              <div class="quiz-card__summary">
+                <div>
+                  <strong>{{ quiz.studentsCompleted }}</strong>
+                  <span>realizaron</span>
+                </div>
+                <div>
+                  <strong>{{ quiz.totalAttempts }}</strong>
+                  <span>intentos</span>
+                </div>
+                <div :class="{ 'summary-alert': quiz.pendingReviews }">
+                  <strong>{{ quiz.pendingReviews }}</strong>
+                  <span>por revisar</span>
+                </div>
+              </div>
+            </header>
+
+            <div class="quiz-table-wrap">
+              <table class="quiz-table">
+                <thead>
+                  <tr>
+                    <th>Estudiante</th>
+                    <th>Mejor resultado</th>
+                    <th>Último intento</th>
+                    <th>Intentos</th>
+                    <th>Estado</th>
+                    <th class="action-column">Acción</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr v-for="row in quiz.rows" :key="row.student.id">
+                    <td>
+                      <div class="student-identity">
+                        <span class="avatar avatar--small">
+                          {{ initials(row.student.name) }}
+                        </span>
+                        <span>
+                          <strong>{{ row.student.name }}</strong>
+                          <small>{{ row.student.voice || 'Sin clasificar' }}</small>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <strong class="percentage">
+                        {{ percentageLabel(row.bestAttempt?.percentage) }}
+                      </strong>
+                    </td>
+
+                    <td>
+                      <div v-if="row.latestAttempt" class="latest-attempt">
+                        <strong>{{ percentageLabel(row.latestAttempt.percentage) }}</strong>
+                        <small>{{ formatDate(row.latestAttempt.submittedAt) }}</small>
+                      </div>
+                      <span v-else>—</span>
+                    </td>
+
+                    <td>
+                      <span class="attempt-pill">
+                        {{ row.attempts.length }}
+                        {{ row.attempts.length === 1 ? 'intento' : 'intentos' }}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span
+                        class="status-pill"
+                        :class="quizStatusClass(row)"
+                      >
+                        {{ quizStatusLabel(row) }}
+                      </span>
+                    </td>
+
+                    <td class="action-cell">
+                      <RouterLink
+                        v-if="row.latestAttempt"
+                        :to="reviewRoute(quiz, row.latestAttempt)"
+                        class="review-link"
+                      >
+                        {{
+                          row.pendingManual
+                            ? 'Revisar'
+                            : 'Ver revisión'
+                        }}
+                        →
+                      </RouterLink>
+                      <span v-else class="muted">—</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <footer class="quiz-card__footer">
+              <div>
+                <span>Aprobación</span>
+                <strong>
+                  {{
+                    quiz.passingPercentage == null
+                      ? 'Sin mínimo'
+                      : `${quiz.passingPercentage}%`
+                  }}
+                </strong>
+              </div>
+
+              <RouterLink
+                :to="`/aula/clase/${quiz.lessonId}/evaluacion/${quiz.id}/intentos`"
+                class="button button--secondary"
+              >
+                Ver todos los intentos →
+              </RouterLink>
+            </footer>
+          </article>
+
+          <div v-if="!filteredQuizCards.length" class="empty-card">
+            <strong>No encontramos resultados.</strong>
+            <p>Prueba con otro nombre de estudiante.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           RENDIMIENTO INDIVIDUAL
+      ====================================================== -->
+      <section class="student-performance">
+        <header class="section-heading">
+          <div>
+            <p class="eyebrow">SEGUIMIENTO INDIVIDUAL</p>
+            <h2>Rendimiento por estudiante</h2>
+            <p>
+              Tareas y evaluaciones permanecen en escalas separadas para
+              conservar una lectura académica correcta.
+            </p>
+          </div>
+        </header>
+
+        <div class="student-grid">
           <RouterLink
-            v-for="row in filteredStudentRows"
+            v-for="row in filteredStudentPerformance"
             :key="row.student.id"
             :to="`/aula/estudiante/${row.student.id}`"
-            class="student-grade-card"
+            class="student-card"
           >
-            <div class="student-grade-card__header">
-              <div class="student-grade-card__avatar">
-                {{ getInitials(row.student.name) }}
+            <header>
+              <span class="avatar">{{ initials(row.student.name) }}</span>
+              <div>
+                <small>{{ row.student.voice || 'Sin clasificar' }}</small>
+                <h3>{{ row.student.name }}</h3>
               </div>
+            </header>
 
-              <div class="student-grade-card__identity">
-                <span>
-                  {{
-                    row.student.voice ||
-                    'Sin clasificación'
-                  }}
-                </span>
+            <div class="student-card__columns">
+              <section>
+                <span>TAREAS</span>
+                <strong>{{ row.taskAverage }}</strong>
+                <small>{{ row.reviewedTasks }}/{{ assignments.length }} evaluadas</small>
+              </section>
 
-                <h3>
-                  {{ row.student.name }}
-                </h3>
-              </div>
+              <section>
+                <span>QUIZZES</span>
+                <strong>{{ row.quizAverage }}</strong>
+                <small>{{ row.completedQuizzes }}/{{ quizzes.length }} realizados</small>
+              </section>
+            </div>
 
-              <span
-                class="student-grade-card__arrow"
-                aria-hidden="true"
-              >
-                →
+            <div class="student-card__status">
+              <span v-if="row.pendingQuizReviews" class="needs-review">
+                {{ row.pendingQuizReviews }} revisión(es) pendiente(s)
+              </span>
+              <span v-else class="all-good">
+                ✓ Sin revisiones pendientes
               </span>
             </div>
 
-            <div class="student-grade-card__primary">
-              <span>
-                Promedio
-              </span>
-
-              <strong>
-                {{ row.average }}
-              </strong>
-            </div>
-
-            <div class="student-grade-card__stats">
-              <div>
-                <span>
-                  Entregadas
-                </span>
-
-                <strong>
-                  {{ row.delivered }}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Evaluadas
-                </span>
-
-                <strong>
-                  {{ row.reviewed }}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Pendientes
-                </span>
-
-                <strong>
-                  {{ row.pending }}
-                </strong>
-              </div>
-            </div>
-
-            <div
-              v-if="assignments.length"
-              class="student-grade-card__progress"
-            >
-              <div class="student-grade-card__progress-info">
-                <span>
-                  Progreso evaluado
-                </span>
-
-                <strong>
-                  {{ row.progress }}%
-                </strong>
-              </div>
-
-              <div
-                class="student-grade-card__bar"
-                :aria-label="
-                  `Progreso evaluado ${row.progress}%`
-                "
-              >
-                <div
-                  class="student-grade-card__fill"
-                  :style="{
-                    width: `${row.progress}%`
-                  }"
-                ></div>
-              </div>
-            </div>
-
-            <div class="student-grade-card__footer">
-              Ver ficha completa
-              <span aria-hidden="true">
-                →
-              </span>
-            </div>
+            <footer>Ver ficha completa →</footer>
           </RouterLink>
         </div>
       </section>
     </template>
-  </section>
+  </main>
 </template>
 
 <script setup>
 import {
   computed,
   onMounted,
-  ref
+  ref,
 } from 'vue'
 
 import {
-  RouterLink
+  RouterLink,
 } from 'vue-router'
 
 import {
-  fetchStudents
+  fetchStudents,
 } from '@/services/studentService'
 
 import {
-  fetchAssignments
+  fetchLessons,
+} from '@/services/lessonService'
+
+import {
+  fetchAssignments,
 } from '@/services/assignmentService'
 
 import {
-  fetchSubmissions
+  fetchSubmissions,
 } from '@/services/submissionService'
 
 import {
-  fetchLessons
-} from '@/services/lessonService'
+  fetchQuizzes,
+} from '@/services/quizService'
 
-/* =========================================================
-   ESTADO
-========================================================= */
+import {
+  fetchTeacherQuizAttempts,
+} from '@/services/teacherEvaluationService'
 
 const students = ref([])
 const lessons = ref([])
 const assignments = ref([])
 const submissions = ref([])
+const quizzes = ref([])
+const quizAttempts = ref([])
 
 const isLoading = ref(true)
 const loadError = ref('')
-const searchTerm = ref('')
+const activeTab = ref('tasks')
+const searchQuery = ref('')
 
-/* =========================================================
-   CARGAR DATOS
-========================================================= */
+const voiceOrder = {
+  Soprano: 1,
+  Alto: 2,
+  Tenor: 3,
+  Bajo: 4,
+}
+
+const normalizeText = value =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
+const sortStudents = list =>
+  [...list].sort((a, b) => {
+    const voiceA = voiceOrder[a.voice] || 99
+    const voiceB = voiceOrder[b.voice] || 99
+
+    if (voiceA !== voiceB) {
+      return voiceA - voiceB
+    }
+
+    return String(a.name || '')
+      .localeCompare(
+        String(b.name || ''),
+        'es',
+        { sensitivity: 'base' },
+      )
+  })
 
 const loadGradebook = async () => {
   isLoading.value = true
@@ -690,18 +497,18 @@ const loadGradebook = async () => {
       loadedStudents,
       loadedLessons,
       loadedAssignments,
-      loadedSubmissions
+      loadedSubmissions,
+      loadedQuizzes,
     ] = await Promise.all([
       fetchStudents(),
       fetchLessons(),
       fetchAssignments(),
-      fetchSubmissions()
+      fetchSubmissions(),
+      fetchQuizzes(),
     ])
 
     students.value =
-      sortStudents(
-        loadedStudents || []
-      )
+      sortStudents(loadedStudents || [])
 
     lessons.value =
       loadedLessons || []
@@ -710,2357 +517,1793 @@ const loadGradebook = async () => {
       (loadedAssignments || [])
         .filter(
           assignment =>
-            assignment.status !== 'draft'
+            assignment.status !== 'draft',
         )
         .sort(
-          compareAssignments
+          (a, b) =>
+            Number(a.id) -
+            Number(b.id),
         )
 
     submissions.value =
       loadedSubmissions || []
+
+    quizzes.value =
+      (loadedQuizzes || [])
+        .filter(
+          quiz =>
+            quiz.status !== 'draft',
+        )
+        .sort(
+          (a, b) =>
+            Number(a.lessonId || 0) -
+              Number(b.lessonId || 0) ||
+            Number(a.id) -
+              Number(b.id),
+        )
+
+    const attemptGroups =
+      await Promise.all(
+        quizzes.value.map(
+          async quiz => {
+            try {
+              const attempts =
+                await fetchTeacherQuizAttempts(
+                  quiz.id,
+                )
+
+              return attempts || []
+            } catch (error) {
+              console.error(
+                `No fue posible cargar intentos del quiz ${quiz.id}:`,
+                error,
+              )
+
+              return []
+            }
+          },
+        ),
+      )
+
+    quizAttempts.value =
+      attemptGroups.flat()
   } catch (error) {
     console.error(
       'Error cargando libro de notas:',
-      error
+      error,
     )
 
     students.value = []
     lessons.value = []
     assignments.value = []
     submissions.value = []
+    quizzes.value = []
+    quizAttempts.value = []
 
     loadError.value =
       error?.message ||
-      'No se pudo cargar el libro de notas.'
+      'No se pudo cargar el libro de notas desde Supabase.'
   } finally {
     isLoading.value = false
   }
 }
 
-/* =========================================================
-   NUMERACIÓN ACADÉMICA
-========================================================= */
-
-const getLessonUnitId = lesson =>
-  lesson?.unitId ??
-  lesson?.unit_id ??
-  null
-
-/*
- * El ID de Supabase identifica técnicamente la clase,
- * pero no representa su número académico.
- *
- * Ejemplo:
- * id = 5
- * posición dentro de la unidad = Clase 1
- */
-const getAcademicLessonNumber = lesson => {
-  if (!lesson) {
-    return 0
-  }
-
-  const unitId =
-    getLessonUnitId(lesson)
-
-  const unitLessons =
-    lessons.value.filter(item => {
-      const itemUnitId =
-        getLessonUnitId(item)
-
-      if (unitId === null) {
-        return itemUnitId === null
-      }
-
-      return (
-        String(itemUnitId) ===
-        String(unitId)
+const studentMatchesSearch =
+  student => {
+    const query =
+      normalizeText(
+        searchQuery.value,
       )
-    })
 
-  const unitIndex =
-    unitLessons.findIndex(
-      item =>
-        Number(item.id) ===
-        Number(lesson.id)
-    )
+    if (!query) {
+      return true
+    }
 
-  if (unitIndex >= 0) {
-    return unitIndex + 1
+    return normalizeText(
+      `${student?.name || ''} ${student?.voice || ''}`,
+    ).includes(query)
   }
 
-  const globalIndex =
-    lessons.value.findIndex(
-      item =>
-        Number(item.id) ===
-        Number(lesson.id)
+const studentIdOf =
+  record =>
+    Number(
+      record?.studentId ??
+      record?.student_id ??
+      record?.userId ??
+      record?.user_id,
     )
 
-  return globalIndex >= 0
-    ? globalIndex + 1
-    : 0
-}
+const assignmentIdOf =
+  record =>
+    Number(
+      record?.assignmentId ??
+      record?.assignment_id,
+    )
 
-const getAcademicLessonNumberById =
+const findSubmission =
+  (studentId, assignmentId) =>
+    submissions.value.find(
+      submission =>
+        studentIdOf(submission) ===
+          Number(studentId) &&
+        assignmentIdOf(submission) ===
+          Number(assignmentId),
+    ) || null
+
+const hasGrade =
+  submission => {
+    const grade =
+      Number(
+        submission?.grade,
+      )
+
+    return Number.isFinite(
+      grade,
+    )
+  }
+
+const formatGrade =
+  value => {
+    const grade =
+      Number(value)
+
+    if (!Number.isFinite(grade)) {
+      return '—'
+    }
+
+    return grade.toFixed(1)
+  }
+
+const taskStatusLabel =
+  submission => {
+    if (!submission) {
+      return 'Sin entrega'
+    }
+
+    if (hasGrade(submission)) {
+      return 'Evaluada'
+    }
+
+    const status =
+      String(
+        submission.status || '',
+      ).toLowerCase()
+
+    if (
+      status === 'submitted' ||
+      status === 'delivered'
+    ) {
+      return 'Por revisar'
+    }
+
+    return 'Entregada'
+  }
+
+const taskStatusClass =
+  submission => ({
+    'status-text--success':
+      hasGrade(submission),
+    'status-text--warning':
+      submission &&
+      !hasGrade(submission),
+  })
+
+const taskRows =
+  computed(() =>
+    students.value.map(
+      student => {
+        const cells =
+          assignments.value.map(
+            assignment => ({
+              assignment,
+              submission:
+                findSubmission(
+                  student.id,
+                  assignment.id,
+                ),
+            }),
+          )
+
+        const grades =
+          cells
+            .filter(
+              cell =>
+                hasGrade(
+                  cell.submission,
+                ),
+            )
+            .map(
+              cell =>
+                Number(
+                  cell.submission.grade,
+                ),
+            )
+
+        return {
+          student,
+          cells,
+          reviewed:
+            grades.length,
+          average:
+            grades.length
+              ? (
+                  grades.reduce(
+                    (sum, grade) =>
+                      sum + grade,
+                    0,
+                  ) /
+                  grades.length
+                ).toFixed(1)
+              : '—',
+        }
+      },
+    ),
+  )
+
+const filteredTaskRows =
+  computed(() =>
+    taskRows.value.filter(
+      row =>
+        studentMatchesSearch(
+          row.student,
+        ),
+    ),
+  )
+
+const finishedQuizAttempts =
+  computed(() =>
+    quizAttempts.value.filter(
+      attempt =>
+        [
+          'submitted',
+          'graded',
+        ].includes(
+          String(
+            attempt.status || '',
+          ).toLowerCase(),
+        ),
+    ),
+  )
+
+const pendingManualCount =
+  computed(() =>
+    finishedQuizAttempts.value.filter(
+      attempt =>
+        Number(
+          attempt.pendingManual || 0,
+        ) > 0,
+    ).length,
+  )
+
+const attemptsForQuiz =
+  quizId =>
+    finishedQuizAttempts.value.filter(
+      attempt =>
+        Number(attempt.quizId) ===
+        Number(quizId),
+    )
+
+const attemptsForStudentQuiz =
+  (studentId, quizId) =>
+    attemptsForQuiz(quizId)
+      .filter(
+        attempt =>
+          Number(
+            attempt.studentId,
+          ) ===
+          Number(studentId),
+      )
+      .sort(
+        (a, b) =>
+          Number(
+            a.attemptNumber || 0,
+          ) -
+          Number(
+            b.attemptNumber || 0,
+          ),
+      )
+
+const bestAttemptOf =
+  attempts =>
+    attempts.reduce(
+      (best, current) => {
+        if (!best) {
+          return current
+        }
+
+        const bestValue =
+          Number(
+            best.percentage,
+          )
+
+        const currentValue =
+          Number(
+            current.percentage,
+          )
+
+        if (
+          !Number.isFinite(
+            currentValue,
+          )
+        ) {
+          return best
+        }
+
+        if (
+          !Number.isFinite(
+            bestValue,
+          ) ||
+          currentValue >
+            bestValue
+        ) {
+          return current
+        }
+
+        return best
+      },
+      null,
+    )
+
+const quizCards =
+  computed(() =>
+    quizzes.value.map(
+      quiz => {
+        const allAttempts =
+          attemptsForQuiz(
+            quiz.id,
+          )
+
+        const rows =
+          students.value.map(
+            student => {
+              const attempts =
+                attemptsForStudentQuiz(
+                  student.id,
+                  quiz.id,
+                )
+
+              const latestAttempt =
+                attempts.length
+                  ? attempts[
+                      attempts.length - 1
+                    ]
+                  : null
+
+              return {
+                student,
+                attempts,
+                latestAttempt,
+                bestAttempt:
+                  bestAttemptOf(
+                    attempts,
+                  ),
+                pendingManual:
+                  attempts.some(
+                    attempt =>
+                      Number(
+                        attempt.pendingManual ||
+                        0,
+                      ) > 0,
+                  ),
+              }
+            },
+          )
+
+        return {
+          ...quiz,
+          rows,
+          totalAttempts:
+            allAttempts.length,
+          studentsCompleted:
+            new Set(
+              allAttempts.map(
+                attempt =>
+                  Number(
+                    attempt.studentId,
+                  ),
+              ),
+            ).size,
+          pendingReviews:
+            allAttempts.filter(
+              attempt =>
+                Number(
+                  attempt.pendingManual ||
+                  0,
+                ) > 0,
+            ).length,
+        }
+      },
+    ),
+  )
+
+const filteredQuizCards =
+  computed(() => {
+    const query =
+      normalizeText(
+        searchQuery.value,
+      )
+
+    if (!query) {
+      return quizCards.value
+    }
+
+    return quizCards.value
+      .map(
+        quiz => ({
+          ...quiz,
+          rows:
+            quiz.rows.filter(
+              row =>
+                studentMatchesSearch(
+                  row.student,
+                ),
+            ),
+        }),
+      )
+      .filter(
+        quiz =>
+          quiz.rows.length > 0,
+      )
+  })
+
+const lessonLabel =
   lessonId => {
     const lesson =
       lessons.value.find(
         item =>
           Number(item.id) ===
-          Number(lessonId)
+          Number(lessonId),
       )
 
-    if (!lesson) {
-      return '—'
+    return (
+      lesson?.title ||
+      `Clase ${lessonId}`
+    )
+  }
+
+const assessmentLabel =
+  type => {
+    const labels = {
+      quiz: 'QUIZ',
+      test: 'PRUEBA',
+      exam: 'EXAMEN',
     }
 
-    return getAcademicLessonNumber(
-      lesson
+    return (
+      labels[
+        String(type || '')
+          .toLowerCase()
+      ] ||
+      'EVALUACIÓN'
     )
   }
 
-/* =========================================================
-   ORDEN DE TAREAS
-========================================================= */
+const percentageLabel =
+  value => {
+    const number =
+      Number(value)
 
-const compareAssignments = (
-  a,
-  b
-) => {
-  const lessonA =
-    lessons.value.find(
-      lesson =>
-        Number(lesson.id) ===
-        Number(a.lessonId)
+    return Number.isFinite(
+      number,
     )
-
-  const lessonB =
-    lessons.value.find(
-      lesson =>
-        Number(lesson.id) ===
-        Number(b.lessonId)
-    )
-
-  const academicA =
-    getAcademicLessonNumber(
-      lessonA
-    )
-
-  const academicB =
-    getAcademicLessonNumber(
-      lessonB
-    )
-
-  if (
-    academicA !== academicB
-  ) {
-    return academicA - academicB
+      ? `${Math.round(number)}%`
+      : '—'
   }
 
-  return (
-    Number(a.id) -
-    Number(b.id)
-  )
-}
+const formatDate =
+  value => {
+    if (!value) {
+      return 'Sin fecha'
+    }
 
-/* =========================================================
-   ESTUDIANTES
-========================================================= */
+    const date =
+      new Date(value)
 
-const voiceOrder = {
-  Soprano: 1,
-  Alto: 2,
-  Tenor: 3,
-  Bajo: 4
-}
-
-const sortStudents = list =>
-  [...list].sort(
-    (a, b) => {
-      const voiceA =
-        voiceOrder[a.voice] || 99
-
-      const voiceB =
-        voiceOrder[b.voice] || 99
-
-      if (voiceA !== voiceB) {
-        return voiceA - voiceB
-      }
-
-      return (
-        a.name || ''
-      ).localeCompare(
-        b.name || '',
-        'es'
+    if (
+      Number.isNaN(
+        date.getTime(),
       )
+    ) {
+      return 'Sin fecha'
     }
-  )
 
-/* =========================================================
-   NOTAS
-========================================================= */
-
-const hasGrade = submission => {
-  if (!submission) {
-    return false
+    return new Intl
+      .DateTimeFormat(
+        'es-CL',
+        {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        },
+      )
+      .format(date)
   }
 
-  if (
-    submission.grade === null ||
-    submission.grade === undefined ||
-    submission.grade === ''
-  ) {
-    return false
+const quizStatusLabel =
+  row => {
+    if (!row.latestAttempt) {
+      return 'Sin realizar'
+    }
+
+    if (row.pendingManual) {
+      return 'Por revisar'
+    }
+
+    if (
+      row.latestAttempt.status ===
+      'graded'
+    ) {
+      return row.latestAttempt.passed ===
+        false
+        ? 'Por reforzar'
+        : 'Corregida'
+    }
+
+    return 'Entregada'
   }
 
-  const grade =
-    Number(
-      submission.grade
-    )
+const quizStatusClass =
+  row => ({
+    'status-pill--empty':
+      !row.latestAttempt,
+    'status-pill--warning':
+      row.pendingManual,
+    'status-pill--success':
+      row.latestAttempt &&
+      !row.pendingManual &&
+      row.latestAttempt.status ===
+        'graded' &&
+      row.latestAttempt.passed !==
+        false,
+    'status-pill--danger':
+      row.latestAttempt &&
+      !row.pendingManual &&
+      row.latestAttempt.status ===
+        'graded' &&
+      row.latestAttempt.passed ===
+        false,
+  })
 
-  return Number.isFinite(
-    grade
-  )
-}
+const reviewRoute =
+  (quiz, attempt) =>
+    `/aula/clase/${quiz.lessonId}/evaluacion/${quiz.id}/intentos/${attempt.id}/revisar`
 
-const formatGrade = value => {
-  const grade =
-    Number(value)
+const initials =
+  name =>
+    String(name || '')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(
+        part =>
+          part[0],
+      )
+      .join('')
+      .toUpperCase() ||
+    'ES'
 
-  if (
-    !Number.isFinite(
-      grade
-    )
-  ) {
-    return '—'
-  }
-
-  return grade.toFixed(1)
-}
-
-/* =========================================================
-   ENTREGA
-========================================================= */
-
-const findSubmission = (
-  studentId,
-  assignmentId
-) =>
-  submissions.value.find(
-    item =>
-      Number(item.studentId) ===
-        Number(studentId) &&
-      Number(item.assignmentId) ===
-        Number(assignmentId)
-  ) || null
-
-/* =========================================================
-   FILAS
-========================================================= */
-
-const studentRows =
+const studentPerformance =
   computed(() =>
     students.value.map(
       student => {
-        const tasks =
-          assignments.value.map(
-            task => ({
-              task,
-
-              submission:
-                findSubmission(
-                  student.id,
-                  task.id
-                )
-            })
+        const taskRow =
+          taskRows.value.find(
+            row =>
+              Number(
+                row.student.id,
+              ) ===
+              Number(student.id),
           )
 
-        const delivered =
-          tasks.filter(
-            item =>
-              Boolean(
-                item.submission
-              )
-          ).length
+        const studentAttempts =
+          finishedQuizAttempts.value.filter(
+            attempt =>
+              Number(
+                attempt.studentId,
+              ) ===
+              Number(student.id),
+          )
 
-        const graded =
-          tasks
-            .map(
-              item =>
-                item.submission
-            )
-            .filter(
-              submission =>
-                submission &&
-                hasGrade(
-                  submission
-                )
-            )
-
-        const grades =
-          graded
-            .map(
-              submission =>
+        const completedQuizIds =
+          new Set(
+            studentAttempts.map(
+              attempt =>
                 Number(
-                  submission.grade
-                )
-            )
-            .filter(
-              Number.isFinite
-            )
-
-        const average =
-          grades.length
-            ? (
-                grades.reduce(
-                  (
-                    sum,
-                    grade
-                  ) =>
-                    sum + grade,
-                  0
-                ) /
-                grades.length
-              ).toFixed(1)
-            : '—'
-
-        const pending =
-          Math.max(
-            assignments.value.length -
-              delivered,
-            0
+                  attempt.quizId,
+                ),
+            ),
           )
 
-        const progress =
-          assignments.value.length
-            ? Math.round(
-                (
-                  graded.length /
-                  assignments.value.length
-                ) * 100
-              )
-            : 0
+        const bestPercentages =
+          quizzes.value
+            .map(
+              quiz =>
+                bestAttemptOf(
+                  attemptsForStudentQuiz(
+                    student.id,
+                    quiz.id,
+                  ),
+                )?.percentage,
+            )
+            .map(Number)
+            .filter(
+              Number.isFinite,
+            )
+
+        const quizAverage =
+          bestPercentages.length
+            ? `${Math.round(
+                bestPercentages.reduce(
+                  (sum, value) =>
+                    sum + value,
+                  0,
+                ) /
+                bestPercentages.length,
+              )}%`
+            : '—'
 
         return {
           student,
-          tasks,
-          delivered,
-
-          reviewed:
-            graded.length,
-
-          pending,
-          average,
-          progress
+          taskAverage:
+            taskRow?.average ||
+            '—',
+          reviewedTasks:
+            taskRow?.reviewed ||
+            0,
+          quizAverage,
+          completedQuizzes:
+            completedQuizIds.size,
+          pendingQuizReviews:
+            studentAttempts.filter(
+              attempt =>
+                Number(
+                  attempt.pendingManual ||
+                  0,
+                ) > 0,
+            ).length,
         }
-      }
-    )
+      },
+    ),
   )
 
-/* =========================================================
-   BÚSQUEDA
-========================================================= */
-
-const normalizedSearch =
+const filteredStudentPerformance =
   computed(() =>
-    searchTerm.value
-      .trim()
-      .toLocaleLowerCase(
-        'es'
-      )
+    studentPerformance.value.filter(
+      row =>
+        studentMatchesSearch(
+          row.student,
+        ),
+    ),
   )
-
-const filteredStudentRows =
-  computed(() => {
-    if (
-      !normalizedSearch.value
-    ) {
-      return studentRows.value
-    }
-
-    return studentRows.value.filter(
-      row => {
-        const searchable =
-          [
-            row.student.name,
-            row.student.voice
-          ]
-            .filter(Boolean)
-            .join(' ')
-            .toLocaleLowerCase(
-              'es'
-            )
-
-        return searchable.includes(
-          normalizedSearch.value
-        )
-      }
-    )
-  })
-
-/* =========================================================
-   RESUMEN
-========================================================= */
-
-const reviewedCount =
-  computed(() =>
-    submissions.value.filter(
-      submission =>
-        hasGrade(
-          submission
-        )
-    ).length
-  )
-
-const deliveredNotReviewedCount =
-  computed(() =>
-    submissions.value.filter(
-      submission =>
-        !hasGrade(
-          submission
-        ) &&
-        (
-          submission.status ===
-            'delivered' ||
-          submission.status ===
-            'returned' ||
-          submission.status ===
-            'reviewed'
-        )
-    ).length
-  )
-
-const globalAverage =
-  computed(() => {
-    const grades =
-      submissions.value
-        .filter(
-          submission =>
-            hasGrade(
-              submission
-            )
-        )
-        .map(
-          submission =>
-            Number(
-              submission.grade
-            )
-        )
-        .filter(
-          Number.isFinite
-        )
-
-    if (!grades.length) {
-      return '—'
-    }
-
-    return (
-      grades.reduce(
-        (
-          sum,
-          grade
-        ) =>
-          sum + grade,
-        0
-      ) /
-      grades.length
-    ).toFixed(1)
-  })
-
-/* =========================================================
-   RUTAS
-========================================================= */
-
-const reviewLink =
-  taskResult => {
-    const task =
-      taskResult.task
-
-    const submission =
-      taskResult.submission
-
-    if (
-      !task ||
-      !submission
-    ) {
-      return '/aula/calificaciones'
-    }
-
-    return (
-      `/aula/clase/${task.lessonId}` +
-      `/tarea/${task.id}` +
-      `/entregas/${submission.id}`
-    )
-  }
-
-/* =========================================================
-   ESTADO DE ENTREGA
-========================================================= */
-
-const getSubmissionStatus =
-  submission => {
-    if (!submission) {
-      return 'Sin entregar'
-    }
-
-    if (
-      submission.status ===
-      'returned'
-    ) {
-      return 'Devuelto'
-    }
-
-    if (
-      submission.status ===
-        'reviewed' ||
-      submission.reviewedAt
-    ) {
-      return 'Revisado'
-    }
-
-    return 'Entregado'
-  }
-
-/* =========================================================
-   INICIALES
-========================================================= */
-
-const getInitials = name => {
-  if (!name) {
-    return '?'
-  }
-
-  return String(name)
-    .split(' ')
-    .filter(Boolean)
-    .map(
-      word =>
-        word.charAt(0)
-    )
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-/* =========================================================
-   INICIO
-========================================================= */
 
 onMounted(
-  loadGradebook
+  loadGradebook,
 )
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/styles/abstracts/variables' as variables;
-
-/* =========================================================
-   BASE
-========================================================= */
-
+<style scoped>
 .gradebook {
-  width: 100%;
-  max-width: 1400px;
+  --canvas: #f5f7fb;
+  --card: #ffffff;
+  --ink: #172033;
+  --body: #344359;
+  --muted: #667085;
+  --border: #dbe3ec;
+  --wine: #9f1945;
+  --wine-dark: #7f1237;
+  --gold: #d9a91d;
+  --gold-soft: #fff8e7;
+  --green: #2d8a63;
+  --green-soft: #edf8f3;
+  --red: #be4856;
+  --red-soft: #fff1f2;
+  --warning: #a96b13;
+  --warning-soft: #fff7e8;
 
-  margin: 0 auto;
-  padding-bottom:
-    variables.$spacing-4xl;
+  min-height: 100%;
+  padding: 32px;
+  color: var(--ink);
+  background: var(--canvas);
 }
 
-/* =========================================================
-   HEADER
-========================================================= */
-
-.gradebook__header {
+.gradebook__hero {
   display: flex;
-
-  gap:
-    variables.$spacing-xl;
-
   align-items: flex-end;
   justify-content: space-between;
-
-  margin-bottom:
-    variables.$spacing-2xl;
+  gap: 32px;
+  padding: 36px;
+  overflow: hidden;
+  border-radius: 26px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 86% 10%, rgba(217, 169, 29, .22), transparent 28%),
+    linear-gradient(135deg, #172033 0%, #202b43 62%, #351727 100%);
+  box-shadow: 0 18px 45px rgba(23, 32, 51, .12);
 }
 
-.gradebook__eyebrow {
-  margin:
-    0
-    0
-    variables.$spacing-sm;
-
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.14em;
-
-  text-transform:
-    uppercase;
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--wine);
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .13em;
 }
 
-.gradebook__header h1 {
+.gradebook__hero .eyebrow {
+  color: #f0ca58;
+}
+
+.gradebook__hero h1 {
   margin: 0;
-
-  font-size:
-    clamp(
-      3rem,
-      6vw,
-      5.2rem
-    );
-
-  line-height:
-    0.98;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: -.045em;
 }
 
-.gradebook__description {
-  max-width: 650px;
-
-  margin:
-    variables.$spacing-lg
-    0
-    0;
-
-  color:
-    variables.$color-text-secondary;
-
-  font-size:
-    variables.$font-size-base;
-
-  line-height:
-    1.7;
+.hero-copy {
+  max-width: 700px;
+  margin: 16px 0 0;
+  color: rgba(255,255,255,.78);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
-.gradebook__enrollment {
-  min-width: 190px;
-
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
+.hero-status {
+  min-width: 180px;
+  padding: 20px 24px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 20px;
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(12px);
 }
 
-.gradebook__enrollment span,
-.gradebook__enrollment strong,
-.gradebook__enrollment small {
+.hero-status span,
+.hero-status small {
   display: block;
+  color: rgba(255,255,255,.72);
 }
 
-.gradebook__enrollment span {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
+.hero-status strong {
+  display: block;
+  margin: 4px 0;
+  font-size: 2.25rem;
 }
 
-.gradebook__enrollment strong {
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-primary;
-
-  font-size: 2rem;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-.gradebook__enrollment small {
-  margin-top: 2px;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-}
-
-/* =========================================================
-   SUMMARY
-========================================================= */
-
-.gradebook__summary {
+.summary-grid {
   display: grid;
-
-  gap:
-    variables.$spacing-md;
-
-  grid-template-columns:
-    repeat(
-      5,
-      minmax(0, 1fr)
-    );
-
-  margin-bottom:
-    variables.$spacing-xl;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
 }
 
-.gradebook__summary article {
-  min-width: 0;
-
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-soft;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
+.metric-card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: 0 8px 24px rgba(23,32,51,.045);
 }
 
-.gradebook__summary span,
-.gradebook__summary strong,
-.gradebook__summary small {
+.metric-card span,
+.metric-card small {
   display: block;
+  color: var(--muted);
 }
 
-.gradebook__summary span {
-  margin-bottom:
-    variables.$spacing-sm;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
+.metric-card span {
+  font-size: .78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
-.gradebook__summary strong {
-  margin-bottom:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    clamp(
-      1.6rem,
-      3vw,
-      2.1rem
-    );
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-.gradebook__summary small {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-}
-
-.summary-card--primary {
-  border-color:
-    variables.$color-border-primary !important;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(
-        variables.$color-primary,
-        0.07
-      ),
-      variables.$color-surface
-    ) !important;
-}
-
-.summary-card--primary strong {
-  color:
-    variables.$color-primary;
-}
-
-.summary-card--attention {
-  border-color:
-    rgba(
-      variables.$color-warning,
-      0.22
-    ) !important;
-}
-
-.summary-card--attention strong {
-  color:
-    variables.$color-warning;
-}
-
-/* =========================================================
-   TOOLBAR
-========================================================= */
-
-.gradebook-toolbar {
-  display: flex;
-
-  gap:
-    variables.$spacing-xl;
-
-  align-items: flex-end;
-  justify-content: space-between;
-
-  margin-bottom:
-    variables.$spacing-3xl;
-
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-soft;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
-}
-
-.gradebook-toolbar__search {
-  width: min(
-    100%,
-    420px
-  );
-}
-
-.gradebook-toolbar__search label {
+.metric-card strong {
   display: block;
-
-  margin-bottom:
-    variables.$spacing-sm;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-medium;
+  margin: 8px 0 4px;
+  font-size: 1.8rem;
 }
 
-.gradebook-search {
-  position: relative;
+.metric-card--alert {
+  border-color: #efd6a9;
+  background: var(--warning-soft);
+}
 
+.toolbar {
+  position: sticky;
+  top: 12px;
+  z-index: 5;
   display: flex;
-
   align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 22px 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 10px 28px rgba(23,32,51,.07);
+  backdrop-filter: blur(12px);
 }
 
-.gradebook-search > span {
-  position: absolute;
-
-  left:
-    variables.$spacing-md;
-
-  color:
-    variables.$color-text-muted;
-
-  pointer-events: none;
+.tabs {
+  display: flex;
+  gap: 6px;
 }
 
-.gradebook-search input {
-  width: 100%;
-  min-height:
-    variables.$control-height-md;
-
-  padding:
-    0
-    3rem
-    0
-    2.65rem;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-md;
-
-  outline: 0;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    variables.$color-background;
-
-  font-size:
-    variables.$font-size-sm;
-
-  transition:
-    border-color
-      variables.$transition-fast,
-    box-shadow
-      variables.$transition-fast;
-}
-
-.gradebook-search input::placeholder {
-  color:
-    variables.$color-text-disabled;
-}
-
-.gradebook-search input:focus-visible {
-  border-color:
-    variables.$color-primary;
-
-  box-shadow:
-    0 0 0 3px
-    rgba(
-      variables.$color-primary,
-      0.08
-    );
-}
-
-.gradebook-search button {
-  position: absolute;
-
-  right:
-    variables.$spacing-sm;
-
-  display: grid;
-
-  width: 34px;
-  height: 34px;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-text-muted;
-
-  background:
-    transparent;
-
-  font-size: 1.25rem;
-
+.tabs button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--body);
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
   cursor: pointer;
 }
 
-.gradebook-search button:hover {
-  color:
-    variables.$color-text-primary;
-
-  background:
-    variables.$color-surface-hover;
+.tabs button strong {
+  min-width: 25px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: #eef2f6;
+  font-size: .75rem;
 }
 
-.gradebook-toolbar__meta {
-  text-align: right;
-}
-
-.gradebook-toolbar__meta span,
-.gradebook-toolbar__meta strong {
-  display: block;
-}
-
-.gradebook-toolbar__meta span {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-}
-
-.gradebook-toolbar__meta strong {
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    variables.$font-size-sm;
-}
-
-/* =========================================================
-   SECCIONES
-========================================================= */
-
-.gradebook__section {
-  margin-bottom:
-    variables.$spacing-4xl;
-}
-
-.gradebook__section-header {
-  display: flex;
-
-  gap:
-    variables.$spacing-xl;
-
-  align-items: flex-end;
-  justify-content: space-between;
-
-  margin-bottom:
-    variables.$spacing-xl;
-}
-
-.gradebook__section-title {
-  display: flex;
-
-  gap:
-    variables.$spacing-md;
-
-  align-items: center;
-}
-
-.gradebook__section-title > span {
+.tabs button i {
+  position: absolute;
+  top: -5px;
+  right: -5px;
   display: grid;
-
-  width: 48px;
-  height: 48px;
-
-  flex: 0 0 auto;
-
   place-items: center;
-
-  border:
-    1px solid
-    variables.$color-border-primary;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.04
-    );
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--red);
+  font-size: .68rem;
+  font-style: normal;
 }
 
-.gradebook__section-title p {
-  margin:
-    0
-    0
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.08em;
-
-  text-transform:
-    uppercase;
+.tabs .tab--active {
+  color: #fff;
+  background: var(--wine);
 }
 
-.gradebook__section-title h2 {
-  margin: 0;
-
-  font-family:
-    variables.$font-family-primary;
-
-  font-size:
-    clamp(
-      1.55rem,
-      3vw,
-      2rem
-    );
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    -0.03em;
+.tabs .tab--active strong {
+  color: var(--wine);
+  background: #fff;
 }
 
-.gradebook__section-description {
-  max-width: 360px;
-
-  margin: 0;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
-
-  line-height:
-    1.6;
-
-  text-align: right;
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(330px, 100%);
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
 }
 
-/* =========================================================
-   TABLA
-========================================================= */
-
-.gradebook-table-wrapper {
-  position: relative;
-
-  overflow: auto;
-
-  max-width: 100%;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
-
-  scrollbar-width: thin;
-}
-
-.gradebook-table {
+.search-box input {
   width: 100%;
-
-  min-width: 1000px;
-
-  border-collapse:
-    separate;
-
-  border-spacing: 0;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
 }
 
-.gradebook-table th {
-  position: sticky;
+.workspace,
+.student-performance {
+  margin-top: 22px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: 0 10px 30px rgba(23,32,51,.045);
+}
 
-  top: 0;
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
 
-  z-index: 3;
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2vw, 2.1rem);
+  letter-spacing: -.035em;
+}
 
-  padding:
-    variables.$spacing-md;
+.section-heading p:not(.eyebrow) {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
 
-  border-bottom:
-    1px solid
-    variables.$color-border;
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--muted);
+  font-size: .78rem;
+}
 
-  color:
-    variables.$color-text-secondary;
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
-  background:
-    variables.$color-surface-elevated;
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #aab4c1;
+}
 
-  font-family:
-    variables.$font-family-primary;
+.dot--success { background: var(--green); }
+.dot--warning { background: var(--warning); }
 
-  font-size:
-    variables.$font-size-xs;
+.table-shell,
+.quiz-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
 
-  font-weight:
-    variables.$font-weight-semibold;
+.grade-table,
+.quiz-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
 
-  line-height: 1.4;
+.grade-table {
+  min-width: 850px;
+}
 
+.quiz-table {
+  min-width: 900px;
+}
+
+.grade-table th,
+.grade-table td,
+.quiz-table th,
+.quiz-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid #edf1f5;
   text-align: left;
-  vertical-align: bottom;
-}
-
-.gradebook-table th > span {
-  display: block;
-
-  margin-bottom:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-primary;
-
-  font-size: 0.7rem;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.04em;
-
-  text-transform:
-    uppercase;
-}
-
-.gradebook-table th > strong {
-  display: block;
-
-  max-width: 180px;
-
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-}
-
-.gradebook-table td {
-  padding:
-    variables.$spacing-md;
-
-  border-bottom:
-    1px solid
-    variables.$color-border-soft;
-
-  color:
-    variables.$color-text-secondary;
-
-  background:
-    variables.$color-surface;
-
-  font-size:
-    variables.$font-size-sm;
-
   vertical-align: middle;
 }
 
-.gradebook-table tbody tr:last-child td {
-  border-bottom: 0;
+.grade-table thead th,
+.quiz-table thead th {
+  color: #566276;
+  background: #f8fafc;
+  font-size: .74rem;
+  font-weight: 900;
+  letter-spacing: .035em;
 }
 
-.gradebook-table tbody tr:hover td {
-  background:
-    variables.$color-surface-elevated;
+.student-column {
+  min-width: 220px;
 }
 
-.gradebook-table__student-column {
-  min-width: 230px;
-}
-
-.gradebook-table__task {
-  min-width: 160px;
-}
-
-.gradebook-table__compact {
-  min-width: 105px;
-
-  text-align: center !important;
-}
-
-.gradebook-table__sticky {
-  position: sticky;
-
-  left: 0;
-
-  z-index: 4;
-}
-
-.gradebook-table th.gradebook-table__sticky {
-  z-index: 6;
-}
-
-.gradebook-table td.gradebook-table__sticky {
-  box-shadow:
-    1px 0 0
-    variables.$color-border;
-}
-
-/* =========================================================
-   ESTUDIANTE
-========================================================= */
-
-.gradebook-table__student a {
-  display: flex;
-
-  gap:
-    variables.$spacing-md;
-
-  align-items: center;
-
-  color:
-    variables.$color-text-primary;
-}
-
-.gradebook-table__student a > div:last-child {
-  min-width: 0;
-}
-
-.gradebook-table__student strong,
-.gradebook-table__student span {
+.column-kicker {
   display: block;
+  margin-bottom: 3px;
+  color: var(--wine);
+  font-size: .65rem;
 }
 
-.gradebook-table__student strong {
-  overflow: hidden;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gradebook-table__student span {
-  margin-top: 3px;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-}
-
-.gradebook-table__avatar,
-.student-grade-card__avatar {
-  display: grid;
-
-  width: 44px;
-  height: 44px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border:
-    1px solid
-    variables.$color-border-primary;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.07
-    );
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-}
-
-.voice-badge {
-  display: inline-flex;
-
-  min-height: 30px;
-
+.student-cell a,
+.student-identity {
+  display: flex;
   align-items: center;
-
-  padding:
-    0
-    0.75rem;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-pill;
-
-  color:
-    variables.$color-text-secondary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  white-space: nowrap;
+  gap: 11px;
+  color: inherit;
+  text-decoration: none;
 }
 
-/* =========================================================
-   CALIFICACIONES
-========================================================= */
+.student-cell small,
+.student-identity small,
+.latest-attempt small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .74rem;
+}
 
-.gradebook-table__grade-cell,
-.gradebook-table__center,
-.gradebook-table__average {
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--wine), #6e1734);
+  font-size: .76rem;
+  font-weight: 900;
+}
+
+.avatar--small {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+
+.grade-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.grade-cell strong,
+.average-cell strong,
+.percentage {
+  font-size: 1.05rem;
+}
+
+.grade-cell--empty,
+.muted {
+  color: #98a2b3;
+}
+
+.status-text--success { color: var(--green); }
+.status-text--warning { color: var(--warning); }
+
+.average-cell small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.quiz-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.quiz-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.quiz-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+  background:
+    linear-gradient(90deg, #fff, #fbf7f9);
+}
+
+.quiz-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.quiz-card__meta span {
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: var(--wine);
+  background: #f9edf2;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.quiz-card__meta span + span {
+  color: #72580a;
+  background: var(--gold-soft);
+}
+
+.quiz-card h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.quiz-card__header p {
+  margin: 7px 0 0;
+  color: var(--muted);
+}
+
+.quiz-card__summary {
+  display: flex;
+  gap: 8px;
+}
+
+.quiz-card__summary > div {
+  min-width: 86px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #fff;
   text-align: center;
 }
 
-.grade-pill {
-  display: inline-grid;
-
-  min-width: 46px;
-  height: 40px;
-
-  place-items: center;
-
-  border-radius:
-    variables.$radius-md;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
-
-  transition:
-    transform
-      variables.$transition-fast,
-    border-color
-      variables.$transition-fast,
-    background-color
-      variables.$transition-fast;
+.quiz-card__summary strong,
+.quiz-card__summary span {
+  display: block;
 }
 
-.grade-pill--graded {
-  border:
-    1px solid
-    variables.$color-border-primary;
-
-  color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.055
-    );
+.quiz-card__summary strong {
+  font-size: 1.15rem;
 }
 
-.grade-pill--graded:hover {
-  border-color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.1
-    );
-
-  transform:
-    translateY(-1px);
+.quiz-card__summary span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: .68rem;
 }
 
-.grade-status {
+.quiz-card__summary .summary-alert {
+  border-color: #efd6a9;
+  background: var(--warning-soft);
+}
+
+.latest-attempt strong {
+  display: block;
+}
+
+.attempt-pill,
+.status-pill {
   display: inline-flex;
-
-  min-height: 32px;
-
   align-items: center;
-
-  padding:
-    0
-    0.7rem;
-
-  border-radius:
-    variables.$radius-pill;
-
-  font-size: 0.72rem;
-
-  font-weight:
-    variables.$font-weight-medium;
-
-  white-space: nowrap;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 800;
 }
 
-.grade-status--submitted {
-  border:
-    1px solid
-    rgba(
-      variables.$color-info,
-      0.22
-    );
-
-  color:
-    variables.$color-info;
-
-  background:
-    variables.$color-info-soft;
+.attempt-pill {
+  color: #4c5b70;
+  background: #eef2f6;
 }
 
-.grade-status--submitted:hover {
-  border-color:
-    rgba(
-      variables.$color-info,
-      0.45
-    );
+.status-pill {
+  color: #667085;
+  background: #eef2f6;
 }
 
-.grade-status--empty {
+.status-pill--success {
+  color: #21694c;
+  background: var(--green-soft);
+}
+
+.status-pill--warning {
+  color: #85530c;
+  background: var(--warning-soft);
+}
+
+.status-pill--danger {
+  color: #983b47;
+  background: var(--red-soft);
+}
+
+.status-pill--empty {
+  color: #667085;
+  background: #f1f3f6;
+}
+
+.action-column,
+.action-cell {
+  text-align: right !important;
+}
+
+.review-link {
+  color: var(--wine);
+  font-size: .82rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.review-link:hover {
+  color: var(--wine-dark);
+  text-decoration: underline;
+}
+
+.quiz-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 20px;
+  background: #fbfcfe;
+}
+
+.quiz-card__footer > div span,
+.quiz-card__footer > div strong {
+  display: block;
+}
+
+.quiz-card__footer > div span {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-
-  color:
-    variables.$color-text-disabled;
-}
-
-.gradebook-table__center strong {
-  color:
-    variables.$color-text-primary;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-.gradebook-table__center span {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-}
-
-.gradebook-table__average strong {
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-md;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-/* =========================================================
-   STUDENT CARDS
-========================================================= */
-
-.student-grade-grid {
-  display: grid;
-
-  gap:
-    variables.$spacing-md;
-
-  grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
-}
-
-.student-grade-card {
-  display: block;
-
-  padding:
-    variables.$spacing-xl;
-
-  border:
-    1px solid
-    variables.$color-border-soft;
-
-  border-radius:
-    variables.$radius-lg;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    variables.$color-surface;
-
-  transition:
-    border-color
-      variables.$transition-normal,
-    transform
-      variables.$transition-normal,
-    background-color
-      variables.$transition-normal;
-}
-
-.student-grade-card:hover {
-  border-color:
-    variables.$color-border-primary;
-
-  background:
-    variables.$color-surface-elevated;
-
-  transform:
-    translateY(-3px);
-}
-
-.student-grade-card__header {
-  display: flex;
-
-  gap:
-    variables.$spacing-md;
-
-  align-items: center;
-
-  margin-bottom:
-    variables.$spacing-xl;
-}
-
-.student-grade-card__identity {
-  min-width: 0;
-  flex: 1;
-}
-
-.student-grade-card__identity span {
-  display: block;
-
-  margin-bottom:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.04em;
-
-  text-transform:
-    uppercase;
-}
-
-.student-grade-card__identity h3 {
-  overflow: hidden;
-
-  margin: 0;
-
-  font-family:
-    variables.$font-family-primary;
-
-  font-size:
-    variables.$font-size-base;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    -0.015em;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.student-grade-card__arrow {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-lg;
-
-  transition:
-    transform
-      variables.$transition-fast,
-    color
-      variables.$transition-fast;
-}
-
-.student-grade-card:hover
-.student-grade-card__arrow {
-  color:
-    variables.$color-primary;
-
-  transform:
-    translateX(3px);
-}
-
-.student-grade-card__primary {
-  display: flex;
-
-  align-items: flex-end;
-  justify-content: space-between;
-
-  margin-bottom:
-    variables.$spacing-md;
-
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-primary;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(
-        variables.$color-primary,
-        0.07
-      ),
-      rgba(
-        variables.$color-primary,
-        0.015
-      )
-    );
-}
-
-.student-grade-card__primary span {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
-}
-
-.student-grade-card__primary strong {
-  color:
-    variables.$color-primary;
-
-  font-size:
-    2rem;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  line-height: 1;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-.student-grade-card__stats {
-  display: grid;
-
-  gap:
-    variables.$spacing-sm;
-
-  grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
-
-  margin-bottom:
-    variables.$spacing-lg;
-}
-
-.student-grade-card__stats div {
-  padding:
-    variables.$spacing-md;
-
-  border:
-    1px solid
-    variables.$color-border-soft;
-
-  border-radius:
-    variables.$radius-md;
-
-  background:
-    variables.$color-background;
-}
-
-.student-grade-card__stats span,
-.student-grade-card__stats strong {
-  display: block;
-}
-
-.student-grade-card__stats span {
-  margin-bottom:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size: 0.72rem;
-}
-
-.student-grade-card__stats strong {
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    variables.$font-size-md;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-/* =========================================================
-   PROGRESS
-========================================================= */
-
-.student-grade-card__progress {
-  margin-bottom:
-    variables.$spacing-lg;
-}
-
-.student-grade-card__progress-info {
-  display: flex;
-
-  justify-content:
-    space-between;
-
-  margin-bottom:
-    variables.$spacing-sm;
-
-  font-size:
-    variables.$font-size-xs;
-}
-
-.student-grade-card__progress-info span {
-  color:
-    variables.$color-text-muted;
-}
-
-.student-grade-card__progress-info strong {
-  color:
-    variables.$color-text-secondary;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-.student-grade-card__bar {
-  overflow: hidden;
-
-  height: 5px;
-
-  border-radius:
-    variables.$radius-pill;
-
-  background:
-    variables.$color-border;
-}
-
-.student-grade-card__fill {
-  height: 100%;
-
-  border-radius: inherit;
-
-  background:
-    variables.$color-primary;
-
-  transition:
-    width
-      variables.$transition-normal;
-}
-
-.student-grade-card__footer {
-  display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  padding-top:
-    variables.$spacing-md;
-
-  border-top:
-    1px solid
-    variables.$color-border-soft;
-
-  color:
-    variables.$color-text-secondary;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-medium;
-}
-
-.student-grade-card__footer span {
-  color:
-    variables.$color-primary;
-}
-
-/* =========================================================
-   EMPTY / LOADING
-========================================================= */
-
-.empty-state,
-.state-card {
-  display: flex;
-
-  gap:
-    variables.$spacing-lg;
-
-  align-items: center;
-
-  padding:
-    variables.$spacing-xl;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
-}
-
-.empty-state > span,
-.state-card > span {
-  display: grid;
-
-  width: 48px;
-  height: 48px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.08
-    );
-
-  font-weight:
-    variables.$font-weight-semibold;
-}
-
-.empty-state h3,
-.state-card h3 {
-  margin: 0;
-
-  font-family:
-    variables.$font-family-primary;
-
-  font-size:
-    variables.$font-size-md;
-
-  font-weight:
-    variables.$font-weight-semibold;
-}
-
-.empty-state p,
-.state-card p {
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
-
-  line-height:
-    1.6;
-}
-
-.empty-state__link {
-  display: inline-flex;
-
-  gap:
-    variables.$spacing-sm;
-
-  align-items: center;
-
-  margin-top:
-    variables.$spacing-md;
-
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-}
-
-.empty-state__button {
-  margin-top:
-    variables.$spacing-md;
-
-  padding:
-    variables.$spacing-sm
-    variables.$spacing-md;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-md;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    transparent;
-
-  font-size:
-    variables.$font-size-sm;
-
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 11px;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 900;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.state-card {
-  min-height: 220px;
-
-  justify-content: center;
+.button--primary {
+  color: #fff;
+  background: var(--wine);
 }
 
-.state-card--error > span {
-  color:
-    variables.$color-danger;
-
-  background:
-    variables.$color-danger-soft;
+.button--secondary {
+  border: 1px solid var(--border);
+  color: var(--ink);
+  background: #fff;
 }
 
-.state-card button {
-  min-height:
-    variables.$control-height-md;
-
-  margin-top:
-    variables.$spacing-md;
-
-  padding:
-    0
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-strong;
-
-  border-radius:
-    variables.$radius-md;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    transparent;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  cursor: pointer;
+.student-performance {
+  margin-top: 24px;
 }
 
-.state-card button:hover {
-  border-color:
-    variables.$color-primary;
+.student-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-/* =========================================================
-   SPINNER
-========================================================= */
+.student-card {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: inherit;
+  background: #fff;
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
 
-.loading-spinner {
-  width: 44px;
-  height: 44px;
+.student-card:hover {
+  transform: translateY(-2px);
+  border-color: #c8d2de;
+  box-shadow: 0 14px 30px rgba(23,32,51,.08);
+}
 
-  flex: 0 0 auto;
+.student-card > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+}
 
-  border:
-    3px solid
-    variables.$color-border;
+.student-card h3 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+}
 
-  border-top-color:
-    variables.$color-primary;
+.student-card header small {
+  color: var(--muted);
+}
 
+.student-card__columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.student-card__columns section {
+  padding: 16px 18px;
+}
+
+.student-card__columns section + section {
+  border-left: 1px solid var(--border);
+}
+
+.student-card__columns span,
+.student-card__columns strong,
+.student-card__columns small {
+  display: block;
+}
+
+.student-card__columns span {
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.student-card__columns strong {
+  margin: 5px 0 2px;
+  font-size: 1.35rem;
+}
+
+.student-card__columns small {
+  color: var(--muted);
+}
+
+.student-card__status {
+  padding: 13px 18px;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.needs-review { color: var(--warning); }
+.all-good { color: var(--green); }
+
+.student-card footer {
+  padding: 13px 18px;
+  color: var(--wine);
+  background: #fbf7f9;
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.state-card,
+.empty-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.state-card p,
+.empty-card p {
+  margin: 5px 0 0;
+  color: var(--muted);
+}
+
+.state-card h2 {
+  margin: 0 0 6px;
+}
+
+.state-card--error {
+  border-color: #efcbd0;
+  background: #fff8f9;
+}
+
+.state-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-
-  animation:
-    gradebook-spin
-    0.8s
-    linear
-    infinite;
+  color: #fff;
+  background: var(--red);
+  font-weight: 900;
 }
 
-@keyframes gradebook-spin {
-  to {
-    transform:
-      rotate(360deg);
-  }
+.spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #e4e8ee;
+  border-top-color: var(--wine);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 1150px) {
-  .gradebook__summary {
-    grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
-  }
-
-  .student-grade-grid {
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
-  }
+.empty-inline {
+  padding: 20px;
+  color: var(--muted);
+  text-align: center;
 }
 
-@media (max-width: 850px) {
-  .gradebook__header,
-  .gradebook__section-header,
-  .gradebook-toolbar {
-    align-items:
-      stretch;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
 
-    flex-direction:
-      column;
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1100px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .gradebook__enrollment {
-    width: 100%;
+  .student-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .gradebook__section-description {
-    max-width: 100%;
-
-    text-align: left;
-  }
-
-  .gradebook-toolbar__search {
-    width: 100%;
-    max-width: none;
-  }
-
-  .gradebook-toolbar__meta {
-    text-align: left;
+  .quiz-card__header {
+    flex-direction: column;
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 760px) {
   .gradebook {
-    padding-bottom:
-      variables.$spacing-3xl;
+    padding: 16px;
   }
 
-  .gradebook__header h1 {
-    font-size:
-      clamp(
-        2.9rem,
-        15vw,
-        4.4rem
-      );
+  .gradebook__hero {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 24px;
   }
 
-  .gradebook__summary {
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+  .hero-status {
+    min-width: 0;
   }
 
-  .gradebook__summary
-  .summary-card--primary {
-    grid-column:
-      1 / -1;
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .student-grade-grid {
-    grid-template-columns:
-      1fr;
+  .toolbar {
+    position: static;
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .student-grade-card {
-    padding:
-      variables.$spacing-lg;
+  .tabs {
+    width: 100%;
   }
 
-  .gradebook__section-title > span {
-    width: 46px;
-    height: 46px;
+  .tabs button {
+    flex: 1;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .search-box {
+    width: auto;
+  }
+
+  .workspace,
+  .student-performance {
+    padding: 18px;
+  }
+
+  .section-heading {
+    flex-direction: column;
+  }
+
+  .quiz-card__summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .quiz-card__summary > div {
+    min-width: 0;
+  }
+
+  .quiz-card__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .gradebook__summary {
-    gap:
-      variables.$spacing-sm;
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .gradebook__summary article {
-    padding:
-      variables.$spacing-md;
+  .metric-card {
+    padding: 16px;
   }
 
-  .student-grade-card__stats {
-    gap:
-      variables.$spacing-xs;
+  .tabs button {
+    font-size: .78rem;
   }
 
-  .student-grade-card__stats div {
-    padding:
-      variables.$spacing-sm;
+  .tabs button strong {
+    display: none;
+  }
+}
+
+/* =========================================================
+   V9.1 · FIX CONTRASTE VISUAL
+   Protege el Libro de notas de estilos globales del aula
+========================================================= */
+
+/* HERO */
+.gradebook .gradebook__hero {
+  color: #ffffff !important;
+}
+
+.gradebook .gradebook__hero h1 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.22),
+    0 8px 30px rgba(0, 0, 0, 0.16);
+}
+
+.gradebook .gradebook__hero .eyebrow {
+  color: #f4c842 !important;
+}
+
+.gradebook .gradebook__hero .hero-copy {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.gradebook .hero-status span,
+.gradebook .hero-status small {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.gradebook .hero-status strong {
+  color: #ffffff !important;
+}
+
+
+/* =========================================================
+   AVATARES
+========================================================= */
+
+.gradebook .avatar {
+  color: #ffffff !important;
+}
+
+.gradebook .avatar,
+.gradebook .avatar *,
+.gradebook .student-cell .avatar,
+.gradebook .student-identity .avatar,
+.gradebook .student-card .avatar {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+
+/* =========================================================
+   TABLAS · LEGIBILIDAD
+========================================================= */
+
+.gradebook .student-cell strong,
+.gradebook .student-identity strong,
+.gradebook .student-card h3 {
+  color: #172033 !important;
+}
+
+.gradebook .student-cell small,
+.gradebook .student-identity small,
+.gradebook .student-card small {
+  color: #667085 !important;
+}
+
+
+/* =========================================================
+   NOTAS Y PORCENTAJES
+========================================================= */
+
+.gradebook .grade-cell strong,
+.gradebook .average-cell strong,
+.gradebook .percentage,
+.gradebook .latest-attempt strong {
+  color: #172033 !important;
+}
+
+
+/* =========================================================
+   ENLACES
+========================================================= */
+
+.gradebook .review-link {
+  color: #9f1945 !important;
+}
+
+.gradebook .review-link:hover {
+  color: #7f1237 !important;
+}
+
+
+
+/* =========================================================
+   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
+   Sistema visual común para el SaaS
+========================================================= */
+.gradebook {
+  --amv-canvas: #f5f7fb;
+  --amv-card: #ffffff;
+  --amv-ink: #172033;
+  --amv-body: #344359;
+  --amv-muted: #667085;
+  --amv-line: #dbe3ec;
+  --amv-wine: #9f1945;
+  --amv-wine-dark: #7f1237;
+  --amv-gold: #d9a91d;
+  --amv-gold-soft: #fff8e7;
+  --amv-green: #2d8a63;
+  --amv-red: #be4856;
+  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
+  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
+  --amv-radius-sm: 12px;
+  --amv-radius-md: 18px;
+  --amv-radius-lg: 24px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.gradebook :where(a, button, input, textarea, select, [role="button"]) {
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
+}
+
+.gradebook :where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 3px solid rgba(159, 25, 69, .22) !important;
+  outline-offset: 3px;
+}
+
+.gradebook :where(button, [role="button"], .button, .btn):not(:disabled):active {
+  transform: translateY(1px) scale(.99);
+}
+
+.gradebook :where(input, textarea, select) {
+  font-size: max(16px, 1em);
+}
+
+.gradebook :where(table tbody tr) {
+  transition: background-color .18s ease;
+}
+
+.gradebook :where(table tbody tr):hover {
+  background-color: rgba(159, 25, 69, .025);
+}
+
+.gradebook :where(.card, [class*="-card"], [class*="__card"]) {
+  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
+}
+
+.gradebook :where(.card, [class*="-card"], [class*="__card"]):hover {
+  border-color: rgba(159, 25, 69, .16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradebook *, .gradebook *::before, .gradebook *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* =========================================================
+   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
+   Capa visual segura: no modifica lógica, datos ni estructura.
+========================================================= */
+.gradebook {
+  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.gradebook :where(
+  article,
+  [class$="__card"],
+  [class*="-card"],
+  [class*="_card"]
+) {
+  transition:
+    transform .24s cubic-bezier(.2,.75,.25,1),
+    box-shadow .24s ease,
+    border-color .24s ease,
+    background-color .24s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gradebook :where(
+    article,
+    [class$="__card"],
+    [class*="-card"],
+    [class*="_card"]
+  ):hover {
+    transform: translateY(-2px);
+  }
+
+  .gradebook :where(
+    button,
+    .button,
+    .btn,
+    a[class*="button"],
+    a[class*="cta"]
+  ):not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: saturate(1.04);
+  }
+
+  .gradebook :where(img) {
+    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
+  }
+
+  .gradebook :where(
+    [class*="cover"],
+    [class*="hero"],
+    [class*="visual"],
+    [class*="gallery"]
+  ):hover img {
+    transform: scale(1.018);
+  }
+}
+
+.gradebook :where(
+  button,
+  .button,
+  .btn,
+  a[class*="button"],
+  a[class*="cta"]
+) {
+  will-change: transform;
+}
+
+.gradebook :where(input, textarea, select):focus {
+  transform: translateY(-1px);
+}
+
+.gradebook :where(
+  [class*="progress"] > *,
+  [class*="bar"] > *,
+  progress
+) {
+  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
+}
+
+.gradebook ::selection {
+  color: #ffffff;
+  background: #9f1945;
+}
+
+@keyframes amvViewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .student-grade-card,
-  .grade-pill,
-  .loading-spinner {
-    transition: none;
+  .gradebook,
+  .gradebook *,
+  .gradebook *::before,
+  .gradebook *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
   }
-
-  .loading-spinner {
-    animation-duration: 1.5s;
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-/* =========================================================
-   V5.1 · LIGHT LMS PATCH
-========================================================= */
-.gradebook {
-  --amv-surface: #ffffff;
-  --amv-soft: #f8fafc;
-  --amv-ink: #172033;
-  --amv-muted: #667085;
-  --amv-border: #dbe3ee;
-  --amv-wine: #9f1d4a;
-  --amv-gold: #c99424;
-  --amv-gold-soft: #fff4d6;
-  --amv-green: #1f8a62;
-  color: var(--amv-ink);
 }
 
-.gradebook__enrollment,
-.gradebook__summary article,
-.gradebook-toolbar,
-.gradebook__section,
-.gradebook-table-wrapper,
-.student-grade-card,
-.state-card,
-.empty-state {
-  background: var(--amv-surface) !important;
-  color: var(--amv-ink) !important;
-  border-color: var(--amv-border) !important;
-  box-shadow: 0 12px 30px rgba(23, 32, 51, 0.055) !important;
-}
-
-.summary-card--primary {
-  background: linear-gradient(145deg, var(--amv-gold-soft), #ffffff 74%) !important;
-  border-color: #ead59a !important;
-}
-
-.summary-card--attention {
-  background: #fff7ed !important;
-  border-color: #fed7aa !important;
-}
-
-.gradebook__summary span,
-.gradebook__summary small,
-.gradebook__enrollment span,
-.gradebook__enrollment small,
-.gradebook-toolbar label,
-.gradebook-toolbar__meta span,
-.gradebook__section-description,
-.student-grade-card__stats span,
-.student-grade-card__progress-info,
-.grade-status--empty {
-  color: var(--amv-muted) !important;
-}
-
-.gradebook__summary strong,
-.gradebook__enrollment strong,
-.gradebook-toolbar__meta strong,
-.student-grade-card__identity strong,
-.gradebook__section h2 {
-  color: var(--amv-ink) !important;
-}
-
-.gradebook-search,
-.gradebook-search input {
-  background: var(--amv-soft) !important;
-  color: var(--amv-ink) !important;
-  border-color: var(--amv-border) !important;
-}
-
-.gradebook-search input::placeholder { color: #98a2b3 !important; }
-
-.gradebook-table {
-  background: #ffffff !important;
-  color: var(--amv-ink) !important;
-}
-
-.gradebook-table th {
-  background: #f2f5f9 !important;
-  color: #475467 !important;
-  border-color: var(--amv-border) !important;
-}
-
-.gradebook-table td {
-  background: #ffffff !important;
-  color: var(--amv-ink) !important;
-  border-color: #e8edf3 !important;
-}
-
-.gradebook-table tr:hover td { background: #fafcff !important; }
-.gradebook-table__sticky { background: inherit !important; }
-
-.gradebook-table__avatar,
-.student-grade-card__avatar {
-  background: #eef3f8 !important;
-  color: #365f91 !important;
-}
-
-.grade-pill,
-.grade-status,
-.voice-badge {
-  background: #f2f5f9 !important;
-  color: #475467 !important;
-  border-color: var(--amv-border) !important;
-}
-
-.grade-pill--graded,
-.grade-status--submitted {
-  background: #eef9f4 !important;
-  color: var(--amv-green) !important;
-  border-color: #b8e2d1 !important;
-}
-
-.student-grade-card__stats > div {
-  background: var(--amv-soft) !important;
-  border-color: #e5eaf1 !important;
-}
-
-.student-grade-card__bar { background: #e7edf4 !important; }
-.student-grade-card__fill { background: var(--amv-green) !important; }
-
-.student-grade-card__footer,
-.student-grade-card__arrow { color: var(--amv-wine) !important; }
-
-@media (max-width: 760px) {
-  .gradebook__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 </style>
