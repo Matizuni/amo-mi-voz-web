@@ -6783,4 +6783,402 @@ onUnmounted(() => {
   }
 }
 
+
+
+/* =========================================================
+   AMV · PROGRAM VIEW v8.3
+   UNIDAD CINEMATOGRÁFICA · VINO + DORADO + CREMA
+   Mantiene intacta la lógica de unidades y clases.
+========================================================= */
+
+.unit-card {
+  overflow: hidden;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 26px !important;
+  background: #fff !important;
+  box-shadow: 0 18px 46px rgba(25, 36, 55, .08) !important;
+}
+
+/* La portada pasa a ser la cabecera académica, no un bloque oscuro genérico. */
+.unit-header--covered {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden;
+  background: #0d1728 !important;
+  color: #fff;
+}
+
+.unit-header--covered .unit-cover {
+  position: absolute !important;
+  inset: 0 0 auto 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none;
+}
+
+.unit-header--covered .unit-cover img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  transform: scale(1.005);
+}
+
+.unit-header--covered .unit-cover__veil {
+  position: absolute !important;
+  inset: 0 !important;
+  background:
+    linear-gradient(90deg,
+      rgba(7, 17, 32, .97) 0%,
+      rgba(7, 17, 32, .91) 28%,
+      rgba(7, 17, 32, .68) 56%,
+      rgba(7, 17, 32, .22) 100%),
+    linear-gradient(0deg,
+      rgba(8, 17, 31, .82) 0%,
+      rgba(8, 17, 31, .08) 54%,
+      rgba(8, 17, 31, .16) 100%) !important;
+}
+
+/* IMPORTANTE: solo estos bloques suben sobre la portada.
+   No usamos .unit-header--covered > * porque rompería position:absolute de .unit-cover. */
+.unit-header--covered .unit-header__main,
+.unit-header--covered .unit-metrics,
+.unit-header--covered .unit-admin {
+  position: relative;
+  z-index: 2;
+}
+
+.unit-header__main {
+  min-height: 290px !important;
+  padding: 34px 38px 30px !important;
+  display: grid !important;
+  grid-template-columns: 78px minmax(0, 1fr) 48px !important;
+  gap: 24px !important;
+  align-items: start !important;
+  text-align: left !important;
+}
+
+/* El 01 deja de ser una caja blanca y se integra como recurso editorial. */
+.unit-header--covered .unit-number {
+  width: 78px !important;
+  min-width: 78px !important;
+  height: 88px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-self: start;
+  margin-top: 10px;
+  border: 1px solid rgba(247, 214, 111, .48) !important;
+  border-radius: 20px !important;
+  background: linear-gradient(145deg, rgba(159,25,69,.94), rgba(91,14,44,.92)) !important;
+  color: #fff !important;
+  font-size: 1.9rem !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow:
+    0 15px 34px rgba(0,0,0,.25),
+    inset 0 1px rgba(255,255,255,.16) !important;
+  backdrop-filter: blur(14px);
+}
+
+.unit-header--covered .unit-title {
+  max-width: 900px !important;
+  padding-top: 0 !important;
+}
+
+.unit-header--covered .unit-title__eyebrow {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px !important;
+  margin-bottom: 13px !important;
+}
+
+.unit-header--covered .unit-title__eyebrow > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 10px !important;
+  border: 1px solid rgba(247,214,111,.44) !important;
+  border-radius: 8px !important;
+  background: rgba(159,25,69,.88) !important;
+  color: #fff !important;
+  font-size: .72rem !important;
+  font-weight: 950 !important;
+  letter-spacing: .055em !important;
+}
+
+.unit-header--covered .unit-status {
+  min-height: 28px;
+  padding: 5px 11px !important;
+  border: 1px solid rgba(255,255,255,.45) !important;
+  border-radius: 999px !important;
+  background: rgba(245,255,248,.94) !important;
+  color: #2d6f52 !important;
+  font-weight: 850 !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,.10);
+}
+
+.unit-header--covered .unit-title h3 {
+  max-width: 820px !important;
+  margin: 0 !important;
+  color: #fff8e8 !important;
+  opacity: 1 !important;
+  font-size: clamp(2rem, 3vw, 3.05rem) !important;
+  line-height: 1.05 !important;
+  font-weight: 950 !important;
+  letter-spacing: -.035em !important;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.86),
+    0 7px 24px rgba(0,0,0,.58) !important;
+}
+
+.unit-header--covered .unit-title h3::after {
+  content: '';
+  display: block;
+  width: 62px;
+  height: 3px;
+  margin-top: 15px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,#f1c84b,#b98712);
+  box-shadow: 0 3px 12px rgba(217,169,29,.25);
+}
+
+.unit-header--covered .unit-title p {
+  max-width: 880px !important;
+  margin: 16px 0 0 !important;
+  color: rgba(255,255,255,.90) !important;
+  font-size: .98rem !important;
+  line-height: 1.72 !important;
+  text-shadow: 0 2px 9px rgba(0,0,0,.62) !important;
+}
+
+/* Colapsar: glass vino, no gris pesado. */
+.unit-header--covered .collapse-button {
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(247,214,111,.35) !important;
+  border-radius: 14px !important;
+  background: rgba(102,19,49,.64) !important;
+  color: #ffe89a !important;
+  font-size: 1.35rem !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.20);
+  backdrop-filter: blur(12px);
+}
+
+/* Métricas integradas como glass institucional. */
+.unit-header--covered .unit-metrics {
+  display: grid !important;
+  grid-template-columns: 145px 155px minmax(260px,1fr) !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  padding: 0 38px !important;
+  border-top: 1px solid rgba(247,214,111,.20) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  background:
+    linear-gradient(90deg,
+      rgba(72,15,40,.78),
+      rgba(13,25,43,.82)) !important;
+  backdrop-filter: blur(16px);
+}
+
+.unit-header--covered .unit-metrics > article {
+  min-height: 86px !important;
+  padding: 18px 18px !important;
+  border-right: 1px solid rgba(255,255,255,.12) !important;
+  background: transparent !important;
+}
+
+.unit-header--covered .unit-metrics > article:first-child {
+  padding-left: 0 !important;
+}
+
+.unit-header--covered .unit-metrics > article:last-child {
+  border-right: 0 !important;
+}
+
+.unit-header--covered .unit-metrics span {
+  color: rgba(255,255,255,.66) !important;
+  font-size: .72rem !important;
+  font-weight: 750 !important;
+}
+
+.unit-header--covered .unit-metrics strong {
+  color: #fff !important;
+  font-weight: 950 !important;
+}
+
+.unit-header--covered .unit-progress {
+  padding-left: 24px !important;
+}
+
+.unit-header--covered .unit-progress > div:first-child {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center;
+  gap: 20px;
+}
+
+.unit-header--covered .unit-progress > div:first-child strong {
+  color: #ffe17d !important;
+  font-size: 1.05rem !important;
+}
+
+.unit-header--covered .progress-bar {
+  height: 7px !important;
+  margin-top: 11px !important;
+  overflow: hidden;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.17) !important;
+}
+
+.unit-header--covered .progress-bar > span {
+  background: linear-gradient(90deg,#d9a91d,#f2cf58) !important;
+  box-shadow: 0 0 14px rgba(217,169,29,.34);
+}
+
+/* Herramientas del profesor: discretas y coherentes con la portada. */
+.unit-header--covered .unit-admin {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  padding: 13px 38px !important;
+  border-top: 0 !important;
+  background: rgba(8,17,31,.90) !important;
+  backdrop-filter: blur(14px);
+}
+
+.unit-header--covered .unit-admin button {
+  min-height: 40px !important;
+  padding: 0 16px !important;
+  border: 1px solid rgba(247,214,111,.22) !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,.07) !important;
+  color: #fff !important;
+  font-weight: 850 !important;
+  box-shadow: none !important;
+}
+
+.unit-header--covered .unit-admin button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(247,214,111,.48) !important;
+  background: rgba(159,25,69,.56) !important;
+}
+
+.unit-header--covered .unit-admin .danger-text {
+  border-color: rgba(239,118,128,.28) !important;
+  background: rgba(128,25,48,.22) !important;
+  color: #ffd9dd !important;
+}
+
+/* Sin portada: conserva el diseño académico existente. */
+.unit-header:not(.unit-header--covered) {
+  border-radius: 24px 24px 0 0;
+}
+
+/* La zona de clases sigue clara: no se toca su arquitectura visual. */
+.unit-body {
+  background: #fff !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .unit-header__main {
+    min-height: 0 !important;
+    grid-template-columns: 64px minmax(0,1fr) 44px !important;
+    gap: 17px !important;
+    padding: 28px 24px !important;
+  }
+
+  .unit-header--covered .unit-number {
+    width: 64px !important;
+    min-width: 64px !important;
+    height: 72px !important;
+    border-radius: 17px !important;
+    font-size: 1.5rem !important;
+  }
+
+  .unit-header--covered .unit-title h3 {
+    font-size: clamp(1.65rem,5vw,2.35rem) !important;
+  }
+
+  .unit-header--covered .unit-metrics {
+    grid-template-columns: 1fr 1fr !important;
+    padding: 0 24px !important;
+  }
+
+  .unit-header--covered .unit-progress {
+    grid-column: 1 / -1;
+    border-top: 1px solid rgba(255,255,255,.10) !important;
+    border-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  .unit-header--covered .unit-admin {
+    padding: 13px 24px !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .unit-card {
+    border-radius: 20px !important;
+  }
+
+  .unit-header__main {
+    grid-template-columns: 1fr 42px !important;
+    padding: 23px 18px !important;
+  }
+
+  .unit-header--covered .unit-number {
+    display: none !important;
+  }
+
+  .unit-header--covered .unit-title {
+    max-width: none !important;
+  }
+
+  .unit-header--covered .unit-title h3 {
+    font-size: 1.75rem !important;
+    line-height: 1.08 !important;
+  }
+
+  .unit-header--covered .unit-title p {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: .9rem !important;
+  }
+
+  .unit-header--covered .unit-metrics {
+    grid-template-columns: 1fr 1fr !important;
+    padding: 0 18px !important;
+  }
+
+  .unit-header--covered .unit-metrics > article {
+    min-height: 76px !important;
+    padding: 15px 12px !important;
+  }
+
+  .unit-header--covered .unit-admin {
+    justify-content: stretch !important;
+    padding: 12px 18px 16px !important;
+  }
+
+  .unit-header--covered .unit-admin button {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unit-header--covered .unit-cover img,
+  .unit-header--covered .unit-admin button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 </style>

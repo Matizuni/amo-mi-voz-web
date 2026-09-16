@@ -127,7 +127,55 @@
       <!-- ===================================================
            RESUMEN
       ==================================================== -->
-      <section
+            <!-- =====================================================
+           V11 · NAVEGACIÓN CONTEXTUAL
+      ====================================================== -->
+      <section class="student-profile__context-shell">
+        <div class="student-profile__context-heading">
+          <div>
+            <span>EXPEDIENTE ACADÉMICO</span>
+            <strong>
+              {{
+                student?.name ||
+                student?.fullName ||
+                'Estudiante'
+              }}
+            </strong>
+          </div>
+
+          <small>
+            Selecciona un área para trabajar sin recorrer
+            toda la ficha.
+          </small>
+        </div>
+
+        <nav
+          class="student-profile__context-nav"
+          aria-label="Secciones de la ficha del estudiante"
+        >
+          <button
+            v-for="tab in profileTabs"
+            :key="tab.id"
+            type="button"
+            class="student-profile__context-tab"
+            :class="{
+              'student-profile__context-tab--active':
+                isProfileTab(tab.id),
+            }"
+            :aria-current="
+              isProfileTab(tab.id)
+                ? 'page'
+                : undefined
+            "
+            @click="selectProfileTab(tab.id)"
+          >
+            <span>{{ tab.label }}</span>
+          </button>
+        </nav>
+      </section>
+
+<section
+        v-show="isProfileTab('resumen')"
         class="student-profile__summary"
         aria-label="Resumen académico"
       >
@@ -188,11 +236,104 @@
         </article>
       </section>
 
+
+
+      <section
+        v-show="isProfileTab('resumen')"
+        class="student-profile__overview"
+      >
+        <header>
+          <div>
+            <span>VISTA GENERAL</span>
+            <h2>Lo importante, a primera vista</h2>
+          </div>
+
+          <p>
+            Desde aquí puedes entrar directamente al área
+            académica que necesitas revisar.
+          </p>
+        </header>
+
+        <div class="student-profile__quick-grid">
+          <button
+            type="button"
+            @click="selectProfileTab('evaluaciones')"
+          >
+            <span>Evaluaciones</span>
+            <strong>
+              {{ studentQuizAttempts.length }}
+            </strong>
+            <small>
+              {{ pendingQuizReviews }}
+              pendientes de revisión
+            </small>
+          </button>
+
+          <button
+            type="button"
+            @click="selectProfileTab('tareas')"
+          >
+            <span>Tareas</span>
+            <strong>
+              {{ studentSubmissions.length }}
+            </strong>
+            <small>
+              {{ reviewedSubmissions.length }}
+              revisadas
+            </small>
+          </button>
+
+          <button
+            type="button"
+            @click="selectProfileTab('asistencia')"
+          >
+            <span>Asistencia</span>
+            <strong>
+              {{ attendancePercentage }}%
+            </strong>
+            <small>
+              {{ pendingAttendanceCount }}
+              clases pendientes
+            </small>
+          </button>
+
+          <button
+            type="button"
+            @click="selectProfileTab('competencias')"
+          >
+            <span>Competencias</span>
+            <strong>
+              {{ rubricCriteria.length }}
+            </strong>
+            <small>
+              Afinación, ritmo, respiración y más
+            </small>
+          </button>
+
+          <button
+            type="button"
+            @click="selectProfileTab('voz')"
+          >
+            <span>Perfil vocal</span>
+            <strong>
+              {{
+                vocalProfile?.voice ||
+                '—'
+              }}
+            </strong>
+            <small>
+              Tesitura, zona cómoda y observaciones
+            </small>
+          </button>
+        </div>
+      </section>
+
+
       <!-- ===================================================
            NAVEGACIÓN INTERNA
       ==================================================== -->
       <nav
-        class="profile-nav"
+        class="profile-nav student-profile__legacy-nav"
         aria-label="Secciones de la ficha"
       >
         <a href="#ficha-vocal">
@@ -222,6 +363,8 @@
       <section
         id="ficha-vocal"
         class="student-profile__section"
+      
+        v-show="isProfileTab('voz')"
       >
         <div class="student-profile__section-header">
           <div class="student-profile__section-title">
@@ -540,6 +683,8 @@
       <section
         id="asistencia"
         class="student-profile__section"
+      
+        v-show="isProfileTab('asistencia')"
       >
         <div class="student-profile__section-header">
           <div class="student-profile__section-title">
@@ -746,6 +891,8 @@
       <section
         id="progreso"
         class="student-profile__section"
+      
+        v-show="isProfileTab('competencias')"
       >
         <div class="student-profile__section-header">
           <div class="student-profile__section-title">
@@ -830,6 +977,7 @@
            04 · ENTREGAS
       ====================================================== -->
       <section
+        v-show="isProfileTab('tareas')"
         id="evaluaciones"
         class="student-profile__section"
       >
@@ -985,6 +1133,7 @@
            05 · QUIZZES Y EVALUACIONES INTERACTIVAS
       ====================================================== -->
       <section
+        v-show="isProfileTab('evaluaciones')"
         id="quiz-academicos"
         class="student-profile__section"
       >
@@ -2456,6 +2605,71 @@ onBeforeUnmount(() => {
     )
   }
 })
+
+/* =========================================================
+   V11 · CONTEXT NAVIGATION
+   Una sola subvista académica visible a la vez.
+========================================================= */
+
+const profileTabs = [
+  {
+    id: 'resumen',
+    label: 'Resumen',
+    shortLabel: 'Resumen',
+  },
+  {
+    id: 'evaluaciones',
+    label: 'Evaluaciones',
+    shortLabel: 'Evaluaciones',
+  },
+  {
+    id: 'tareas',
+    label: 'Tareas',
+    shortLabel: 'Tareas',
+  },
+  {
+    id: 'asistencia',
+    label: 'Asistencia',
+    shortLabel: 'Asistencia',
+  },
+  {
+    id: 'competencias',
+    label: 'Competencias',
+    shortLabel: 'Competencias',
+  },
+  {
+    id: 'voz',
+    label: 'Perfil vocal',
+    shortLabel: 'Voz',
+  },
+]
+
+const activeProfileTab =
+  ref('resumen')
+
+const selectProfileTab =
+  tabId => {
+    if (
+      !profileTabs.some(
+        tab => tab.id === tabId
+      )
+    ) {
+      return
+    }
+
+    /*
+     * V11.1:
+     * Cambiamos de panel sin forzar scroll.
+     * La barra contextual permanece estable y sticky.
+     */
+    activeProfileTab.value = tabId
+  }
+
+const isProfileTab =
+  tabId =>
+    activeProfileTab.value === tabId
+
+
 </script>
 
 <style lang="scss" scoped>
@@ -5948,6 +6162,310 @@ onBeforeUnmount(() => {
 @media (max-width: 460px) {
   .student-profile__summary {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   V11 · CONTEXT NAVIGATION
+   Menos scroll, más orientación y foco.
+========================================================= */
+
+.student-profile__legacy-nav {
+  display: none !important;
+}
+
+.student-profile__context-shell {
+  position: sticky;
+  top: 12px;
+  z-index: 18;
+  margin: 18px 0 22px;
+  border: 1px solid #dbe3ec;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow:
+    0 14px 36px rgba(23, 32, 51, .09);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  scroll-margin-top: 14px;
+}
+
+.student-profile__context-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #e7ecf2;
+}
+
+.student-profile__context-heading > div {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-width: 0;
+}
+
+.student-profile__context-heading span {
+  color: #9f1945;
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.student-profile__context-heading strong {
+  overflow: hidden;
+  color: #172033 !important;
+  font-size: .9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-profile__context-heading small {
+  color: #667085;
+  font-size: .76rem;
+}
+
+.student-profile__context-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.student-profile__context-tab {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #5d6879;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition:
+    background .2s ease,
+    color .2s ease,
+    transform .2s cubic-bezier(.2,.75,.25,1);
+}
+
+.student-profile__context-tab:hover {
+  background: #f5f7fb;
+  color: #172033;
+  transform: translateY(-1px);
+}
+
+.student-profile__context-tab--active {
+  background: #fff0f4;
+  color: #9f1945;
+}
+
+.student-profile__context-tab--active::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: 4px;
+  left: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: #9f1945;
+}
+
+.student-profile__overview {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding: 22px;
+  border: 1px solid #dbe3ec;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow:
+    0 10px 30px rgba(23, 32, 51, .05);
+}
+
+.student-profile__overview > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.student-profile__overview > header span {
+  color: #9f1945;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.student-profile__overview > header h2 {
+  margin: 4px 0 0;
+  color: #172033 !important;
+}
+
+.student-profile__overview > header p {
+  max-width: 440px;
+  margin: 0;
+  color: #667085;
+}
+
+.student-profile__quick-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.student-profile__quick-grid button {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  min-height: 128px;
+  padding: 15px;
+  border: 1px solid #e1e7ef;
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fbfcfe 100%
+    );
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform .22s cubic-bezier(.2,.75,.25,1),
+    border-color .22s ease,
+    box-shadow .22s ease;
+}
+
+.student-profile__quick-grid button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(159, 25, 69, .25);
+  box-shadow:
+    0 12px 28px rgba(23, 32, 51, .07);
+}
+
+.student-profile__quick-grid button > span {
+  color: #9f1945;
+  font-size: .76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .045em;
+}
+
+.student-profile__quick-grid button > strong {
+  overflow: hidden;
+  color: #172033 !important;
+  font-size: 1.35rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-profile__quick-grid button > small {
+  color: #667085;
+  line-height: 1.45;
+}
+
+@media (max-width: 1180px) {
+  .student-profile__quick-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .student-profile__context-shell {
+    top: 6px;
+    border-radius: 16px;
+  }
+
+  .student-profile__context-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .student-profile__context-heading small {
+    display: none;
+  }
+
+  .student-profile__context-nav {
+    padding: 6px;
+  }
+
+  .student-profile__context-tab {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+
+  .student-profile__overview > header {
+    flex-direction: column;
+  }
+
+  .student-profile__quick-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .student-profile__overview {
+    padding: 15px;
+  }
+
+  .student-profile__quick-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-profile__quick-grid button {
+    min-height: 104px;
+  }
+}
+
+
+/* =========================================================
+   V11.1 · NAVEGACIÓN ESTABLE
+========================================================= */
+.student-profile__context-shell {
+  margin-top: 18px;
+}
+
+.student-profile__context-nav {
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+
+.student-profile__context-tab {
+  scroll-snap-align: start;
+  white-space: nowrap;
+}
+
+.student-profile__section[style*="display: none"] {
+  margin: 0 !important;
+}
+
+/*
+ * El cambio de subvista ocurre en el mismo espacio de trabajo.
+ * No animamos posición vertical ni usamos scrollIntoView.
+ */
+.student-profile__context-shell,
+.student-profile__context-nav {
+  transform: none !important;
+}
+
+@media (min-width: 900px) {
+  .student-profile__context-nav {
+    justify-content: space-between;
+    overflow-x: visible;
+  }
+
+  .student-profile__context-tab {
+    flex: 1 1 0;
   }
 }
 

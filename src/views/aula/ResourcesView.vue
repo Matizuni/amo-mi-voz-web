@@ -42,10 +42,220 @@
         <span>Recursos publicados</span>
 
         <strong>
-          {{ materials.length }}
+          {{ accessibleMaterials.length }}
         </strong>
       </div>
     </header>
+
+    <!-- =====================================================
+         CENTRO DE RECURSOS · NAVEGACIÓN CONTEXTUAL V10
+    ====================================================== -->
+    <nav
+      class="resources-context-nav"
+      aria-label="Secciones de la biblioteca"
+    >
+      <button
+        type="button"
+        :class="{ 'is-active': isResourcesTab('resumen') }"
+        @click="setResourcesTab('resumen')"
+      >
+        <span>01</span>
+        Resumen
+      </button>
+
+      <button
+        type="button"
+        :class="{ 'is-active': isResourcesTab('biblioteca') }"
+        @click="setResourcesTab('biblioteca')"
+      >
+        <span>02</span>
+        Biblioteca
+        <small>{{ accessibleMaterials.length }}</small>
+      </button>
+
+      <button
+        v-if="isTeacher || totalScores > 0"
+        type="button"
+        :class="{ 'is-active': isResourcesTab('partituras') }"
+        @click="setResourcesTab('partituras')"
+      >
+        <span>03</span>
+        Partituras
+        <small>{{ totalScores }}</small>
+      </button>
+
+      <button
+        v-if="isTeacher || totalClasses > 0"
+        type="button"
+        :class="{ 'is-active': isResourcesTab('clases') }"
+        @click="setResourcesTab('clases')"
+      >
+        <span>04</span>
+        Clases
+        <small>{{ totalClasses }}</small>
+      </button>
+
+      <button
+        v-if="isTeacher || totalGraphics > 0"
+        type="button"
+        :class="{ 'is-active': isResourcesTab('graficas') }"
+        @click="setResourcesTab('graficas')"
+      >
+        <span>05</span>
+        Gráficas
+        <small>{{ totalGraphics }}</small>
+      </button>
+
+      <button
+        v-if="isTeacher || totalAudio > 0"
+        type="button"
+        :class="{ 'is-active': isResourcesTab('audio') }"
+        @click="setResourcesTab('audio')"
+      >
+        <span>06</span>
+        Audio
+        <small>{{ totalAudio }}</small>
+      </button>
+
+      <button
+        v-if="isTeacher || totalVideo > 0"
+        type="button"
+        :class="{ 'is-active': isResourcesTab('video') }"
+        @click="setResourcesTab('video')"
+      >
+        <span>07</span>
+        Video
+        <small>{{ totalVideo }}</small>
+      </button>
+
+      <button
+        v-if="isTeacher || totalOther > 0"
+        type="button"
+        :class="{ 'is-active': isResourcesTab('otros') }"
+        @click="setResourcesTab('otros')"
+      >
+        <span>08</span>
+        Otros
+        <small>{{ totalOther }}</small>
+      </button>
+    </nav>
+
+    <section
+      v-show="isResourcesTab('resumen')"
+      class="resources-dashboard"
+    >
+      <header class="resources-dashboard__header">
+        <div>
+          <span>CENTRO DE RECURSOS</span>
+          <h2>Tu biblioteca académica</h2>
+          <p>
+            Accede a partituras, documentos, audios y videos
+            organizados dentro del programa formativo.
+          </p>
+        </div>
+
+        <RouterLink
+          v-if="isTeacher"
+          to="/aula/recursos/publicar"
+          class="resources-dashboard__publish"
+        >
+          + Publicar recurso
+        </RouterLink>
+      </header>
+
+      <div class="resources-dashboard__grid">
+        <button
+          type="button"
+          @click="setResourcesTab('biblioteca')"
+        >
+          <span>BIBLIOTECA</span>
+          <strong>{{ accessibleMaterials.length }}</strong>
+          <small>recursos publicados</small>
+          <b>Explorar biblioteca →</b>
+        </button>
+
+        <button
+          v-if="isTeacher || totalScores > 0"
+          type="button"
+          @click="setResourcesTab('partituras')"
+        >
+          <span>PARTITURAS</span>
+          <strong>{{ totalScores }}</strong>
+          <small>partituras musicales</small>
+          <b>Ver partituras →</b>
+        </button>
+
+        <button
+          v-if="isTeacher || totalClasses > 0"
+          type="button"
+          @click="setResourcesTab('clases')"
+        >
+          <span>CLASES</span>
+          <strong>{{ totalClasses }}</strong>
+          <small>PDF y material teórico</small>
+          <b>Ver clases →</b>
+        </button>
+
+        <button
+          v-if="isTeacher || totalGraphics > 0"
+          type="button"
+          @click="setResourcesTab('graficas')"
+        >
+          <span>GRÁFICAS</span>
+          <strong>{{ totalGraphics }}</strong>
+          <small>imágenes y resúmenes visuales</small>
+          <b>Ver gráficas →</b>
+        </button>
+
+        <button
+          v-if="isTeacher || totalAudio > 0"
+          type="button"
+          @click="setResourcesTab('audio')"
+        >
+          <span>AUDIO</span>
+          <strong>{{ totalAudio }}</strong>
+          <small>guías y material auditivo</small>
+          <b>Escuchar recursos →</b>
+        </button>
+
+        <button
+          v-if="isTeacher || totalVideo > 0"
+          type="button"
+          @click="setResourcesTab('video')"
+        >
+          <span>VIDEO</span>
+          <strong>{{ totalVideo }}</strong>
+          <small>material audiovisual</small>
+          <b>Ver videos →</b>
+        </button>
+      </div>
+
+      <article
+        v-if="isStudent && currentUser"
+        class="resources-dashboard__voice"
+      >
+        <div class="resources-dashboard__voice-mark">
+          {{ getVoiceShort(currentUser.voice) }}
+        </div>
+
+        <div>
+          <span>RECURSOS PERSONALIZADOS</span>
+          <h3>Tu sección vocal: {{ currentUser.voice }}</h3>
+          <p>
+            La biblioteca puede mostrar los materiales generales
+            junto con los recursos asignados específicamente a tu voz.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          @click="audienceFilter = 'mine'; setResourcesTab('biblioteca')"
+        >
+          Ver mis recursos →
+        </button>
+      </article>
+    </section>
+
 
     <!-- =====================================================
          GESTIÓN PROFESOR
@@ -54,7 +264,7 @@
     <section
       v-if="isTeacher"
       class="teacher-actions"
-    >
+     v-show="!isResourcesTab('resumen')">
       <div>
         <span>
           GESTIÓN DE RECURSOS
@@ -85,7 +295,7 @@
     <section
       v-if="isStudent"
       class="student-resource-filter"
-    >
+     v-show="!isResourcesTab('resumen')">
       <button
         type="button"
         :class="{
@@ -113,7 +323,7 @@
          BUSCADOR Y FILTROS
     ====================================================== -->
 
-    <section class="resources__toolbar">
+    <section class="resources__toolbar" v-show="!isResourcesTab('resumen')">
       <div class="resources__search">
         <span>⌕</span>
 
@@ -133,15 +343,38 @@
           PDF
         </option>
 
-        <option value="score">
+        <option
+          v-if="isTeacher || totalScores > 0"
+          value="score"
+        >
           Partituras
         </option>
 
-        <option value="audio">
+        <option
+          v-if="isTeacher || totalClasses > 0"
+          value="class"
+        >
+          Clases / PDF teórico
+        </option>
+
+        <option
+          v-if="isTeacher || totalGraphics > 0"
+          value="graphic"
+        >
+          Gráficas / imágenes
+        </option>
+
+        <option
+          v-if="isTeacher || totalAudio > 0"
+          value="audio"
+        >
           Audio
         </option>
 
-        <option value="video">
+        <option
+          v-if="isTeacher || totalVideo > 0"
+          value="video"
+        >
           Video
         </option>
 
@@ -184,7 +417,7 @@
          RESUMEN
     ====================================================== -->
 
-    <section class="resources__summary">
+    <section class="resources__summary" v-show="!isResourcesTab('resumen')">
       <article>
         <span>Visibles</span>
 
@@ -213,7 +446,7 @@
         <span>Partituras</span>
 
         <strong>
-          {{ countType('score') + countType('pdf') }}
+          {{ countType('score') }}
         </strong>
       </article>
     </section>
@@ -222,15 +455,15 @@
          RECURSOS
     ====================================================== -->
 
-    <section class="resources__section">
+    <section class="resources__section" v-show="!isResourcesTab('resumen')">
       <div class="resources__section-title">
         <span>01</span>
 
         <div>
-          <p>Biblioteca</p>
+          <p>{{ activeLibraryMeta.eyebrow }}</p>
 
           <h2>
-            Recursos del programa
+            {{ activeLibraryMeta.title }}
           </h2>
         </div>
       </div>
@@ -456,7 +689,7 @@
             {{
               isLoading
                 ? 'Cargando materiales...'
-                : 'No encontramos materiales'
+                : activeResourcesTab === 'biblioteca' ? 'No encontramos materiales' : `No hay ${activeLibraryMeta.eyebrow.toLowerCase()} disponibles`
             }}
           </h3>
 
@@ -806,6 +1039,14 @@
 
                     <option value="score">
                       Partitura
+                    </option>
+
+                    <option value="class">
+                      Clase / PDF teórico
+                    </option>
+
+                    <option value="graphic">
+                      Gráfica / imagen
                     </option>
 
                     <option value="audio">
@@ -1221,6 +1462,109 @@ const selectedVoice = ref('all')
 const audienceFilter = ref('mine')
 
 /* =========================================================
+   NAVEGACIÓN CONTEXTUAL · BIBLIOTECA V10
+========================================================= */
+const activeResourcesTab = ref('resumen')
+
+const isResourcesTab = tab =>
+  activeResourcesTab.value === tab
+
+const setResourcesTab = tab => {
+  activeResourcesTab.value = tab
+
+  const typeByTab = {
+    biblioteca: 'all',
+    partituras: 'score',
+    clases: 'class',
+    graficas: 'graphic',
+    audio: 'audio',
+    video: 'video',
+    otros: 'other'
+  }
+
+  if (typeByTab[tab]) {
+    selectedType.value = typeByTab[tab]
+  }
+}
+
+const activeLibraryMeta = computed(() => {
+  const meta = {
+    biblioteca: { eyebrow: 'BIBLIOTECA', title: 'Todos los recursos del programa' },
+    partituras: { eyebrow: 'PARTITURAS', title: 'Partituras musicales' },
+    clases: { eyebrow: 'CLASES', title: 'Clases y documentos teóricos' },
+    graficas: { eyebrow: 'GRÁFICAS', title: 'Resúmenes visuales e imágenes' },
+    audio: { eyebrow: 'AUDIO', title: 'Guías y material auditivo' },
+    video: { eyebrow: 'VIDEO', title: 'Material audiovisual' },
+    otros: { eyebrow: 'OTROS', title: 'Documentos y recursos complementarios' }
+  }
+
+  return meta[activeResourcesTab.value] || meta.biblioteca
+})
+
+const accessibleMaterials = computed(() => {
+  if (!isStudent.value) {
+    return materials.value
+  }
+
+  const studentVoice =
+    String(currentUser.value?.voice || '')
+      .trim()
+      .toLowerCase()
+
+  return materials.value.filter(material => {
+    const materialVoice =
+      String(material?.voice || 'general')
+        .trim()
+        .toLowerCase()
+
+    return (
+      materialVoice === 'general' ||
+      (
+        studentVoice &&
+        materialVoice === studentVoice
+      )
+    )
+  })
+})
+
+const totalScores = computed(() =>
+  accessibleMaterials.value.filter(material =>
+    material.type === 'score'
+  ).length
+)
+
+const totalClasses = computed(() =>
+  accessibleMaterials.value.filter(material =>
+    material.type === 'class'
+  ).length
+)
+
+const totalGraphics = computed(() =>
+  accessibleMaterials.value.filter(material =>
+    material.type === 'graphic'
+  ).length
+)
+
+const totalAudio = computed(() =>
+  accessibleMaterials.value.filter(material =>
+    material.type === 'audio'
+  ).length
+)
+
+const totalVideo = computed(() =>
+  accessibleMaterials.value.filter(material =>
+    material.type === 'video'
+  ).length
+)
+
+const totalOther = computed(() =>
+  accessibleMaterials.value.filter(material =>
+    ['other', 'link', 'pdf'].includes(material.type)
+  ).length
+)
+
+
+/* =========================================================
    VISOR
 ========================================================= */
 
@@ -1364,7 +1708,7 @@ const filteredMaterials = computed(() => {
       .trim()
       .toLowerCase()
 
-  return materials.value.filter(
+  return accessibleMaterials.value.filter(
     material => {
       const title =
         String(
@@ -1384,10 +1728,8 @@ const filteredMaterials = computed(() => {
         description.includes(text)
 
       const matchesType =
-        selectedType.value ===
-          'all' ||
-        material.type ===
-          selectedType.value
+        selectedType.value === 'all' ||
+        material.type === selectedType.value
 
       let matchesVoice = true
 
@@ -1486,8 +1828,10 @@ const countType = type => {
 
 const getMaterialType = type => {
   const types = {
-    pdf: 'PDF',
+    pdf: 'Documento PDF',
     score: 'Partitura',
+    class: 'Clase',
+    graphic: 'Gráfica',
     audio: 'Audio',
     video: 'Video',
     link: 'Enlace',
@@ -1502,8 +1846,10 @@ const getMaterialType = type => {
 
 const getMaterialIcon = type => {
   const icons = {
-    pdf: 'PDF',
+    pdf: 'DOC',
     score: '♫',
+    class: 'CLASE',
+    graphic: 'IMG',
     audio: '♪',
     video: '▶',
     link: '↗',
@@ -1573,6 +1919,7 @@ const previewKind = computed(() => {
     mime.includes('pdf') ||
     fileName.includes('.pdf') ||
     material.type === 'pdf' ||
+    material.type === 'class' ||
     (
       material.type ===
         'score' &&
@@ -1584,7 +1931,7 @@ const previewKind = computed(() => {
 
   if (
     mime.startsWith('audio/') ||
-    /\.(mp3|wav|m4a|aac|ogg|flac)$/i
+    /.(mp3|wav|m4a|aac|ogg|flac)$/i
       .test(fileName) ||
     material.type === 'audio'
   ) {
@@ -1593,7 +1940,7 @@ const previewKind = computed(() => {
 
   if (
     mime.startsWith('video/') ||
-    /\.(mp4|webm|mov|m4v)$/i
+    /.(mp4|webm|mov|m4v)$/i
       .test(fileName) ||
     material.type === 'video'
   ) {
@@ -1602,8 +1949,9 @@ const previewKind = computed(() => {
 
   if (
     mime.startsWith('image/') ||
-    /\.(jpg|jpeg|png|webp|gif)$/i
-      .test(fileName)
+    /.(jpg|jpeg|png|webp|gif)$/i
+      .test(fileName) ||
+    material.type === 'graphic'
   ) {
     return 'image'
   }
@@ -1782,6 +2130,12 @@ const formatReplacementAccept = computed(() => {
 
     score:
       '.pdf,application/pdf,image/png,image/jpeg,.png,.jpg,.jpeg',
+
+    class:
+      '.pdf,application/pdf',
+
+    graphic:
+      'image/*,.png,.jpg,.jpeg,.webp',
 
     audio:
       'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac',
@@ -4708,6 +5062,550 @@ onUnmounted(() => {
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* =========================================================
+   RESOURCES · ADVANCED LIBRARY V10
+========================================================= */
+.resources-context-nav {
+  position: sticky;
+  top: 14px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 26px;
+  padding: 7px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 14px 36px rgba(20,32,51,.08);
+  backdrop-filter: blur(16px);
+}
+
+.resources-context-nav button {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 11px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: #536176;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.resources-context-nav button > span {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 8px;
+  background: #f2f5f8;
+  color: #7a8798;
+  font-size: 10px;
+}
+
+.resources-context-nav button > small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #f2f5f8;
+  color: #667085;
+  font-size: 11px;
+}
+
+.resources-context-nav button:hover {
+  transform: translateY(-1px);
+  background: #faf7f8;
+  color: #9f1945;
+}
+
+.resources-context-nav button.is-active {
+  background: #9f1945;
+  color: #fff;
+  box-shadow: 0 9px 22px rgba(159,25,69,.20);
+}
+
+.resources-context-nav button.is-active > span,
+.resources-context-nav button.is-active > small {
+  background: rgba(255,255,255,.16);
+  color: #fff;
+}
+
+.resources-dashboard {
+  margin-bottom: 30px;
+  padding: clamp(22px,3vw,32px);
+  border: 1px solid #dbe3ec;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 44px rgba(20,32,51,.07);
+  animation: resourcesPanelIn .35s cubic-bezier(.2,.75,.25,1);
+}
+
+.resources-dashboard__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  padding-bottom: 21px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.resources-dashboard__header > div > span,
+.resources-dashboard__voice span {
+  color: #9f1945;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.resources-dashboard__header h2 {
+  margin: 6px 0;
+  color: #172033;
+  font-size: clamp(25px,3vw,35px);
+}
+
+.resources-dashboard__header p {
+  max-width: 700px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.resources-dashboard__publish {
+  flex: 0 0 auto;
+  padding: 12px 17px;
+  border-radius: 12px;
+  background: #9f1945;
+  color: #fff !important;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(159,25,69,.18);
+}
+
+.resources-dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.resources-dashboard__grid button {
+  min-height: 176px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #172033;
+  text-align: left;
+  cursor: pointer;
+  transition: .22s ease;
+}
+
+.resources-dashboard__grid button:hover {
+  transform: translateY(-3px);
+  border-color: rgba(159,25,69,.28);
+  background: #fff;
+  box-shadow: 0 13px 28px rgba(20,32,51,.08);
+}
+
+.resources-dashboard__grid button > span {
+  color: #9f1945;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.resources-dashboard__grid button > strong {
+  margin: 10px 0 4px;
+  font-size: 35px;
+}
+
+.resources-dashboard__grid button > small {
+  color: #667085;
+}
+
+.resources-dashboard__grid button > b {
+  margin-top: auto;
+  padding-top: 17px;
+  color: #9f1945;
+  font-size: 13px;
+}
+
+.resources-dashboard__voice {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 19px;
+  border: 1px solid #eadfbd;
+  border-radius: 18px;
+  background: #fffaf0;
+}
+
+.resources-dashboard__voice-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: #172033;
+  color: #fff;
+  font-weight: 900;
+}
+
+.resources-dashboard__voice h3 {
+  margin: 4px 0;
+  color: #172033;
+}
+
+.resources-dashboard__voice p {
+  margin: 0;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.resources-dashboard__voice button {
+  border: 0;
+  background: transparent;
+  color: #9f1945;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Light-first: unifica las superficies antiguas del módulo */
+.resources .resources__counter,
+.resources .student-voice-card,
+.resources .teacher-actions,
+.resources .resources__search,
+.resources .resources__toolbar select,
+.resources .resources__summary article,
+.resources .lesson-group,
+.resources .material-card,
+.resources .empty-state {
+  background: #fff !important;
+  border-color: #dbe3ec !important;
+  color: #172033 !important;
+}
+
+.resources .resources__header h1,
+.resources .resources__section-title h2,
+.resources .lesson-group__header h3,
+.resources .material-card h4 {
+  color: #172033 !important;
+}
+
+.resources .resources__header p,
+.resources .student-voice-card small,
+.resources .teacher-actions small,
+.resources .material-card p,
+.resources .empty-state p {
+  color: #667085 !important;
+  opacity: 1 !important;
+}
+
+.resources .resources__eyebrow,
+.resources .teacher-actions span,
+.resources .resources__section-title p,
+.resources .resources__section-title > span,
+.resources .resources__counter strong,
+.resources .student-voice-card strong {
+  color: #9f1945 !important;
+}
+
+.resources .resources__search input,
+.resources .resources__toolbar select {
+  color: #172033 !important;
+}
+
+.resources .student-resource-filter button {
+  border-color: #dbe3ec !important;
+  background: #fff !important;
+  color: #536176 !important;
+  opacity: 1 !important;
+}
+
+.resources .student-resource-filter button.active {
+  border-color: #9f1945 !important;
+  background: #9f1945 !important;
+  color: #fff !important;
+}
+
+.resources .publish-button {
+  background: #9f1945 !important;
+  color: #fff !important;
+}
+
+.resources .lesson-group,
+.resources .material-card {
+  box-shadow: 0 10px 28px rgba(20,32,51,.055);
+}
+
+.resources .material-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 32px rgba(20,32,51,.09);
+}
+
+@keyframes resourcesPanelIn {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+@media (max-width: 1000px) {
+  .resources-context-nav {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(155px,1fr);
+    overflow-x: auto;
+  }
+
+  .resources-dashboard__grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .resources-dashboard__header,
+  .resources-dashboard__voice {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .resources-dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resources-context-nav button,
+  .resources-dashboard,
+  .resources .material-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* V10.1: tipos académicos diferenciados:
+   score = partitura, class = clase/PDF teórico,
+   graphic = gráfica/imagen. Los PDF antiguos permanecen en Biblioteca
+   hasta que el profesor los reclasifique desde Editar. */
+
+
+
+/* =========================================================
+   RESOURCES v10.2 · VISIBILIDAD POR VOZ
+========================================================= */
+.resources-context-nav {
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)) !important;
+}
+
+/* Las categorías sin material asignado no se muestran al estudiante.
+   El profesor conserva todas para poder administrarlas. */
+
+
+
+/* =========================================================
+   AMV · RESOURCES v11.0 · SMART ACADEMIC LIBRARY
+========================================================= */
+.resources {
+  --library-wine:#9f1945;
+  --library-gold:#d9a91d;
+  --library-ink:#172033;
+  --library-muted:#667085;
+}
+
+.resources__header {
+  position:relative;
+  overflow:hidden;
+  min-height:220px;
+  padding:34px 38px !important;
+  border:1px solid #e2e8f0 !important;
+  border-radius:26px !important;
+  background:
+    radial-gradient(circle at 91% 12%,rgba(217,169,29,.17),transparent 27%),
+    radial-gradient(circle at 74% 120%,rgba(159,25,69,.09),transparent 36%),
+    linear-gradient(135deg,#fff 0%,#fbfcfe 66%,#fff9eb 100%) !important;
+  box-shadow:0 18px 46px rgba(23,32,51,.065) !important;
+}
+
+.resources__header::after {
+  content:'';
+  position:absolute;
+  right:-65px;
+  top:-105px;
+  width:320px;
+  height:320px;
+  border:1px solid rgba(217,169,29,.18);
+  border-radius:50%;
+  box-shadow:0 0 0 42px rgba(217,169,29,.035),0 0 0 84px rgba(159,25,69,.022);
+  pointer-events:none;
+}
+
+.resources__header > * { position:relative; z-index:1; }
+
+.resources__header h1 {
+  color:var(--library-ink) !important;
+  font-size:clamp(3rem,5.6vw,4.8rem) !important;
+  font-weight:950 !important;
+  letter-spacing:-.055em !important;
+}
+
+.student-voice-card,
+.resources__counter {
+  border-color:rgba(159,25,69,.14) !important;
+  background:rgba(255,255,255,.90) !important;
+  box-shadow:0 12px 28px rgba(23,32,51,.055) !important;
+  backdrop-filter:blur(12px);
+}
+
+.resources-context-nav {
+  top:14px !important;
+  border-radius:18px !important;
+  box-shadow:0 12px 30px rgba(31,48,73,.055) !important;
+}
+
+.resources-context-nav button {
+  min-width:118px;
+  transition:transform .18s ease,background-color .18s ease,color .18s ease,border-color .18s ease !important;
+}
+
+.resources-context-nav button:hover { transform:translateY(-1px); }
+
+.resources-dashboard {
+  border-radius:22px !important;
+  background:linear-gradient(180deg,#fff 0%,#fff 76%,#fffcf5 100%) !important;
+  box-shadow:0 14px 38px rgba(31,48,73,.05) !important;
+}
+
+.resources-dashboard__grid button {
+  position:relative;
+  overflow:hidden;
+  border-radius:17px !important;
+  background:#fff !important;
+  box-shadow:0 8px 24px rgba(31,48,73,.035);
+}
+
+.resources-dashboard__grid button::after {
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:3px;
+  background:linear-gradient(90deg,var(--library-wine),var(--library-gold));
+  opacity:.18;
+  transition:opacity .18s ease;
+}
+
+.resources-dashboard__grid button:hover::after { opacity:1; }
+
+.resources-dashboard__voice {
+  border-color:rgba(159,25,69,.15) !important;
+  background:
+    radial-gradient(circle at 100% 0,rgba(217,169,29,.11),transparent 34%),
+    linear-gradient(145deg,#fff,#fff8fa) !important;
+}
+
+.teacher-actions,
+.student-resource-filter,
+.resources__toolbar,
+.resources__summary {
+  border-radius:17px !important;
+  box-shadow:0 8px 24px rgba(31,48,73,.035) !important;
+}
+
+.lesson-group {
+  overflow:hidden;
+  border-radius:21px !important;
+  box-shadow:0 12px 34px rgba(31,48,73,.045) !important;
+}
+
+.lesson-group__header {
+  background:
+    radial-gradient(circle at 100% 0,rgba(217,169,29,.10),transparent 30%),
+    linear-gradient(135deg,#fff,#fafbfd) !important;
+}
+
+.materials-grid { gap:14px !important; }
+
+.material-card {
+  min-height:245px;
+  border-color:#dfe6ee !important;
+  border-radius:17px !important;
+  background:#fff !important;
+  box-shadow:0 8px 24px rgba(31,48,73,.035) !important;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease !important;
+}
+
+.material-card:hover {
+  transform:translateY(-3px) !important;
+  border-color:rgba(159,25,69,.20) !important;
+  box-shadow:0 16px 34px rgba(31,48,73,.075) !important;
+}
+
+.material-card--my-voice {
+  border-color:rgba(159,25,69,.24) !important;
+  background:linear-gradient(180deg,#fff 0%,#fff 82%,#fff7fa 100%) !important;
+}
+
+.material-card__icon {
+  color:var(--library-wine) !important;
+  border-color:rgba(159,25,69,.14) !important;
+  background:#fff5f8 !important;
+}
+
+.for-you-badge {
+  color:#7f1237 !important;
+  border-color:rgba(159,25,69,.14) !important;
+  background:#fff3f7 !important;
+}
+
+.resource-modal__window,
+.admin-modal__window {
+  border-radius:24px !important;
+  box-shadow:0 30px 80px rgba(17,24,39,.22) !important;
+}
+
+.resource-modal__header,
+.admin-modal__header {
+  background:
+    radial-gradient(circle at 100% 0,rgba(217,169,29,.10),transparent 34%),
+    linear-gradient(135deg,#fff,#fafbfd) !important;
+}
+
+@media (max-width:900px) {
+  .resources-context-nav {
+    display:flex !important;
+    overflow-x:auto;
+    justify-content:flex-start !important;
+    scrollbar-width:thin;
+  }
+  .resources-context-nav button {
+    flex:0 0 auto;
+    min-width:135px;
+  }
+}
+
+@media (max-width:640px) {
+  .resources__header {
+    min-height:0;
+    padding:26px 20px !important;
+  }
+  .resources__header h1 { font-size:2.8rem !important; }
+  .materials-grid { grid-template-columns:1fr !important; }
 }
 
 </style>

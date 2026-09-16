@@ -144,6 +144,43 @@
         </section>
 
         <!-- =========================================================
+             NAVEGACIÓN CONTEXTUAL · V10
+        ========================================================== -->
+        <nav
+          class="attendance-context-nav"
+          aria-label="Secciones de asistencia"
+        >
+          <button
+            type="button"
+            :class="{ 'is-active': isAttendanceTab('resumen') }"
+            @click="setAttendanceTab('resumen')"
+          >
+            <span>01</span>
+            Resumen
+          </button>
+
+          <button
+            type="button"
+            :class="{ 'is-active': isAttendanceTab('registro') }"
+            @click="setAttendanceTab('registro')"
+          >
+            <span>02</span>
+            Tomar asistencia
+            <small>{{ registeredCount }}/{{ students.length }}</small>
+          </button>
+
+          <button
+            type="button"
+            :class="{ 'is-active': isAttendanceTab('historial') }"
+            @click="setAttendanceTab('historial')"
+          >
+            <span>03</span>
+            Historial
+          </button>
+        </nav>
+
+
+        <!-- =========================================================
              CARGANDO ASISTENCIA
         ========================================================== -->
         <div
@@ -161,7 +198,8 @@
           <!-- =========================================================
                ESTADO DEL REGISTRO
           ========================================================== -->
-          <section
+          <div v-show="isAttendanceTab('resumen')" class="attendance-panel attendance-panel--summary">
+<section
             class="attendance-status"
             :class="{
               'attendance-status--saved': lessonIsSaved,
@@ -275,10 +313,39 @@
             ></div>
           </div>
 
+            <section class="attendance-overview">
+              <article>
+                <span>ESTADO DE LA CLASE</span>
+                <strong>{{ lessonIsSaved ? 'Registro guardado' : 'Pendiente de registrar' }}</strong>
+                <p>
+                  {{
+                    lessonIsSaved
+                      ? `Última actualización: ${formattedLastUpdate}`
+                      : 'Aún puedes completar la asistencia de esta clase.'
+                  }}
+                </p>
+                <button type="button" @click="setAttendanceTab('registro')">
+                  {{ lessonIsSaved ? 'Revisar registro →' : 'Tomar asistencia →' }}
+                </button>
+              </article>
+
+              <article>
+                <span>COBERTURA</span>
+                <strong>{{ registeredCount }}/{{ students.length }}</strong>
+                <p>Estudiantes con estado de asistencia registrado.</p>
+                <button type="button" @click="setAttendanceTab('historial')">
+                  Ver historial →
+                </button>
+              </article>
+            </section>
+          </div>
+
+
           <!-- =========================================================
                CABECERA ESTUDIANTES
           ========================================================== -->
-          <section class="attendance__content">
+          <div v-show="isAttendanceTab('registro')" class="attendance-panel attendance-panel--register">
+<section class="attendance__content">
             <div class="attendance__toolbar">
               <div class="attendance__title">
                 <span>
@@ -543,6 +610,121 @@
               </button>
             </div>
           </section>
+          </div>
+
+          <!-- =========================================================
+               HISTORIAL · V10
+          ========================================================== -->
+          <section
+            v-show="isAttendanceTab('historial')"
+            class="attendance-panel attendance-history"
+          >
+            <header class="attendance-history__header">
+              <div>
+                <span>SEGUIMIENTO ACADÉMICO</span>
+                <h2>Historial de asistencia</h2>
+                <p>
+                  Revisa rápidamente qué clases ya tienen registro
+                  y cómo se distribuyó la asistencia.
+                </p>
+              </div>
+
+              <div class="attendance-history__metrics">
+                <article>
+                  <small>Clases registradas</small>
+                  <strong>{{ savedLessonsCount }}/{{ lessons.length }}</strong>
+                </article>
+
+                <article>
+                  <small>Promedio registrado</small>
+                  <strong>{{ historyAverage }}%</strong>
+                </article>
+              </div>
+            </header>
+
+            <div
+              v-if="isLoadingHistory"
+              class="attendance-state attendance-state--compact"
+            >
+              <span class="attendance-spinner"></span>
+              <div>
+                <strong>Cargando historial</strong>
+                <p>Estamos reuniendo los registros de las clases.</p>
+              </div>
+            </div>
+
+            <div
+              v-else-if="attendanceHistory.length === 0"
+              class="attendance-state attendance-state--compact"
+            >
+              <div class="attendance-state__symbol">○</div>
+              <div>
+                <strong>Aún no hay historial disponible</strong>
+                <p>Los registros guardados aparecerán aquí.</p>
+              </div>
+            </div>
+
+            <div
+              v-else
+              class="attendance-history__list"
+            >
+              <article
+                v-for="item in attendanceHistory"
+                :key="item.lesson.id"
+                class="attendance-history-card"
+                :class="{ 'is-pending': !item.saved }"
+              >
+                <div class="attendance-history-card__lesson">
+                  <span>
+                    CLASE {{ getAcademicLessonNumber(item.lesson) }}
+                  </span>
+                  <strong>
+                    {{ cleanLessonTitle(item.lesson.title) }}
+                  </strong>
+                  <small>
+                    {{ formatLessonDate(item.lesson.date) }}
+                  </small>
+                </div>
+
+                <div class="attendance-history-card__stats">
+                  <span>
+                    <b>{{ item.present }}</b>
+                    Presentes
+                  </span>
+                  <span>
+                    <b>{{ item.absent }}</b>
+                    Ausentes
+                  </span>
+                  <span>
+                    <b>{{ item.justified }}</b>
+                    Justificados
+                  </span>
+                </div>
+
+                <div class="attendance-history-card__result">
+                  <strong v-if="item.saved">
+                    {{ item.percentage }}%
+                  </strong>
+                  <strong v-else>—</strong>
+                  <small>
+                    {{ item.saved ? 'Asistencia' : 'Sin registrar' }}
+                  </small>
+                </div>
+
+                <button
+                  type="button"
+                  @click="
+                    selectedLessonId = item.lesson.id;
+                    changeLesson();
+                    setAttendanceTab('registro')
+                  "
+                >
+                  {{ item.saved ? 'Revisar' : 'Registrar' }}
+                </button>
+              </article>
+            </div>
+          </section>
+
         </template>
       </template>
     </template>
@@ -605,6 +787,136 @@ const isEditing = ref(false)
 
 const successMessage = ref('')
 const errorMessage = ref('')
+
+/* =========================================================
+   NAVEGACIÓN CONTEXTUAL · V10
+========================================================= */
+const activeAttendanceTab = ref('resumen')
+const isLoadingHistory = ref(false)
+const historyLoaded = ref(false)
+const attendanceHistory = ref([])
+
+const isAttendanceTab = tab =>
+  activeAttendanceTab.value === tab
+
+const setAttendanceTab = async tab => {
+  activeAttendanceTab.value = tab
+
+  if (
+    tab === 'historial' &&
+    !historyLoaded.value
+  ) {
+    await loadAttendanceHistory()
+  }
+}
+
+const loadAttendanceHistory = async () => {
+  if (
+    isLoadingHistory.value ||
+    historyLoaded.value
+  ) {
+    return
+  }
+
+  isLoadingHistory.value = true
+
+  try {
+    const rows =
+      await Promise.all(
+        lessons.value.map(async lesson => {
+          const records =
+            await fetchAttendanceByLesson(
+              lesson.id
+            )
+
+          const present =
+            (records || []).filter(
+              item =>
+                item.status === 'present'
+            ).length
+
+          const absent =
+            (records || []).filter(
+              item =>
+                item.status === 'absent'
+            ).length
+
+          const justified =
+            (records || []).filter(
+              item =>
+                item.status === 'justified'
+            ).length
+
+          const registered =
+            present +
+            absent +
+            justified
+
+          const total =
+            students.value.length
+
+          return {
+            lesson,
+            present,
+            absent,
+            justified,
+            registered,
+            total,
+            percentage:
+              total > 0
+                ? Math.round(
+                    (present / total) * 100
+                  )
+                : 0,
+            saved:
+              registered > 0
+          }
+        })
+      )
+
+    attendanceHistory.value = rows
+    historyLoaded.value = true
+  } catch (error) {
+    console.error(
+      'Error cargando historial de asistencia:',
+      error
+    )
+
+    errorMessage.value =
+      error?.message ||
+      'No se pudo cargar el historial de asistencia.'
+  } finally {
+    isLoadingHistory.value = false
+  }
+}
+
+const savedLessonsCount =
+  computed(() =>
+    attendanceHistory.value.filter(
+      item => item.saved
+    ).length
+  )
+
+const historyAverage =
+  computed(() => {
+    const saved =
+      attendanceHistory.value.filter(
+        item => item.saved
+      )
+
+    if (!saved.length) {
+      return 0
+    }
+
+    return Math.round(
+      saved.reduce(
+        (sum, item) =>
+          sum + item.percentage,
+        0
+      ) / saved.length
+    )
+  })
+
 
 /* =========================================================
    HELPERS DE CLASE
@@ -1076,7 +1388,10 @@ const saveAttendance = async () => {
 
     isEditing.value = false
 
-    successMessage.value =
+    historyLoaded.value = false
+    attendanceHistory.value = []
+
+successMessage.value =
       'Asistencia guardada correctamente.'
 
     window.setTimeout(() => {
@@ -3278,6 +3593,312 @@ button:disabled {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+
+/* =========================================================
+   CONTEXT NAVIGATION · V10
+========================================================= */
+.attendance-context-nav {
+  position: sticky;
+  top: 14px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 26px;
+  padding: 7px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 14px 36px rgba(20,32,51,.08);
+  backdrop-filter: blur(16px);
+}
+
+.attendance-context-nav button {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 13px;
+  padding: 10px 14px;
+  background: transparent;
+  color: #536176;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.attendance-context-nav button > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 8px;
+  background: #f2f5f8;
+  color: #7a8798;
+  font-size: 10px;
+}
+
+.attendance-context-nav button > small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #f2f5f8;
+  color: #667085;
+  font-size: 11px;
+}
+
+.attendance-context-nav button:hover {
+  transform: translateY(-1px);
+  background: #faf7f8;
+  color: #9f1945;
+}
+
+.attendance-context-nav button.is-active {
+  background: #9f1945;
+  color: #fff;
+  box-shadow: 0 9px 22px rgba(159,25,69,.20);
+}
+
+.attendance-context-nav button.is-active > span,
+.attendance-context-nav button.is-active > small {
+  background: rgba(255,255,255,.16);
+  color: #fff;
+}
+
+.attendance-panel {
+  animation: attendancePanelIn .35s cubic-bezier(.2,.75,.25,1);
+}
+
+.attendance-overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.attendance-overview article {
+  padding: 22px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.attendance-overview span,
+.attendance-history__header > div:first-child > span {
+  color: #9f1945;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.attendance-overview strong {
+  display: block;
+  margin-top: 8px;
+  color: #172033;
+  font-size: 20px;
+}
+
+.attendance-overview p {
+  min-height: 44px;
+  color: #667085;
+  line-height: 1.55;
+}
+
+.attendance-overview button,
+.attendance-history-card > button {
+  border: 0;
+  background: transparent;
+  color: #9f1945;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.attendance-history {
+  padding: clamp(22px,3vw,32px);
+  border: 1px solid #dbe3ec;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 44px rgba(20,32,51,.07);
+}
+
+.attendance-history__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.attendance-history__header h2 {
+  margin: 6px 0;
+  color: #172033;
+  font-size: clamp(24px,3vw,34px);
+}
+
+.attendance-history__header p {
+  max-width: 650px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.attendance-history__metrics {
+  display: flex;
+  gap: 10px;
+}
+
+.attendance-history__metrics article {
+  min-width: 125px;
+  padding: 14px;
+  border: 1px solid #dbe3ec;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.attendance-history__metrics small,
+.attendance-history__metrics strong {
+  display: block;
+}
+
+.attendance-history__metrics small {
+  color: #667085;
+  font-size: 11px;
+}
+
+.attendance-history__metrics strong {
+  margin-top: 5px;
+  color: #172033;
+  font-size: 22px;
+}
+
+.attendance-history__list {
+  display: grid;
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.attendance-history-card {
+  display: grid;
+  grid-template-columns: minmax(210px,1.1fr) minmax(310px,1.4fr) 90px 90px;
+  gap: 18px;
+  align-items: center;
+  padding: 17px;
+  border: 1px solid #dbe3ec;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.attendance-history-card.is-pending {
+  background: #fafbfc;
+  opacity: .82;
+}
+
+.attendance-history-card__lesson span,
+.attendance-history-card__lesson strong,
+.attendance-history-card__lesson small {
+  display: block;
+}
+
+.attendance-history-card__lesson span {
+  color: #9f1945;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.attendance-history-card__lesson strong {
+  margin: 4px 0;
+  color: #172033;
+}
+
+.attendance-history-card__lesson small {
+  color: #667085;
+}
+
+.attendance-history-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+}
+
+.attendance-history-card__stats span {
+  color: #667085;
+  font-size: 11px;
+}
+
+.attendance-history-card__stats b {
+  display: block;
+  margin-bottom: 3px;
+  color: #172033;
+  font-size: 18px;
+}
+
+.attendance-history-card__result {
+  text-align: center;
+}
+
+.attendance-history-card__result strong,
+.attendance-history-card__result small {
+  display: block;
+}
+
+.attendance-history-card__result strong {
+  color: #2d8a63;
+  font-size: 22px;
+}
+
+.attendance-history-card__result small {
+  margin-top: 3px;
+  color: #667085;
+  font-size: 10px;
+}
+
+@keyframes attendancePanelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .attendance-context-nav {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(170px,1fr);
+    overflow-x: auto;
+  }
+
+  .attendance-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-history__header {
+    flex-direction: column;
+  }
+
+  .attendance-history-card {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-history-card__result {
+    text-align: left;
+  }
+
+  .attendance-history__metrics {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attendance-context-nav button,
+  .attendance-panel {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

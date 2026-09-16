@@ -25,7 +25,8 @@
       </div>
     </section>
 
-    <section v-else-if="loadError" class="state-card state-card--error">
+    
+<section v-else-if="loadError" class="state-card state-card--error">
       <span class="state-icon">!</span>
       <div>
         <h2>No pudimos cargar las calificaciones</h2>
@@ -37,7 +38,100 @@
     </section>
 
     <template v-else>
-      <section class="summary-grid" aria-label="Resumen del libro de notas">
+      <!-- =====================================================
+           GRADEBOOK V11 · NAVEGACIÓN CONTEXTUAL
+      ====================================================== -->
+      <section
+        v-if="!isLoading && !loadError"
+        class="gradebook-context"
+      >
+        <div class="gradebook-context__heading">
+          <div>
+            <span>LIBRO DE NOTAS</span>
+            <strong>Gestión académica</strong>
+          </div>
+
+          <small>
+            Trabaja por área sin recorrer todo el libro.
+          </small>
+        </div>
+
+        <nav
+          class="gradebook-context__nav"
+          aria-label="Secciones del libro de notas"
+        >
+          <button
+            v-for="tab in gradebookTabs"
+            :key="tab.id"
+            type="button"
+            class="gradebook-context__tab"
+            :class="{
+              'gradebook-context__tab--active':
+                isGradebookTab(tab.id),
+            }"
+            :aria-current="
+              isGradebookTab(tab.id)
+                ? 'page'
+                : undefined
+            "
+            @click="selectGradebookTab(tab.id)"
+          >
+            {{ tab.label }}
+          </button>
+        </nav>
+      </section>
+
+      <section
+        v-if="!isLoading && !loadError"
+        v-show="isGradebookTab('resumen')"
+        class="gradebook-overview"
+      >
+        <header class="gradebook-overview__header">
+          <div>
+            <span>VISTA GENERAL</span>
+            <h2>Estado académico del curso</h2>
+          </div>
+          <p>
+            Accede directamente al área que necesitas revisar
+            o gestionar.
+          </p>
+        </header>
+
+        <div class="gradebook-overview__grid">
+          <button type="button" @click="selectGradebookTab('tareas')">
+            <span>Tareas</span>
+            <strong>{{ assignments.length }}</strong>
+            <small>Actividades del curso</small>
+          </button>
+
+          <button type="button" @click="selectGradebookTab('evaluaciones')">
+            <span>Evaluaciones</span>
+            <strong>{{ quizzes.length }}</strong>
+            <small>Quiz y pruebas configuradas</small>
+          </button>
+
+          <button type="button" @click="selectGradebookTab('estudiantes')">
+            <span>Estudiantes</span>
+            <strong>{{ students.length }}</strong>
+            <small>Seguimiento individual</small>
+          </button>
+
+          <button type="button" @click="selectGradebookTab('ponderaciones')">
+            <span>Ponderación</span>
+            <strong>{{ configuredWeight }}%</strong>
+            <small>Distribución académica</small>
+          </button>
+
+          <button type="button" @click="selectGradebookTab('estudiantes')">
+            <span>Con resultados</span>
+            <strong>{{ gradebookEvaluatedStudents }}</strong>
+            <small>{{ gradebookPendingStudents }} aún sin resultados</small>
+          </button>
+        </div>
+      </section>
+
+
+      <section class="summary-grid gradebook-legacy-summary" aria-label="Resumen del libro de notas">
         <article class="metric-card">
           <span>Estudiantes</span>
           <strong>{{ students.length }}</strong>
@@ -69,7 +163,7 @@
         </article>
       </section>
 
-      <section class="toolbar">
+      <section class="toolbar gradebook-legacy-toolbar">
         <div class="tabs" role="tablist" aria-label="Tipo de calificación">
           <button
             type="button"
@@ -109,7 +203,10 @@
       <!-- =====================================================
            TAREAS
       ====================================================== -->
-      <section v-if="activeTab === 'tasks'" class="workspace">
+      <section
+        v-show="isGradebookTab('tareas')"
+        class="workspace"
+      >
         <header class="section-heading">
           <div>
             <p class="eyebrow">CALIFICACIÓN DE ACTIVIDADES</p>
@@ -189,7 +286,10 @@
       <!-- =====================================================
            QUIZZES
       ====================================================== -->
-      <section v-else class="workspace">
+      <section
+        v-show="isGradebookTab('evaluaciones')"
+        class="workspace"
+      >
         <header class="section-heading section-heading--quiz">
           <div>
             <p class="eyebrow">EVALUACIÓN DEL APRENDIZAJE</p>
@@ -352,7 +452,9 @@
       <!-- =====================================================
            RENDIMIENTO INDIVIDUAL
       ====================================================== -->
-      <section class="student-performance">
+      <section class="student-performance"
+        v-show="isGradebookTab('estudiantes')"
+      >
         <header class="section-heading">
           <div>
             <p class="eyebrow">SEGUIMIENTO INDIVIDUAL</p>
@@ -405,8 +507,275 @@
             <footer>Ver ficha completa →</footer>
           </RouterLink>
         </div>
+      <!-- =====================================================
+           GRADEBOOK V10 · RESULTADO PONDERADO
+      ====================================================== -->
+      
+
+
+
+
+</section>
+    
+
+<section class="weighted-gradebook"
+      
+        v-show="isGradebookTab('ponderaciones')"
+      >
+        <div
+          v-if="hasWeightedResults"
+          class="weighted-gradebook__content"
+        >
+
+        <header class="weighted-gradebook__header">
+          <div>
+            <span>RESULTADO ACADÉMICO · V10</span>
+            <h2>Ponderación por estudiante</h2>
+            <p>
+              Calculado con la configuración académica guardada.
+              Una categoría sin resultados no se convierte en cero.
+            </p>
+          </div>
+
+          <RouterLink
+            v-if="isTeacher"
+            to="/aula/configuracion/evaluacion"
+            class="weighted-gradebook__settings"
+          >
+            Configurar evaluación
+          </RouterLink>
+        </header>
+
+        <div
+          v-if="gradingConfigWarning"
+          class="weighted-gradebook__warning"
+        >
+          {{ gradingConfigWarning }}
+        </div>
+
+        <div
+          v-if="weightedStudentRows.length"
+          class="weighted-students"
+        >
+          <article
+            v-for="row in weightedStudentRows"
+            :key="row.student.id"
+            class="weighted-student"
+          >
+            <header class="weighted-student__identity">
+              <div class="weighted-student__avatar">
+                {{
+                  (
+                    row.student.name ||
+                    row.student.fullName ||
+                    'A'
+                  )
+                    .split(' ')
+                    .map(part => part[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()
+                }}
+              </div>
+
+              <div>
+                <strong>
+                  {{
+                    row.student.name ||
+                    row.student.fullName ||
+                    'Estudiante'
+                  }}
+                </strong>
+
+                <span>
+                  {{ row.evaluatedWeight }}%
+                  del programa evaluado
+                </span>
+              </div>
+            </header>
+
+            <div class="weighted-student__categories">
+              <div
+                v-for="category in row.details"
+                :key="category.key"
+                class="weighted-category"
+                :class="{
+                  'weighted-category--pending':
+                    !category.evaluated,
+                }"
+              >
+                <div>
+                  <strong>{{ category.name }}</strong>
+                  <span>Peso {{ category.weight }}%</span>
+                </div>
+
+                <div class="weighted-category__result">
+                  <template v-if="category.evaluated">
+                    <strong>
+                      {{ Math.round(category.percentage) }}%
+                    </strong>
+                    <small>
+                      Nota
+                      {{ formatAcademicGrade(category.grade) }}
+                    </small>
+                  </template>
+
+                  <template v-else>
+                    <strong>—</strong>
+                    <small>Sin evaluar</small>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <footer class="weighted-student__final">
+              <div>
+                <span>RESULTADO ACTUAL</span>
+                <small v-if="row.pendingWeight > 0">
+                  Queda {{ row.pendingWeight }}%
+                  pendiente de evaluación
+                </small>
+                <small v-else>
+                  Ponderación completa
+                </small>
+              </div>
+
+              <div class="weighted-student__score">
+                <strong>
+                  {{ formatAcademicGrade(row.currentGrade) }}
+                </strong>
+                <span>
+                  {{
+                    row.currentPercentage === null
+                      ? 'Sin resultados'
+                      : `${Math.round(row.currentPercentage)}%`
+                  }}
+                </span>
+              </div>
+
+              <RouterLink
+                :to="`/aula/estudiante/${row.student.id}`"
+                class="weighted-student__profile"
+              >
+                Ver ficha
+              </RouterLink>
+            </footer>
+          </article>
+        </div>
+
+        <div
+          v-else
+          class="weighted-gradebook__empty"
+        >
+          Todavía no hay estudiantes para calcular resultados.
+        </div>
+      
+        </div>
+
+        <div
+          v-if="!hasWeightedResults"
+          class="weighted-empty"
+          role="status"
+          aria-live="polite"
+        >
+          <div class="weighted-empty__icon" aria-hidden="true">
+            %
+          </div>
+
+          <div class="weighted-empty__copy">
+            <span class="weighted-empty__eyebrow">
+              PONDERACIÓN ACADÉMICA
+            </span>
+
+            <h2>Aún no hay resultados ponderados</h2>
+
+            <p>
+              La configuración académica está activa, pero todavía
+              no existen calificaciones suficientes para calcular
+              un resultado ponderado por estudiante.
+            </p>
+          </div>
+
+          <div class="weighted-empty__status">
+            <div>
+              <span>Configuración actual</span>
+              <strong>{{ configuredWeight }}%</strong>
+            </div>
+
+            <small v-if="configuredWeight === 100">
+              ✓ La distribución de categorías está completa.
+            </small>
+
+            <small v-else>
+              La distribución todavía requiere ajustes.
+            </small>
+          </div>
+
+          <div
+            v-if="gradingCategories.length"
+            class="weighted-empty__categories"
+          >
+            <article
+              v-for="category in gradingCategories"
+              :key="category.id || category.key || category.name"
+            >
+              <span>
+                {{
+                  category.label ||
+                  category.name ||
+                  category.title ||
+                  'Categoría'
+                }}
+              </span>
+
+              <strong>
+                {{
+                  Number(
+                    category.weight ??
+                    category.percentage ??
+                    category.weight_percentage ??
+                    0
+                  )
+                }}%
+              </strong>
+            </article>
+          </div>
+          <div
+            v-else
+            class="weighted-empty__categories-fallback"
+          >
+            Las categorías de evaluación están configuradas,
+            pero todavía no hay resultados académicos que ponderar.
+          </div>
+
+
+          <div class="weighted-empty__actions">
+            <RouterLink
+              to="/aula/configuracion/evaluacion"
+              class="weighted-empty__primary"
+            >
+              Configurar ponderaciones
+            </RouterLink>
+
+            <button
+              type="button"
+              class="weighted-empty__secondary"
+              @click="selectGradebookTab('evaluaciones')"
+            >
+              Ver evaluaciones
+            </button>
+          </div>
+
+          <p class="weighted-empty__note">
+            Los resultados aparecerán aquí automáticamente cuando
+            existan actividades calificadas que participen en la
+            ponderación.
+          </p>
+        </div>
+
       </section>
-    </template>
+
+</template>
   </main>
 </template>
 
@@ -445,12 +814,43 @@ import {
   fetchTeacherQuizAttempts,
 } from '@/services/teacherEvaluationService'
 
+import {
+  fetchGradingConfiguration,
+  percentageToChileanGrade,
+  normalizeResultToPercentage,
+  calculateWeightedResult,
+} from '@/services/gradingService'
+
+import {
+  useAuth,
+} from '@/composables/useAuth'
+
+const {
+  isTeacher,
+} = useAuth()
+
 const students = ref([])
 const lessons = ref([])
 const assignments = ref([])
 const submissions = ref([])
 const quizzes = ref([])
 const quizAttempts = ref([])
+
+const gradingConfiguration = ref({
+  settings: {
+    gradingScale: 'chilean_1_7',
+    minimumGrade: 1,
+    maximumGrade: 7,
+    passingGrade: 4,
+    exigencyPercentage: 60,
+    decimals: 1,
+    useWeights: true,
+  },
+  categories: [],
+})
+
+const gradingConfigWarning = ref('')
+
 
 const isLoading = ref(true)
 const loadError = ref('')
@@ -1176,9 +1576,455 @@ const filteredStudentPerformance =
     ),
   )
 
-onMounted(
-  loadGradebook,
-)
+onMounted(async () => {
+  /*
+   * La configuración académica se carga en paralelo.
+   * Si falla, loadGradingConfiguration maneja su propia
+   * advertencia y NO bloquea el libro de notas.
+   */
+  await Promise.all([
+    loadGradebook(),
+    loadGradingConfiguration(),
+  ])
+})
+
+/* =========================================================
+   GRADEBOOK V10 · MOTOR DE PONDERACIONES
+   Mantiene tareas y quiz en su escala original.
+========================================================= */
+
+const gradingSettings =
+  computed(() =>
+    gradingConfiguration.value.settings
+  )
+
+const gradingCategories =
+  computed(() =>
+    gradingConfiguration.value.categories || []
+  )
+
+const activeGradingCategories =
+  computed(() =>
+    gradingCategories.value.filter(
+      category =>
+        category.enabled !== false
+    )
+  )
+
+const configuredWeight =
+  computed(() =>
+    activeGradingCategories.value.reduce(
+      (sum, category) =>
+        sum + Number(category.weight || 0),
+      0
+    )
+  )
+
+const getStudentIdFromSubmission =
+  submission =>
+    Number(
+      submission?.studentId ??
+      submission?.student_id ??
+      submission?.userId ??
+      submission?.user_id
+    )
+
+const getStudentIdFromAttempt =
+  attempt =>
+    Number(
+      attempt?.studentId ??
+      attempt?.student_id ??
+      attempt?.userId ??
+      attempt?.user_id
+    )
+
+const getQuizByAttempt =
+  attempt => {
+    const quizId =
+      Number(
+        attempt?.quizId ??
+        attempt?.quiz_id
+      )
+
+    return quizzes.value.find(
+      quiz =>
+        Number(quiz.id) === quizId
+    ) || null
+  }
+
+const getAttemptAssessmentType =
+  attempt =>
+    String(
+      attempt?.assessmentType ??
+      attempt?.assessment_type ??
+      getQuizByAttempt(attempt)?.assessmentType ??
+      'quiz'
+    ).toLowerCase()
+
+const isCompletedAttempt =
+  attempt =>
+    Number.isFinite(
+      Number(attempt?.percentage)
+    )
+
+const bestAttemptByQuizForStudent =
+  studentId => {
+    const grouped = new Map()
+
+    quizAttempts.value
+      .filter(
+        attempt =>
+          getStudentIdFromAttempt(attempt) ===
+            Number(studentId) &&
+          isCompletedAttempt(attempt)
+      )
+      .forEach(attempt => {
+        const quizId =
+          Number(
+            attempt?.quizId ??
+            attempt?.quiz_id
+          )
+
+        if (!quizId) return
+
+        const current =
+          grouped.get(quizId)
+
+        if (
+          !current ||
+          Number(attempt.percentage) >
+            Number(current.percentage)
+        ) {
+          grouped.set(
+            quizId,
+            attempt
+          )
+        }
+      })
+
+    return [...grouped.values()]
+  }
+
+const assignmentPercentagesForStudent =
+  studentId =>
+    submissions.value
+      .filter(
+        submission =>
+          getStudentIdFromSubmission(submission) ===
+            Number(studentId) &&
+          Number.isFinite(
+            Number(submission?.grade)
+          )
+      )
+      .map(submission =>
+        normalizeResultToPercentage(
+          Number(submission.grade),
+          'chilean_1_7',
+          gradingSettings.value
+        )
+      )
+      .filter(value =>
+        Number.isFinite(value)
+      )
+
+const averageNumbers =
+  values => {
+    const valid =
+      values.filter(value =>
+        Number.isFinite(
+          Number(value)
+        )
+      )
+
+    if (!valid.length) {
+      return null
+    }
+
+    return (
+      valid.reduce(
+        (sum, value) =>
+          sum + Number(value),
+        0
+      ) /
+      valid.length
+    )
+  }
+
+const categoryPercentageForStudent =
+  (studentId, category) => {
+    const key =
+      String(category?.key || '')
+        .toLowerCase()
+
+    if (
+      key === 'assignments' ||
+      key === 'tasks' ||
+      key === 'tareas'
+    ) {
+      return averageNumbers(
+        assignmentPercentagesForStudent(
+          studentId
+        )
+      )
+    }
+
+    const attempts =
+      bestAttemptByQuizForStudent(
+        studentId
+      )
+
+    if (
+      key === 'quiz' ||
+      key === 'quizzes'
+    ) {
+      return averageNumbers(
+        attempts
+          .filter(
+            attempt =>
+              getAttemptAssessmentType(attempt) ===
+              'quiz'
+          )
+          .map(
+            attempt =>
+              Number(attempt.percentage)
+          )
+      )
+    }
+
+    if (
+      key === 'test' ||
+      key === 'tests' ||
+      key === 'pruebas'
+    ) {
+      return averageNumbers(
+        attempts
+          .filter(
+            attempt =>
+              getAttemptAssessmentType(attempt) ===
+              'test'
+          )
+          .map(
+            attempt =>
+              Number(attempt.percentage)
+          )
+      )
+    }
+
+    /*
+     * Las categorías personalizadas no se rellenan con cero.
+     * Hasta que una actividad tenga category_key persistida,
+     * se consideran "sin evaluar".
+     */
+    return null
+  }
+
+const buildStudentWeightedSummary =
+  student => {
+    const studentId =
+      Number(student.id)
+
+    const categoryResults = {}
+    const details =
+      activeGradingCategories.value.map(
+        category => {
+          const percentage =
+            categoryPercentageForStudent(
+              studentId,
+              category
+            )
+
+          const evaluated =
+            percentage !== null &&
+            percentage !== undefined &&
+            Number.isFinite(
+              Number(percentage)
+            )
+
+          if (evaluated) {
+            categoryResults[category.key] =
+              Number(percentage)
+          }
+
+          return {
+            ...category,
+            evaluated,
+            percentage:
+              evaluated
+                ? Number(
+                    Number(percentage)
+                      .toFixed(2)
+                  )
+                : null,
+            grade:
+              evaluated
+                ? percentageToChileanGrade(
+                    percentage,
+                    gradingSettings.value
+                  )
+                : null,
+          }
+        }
+      )
+
+    const evaluatedWeight =
+      details
+        .filter(
+          item =>
+            item.evaluated
+        )
+        .reduce(
+          (sum, item) =>
+            sum +
+            Number(item.weight || 0),
+          0
+        )
+
+    const currentPercentage =
+      calculateWeightedResult(
+        categoryResults,
+        activeGradingCategories.value
+      )
+
+    const currentGrade =
+      currentPercentage !== null &&
+      currentPercentage !== undefined &&
+      Number.isFinite(
+        Number(currentPercentage)
+      )
+        ? percentageToChileanGrade(
+            currentPercentage,
+            gradingSettings.value
+          )
+        : null
+
+    return {
+      student,
+      details,
+      evaluatedWeight,
+      pendingWeight:
+        Math.max(
+          0,
+          configuredWeight.value -
+          evaluatedWeight
+        ),
+      currentPercentage,
+      currentGrade,
+    }
+  }
+
+const weightedStudentRows =
+  computed(() =>
+    students.value.map(
+      buildStudentWeightedSummary
+    )
+  )
+
+const formatAcademicGrade =
+  value => {
+    if (
+      value === null ||
+      value === undefined ||
+      !Number.isFinite(
+        Number(value)
+      )
+    ) {
+      return '—'
+    }
+
+    const decimals =
+      Number(
+        gradingSettings.value.decimals ??
+        1
+      )
+
+    return Number(value).toFixed(
+      decimals
+    )
+  }
+
+const loadGradingConfiguration =
+  async () => {
+    gradingConfigWarning.value = ''
+
+    try {
+      gradingConfiguration.value =
+        await fetchGradingConfiguration()
+    } catch (error) {
+      console.error(
+        'No fue posible cargar ponderaciones:',
+        error
+      )
+
+      gradingConfigWarning.value =
+        'El libro de notas está disponible, pero no fue posible cargar la configuración de ponderaciones.'
+    }
+  }
+
+
+
+/* =========================================================
+   GRADEBOOK V11 · CONTEXT NAVIGATION
+   Patrón aprobado en StudentProfile v11.1
+========================================================= */
+
+const gradebookTabs = [
+  { id: 'resumen', label: 'Resumen' },
+  { id: 'tareas', label: 'Tareas' },
+  { id: 'evaluaciones', label: 'Evaluaciones' },
+  { id: 'estudiantes', label: 'Estudiantes' },
+  { id: 'ponderaciones', label: 'Ponderaciones' },
+]
+
+const activeGradebookTab =
+  ref('resumen')
+
+const selectGradebookTab =
+  tabId => {
+    if (
+      !gradebookTabs.some(
+        tab => tab.id === tabId
+      )
+    ) {
+      return
+    }
+
+    activeGradebookTab.value = tabId
+  }
+
+const isGradebookTab =
+  tabId =>
+    activeGradebookTab.value === tabId
+
+const gradebookEvaluatedStudents =
+  computed(() =>
+    weightedStudentRows.value.filter(
+      row =>
+        row.evaluatedWeight > 0
+    ).length
+  )
+
+const gradebookPendingStudents =
+  computed(() =>
+    Math.max(
+      0,
+      students.value.length -
+      gradebookEvaluatedStudents.value
+    )
+  )
+
+
+
+/* =========================================================
+   GRADEBOOK V11.5 · ESTADO DE PONDERACIONES
+========================================================= */
+const hasWeightedResults =
+  computed(() =>
+    weightedStudentRows.value.some(
+      row =>
+        Number(row.evaluatedWeight || 0) > 0
+    )
+  )
+
 </script>
 
 <style scoped>
@@ -2304,6 +3150,348 @@ onMounted(
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* =========================================================
+   GRADEBOOK V10 · PONDERACIONES
+========================================================= */
+.weighted-gradebook{margin-top:24px;padding:24px;border:1px solid #dbe3ec;border-radius:24px;background:#fff;box-shadow:0 12px 36px rgba(23,32,51,.06)}
+.weighted-gradebook__header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:18px}
+.weighted-gradebook__header>div>span{color:#9f1945;font-size:.75rem;font-weight:900;letter-spacing:.08em}
+.weighted-gradebook__header h2{margin:5px 0;color:#172033!important}
+.weighted-gradebook__header p{max-width:700px;margin:0;color:#667085}
+.weighted-gradebook__settings,.weighted-student__profile{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 15px;border-radius:12px;text-decoration:none;font-weight:900;transition:.2s}
+.weighted-gradebook__settings{border:1px solid rgba(159,25,69,.22);background:#fff8fa;color:#9f1945}
+.weighted-gradebook__settings:hover,.weighted-student__profile:hover{transform:translateY(-2px)}
+.weighted-gradebook__warning{margin-bottom:15px;padding:13px 15px;border:1px solid #ead9a5;border-radius:14px;background:#fff9e9;color:#795d08;font-weight:700}
+.weighted-students{display:grid;gap:14px}
+.weighted-student{overflow:hidden;border:1px solid #dbe3ec;border-radius:20px;background:#fff;transition:.22s}
+.weighted-student:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(23,32,51,.075)}
+.weighted-student__identity{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #e7ecf2;background:#fafbfc}
+.weighted-student__avatar{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#9f1945;color:#fff!important;font-weight:900}
+.weighted-student__identity>div:last-child{display:grid;gap:2px}
+.weighted-student__identity strong{color:#172033!important}
+.weighted-student__identity span{color:#667085;font-size:.8rem}
+.weighted-student__categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:14px}
+.weighted-category{display:flex;justify-content:space-between;gap:10px;min-width:0;padding:13px;border:1px solid #e3e8ef;border-radius:15px;background:#fff}
+.weighted-category>div:first-child{display:grid;align-content:start;gap:3px;min-width:0}
+.weighted-category strong{color:#172033!important}
+.weighted-category span,.weighted-category small{color:#667085;font-size:.76rem}
+.weighted-category__result{display:grid;justify-items:end;align-content:center;flex:0 0 auto}
+.weighted-category__result>strong{font-size:1.12rem}
+.weighted-category--pending{background:#f7f8fa;border-style:dashed}
+.weighted-category--pending strong{color:#7b8493!important}
+.weighted-student__final{display:flex;align-items:center;gap:18px;padding:14px 18px;border-top:1px solid #e7ecf2;background:#f8fafc}
+.weighted-student__final>div:first-child{display:grid;gap:2px;margin-right:auto}
+.weighted-student__final>div:first-child>span{color:#172033;font-size:.76rem;font-weight:900;letter-spacing:.05em}
+.weighted-student__final small{color:#667085}
+.weighted-student__score{display:grid;justify-items:end}
+.weighted-student__score strong{color:#172033!important;font-size:1.65rem;line-height:1}
+.weighted-student__score span{color:#667085;font-size:.75rem}
+.weighted-student__profile{background:#9f1945;color:#fff}
+.weighted-gradebook__empty{padding:24px;border:1px dashed #dbe3ec;border-radius:16px;background:#fafbfc;color:#667085;text-align:center}
+@media(max-width:1150px){.weighted-student__categories{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.weighted-gradebook{padding:16px}.weighted-gradebook__header{flex-direction:column}.weighted-student__categories{grid-template-columns:1fr}.weighted-student__final{align-items:stretch;flex-direction:column}.weighted-student__score{justify-items:start}.weighted-student__profile{width:100%;box-sizing:border-box}}
+
+
+/* =========================================================
+   GRADEBOOK V11 · CONTEXT NAVIGATION
+========================================================= */
+.gradebook-context{position:sticky;top:12px;z-index:18;margin:18px 0 20px;border:1px solid #dbe3ec;border-radius:20px;background:rgba(255,255,255,.95);box-shadow:0 14px 36px rgba(23,32,51,.09);backdrop-filter:blur(14px);overflow:hidden}
+.gradebook-context__heading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 16px 10px;border-bottom:1px solid #e7ecf2}
+.gradebook-context__heading>div{display:flex;align-items:baseline;gap:9px;min-width:0}
+.gradebook-context__heading span,.gradebook-overview__header span,.gradebook-students-panel>header span{color:#9f1945;font-size:.7rem;font-weight:900;letter-spacing:.08em}
+.gradebook-context__heading strong{color:#172033!important;font-size:.9rem}
+.gradebook-context__heading small{color:#667085;font-size:.76rem}
+.gradebook-context__nav{display:flex;align-items:center;gap:4px;padding:7px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:thin}
+.gradebook-context__tab{position:relative;flex:0 0 auto;min-height:42px;padding:0 14px;border:0;border-radius:11px;background:transparent;color:#5d6879;font:inherit;font-size:.84rem;font-weight:850;white-space:nowrap;cursor:pointer;scroll-snap-align:start;transition:.2s}
+.gradebook-context__tab:hover{background:#f5f7fb;color:#172033;transform:translateY(-1px)}
+.gradebook-context__tab--active{background:#fff0f4;color:#9f1945}
+.gradebook-context__tab--active:after{content:"";position:absolute;right:14px;bottom:4px;left:14px;height:2px;border-radius:999px;background:#9f1945}
+.gradebook-overview,.gradebook-students-panel{margin:0 0 22px;padding:22px;border:1px solid #dbe3ec;border-radius:22px;background:#fff;box-shadow:0 10px 30px rgba(23,32,51,.05)}
+.gradebook-overview__header,.gradebook-students-panel>header{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:16px}
+.gradebook-overview__header h2,.gradebook-students-panel>header h2{margin:4px 0 0;color:#172033!important}
+.gradebook-overview__header p,.gradebook-students-panel>header p{max-width:440px;margin:0;color:#667085}
+.gradebook-overview__grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.gradebook-overview__grid button{display:grid;align-content:start;gap:5px;min-height:118px;padding:15px;border:1px solid #e1e7ef;border-radius:16px;background:linear-gradient(180deg,#fff,#fbfcfe);text-align:left;cursor:pointer;transition:.22s}
+.gradebook-overview__grid button:hover{transform:translateY(-2px);border-color:rgba(159,25,69,.25);box-shadow:0 12px 28px rgba(23,32,51,.07)}
+.gradebook-overview__grid button span{color:#9f1945;font-size:.76rem;font-weight:900;text-transform:uppercase;letter-spacing:.045em}
+.gradebook-overview__grid button strong{color:#172033!important;font-size:1.45rem}
+.gradebook-overview__grid button small{color:#667085;line-height:1.4}
+.gradebook-students-panel__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gradebook-student-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:14px;border:1px solid #e1e7ef;border-radius:16px;background:#fff;text-decoration:none;transition:.22s}
+.gradebook-student-card:hover{transform:translateY(-2px);border-color:rgba(159,25,69,.25);box-shadow:0 12px 28px rgba(23,32,51,.07)}
+.gradebook-student-card__avatar{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#9f1945;color:#fff!important;font-weight:900}
+.gradebook-student-card__copy,.gradebook-student-card__grade{display:grid;gap:2px}
+.gradebook-student-card__copy strong,.gradebook-student-card__grade strong{color:#172033!important}
+.gradebook-student-card__copy span,.gradebook-student-card__grade span{color:#667085;font-size:.76rem}
+.gradebook-student-card__grade{justify-items:end}
+.gradebook-student-card__grade strong{font-size:1.25rem}
+@media(min-width:900px){.gradebook-context__nav{justify-content:space-between;overflow-x:visible}.gradebook-context__tab{flex:1 1 0}}
+@media(max-width:1100px){.gradebook-overview__grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.gradebook-context{top:6px;border-radius:16px}.gradebook-context__heading{align-items:flex-start;flex-direction:column;gap:4px}.gradebook-context__heading small{display:none}.gradebook-overview__header,.gradebook-students-panel>header{flex-direction:column}.gradebook-overview__grid,.gradebook-students-panel__grid{grid-template-columns:1fr}}
+
+
+/* V11.2 · ContextNav es la única navegación visible del Gradebook */
+.gradebook-tabs,
+.tabs,
+.workspace-tabs,
+.gradebook__tabs {
+  display: none !important;
+}
+
+
+/* =========================================================
+   V11.3 · ESTRUCTURA CORREGIDA
+   ContextNav vive dentro del v-else de carga/error.
+========================================================= */
+.gradebook-legacy-summary,
+.gradebook-legacy-toolbar {
+  display: none !important;
+}
+
+
+/* =========================================================
+   GRADEBOOK V11.5 · EMPTY STATE PONDERACIONES
+========================================================= */
+.weighted-empty {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  margin: 0;
+  padding: 28px;
+  border: 1px solid #dbe3ec;
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(159, 25, 69, 0.055),
+      transparent 34%
+    ),
+    #ffffff;
+  box-shadow: 0 12px 34px rgba(23, 32, 51, 0.06);
+}
+
+.weighted-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border: 1px solid rgba(159, 25, 69, 0.16);
+  border-radius: 20px;
+  background: #fff0f4;
+  color: #9f1945 !important;
+  font-size: 1.7rem;
+  font-weight: 950;
+}
+
+.weighted-empty__copy {
+  min-width: 0;
+}
+
+.weighted-empty__eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #9f1945;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.09em;
+}
+
+.weighted-empty__copy h2 {
+  margin: 0 0 8px;
+  color: #172033 !important;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  line-height: 1.12;
+}
+
+.weighted-empty__copy p {
+  max-width: 720px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.65;
+}
+
+.weighted-empty__status {
+  min-width: 190px;
+  padding: 16px 18px;
+  border: 1px solid #e1e7ef;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.weighted-empty__status > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.weighted-empty__status span {
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.weighted-empty__status strong {
+  color: #172033 !important;
+  font-size: 1.5rem;
+  font-weight: 950;
+}
+
+.weighted-empty__status small {
+  display: block;
+  margin-top: 7px;
+  color: #2d8a63;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.weighted-empty__categories {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.weighted-empty__categories article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid #e1e7ef;
+  border-radius: 14px;
+  background: #fbfcfe;
+}
+
+.weighted-empty__categories span {
+  color: #526076;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.weighted-empty__categories strong {
+  color: #9f1945 !important;
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.weighted-empty__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.weighted-empty__primary,
+.weighted-empty__secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 850;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.weighted-empty__primary {
+  border: 1px solid #9f1945;
+  background: #9f1945;
+  color: #ffffff !important;
+}
+
+.weighted-empty__secondary {
+  border: 1px solid #dbe3ec;
+  background: #ffffff;
+  color: #172033;
+}
+
+.weighted-empty__primary:hover,
+.weighted-empty__secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 20px rgba(23, 32, 51, 0.09);
+}
+
+.weighted-empty__note {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid #edf0f4;
+  color: #7a8597;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+  .weighted-empty {
+    grid-template-columns: auto 1fr;
+  }
+
+  .weighted-empty__status {
+    grid-column: 1 / -1;
+  }
+
+  .weighted-empty__categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .weighted-empty {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .weighted-empty__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+  }
+
+  .weighted-empty__status,
+  .weighted-empty__categories,
+  .weighted-empty__actions,
+  .weighted-empty__note {
+    grid-column: 1;
+  }
+
+  .weighted-empty__categories {
+    grid-template-columns: 1fr;
+  }
+
+  .weighted-empty__actions {
+    display: grid;
+  }
+
+  .weighted-empty__primary,
+  .weighted-empty__secondary {
+    width: 100%;
+  }
+}
+
+
+.weighted-empty__categories-fallback {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  border: 1px dashed #dbe3ec;
+  border-radius: 14px;
+  background: #fbfcfe;
+  color: #667085;
+  font-size: .82rem;
+  line-height: 1.55;
 }
 
 </style>

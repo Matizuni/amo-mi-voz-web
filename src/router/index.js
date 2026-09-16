@@ -598,8 +598,23 @@ const router = createRouter({
               '@/views/aula/ReviewEvaluationView.vue'
             ),
         },
+
+        {
+          path: '/aula/configuracion/evaluacion',
+          name: 'grading-settings',
+          component: () =>
+            import(
+              '@/views/aula/GradingSettingsView.vue'
+            ),
+          meta: {
+            requiresAuth: true,
+            teacherOnly: true,
+          },
+        },
       ],
     },
+
+
 
     /* =====================================================
        404

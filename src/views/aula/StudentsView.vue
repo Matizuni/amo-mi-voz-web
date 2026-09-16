@@ -89,7 +89,7 @@
       <section
         class="students__summary"
         aria-label="Resumen de estudiantes"
-      >
+       v-show="isStudentsTab('resumen')">
         <article class="summary-card summary-card--main">
           <span>
             Estudiantes
@@ -162,6 +162,159 @@
       </section>
 
       <!-- =====================================================
+           NAVEGACIÓN CONTEXTUAL · V10
+      ====================================================== -->
+      <nav
+        v-if="students.length > 0"
+        class="students-context-nav"
+        aria-label="Secciones de estudiantes"
+      >
+        <button
+          type="button"
+          :class="{ 'is-active': isStudentsTab('resumen') }"
+          @click="setStudentsTab('resumen')"
+        >
+          <span>01</span>
+          Resumen
+        </button>
+
+        <button
+          type="button"
+          :class="{ 'is-active': isStudentsTab('directorio') }"
+          @click="setStudentsTab('directorio')"
+        >
+          <span>02</span>
+          Directorio
+          <small>{{ students.length }}</small>
+        </button>
+
+        <button
+          type="button"
+          :class="{ 'is-active': isStudentsTab('voces') }"
+          @click="setStudentsTab('voces')"
+        >
+          <span>03</span>
+          Voces
+        </button>
+      </nav>
+
+      <section
+        v-if="students.length > 0 && isStudentsTab('resumen')"
+        class="students-overview"
+      >
+        <header class="students-overview__header">
+          <div>
+            <span>DIRECTORIO ACADÉMICO</span>
+            <h2>Resumen de estudiantes</h2>
+            <p>
+              Consulta la composición del grupo y entra rápidamente
+              al directorio o a la distribución vocal.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            @click="goToInscriptions"
+          >
+            + Nueva matrícula
+          </button>
+        </header>
+
+        <div class="students-overview__actions">
+          <button
+            type="button"
+            @click="setStudentsTab('directorio')"
+          >
+            <span>DIRECTORIO</span>
+            <strong>{{ students.length }}</strong>
+            <small>estudiantes activos</small>
+            <b>Explorar estudiantes →</b>
+          </button>
+
+          <button
+            type="button"
+            @click="setStudentsTab('voces')"
+          >
+            <span>CLASIFICACIÓN VOCAL</span>
+            <strong>
+              {{ students.length - unclassifiedStudents.length }}
+            </strong>
+            <small>
+              {{
+                unclassifiedStudents.length
+                  ? `${unclassifiedStudents.length} pendientes de clasificar`
+                  : 'todos clasificados'
+              }}
+            </small>
+            <b>Ver distribución →</b>
+          </button>
+
+          <button
+            type="button"
+            @click="goToInscriptions"
+          >
+            <span>MATRÍCULA</span>
+            <strong>+</strong>
+            <small>incorporar un nuevo estudiante</small>
+            <b>Abrir inscripciones →</b>
+          </button>
+        </div>
+      </section>
+
+      <section
+        v-if="students.length > 0 && isStudentsTab('voces')"
+        class="students-voices-panel"
+      >
+        <header>
+          <div>
+            <span>MAPA DEL GRUPO</span>
+            <h2>Distribución vocal</h2>
+            <p>
+              Vista rápida de las clasificaciones registradas
+              actualmente en el aula.
+            </p>
+          </div>
+        </header>
+
+        <div class="students-voices-grid">
+          <button type="button" @click="selectedVoice = 'Soprano'; setStudentsTab('directorio')">
+            <span>S</span>
+            <strong>{{ sopranoStudents.length }}</strong>
+            <small>Sopranos</small>
+          </button>
+
+          <button type="button" @click="selectedVoice = 'Alto'; setStudentsTab('directorio')">
+            <span>A</span>
+            <strong>{{ altoStudents.length }}</strong>
+            <small>Altos</small>
+          </button>
+
+          <button type="button" @click="selectedVoice = 'Tenor'; setStudentsTab('directorio')">
+            <span>T</span>
+            <strong>{{ tenorStudents.length }}</strong>
+            <small>Tenores</small>
+          </button>
+
+          <button type="button" @click="selectedVoice = 'Bajo'; setStudentsTab('directorio')">
+            <span>B</span>
+            <strong>{{ bassStudents.length }}</strong>
+            <small>Bajos</small>
+          </button>
+
+          <button
+            type="button"
+            class="is-pending"
+            @click="selectedVoice = 'unclassified'; setStudentsTab('directorio')"
+          >
+            <span>?</span>
+            <strong>{{ unclassifiedStudents.length }}</strong>
+            <small>Sin clasificar</small>
+          </button>
+        </div>
+      </section>
+
+
+      <!-- =====================================================
            EMPTY GENERAL
       ====================================================== -->
       <section
@@ -195,6 +348,7 @@
       </section>
 
       <template v-else>
+        <div v-show="isStudentsTab('directorio')" class="students-directory-panel">
         <!-- =====================================================
              TOOLBAR
         ====================================================== -->
@@ -470,6 +624,7 @@
             </article>
           </div>
         </section>
+        </div>
       </template>
     </template>
 
@@ -760,6 +915,26 @@ const searchTerm = ref('')
 const selectedVoice = ref('all')
 
 /* =========================================================
+   DIRECTORIO ACADÉMICO · V10
+========================================================= */
+const activeStudentsTab = ref('resumen')
+
+const isStudentsTab = tab =>
+  activeStudentsTab.value === tab
+
+const setStudentsTab = tab => {
+  activeStudentsTab.value = tab
+}
+
+const unclassifiedStudents =
+  computed(() =>
+    students.value.filter(
+      student => !student.voice
+    )
+  )
+
+
+/* =========================================================
    TOAST
 ========================================================= */
 
@@ -922,6 +1097,11 @@ const voiceFilters =
       value: 'Bajo',
       label: 'Bajos',
       count: bassStudents.value.length
+    },
+    {
+      value: 'unclassified',
+      label: 'Sin clasificar',
+      count: unclassifiedStudents.value.length
     }
   ])
 
@@ -942,8 +1122,13 @@ const filteredStudents =
       student => {
         const matchesVoice =
           selectedVoice.value === 'all' ||
-          student.voice ===
-            selectedVoice.value
+          (
+            selectedVoice.value ===
+              'unclassified'
+              ? !student.voice
+              : student.voice ===
+                  selectedVoice.value
+          )
 
         if (!matchesVoice) {
           return false
@@ -3712,6 +3897,319 @@ onBeforeUnmount(() => {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+
+/* =========================================================
+   STUDENTS · DIRECTORIO ACADÉMICO V10
+========================================================= */
+.students-context-nav {
+  position: sticky;
+  top: 14px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 26px;
+  padding: 7px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 14px 36px rgba(20,32,51,.08);
+  backdrop-filter: blur(16px);
+}
+
+.students-context-nav button {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 13px;
+  padding: 10px 14px;
+  color: #536176;
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.students-context-nav button > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 8px;
+  color: #7a8798;
+  background: #f2f5f8;
+  font-size: 10px;
+}
+
+.students-context-nav button > small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: #667085;
+  background: #f2f5f8;
+  font-size: 11px;
+}
+
+.students-context-nav button:hover {
+  transform: translateY(-1px);
+  color: #9f1945;
+  background: #faf7f8;
+}
+
+.students-context-nav button.is-active {
+  color: #fff;
+  background: #9f1945;
+  box-shadow: 0 9px 22px rgba(159,25,69,.20);
+}
+
+.students-context-nav button.is-active > span,
+.students-context-nav button.is-active > small {
+  color: #fff;
+  background: rgba(255,255,255,.16);
+}
+
+.students-overview,
+.students-voices-panel {
+  margin-bottom: 28px;
+  padding: clamp(22px,3vw,32px);
+  border: 1px solid #dbe3ec;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 44px rgba(20,32,51,.07);
+  animation: studentsPanelIn .35s cubic-bezier(.2,.75,.25,1);
+}
+
+.students-overview__header,
+.students-voices-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 21px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.students-overview__header span,
+.students-voices-panel > header span {
+  color: #9f1945;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.students-overview__header h2,
+.students-voices-panel > header h2 {
+  margin: 6px 0;
+  color: #172033;
+  font-size: clamp(24px,3vw,34px);
+}
+
+.students-overview__header p,
+.students-voices-panel > header p {
+  max-width: 680px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.students-overview__header button {
+  min-height: 44px;
+  padding: 0 17px;
+  border: 1px solid #9f1945;
+  border-radius: 12px;
+  color: #fff;
+  background: #9f1945;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.students-overview__actions {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 15px;
+  margin-top: 22px;
+}
+
+.students-overview__actions button {
+  min-height: 174px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 21px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  color: #172033;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: .22s ease;
+}
+
+.students-overview__actions button:hover {
+  transform: translateY(-3px);
+  border-color: rgba(159,25,69,.28);
+  background: #fff;
+  box-shadow: 0 13px 28px rgba(20,32,51,.08);
+}
+
+.students-overview__actions span {
+  color: #9f1945;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.students-overview__actions strong {
+  margin: 10px 0 4px;
+  font-size: 36px;
+}
+
+.students-overview__actions small {
+  color: #667085;
+}
+
+.students-overview__actions b {
+  margin-top: auto;
+  padding-top: 18px;
+  color: #9f1945;
+  font-size: 13px;
+}
+
+.students-voices-grid {
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  gap: 13px;
+  margin-top: 22px;
+}
+
+.students-voices-grid button {
+  min-height: 145px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  color: #172033;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.students-voices-grid button:hover {
+  transform: translateY(-3px);
+  border-color: rgba(159,25,69,.3);
+  background: #fff;
+}
+
+.students-voices-grid button > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  color: #9f1945;
+  background: #fff0f5;
+  font-weight: 900;
+}
+
+.students-voices-grid button > strong {
+  color: #172033;
+  font-size: 26px;
+}
+
+.students-voices-grid button > small {
+  color: #667085;
+}
+
+.students-voices-grid button.is-pending > span {
+  color: #8b6a12;
+  background: #fff8e7;
+}
+
+.students-directory-panel {
+  animation: studentsPanelIn .35s cubic-bezier(.2,.75,.25,1);
+}
+
+/* Light-first overrides para esta vista del SaaS */
+.students .students__summary article,
+.students .students-toolbar,
+.students .students__info,
+.students .student-card,
+.students .students-empty,
+.students .students-no-results,
+.students .students-state {
+  color: #172033;
+  background: #fff;
+  border-color: #dbe3ec;
+}
+
+.students .students-search input {
+  color: #172033;
+  background: #f8fafc;
+  border-color: #dbe3ec;
+}
+
+.students .student-card:hover {
+  background: #fff;
+  border-color: rgba(159,25,69,.32);
+  box-shadow: 0 13px 28px rgba(20,32,51,.08);
+}
+
+.students .student-card__details {
+  background: #f8fafc;
+  border-color: #e5eaf0;
+}
+
+.students .student-card__main-action {
+  color: #9f1945;
+  border-color: rgba(159,25,69,.25);
+  background: #fff0f5;
+}
+
+.students .student-card__avatar {
+  color: #9f1945;
+  border-color: rgba(159,25,69,.25);
+  background: #fff0f5;
+}
+
+@keyframes studentsPanelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .students-context-nav {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(155px,1fr);
+    overflow-x: auto;
+  }
+
+  .students-overview__header {
+    flex-direction: column;
+  }
+
+  .students-overview__actions,
+  .students-voices-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .students-context-nav button,
+  .students-overview,
+  .students-voices-panel,
+  .students-directory-panel {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

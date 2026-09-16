@@ -255,7 +255,8 @@
       >
         <button
           type="button"
-          @click="scrollToSection('resumen-clase')"
+          :class="{ 'is-active': activeLessonTab === 'summary' }"
+          @click="activeLessonTab = 'summary'"
         >
           <span>01</span>
           Resumen y progreso
@@ -263,7 +264,8 @@
 
         <button
           type="button"
-          @click="scrollToSection('material-principal')"
+          :class="{ 'is-active': activeLessonTab === 'materials' }"
+          @click="activeLessonTab = 'materials'"
         >
           <span>02</span>
           Materiales
@@ -271,7 +273,8 @@
 
         <button
           type="button"
-          @click="scrollToSection('actividades')"
+          :class="{ 'is-active': activeLessonTab === 'activities' }"
+          @click="activeLessonTab = 'activities'"
         >
           <span>03</span>
           Actividades
@@ -279,7 +282,8 @@
 
         <button
           type="button"
-          @click="scrollToSection('evaluaciones')"
+          :class="{ 'is-active': activeLessonTab === 'evaluations' }"
+          @click="activeLessonTab = 'evaluations'"
         >
           <span>04</span>
           Evaluaciones
@@ -288,7 +292,8 @@
         <button
           v-if="hasAcademicContent"
           type="button"
-          @click="scrollToSection('contenido-academico')"
+          :class="{ 'is-active': activeLessonTab === 'academic' }"
+          @click="activeLessonTab = 'academic'"
         >
           <span>05</span>
           Objetivos y contenidos
@@ -368,7 +373,7 @@
       <!-- ===================================================
            QUICK INFO
       ==================================================== -->
-      <section id="resumen-clase" class="quick-info">
+      <section v-show="activeLessonTab === 'summary'" id="resumen-clase" class="quick-info">
         <article>
           <span>
             Materiales
@@ -468,6 +473,7 @@
       <section
         id="ruta-clase"
         v-if="!isTeacher"
+        v-show="activeLessonTab === 'summary'"
         class="learning-path"
         :class="{
           'learning-path--complete':
@@ -590,6 +596,7 @@
 
       <section
         v-if="isTeacher"
+        v-show="activeLessonTab === 'summary'"
         class="teacher-command"
       >
         <div class="teacher-command__copy">
@@ -629,7 +636,7 @@
           <!-- ===============================================
                MATERIAL PRINCIPAL
           ================================================ -->
-          <section id="material-principal" class="content-section material-section">
+          <section v-show="activeLessonTab === 'materials'" id="material-principal" class="content-section material-section">
             <header class="section-heading">
               <div>
                 <span>
@@ -827,6 +834,7 @@
               secondaryMaterials.length ||
               isTeacher
             "
+            v-show="activeLessonTab === 'materials'"
             id="recursos"
             class="content-section"
           >
@@ -973,7 +981,7 @@
           <!-- ===============================================
                ACTIVIDADES
           ================================================ -->
-          <section id="actividades" class="content-section">
+          <section v-show="activeLessonTab === 'activities'" id="actividades" class="content-section">
             <header class="section-heading">
               <div>
                 <span>
@@ -1115,6 +1123,7 @@
           ================================================ -->
           <section
             id="evaluaciones"
+            v-show="activeLessonTab === 'evaluations'"
             class="content-section assessment-section"
           >
             <header class="section-heading">
@@ -1343,6 +1352,7 @@
           ================================================ -->
           <section
             v-if="!isTeacher"
+            v-show="activeLessonTab === 'summary'"
             class="completion-section"
             :class="{
               'completion-section--done':
@@ -1536,6 +1546,7 @@
           ================================================ -->
           <section
             v-if="hasAcademicContent"
+            v-show="activeLessonTab === 'academic'"
             id="contenido-academico"
             class="academic-section"
           >
@@ -1738,6 +1749,7 @@
               isTeacher &&
               hasTeacherNotes
             "
+            v-show="activeLessonTab === 'summary'"
             class="teacher-notes"
           >
             <header>
@@ -2461,23 +2473,11 @@ const toastMessage = ref('')
 const toastType = ref('success')
 
 /*
- * Navegación interna robusta.
- * No usamos href="#..." porque en algunos despliegues el hash
- * puede ser interpretado por Vue Router y devolver la vista al inicio.
+ * Navegación interna por paneles.
+ * Mantiene la clase en una sola vista y evita scroll/hash.
  */
-const scrollToSection = sectionId => {
-  const target =
-    document.getElementById(sectionId)
+const activeLessonTab = ref('summary')
 
-  if (!target) {
-    return
-  }
-
-  target.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start',
-  })
-}
 const lessonAppearance = ref({
   coverUrl: '',
   focalPoint: 'center',
@@ -10666,6 +10666,23 @@ a.lesson-navigation__item:hover,
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+
+/* =========================================================
+   V10 · NAVEGACIÓN POR PANELES
+========================================================= */
+.lesson-page--max .lesson-tabs button.is-active {
+  color: #9f1945 !important;
+  background: #fff0f5 !important;
+  box-shadow: inset 0 -3px 0 #9f1945, 0 0 0 2px rgba(159,25,69,.14);
+}
+.lesson-page--max .lesson-tabs button.is-active span {
+  color: #9f1945 !important;
+}
+.lesson-main > [style*="display: none"] {
+  margin: 0 !important;
 }
 
 </style>

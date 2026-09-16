@@ -172,6 +172,119 @@
 
     </section>
 
+    <!-- =====================================================
+         NAVEGACIÓN CONTEXTUAL · V8
+    ====================================================== -->
+    <nav
+      v-if="!isLoadingData && !loadError"
+      class="classwork-context-nav"
+      aria-label="Secciones de Trabajo de clase"
+    >
+      <button
+        type="button"
+        :class="{ 'is-active': isClassworkTab('resumen') }"
+        @click="setClassworkTab('resumen')"
+      >
+        <span>01</span>
+        Resumen
+      </button>
+
+      <button
+        type="button"
+        :class="{ 'is-active': isClassworkTab('recursos') }"
+        @click="setClassworkTab('recursos')"
+      >
+        <span>02</span>
+        Recursos
+        <small>{{ visibleMaterials.length }}</small>
+      </button>
+
+      <button
+        type="button"
+        :class="{ 'is-active': isClassworkTab('tareas') }"
+        @click="setClassworkTab('tareas')"
+      >
+        <span>03</span>
+        Tareas
+        <small>{{ visibleAssignments.length }}</small>
+      </button>
+
+      <button
+        type="button"
+        :class="{ 'is-active': isClassworkTab('evaluaciones') }"
+        @click="setClassworkTab('evaluaciones')"
+      >
+        <span>04</span>
+        Evaluaciones
+        <small>{{ visibleQuizzes.length }}</small>
+      </button>
+    </nav>
+
+    <section
+      v-if="!isLoadingData && !loadError && isClassworkTab('resumen')"
+      class="classwork-overview"
+    >
+      <header class="classwork-overview__header">
+        <div>
+          <span>CENTRO DE TRABAJO</span>
+          <h2>Resumen de la clase</h2>
+          <p>
+            Consulta el estado general y entra directamente al área que
+            necesitas gestionar.
+          </p>
+        </div>
+        <strong>{{ lesson?.title || `Clase ${lessonId}` }}</strong>
+      </header>
+
+      <div class="classwork-overview__grid">
+        <button type="button" @click="setClassworkTab('recursos')">
+          <span>RECURSOS</span>
+          <strong>{{ visibleMaterials.length }}</strong>
+          <small>Materiales disponibles</small>
+          <b>Ver recursos →</b>
+        </button>
+
+        <button type="button" @click="setClassworkTab('tareas')">
+          <span>TAREAS</span>
+          <strong>{{ visibleAssignments.length }}</strong>
+          <small>{{ nextDueDateLabel === '—' ? 'Sin próxima entrega' : `Próxima: ${nextDueDateLabel}` }}</small>
+          <b>Ver tareas →</b>
+        </button>
+
+        <button type="button" @click="setClassworkTab('evaluaciones')">
+          <span>EVALUACIONES</span>
+          <strong>{{ visibleQuizzes.length }}</strong>
+          <small>
+            {{
+              isTeacher
+                ? `${publishedQuizCount} publicadas · ${draftQuizCount} borradores`
+                : `${availableQuizCount} disponibles ahora`
+            }}
+          </small>
+          <b>Ver evaluaciones →</b>
+        </button>
+      </div>
+
+      <article class="classwork-overview__activity">
+        <div class="classwork-overview__activity-icon">♪</div>
+        <div>
+          <span>ACTIVIDAD DE ESTA SESIÓN</span>
+          <h3>{{ lesson?.focus || 'Performance Lab' }}</h3>
+          <p>
+            {{
+              lesson?.description ||
+              `Actividad práctica correspondiente a la Clase ${lessonId}.`
+            }}
+          </p>
+        </div>
+        <div class="classwork-overview__activity-meta">
+          <span>{{ lesson?.modality || 'Presencial' }}</span>
+          <span v-if="lesson?.duration">{{ lesson.duration }}</span>
+        </div>
+      </article>
+    </section>
+
+
     <div
 
       v-if="isLoadingData"
@@ -195,7 +308,7 @@
            01 · ACTIVIDAD DE CLASE
 *      ==================================================== -->
 
-      <section class="classwork__section">
+      <section class="classwork__section" v-show="false">
 
         <div class="classwork__section-title">
 
@@ -258,7 +371,7 @@
            02 · MATERIALES
 *      ==================================================== -->
 
-      <section class="classwork__section">
+      <section class="classwork__section" v-show="isClassworkTab('recursos')">
 
         <div class="classwork__section-title classwork__section-title--actions">
 
@@ -456,7 +569,7 @@
            03 · TAREAS
 *      ==================================================== -->
 
-      <section class="classwork__section">
+      <section class="classwork__section" v-show="isClassworkTab('tareas')">
 
         <div class="classwork__section-title classwork__section-title--actions">
 
@@ -626,7 +739,7 @@
            04 · EVALUACIONES
       ==================================================== -->
 
-      <section class="classwork__section">
+      <section class="classwork__section" v-show="isClassworkTab('evaluaciones')">
         <div class="classwork__section-title classwork__section-title--actions">
           <span>04</span>
 
@@ -1752,6 +1865,18 @@ const nowMs = ref(Date.now())
 
 const uiMessage = ref('')
 const uiMessageType = ref('success')
+
+/* =========================================================
+   NAVEGACIÓN CONTEXTUAL · V8
+========================================================= */
+const activeClassworkTab = ref('resumen')
+
+const setClassworkTab = tab => {
+  activeClassworkTab.value = tab
+}
+
+const isClassworkTab = tab =>
+  activeClassworkTab.value === tab
 
 /* =========================================================
    ADMINISTRACIÓN DE MATERIALES · PROFESOR
@@ -6904,6 +7029,288 @@ onUnmounted(() => {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+
+/* =========================================================
+   CONTEXT NAVIGATION · V8
+========================================================= */
+.classwork-context-nav {
+  position: sticky;
+  top: 14px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 22px 0 28px;
+  padding: 7px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 14px 36px rgba(20, 32, 51, .08);
+  backdrop-filter: blur(16px);
+}
+
+.classwork-context-nav button {
+  min-width: 0;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 13px;
+  padding: 10px 14px;
+  background: transparent;
+  color: #536176;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.classwork-context-nav button > span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #f2f5f8;
+  color: #7a8798;
+  font-size: 10px;
+  letter-spacing: .04em;
+}
+
+.classwork-context-nav button > small {
+  min-width: 24px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #f2f5f8;
+  color: #667085;
+  font-size: 11px;
+}
+
+.classwork-context-nav button:hover {
+  transform: translateY(-1px);
+  background: #faf7f8;
+  color: #9f1945;
+}
+
+.classwork-context-nav button.is-active {
+  background: #9f1945;
+  color: #fff;
+  box-shadow: 0 9px 22px rgba(159, 25, 69, .20);
+}
+
+.classwork-context-nav button.is-active > span,
+.classwork-context-nav button.is-active > small {
+  background: rgba(255,255,255,.16);
+  color: #fff;
+}
+
+.classwork-overview {
+  margin-bottom: 30px;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid #dbe3ec;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 44px rgba(20, 32, 51, .07);
+  animation: classworkPanelIn .35s cubic-bezier(.2,.75,.25,1);
+}
+
+.classwork-overview__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.classwork-overview__header > div > span,
+.classwork-overview__activity > div > span {
+  color: #9f1945;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.classwork-overview__header h2 {
+  margin: 6px 0 6px;
+  color: #172033;
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+.classwork-overview__header p {
+  max-width: 680px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.65;
+}
+
+.classwork-overview__header > strong {
+  max-width: 320px;
+  color: #344359;
+  text-align: right;
+}
+
+.classwork-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.classwork-overview__grid button {
+  display: flex;
+  min-height: 178px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 21px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #172033;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
+}
+
+.classwork-overview__grid button:hover {
+  transform: translateY(-3px);
+  border-color: rgba(159, 25, 69, .28);
+  background: #fff;
+  box-shadow: 0 13px 28px rgba(20, 32, 51, .08);
+}
+
+.classwork-overview__grid button > span {
+  color: #9f1945;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.classwork-overview__grid button > strong {
+  margin: 10px 0 4px;
+  font-size: 38px;
+  line-height: 1;
+}
+
+.classwork-overview__grid button > small {
+  color: #667085;
+  line-height: 1.45;
+}
+
+.classwork-overview__grid button > b {
+  margin-top: auto;
+  padding-top: 18px;
+  color: #9f1945;
+  font-size: 13px;
+}
+
+.classwork-overview__activity {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid #eadfbd;
+  border-radius: 18px;
+  background: #fffaf0;
+}
+
+.classwork-overview__activity-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #fff;
+  color: #9f1945;
+  font-size: 22px;
+  box-shadow: 0 7px 18px rgba(20,32,51,.07);
+}
+
+.classwork-overview__activity h3 {
+  margin: 4px 0;
+  color: #172033;
+  font-size: 18px;
+}
+
+.classwork-overview__activity p {
+  margin: 0;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.classwork-overview__activity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.classwork-overview__activity-meta span {
+  padding: 6px 9px;
+  border: 1px solid #eadfbd;
+  border-radius: 999px;
+  background: #fff;
+  color: #6c5a2d;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.classwork__section[v-show] {
+  animation: classworkPanelIn .35s cubic-bezier(.2,.75,.25,1);
+}
+
+@keyframes classworkPanelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 850px) {
+  .classwork-context-nav {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 1fr);
+    overflow-x: auto;
+    justify-content: start;
+    scrollbar-width: thin;
+  }
+
+  .classwork-overview__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classwork-overview__header,
+  .classwork-overview__activity {
+    grid-template-columns: 1fr;
+  }
+
+  .classwork-overview__header {
+    flex-direction: column;
+  }
+
+  .classwork-overview__header > strong {
+    max-width: none;
+    text-align: left;
+  }
+
+  .classwork-overview__activity-meta {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classwork-context-nav button,
+  .classwork-overview,
+  .classwork-overview__grid button,
+  .classwork__section[v-show] {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
