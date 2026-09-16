@@ -132,59 +132,59 @@
         aria-label="Resumen académico"
       >
         <article class="summary-card summary-card--primary">
-          <span>
-            Promedio
-          </span>
+          <span>Promedio tareas</span>
+          <strong>{{ averageGrade }}</strong>
+          <small>escala de calificación</small>
+        </article>
 
+        <article>
+          <span>Promedio quiz</span>
           <strong>
-            {{ averageGrade }}
+            {{
+              quizAveragePercentage === null
+                ? '—'
+                : `${quizAveragePercentage}%`
+            }}
           </strong>
-
           <small>
-            calificación general
+            {{ completedQuizAttempts.length }}
+            intentos evaluados
           </small>
         </article>
 
         <article>
-          <span>
-            Asistencia
-          </span>
-
-          <strong>
-            {{ attendancePercentage }}%
-          </strong>
-
-          <small>
-            clases registradas
-          </small>
+          <span>Asistencia</span>
+          <strong>{{ attendancePercentage }}%</strong>
+          <small>clases registradas</small>
         </article>
 
         <article>
-          <span>
-            Entregas
-          </span>
-
-          <strong>
-            {{ studentSubmissions.length }}
-          </strong>
-
+          <span>Entregas</span>
+          <strong>{{ studentSubmissions.length }}</strong>
           <small>
-            trabajos enviados
-          </small>
-        </article>
-
-        <article>
-          <span>
-            Evaluadas
-          </span>
-
-          <strong>
             {{ reviewedSubmissions.length }}
-          </strong>
-
-          <small>
-            con revisión
+            revisadas
           </small>
+        </article>
+
+        <article>
+          <span>Evaluaciones</span>
+          <strong>{{ studentQuizAttempts.length }}</strong>
+          <small>
+            {{ passedQuizAttempts }}
+            aprobadas
+          </small>
+        </article>
+
+        <article
+          :class="{
+            'summary-card--attention':
+              pendingQuizReviews > 0
+          }"
+        >
+          <span>Por revisar</span>
+          <strong>{{ pendingQuizReviews }}</strong>
+          <small>intentos pendientes</small>
         </article>
       </section>
 
@@ -208,7 +208,11 @@
         </a>
 
         <a href="#evaluaciones">
-          Evaluaciones
+          Entregas
+        </a>
+
+        <a href="#quiz-academicos">
+          Quiz
         </a>
       </nav>
 
@@ -976,6 +980,140 @@
           </div>
         </div>
       </section>
+
+      <!-- =====================================================
+           05 · QUIZZES Y EVALUACIONES INTERACTIVAS
+      ====================================================== -->
+      <section
+        id="quiz-academicos"
+        class="student-profile__section"
+      >
+        <div class="student-profile__section-header">
+          <div class="student-profile__section-title">
+            <span>05</span>
+
+            <div>
+              <p>Evaluación interactiva</p>
+              <h2>Quiz y resultados</h2>
+            </div>
+          </div>
+
+          <p>
+            Intentos, porcentajes y estados de revisión
+            sincronizados con el libro de notas.
+          </p>
+        </div>
+
+        <div
+          v-if="quizLoadWarning"
+          class="academic-notice"
+          role="status"
+        >
+          <strong>Sincronización parcial</strong>
+          <p>{{ quizLoadWarning }}</p>
+        </div>
+
+        <div
+          v-if="studentQuizAttempts.length"
+          class="quiz-attempts"
+        >
+          <article
+            v-for="attempt in studentQuizAttempts"
+            :key="
+              attempt.attemptId ??
+              attempt.attempt_id ??
+              attempt.id
+            "
+            class="quiz-attempt"
+          >
+            <div class="quiz-attempt__main">
+              <div class="quiz-attempt__meta">
+                <span
+                  class="quiz-attempt__status"
+                  :class="
+                    getQuizAttemptState(attempt)
+                      .className
+                  "
+                >
+                  {{
+                    getQuizAttemptState(attempt)
+                      .label
+                  }}
+                </span>
+
+                <span>
+                  Intento
+                  {{
+                    attempt.attemptNumber ??
+                    attempt.attempt_number ??
+                    '—'
+                  }}
+                </span>
+              </div>
+
+              <h3>
+                {{ getQuizTitleForAttempt(attempt) }}
+              </h3>
+
+              <p>
+                {{
+                  attempt.lessonTitle ||
+                  attempt.lesson_title ||
+                  (
+                    getAttemptLessonId(attempt)
+                      ? `Clase ${getAcademicLessonNumberById(getAttemptLessonId(attempt))}`
+                      : 'Evaluación del programa'
+                  )
+                }}
+              </p>
+
+              <small>
+                {{
+                  formatDate(
+                    attempt.submittedAt ??
+                    attempt.submitted_at ??
+                    attempt.gradedAt ??
+                    attempt.graded_at
+                  )
+                }}
+              </small>
+            </div>
+
+            <div class="quiz-attempt__result">
+              <span>Resultado</span>
+              <strong>
+                {{ formatQuizPercentage(attempt) }}
+              </strong>
+
+              <RouterLink
+                v-if="isTeacher"
+                :to="quizReviewLink(attempt)"
+                class="history-card__review"
+              >
+                Abrir revisión
+              </RouterLink>
+            </div>
+          </article>
+        </div>
+
+        <div
+          v-else
+          class="empty-state"
+        >
+          <span>◎</span>
+
+          <div>
+            <h3>
+              Sin evaluaciones realizadas
+            </h3>
+
+            <p>
+              Los intentos de quiz del estudiante
+              aparecerán aquí automáticamente.
+            </p>
+          </div>
+        </div>
+      </section>
     </template>
 
     <!-- =====================================================
@@ -1068,6 +1206,14 @@ import {
 } from '@/services/lessonService'
 
 import {
+  fetchQuizzes
+} from '@/services/quizService'
+
+import {
+  fetchTeacherQuizAttempts
+} from '@/services/teacherEvaluationService'
+
+import {
   useAuth
 } from '@/composables/useAuth'
 
@@ -1094,6 +1240,9 @@ const submissions = ref([])
 const lessons = ref([])
 const studentAttendance = ref([])
 const vocalProfile = ref(null)
+const quizzes = ref([])
+const quizAttempts = ref([])
+const quizLoadWarning = ref('')
 
 const isLoading = ref(true)
 const loadError = ref('')
@@ -1134,6 +1283,7 @@ const loadProfile =
   async () => {
     isLoading.value = true
     loadError.value = ''
+    quizLoadWarning.value = ''
 
     try {
       const [
@@ -1142,7 +1292,8 @@ const loadProfile =
         loadedSubmissions,
         loadedLessons,
         loadedAttendance,
-        loadedVocalProfile
+        loadedVocalProfile,
+        loadedQuizzes
       ] = await Promise.all([
         fetchStudentById(
           studentId.value
@@ -1160,7 +1311,9 @@ const loadProfile =
 
         fetchVocalProfileByStudent(
           studentId.value
-        )
+        ),
+
+        fetchQuizzes()
       ])
 
       student.value =
@@ -1185,6 +1338,52 @@ const loadProfile =
 
       vocalProfile.value =
         loadedVocalProfile || null
+
+      quizzes.value =
+        (loadedQuizzes || [])
+          .filter(
+            quiz =>
+              quiz.status !== 'draft'
+          )
+
+      /*
+       * Los intentos del profesor se consultan por evaluación
+       * porque el servicio/RPC actual está diseñado por quiz.
+       * Un fallo aislado no bloquea toda la ficha académica.
+       */
+      const settledAttempts =
+        await Promise.allSettled(
+          quizzes.value.map(
+            quiz =>
+              fetchTeacherQuizAttempts(
+                quiz.id
+              )
+          )
+        )
+
+      const failedQuizLoads =
+        settledAttempts.filter(
+          result =>
+            result.status === 'rejected'
+        ).length
+
+      quizAttempts.value =
+        settledAttempts
+          .filter(
+            result =>
+              result.status === 'fulfilled'
+          )
+          .flatMap(
+            result =>
+              Array.isArray(result.value)
+                ? result.value
+                : []
+          )
+
+      if (failedQuizLoads) {
+        quizLoadWarning.value =
+          `No se pudieron sincronizar ${failedQuizLoads} evaluación${failedQuizLoads === 1 ? '' : 'es'}. El resto de la ficha está disponible.`
+      }
     } catch (error) {
       console.error(
         'Error cargando ficha del estudiante:',
@@ -1197,6 +1396,8 @@ const loadProfile =
       lessons.value = []
       studentAttendance.value = []
       vocalProfile.value = null
+      quizzes.value = []
+      quizAttempts.value = []
 
       loadError.value =
         error?.message ||
@@ -1688,6 +1889,225 @@ const saveVocalProfile =
 /* =========================================================
    RÚBRICA
 ========================================================= */
+
+
+/* =========================================================
+   EVALUACIONES INTERACTIVAS · V10
+========================================================= */
+
+const getAttemptStudentId =
+  attempt =>
+    Number(
+      attempt?.studentId ??
+      attempt?.student_id ??
+      attempt?.userId ??
+      attempt?.user_id
+    )
+
+const studentQuizAttempts =
+  computed(() =>
+    quizAttempts.value
+      .filter(
+        attempt =>
+          getAttemptStudentId(attempt) ===
+          Number(studentId.value)
+      )
+      .sort(
+        (a, b) =>
+          new Date(
+            b.submittedAt ??
+            b.submitted_at ??
+            b.gradedAt ??
+            b.graded_at ??
+            0
+          ) -
+          new Date(
+            a.submittedAt ??
+            a.submitted_at ??
+            a.gradedAt ??
+            a.graded_at ??
+            0
+          )
+      )
+  )
+
+const completedQuizAttempts =
+  computed(() =>
+    studentQuizAttempts.value.filter(
+      attempt =>
+        Number.isFinite(
+          Number(attempt?.percentage)
+        )
+    )
+  )
+
+const quizAveragePercentage =
+  computed(() => {
+    if (!completedQuizAttempts.value.length) {
+      return null
+    }
+
+    const total =
+      completedQuizAttempts.value.reduce(
+        (sum, attempt) =>
+          sum +
+          Number(attempt.percentage || 0),
+        0
+      )
+
+    return Math.round(
+      total /
+      completedQuizAttempts.value.length
+    )
+  })
+
+const passedQuizAttempts =
+  computed(() =>
+    completedQuizAttempts.value.filter(
+      attempt =>
+        attempt?.passed === true
+    ).length
+  )
+
+const pendingQuizReviews =
+  computed(() =>
+    studentQuizAttempts.value.filter(
+      attempt => {
+        const status =
+          String(
+            attempt?.status || ''
+          ).toLowerCase()
+
+        return (
+          status === 'submitted' ||
+          status === 'pending' ||
+          status === 'pending_review'
+        )
+      }
+    ).length
+  )
+
+const quizById =
+  quizId =>
+    quizzes.value.find(
+      quiz =>
+        Number(quiz.id) ===
+        Number(quizId)
+    ) || null
+
+const getAttemptQuizId =
+  attempt =>
+    Number(
+      attempt?.quizId ??
+      attempt?.quiz_id
+    )
+
+const getQuizTitleForAttempt =
+  attempt =>
+    attempt?.quizTitle ||
+    attempt?.quiz_title ||
+    quizById(
+      getAttemptQuizId(attempt)
+    )?.title ||
+    'Evaluación'
+
+const getAttemptLessonId =
+  attempt =>
+    Number(
+      attempt?.lessonId ??
+      attempt?.lesson_id ??
+      quizById(
+        getAttemptQuizId(attempt)
+      )?.lessonId ??
+      quizById(
+        getAttemptQuizId(attempt)
+      )?.lesson_id
+    )
+
+const formatQuizPercentage =
+  attempt => {
+    const value =
+      Number(attempt?.percentage)
+
+    return Number.isFinite(value)
+      ? `${Math.round(value)}%`
+      : 'Pendiente'
+  }
+
+const getQuizAttemptState =
+  attempt => {
+    const status =
+      String(
+        attempt?.status || ''
+      ).toLowerCase()
+
+    if (
+      status === 'submitted' ||
+      status === 'pending' ||
+      status === 'pending_review'
+    ) {
+      return {
+        label: 'Por revisar',
+        className:
+          'quiz-attempt__status--pending'
+      }
+    }
+
+    if (attempt?.passed === true) {
+      return {
+        label: 'Aprobada',
+        className:
+          'quiz-attempt__status--passed'
+      }
+    }
+
+    if (
+      attempt?.passed === false &&
+      Number.isFinite(
+        Number(attempt?.percentage)
+      )
+    ) {
+      return {
+        label: 'Por reforzar',
+        className:
+          'quiz-attempt__status--reinforce'
+      }
+    }
+
+    return {
+      label: 'Registrada',
+      className:
+        'quiz-attempt__status--neutral'
+    }
+  }
+
+const quizReviewLink =
+  attempt => {
+    const lessonId =
+      getAttemptLessonId(attempt)
+
+    const quizId =
+      getAttemptQuizId(attempt)
+
+    const attemptId =
+      attempt?.attemptId ??
+      attempt?.attempt_id ??
+      attempt?.id
+
+    if (
+      !lessonId ||
+      !quizId ||
+      !attemptId
+    ) {
+      return '/aula/calificaciones'
+    }
+
+    return (
+      `/aula/clase/${lessonId}` +
+      `/evaluacion/${quizId}` +
+      `/intentos/${attemptId}/revisar`
+    )
+  }
 
 const rubricCriteria = [
   {
@@ -5350,6 +5770,184 @@ onBeforeUnmount(() => {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+
+/* =========================================================
+   V10 · EXPEDIENTE ACADÉMICO INTEGRAL
+========================================================= */
+
+.student-profile__summary {
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+}
+
+.summary-card--attention {
+  border-color: rgba(159, 25, 69, .22) !important;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fff8fa 100%
+    ) !important;
+}
+
+.summary-card--attention strong {
+  color: #9f1945 !important;
+}
+
+.academic-notice {
+  display: grid;
+  gap: .35rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #ead9a5;
+  border-radius: 16px;
+  background: #fff9e9;
+  color: #344359;
+}
+
+.academic-notice strong {
+  color: #172033;
+}
+
+.academic-notice p {
+  margin: 0;
+}
+
+.quiz-attempts {
+  display: grid;
+  gap: .85rem;
+}
+
+.quiz-attempt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.15rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow:
+    0 10px 30px rgba(23, 32, 51, .055);
+  transition:
+    transform .22s cubic-bezier(.2,.75,.25,1),
+    box-shadow .22s ease,
+    border-color .22s ease;
+}
+
+.quiz-attempt:hover {
+  transform: translateY(-2px);
+  border-color: rgba(159, 25, 69, .2);
+  box-shadow:
+    0 16px 36px rgba(23, 32, 51, .085);
+}
+
+.quiz-attempt__main {
+  min-width: 0;
+}
+
+.quiz-attempt__main h3 {
+  margin: .5rem 0 .25rem;
+  color: #172033 !important;
+}
+
+.quiz-attempt__main p,
+.quiz-attempt__main small {
+  color: #667085 !important;
+}
+
+.quiz-attempt__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .55rem;
+  color: #667085;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.quiz-attempt__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: .25rem .65rem;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 900;
+}
+
+.quiz-attempt__status--passed {
+  color: #216b4d;
+  background: #eaf7f1;
+}
+
+.quiz-attempt__status--reinforce {
+  color: #9f1945;
+  background: #fff0f4;
+}
+
+.quiz-attempt__status--pending {
+  color: #795d08;
+  background: #fff8e7;
+}
+
+.quiz-attempt__status--neutral {
+  color: #344359;
+  background: #eef2f6;
+}
+
+.quiz-attempt__result {
+  display: grid;
+  justify-items: end;
+  gap: .35rem;
+  flex: 0 0 auto;
+}
+
+.quiz-attempt__result > span {
+  color: #667085;
+  font-size: .76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.quiz-attempt__result > strong {
+  color: #172033 !important;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+@media (max-width: 1180px) {
+  .student-profile__summary {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .student-profile__summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .quiz-attempt {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quiz-attempt__result {
+    justify-items: start;
+    padding-top: .85rem;
+    border-top: 1px solid #e7ecf2;
+  }
+}
+
+@media (max-width: 460px) {
+  .student-profile__summary {
+    grid-template-columns: 1fr;
   }
 }
 
