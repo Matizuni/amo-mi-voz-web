@@ -178,16 +178,22 @@
 
           </section>
 
-          <aside class="panel attention-panel">
+          <aside class="panel attention-panel academic-progress">
+            <div class="panel-heading">
+              <div><span>ESTADO ACADÉMICO</span><h2>Estado del curso</h2></div>
+              <RouterLink to="/aula/calificaciones">Libro de notas →</RouterLink>
+            </div>
 
-            <div class="panel-heading"><div><span>ATENCIÓN</span><h2>Estado del curso</h2></div></div>
+            <div class="teacher-academic-score">
+              <div><span>PROMEDIO ACTUAL</span><strong>{{ teacherAcademicAverageGrade }}</strong><small>entre estudiantes con resultados</small></div>
+              <div><span>CON RESULTADOS</span><strong>{{ teacherEvaluatedStudents }}/{{ students.length }}</strong><small>estudiantes evaluados</small></div>
+            </div>
 
-            <div class="attention-item"><span class="attention-dot attention-dot--wine"></span><div><strong>{{ pendingReviewCount }} entregas pendientes</strong><small>Revisa y entrega retroalimentación.</small></div></div>
-
-            <div class="attention-item"><span class="attention-dot attention-dot--gold"></span><div><strong>{{ students.length }} estudiantes activos</strong><small>Seguimiento centralizado del grupo.</small></div></div>
-
+            <div class="attention-item"><span class="attention-dot attention-dot--wine"></span><div><strong>{{ pendingReviewCount }} entregas pendientes</strong><small>Requieren revisión y retroalimentación.</small></div></div>
+            <div class="attention-item"><span class="attention-dot attention-dot--gold"></span><div><strong>{{ configuredAcademicWeight }}% ponderación configurada</strong><small>Distribución académica activa.</small></div></div>
             <div class="attention-item"><span class="attention-dot attention-dot--green"></span><div><strong>{{ generalAttendancePercentage }}% asistencia</strong><small>Promedio de registros disponibles.</small></div></div>
 
+            <p v-if="academicProgressWarning" class="academic-warning">{{ academicProgressWarning }}</p>
           </aside>
 
         </div>
@@ -292,24 +298,42 @@
 
           </section>
 
-          <aside class="panel progress-panel">
+          <aside class="panel progress-panel academic-progress">
+            <div class="panel-heading">
+              <div><span>MI PROGRESO</span><h2>Progreso académico</h2></div>
+              <RouterLink to="/aula/evaluaciones">Ver resultados →</RouterLink>
+            </div>
 
-            <div class="panel-heading"><div><span>MI PROGRESO</span><h2>Desempeño vocal</h2></div></div>
-
-            <template v-if="hasRubricProgress">
-
-              <div v-for="criterion in studentRubricProgress" :key="criterion.key" class="progress-row">
-
-                <div><span>{{ criterion.label }}</span><strong>{{ criterion.value ? criterion.value.toFixed(1) : '—' }}</strong></div>
-
-                <div class="progress-track"><i :style="{ width: `${Math.min(100, (criterion.value / 7) * 100)}%` }"></i></div>
-
+            <div class="academic-score">
+              <div>
+                <span>RESULTADO ACTUAL</span>
+                <strong>{{ studentAcademicGrade }}</strong>
+                <small>Nota ponderada · escala 1–7</small>
               </div>
+              <div class="academic-score__percentage">
+                <strong>{{ studentAcademicPercentage === null ? '—' : `${studentAcademicPercentage}%` }}</strong>
+                <span>resultado</span>
+              </div>
+            </div>
 
-            </template>
+            <div class="academic-evaluated">
+              <div>
+                <span>Programa evaluado</span>
+                <strong>{{ studentEvaluatedWeight }}%</strong>
+              </div>
+              <div class="academic-track">
+                <i :style="{ width: `${Math.min(100, studentEvaluatedWeight)}%` }"></i>
+              </div>
+              <small>No representa avance de contenidos; indica cuánto peso académico ya tiene resultados.</small>
+            </div>
 
-            <div v-else class="empty-inline">Tu progreso aparecerá cuando recibas evaluaciones con rúbrica.</div>
+            <div class="academic-mini-grid">
+              <div><span>Tareas</span><strong>{{ studentCompletedAssignments }}/{{ assignments.length }}</strong><small>con entrega</small></div>
+              <div><span>Evaluaciones</span><strong>{{ studentCompletedQuizCount }}/{{ quizzes.length }}</strong><small>realizadas</small></div>
+              <div><span>Asistencia</span><strong>{{ studentAttendancePercentage }}%</strong><small>{{ studentPresentCount }} presentes</small></div>
+            </div>
 
+            <p v-if="academicProgressWarning" class="academic-warning">{{ academicProgressWarning }}</p>
           </aside>
 
         </div>
@@ -426,6 +450,15 @@ import {
 
 } from '@/services/studentService'
 import { getLessonAppearance } from '@/services/lessonAppearanceService'
+import { fetchQuizzes } from '@/services/quizService'
+import { fetchMyEvaluationAttempts } from '@/services/evaluationHistoryService'
+import { fetchTeacherQuizAttempts } from '@/services/teacherEvaluationService'
+import {
+  fetchGradingConfiguration,
+  percentageToChileanGrade,
+  normalizeResultToPercentage,
+  calculateWeightedResult
+} from '@/services/gradingService'
 
 
 
@@ -448,6 +481,21 @@ const submissions = ref([])
 const attendance = ref([])
 
 const students = ref([])
+const quizzes = ref([])
+const quizAttempts = ref([])
+const gradingConfiguration = ref({
+  settings: {
+    gradingScale: 'chilean_1_7',
+    minimumGrade: 1,
+    maximumGrade: 7,
+    passingGrade: 4,
+    exigencyPercentage: 60,
+    decimals: 1,
+    useWeights: true
+  },
+  categories: []
+})
+const academicProgressWarning = ref('')
 
 const isLoading = ref(true)
 
@@ -466,104 +514,86 @@ const setDashboardTab = tab => { activeDashboardTab.value = tab }
 
 
 const loadDashboard = async () => {
-
   isLoading.value = true
-
   loadError.value = ''
+  academicProgressWarning.value = ''
 
   try {
-
     const [
-
       loadedLessons,
-
       loadedAssignments,
-
       loadedSubmissions,
-
       loadedAttendance,
-
       loadedStudents
-
     ] = await Promise.all([
-
       fetchLessons(),
-
       fetchAssignments(),
-
       fetchSubmissions(),
-
       fetchAttendance(),
-
       fetchStudents()
-
     ])
 
-    lessons.value =
+    lessons.value = loadedLessons || []
+    assignments.value = isTeacher.value
+      ? loadedAssignments || []
+      : (loadedAssignments || []).filter(
+          assignment => assignment.status !== 'draft'
+        )
+    submissions.value = loadedSubmissions || []
+    attendance.value = loadedAttendance || []
+    students.value = loadedStudents || []
 
-      loadedLessons || []
+    const [quizResult, gradingResult] = await Promise.allSettled([
+      fetchQuizzes(),
+      fetchGradingConfiguration()
+    ])
 
-    assignments.value =
+    quizzes.value = quizResult.status === 'fulfilled'
+      ? (quizResult.value || []).filter(quiz => quiz.status !== 'draft')
+      : []
 
-      isTeacher.value
+    if (gradingResult.status === 'fulfilled') {
+      gradingConfiguration.value = gradingResult.value || gradingConfiguration.value
+    } else {
+      academicProgressWarning.value =
+        'No fue posible cargar la configuración de ponderaciones.'
+    }
 
-        ? loadedAssignments || []
-
-        : (loadedAssignments || []).filter(
-
-            assignment =>
-
-              assignment.status !== 'draft'
-
-          )
-
-    submissions.value =
-
-      loadedSubmissions || []
-
-    attendance.value =
-
-      loadedAttendance || []
-
-    students.value =
-
-      loadedStudents || []
-
+    try {
+      if (isTeacher.value) {
+        const groups = await Promise.all(
+          quizzes.value.map(async quiz => {
+            try {
+              return await fetchTeacherQuizAttempts(quiz.id)
+            } catch {
+              return []
+            }
+          })
+        )
+        quizAttempts.value = groups.flat()
+      } else {
+        quizAttempts.value = await fetchMyEvaluationAttempts()
+      }
+    } catch (error) {
+      console.error('No fue posible cargar historial de evaluaciones:', error)
+      quizAttempts.value = []
+    }
   } catch (error) {
-
-    console.error(
-
-      'Error cargando Dashboard:',
-
-      error
-
-    )
-
+    console.error('Error cargando Dashboard:', error)
     lessons.value = []
-
     assignments.value = []
-
     submissions.value = []
-
     attendance.value = []
-
     students.value = []
-
+    quizzes.value = []
+    quizAttempts.value = []
     loadError.value =
-
       error?.message ||
-
       'No se pudo cargar la información del Aula Virtual.'
-
   } finally {
-
     isLoading.value = false
-
   }
-
 }
-
-
 
 const firstName = computed(() => {
 
@@ -1487,6 +1517,234 @@ const studentAttendanceRows =
   })
 
 
+
+/* =========================================================
+   DASHBOARD V11.3 · MOTOR DE PROGRESO ACADÉMICO
+   Respeta las mismas reglas del Libro de notas:
+   tareas 1–7 -> porcentaje; quiz/prueba -> porcentaje;
+   categorías sin resultados NO se convierten en cero.
+========================================================= */
+const gradingSettings = computed(() =>
+  gradingConfiguration.value?.settings || {}
+)
+
+const gradingCategories = computed(() =>
+  (gradingConfiguration.value?.categories || [])
+    .filter(category => category.enabled !== false)
+)
+
+const configuredAcademicWeight = computed(() =>
+  gradingCategories.value.reduce(
+    (sum, category) => sum + Number(category.weight || 0),
+    0
+  )
+)
+
+const studentIdFrom = record =>
+  Number(
+    record?.studentId ??
+    record?.student_id ??
+    record?.userId ??
+    record?.user_id
+  )
+
+const quizIdFromAttempt = attempt =>
+  Number(attempt?.quizId ?? attempt?.quiz_id)
+
+const completedAcademicAttempts = computed(() =>
+  quizAttempts.value.filter(attempt =>
+    Number.isFinite(Number(attempt?.percentage))
+  )
+)
+
+const bestAttemptsForStudent = studentId => {
+  const grouped = new Map()
+
+  completedAcademicAttempts.value
+    .filter(attempt => studentIdFrom(attempt) === Number(studentId))
+    .forEach(attempt => {
+      const quizId = quizIdFromAttempt(attempt)
+      if (!quizId) return
+
+      const current = grouped.get(quizId)
+      if (
+        !current ||
+        Number(attempt.percentage) > Number(current.percentage)
+      ) {
+        grouped.set(quizId, attempt)
+      }
+    })
+
+  return [...grouped.values()]
+}
+
+const assessmentTypeOfAttempt = attempt => {
+  const quiz = quizzes.value.find(
+    item => Number(item.id) === quizIdFromAttempt(attempt)
+  )
+
+  return String(
+    attempt?.assessmentType ??
+    attempt?.assessment_type ??
+    quiz?.assessmentType ??
+    'quiz'
+  ).toLowerCase()
+}
+
+const averageAcademicNumbers = values => {
+  const valid = values
+    .map(Number)
+    .filter(Number.isFinite)
+
+  if (!valid.length) return null
+
+  return valid.reduce((sum, value) => sum + value, 0) / valid.length
+}
+
+const assignmentPercentagesForStudent = studentId =>
+  submissions.value
+    .filter(submission =>
+      studentIdFrom(submission) === Number(studentId) &&
+      Number.isFinite(Number(submission?.grade))
+    )
+    .map(submission =>
+      normalizeResultToPercentage(
+        Number(submission.grade),
+        'chilean_1_7',
+        gradingSettings.value
+      )
+    )
+    .filter(Number.isFinite)
+
+const categoryPercentageForStudent = (studentId, category) => {
+  const key = String(category?.key || '').toLowerCase()
+
+  if (['assignments', 'tasks', 'tareas'].includes(key)) {
+    return averageAcademicNumbers(
+      assignmentPercentagesForStudent(studentId)
+    )
+  }
+
+  const attempts = bestAttemptsForStudent(studentId)
+
+  if (['quiz', 'quizzes'].includes(key)) {
+    return averageAcademicNumbers(
+      attempts
+        .filter(attempt => assessmentTypeOfAttempt(attempt) === 'quiz')
+        .map(attempt => attempt.percentage)
+    )
+  }
+
+  if (['test', 'tests', 'pruebas'].includes(key)) {
+    return averageAcademicNumbers(
+      attempts
+        .filter(attempt => assessmentTypeOfAttempt(attempt) === 'test')
+        .map(attempt => attempt.percentage)
+    )
+  }
+
+  return null
+}
+
+const buildAcademicSummary = studentId => {
+  const categoryResults = {}
+
+  const details = gradingCategories.value.map(category => {
+    const percentage = categoryPercentageForStudent(studentId, category)
+    const evaluated = Number.isFinite(Number(percentage))
+
+    if (evaluated) {
+      categoryResults[category.key] = Number(percentage)
+    }
+
+    return {
+      ...category,
+      evaluated,
+      percentage: evaluated ? Number(percentage) : null
+    }
+  })
+
+  const evaluatedWeight = details
+    .filter(item => item.evaluated)
+    .reduce((sum, item) => sum + Number(item.weight || 0), 0)
+
+  const currentPercentage = calculateWeightedResult(
+    categoryResults,
+    gradingCategories.value
+  )
+
+  const currentGrade = Number.isFinite(Number(currentPercentage))
+    ? percentageToChileanGrade(
+        Number(currentPercentage),
+        gradingSettings.value
+      )
+    : null
+
+  return {
+    details,
+    evaluatedWeight,
+    pendingWeight: Math.max(
+      0,
+      configuredAcademicWeight.value - evaluatedWeight
+    ),
+    currentPercentage,
+    currentGrade
+  }
+}
+
+const studentAcademicSummary = computed(() => {
+  if (!currentUser.value) return null
+  return buildAcademicSummary(currentUser.value.id)
+})
+
+const studentAcademicGrade = computed(() => {
+  const grade = Number(studentAcademicSummary.value?.currentGrade)
+  return Number.isFinite(grade) ? grade.toFixed(1) : '—'
+})
+
+const studentAcademicPercentage = computed(() => {
+  const value = Number(studentAcademicSummary.value?.currentPercentage)
+  return Number.isFinite(value) ? Math.round(value) : null
+})
+
+const studentEvaluatedWeight = computed(() =>
+  Math.round(Number(studentAcademicSummary.value?.evaluatedWeight || 0))
+)
+
+const studentCompletedAssignments = computed(() =>
+  studentTaskRows.value.filter(row => row.submission).length
+)
+
+const studentCompletedQuizCount = computed(() =>
+  new Set(
+    bestAttemptsForStudent(currentUser.value?.id)
+      .map(attempt => quizIdFromAttempt(attempt))
+      .filter(Boolean)
+  ).size
+)
+
+const teacherAcademicRows = computed(() =>
+  students.value.map(student => ({
+    student,
+    ...buildAcademicSummary(student.id)
+  }))
+)
+
+const teacherEvaluatedStudents = computed(() =>
+  teacherAcademicRows.value.filter(row => row.evaluatedWeight > 0).length
+)
+
+const teacherAcademicAverageGrade = computed(() => {
+  const grades = teacherAcademicRows.value
+    .map(row => Number(row.currentGrade))
+    .filter(Number.isFinite)
+
+  if (!grades.length) return '—'
+
+  return (
+    grades.reduce((sum, grade) => sum + grade, 0) / grades.length
+  ).toFixed(1)
+})
 
 const studentSubmissions =
 
@@ -2884,6 +3142,141 @@ onMounted(
 @media (max-width: 680px) {
   .next-lesson { min-height: 300px; }
   .next-lesson--with-cover .lesson-index { width: 58px; height: 68px; }
+}
+
+
+/* =========================================================
+   DASHBOARD V11.3 · PROGRESO ACADÉMICO REAL
+========================================================= */
+.academic-progress { align-content:start; }
+.academic-score {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:center;
+  padding:18px;
+  margin-bottom:16px;
+  border:1px solid #eadfbd;
+  border-radius:16px;
+  background:linear-gradient(135deg,#fffaf0,#fff);
+}
+.academic-score span,.academic-score small,
+.teacher-academic-score span,.teacher-academic-score small {
+  display:block;
+  color:#667085;
+  font-size:.63rem;
+}
+.academic-score > div:first-child > span,
+.teacher-academic-score span {
+  color:#8d6a0b;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.academic-score > div:first-child > strong {
+  display:block;
+  margin:4px 0;
+  color:#172033;
+  font-size:2.35rem;
+  line-height:1;
+}
+.academic-score__percentage {
+  min-width:82px;
+  padding:12px;
+  border-radius:13px;
+  background:#172033;
+  text-align:center;
+}
+.academic-score__percentage strong {
+  display:block;
+  color:#fff7df;
+  font-size:1.2rem;
+}
+.academic-score__percentage span { color:#f4ca55; }
+.academic-evaluated {
+  padding:15px 2px 17px;
+  border-bottom:1px solid #e8edf2;
+}
+.academic-evaluated > div:first-child {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  color:#344359;
+  font-size:.72rem;
+}
+.academic-evaluated > div:first-child strong { color:#9f1945; }
+.academic-track {
+  height:7px;
+  overflow:hidden;
+  margin:9px 0 8px;
+  border-radius:999px;
+  background:#e9edf2;
+}
+.academic-track i {
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#9f1945,#d9a91d);
+}
+.academic-evaluated small {
+  display:block;
+  color:#7b8798;
+  font-size:.58rem;
+  line-height:1.45;
+}
+.academic-mini-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:15px;
+}
+.academic-mini-grid > div {
+  padding:12px 10px;
+  border:1px solid #e3e8ee;
+  border-radius:12px;
+  background:#fafbfd;
+}
+.academic-mini-grid span,.academic-mini-grid small {
+  display:block;
+  color:#748195;
+  font-size:.57rem;
+}
+.academic-mini-grid strong {
+  display:block;
+  margin:4px 0 2px;
+  color:#253247;
+  font-size:1rem;
+}
+.teacher-academic-score {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-bottom:14px;
+}
+.teacher-academic-score > div {
+  padding:15px;
+  border:1px solid #e5e9ef;
+  border-radius:13px;
+  background:#fafbfd;
+}
+.teacher-academic-score strong {
+  display:block;
+  margin:5px 0 3px;
+  color:#172033;
+  font-size:1.35rem;
+}
+.academic-warning {
+  margin:13px 0 0;
+  padding:9px 10px;
+  border:1px solid #f0ddb7;
+  border-radius:9px;
+  background:#fff8e8;
+  color:#8a6510;
+  font-size:.61rem;
+  line-height:1.45;
+}
+@media(max-width:680px) {
+  .academic-mini-grid { grid-template-columns:1fr; }
+  .teacher-academic-score { grid-template-columns:1fr; }
 }
 
 </style>
