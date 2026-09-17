@@ -25,7 +25,7 @@
       </div>
     </section>
 
-    
+
 <section v-else-if="loadError" class="state-card state-card--error">
       <span class="state-icon">!</span>
       <div>
@@ -510,16 +510,16 @@
       <!-- =====================================================
            GRADEBOOK V10 · RESULTADO PONDERADO
       ====================================================== -->
-      
+
 
 
 
 
 </section>
-    
+
 
 <section class="weighted-gradebook"
-      
+
         v-show="isGradebookTab('ponderaciones')"
       >
         <div
@@ -669,7 +669,7 @@
         >
           Todavía no hay estudiantes para calcular resultados.
         </div>
-      
+
         </div>
 
         <div

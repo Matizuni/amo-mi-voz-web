@@ -136,7 +136,19 @@
 
         </section>
 
-        <section v-show="isDashboardTab('resumen')" class="metric-grid">
+        <section class="panel recent-activity dashboard-summary-activity">
+  <div class="panel-heading"><div><span>ACTIVIDAD RECIENTE</span><h2>Movimiento del aula</h2></div></div>
+  <div v-if="teacherRecentActivity.length" class="activity-feed">
+    <RouterLink v-for="item in teacherRecentActivity" :key="item.key" :to="item.to" class="activity-row">
+      <span class="activity-icon" :class="`activity-icon--${item.tone}`">{{ item.icon }}</span>
+      <span class="activity-copy"><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
+      <time>{{ item.when }}</time><b>→</b>
+    </RouterLink>
+  </div>
+  <div v-else class="activity-empty"><strong>Aún no hay movimientos recientes.</strong><small>Las entregas del curso aparecerán aquí automáticamente.</small></div>
+</section>
+
+          <section v-show="isDashboardTab('resumen')" class="metric-grid dashboard-legacy-metrics">
 
           <RouterLink to="/aula/alumnos" class="metric-card"><span class="metric-label">Estudiantes</span><strong>{{ students.length }}</strong><small>Matriculados en el aula</small><i>→</i></RouterLink>
 
@@ -2531,6 +2543,75 @@ const greeting = computed(() => {
 
 
 
+
+/* DASHBOARD V11.4 · ACTIVIDAD RECIENTE */
+const activityTimestamp = record => {
+  const raw = record?.gradedAt ?? record?.graded_at ?? record?.submittedAt ??
+    record?.submitted_at ?? record?.updatedAt ?? record?.updated_at ??
+    record?.createdAt ?? record?.created_at
+  if (!raw) return 0
+  const value = new Date(raw).getTime()
+  return Number.isFinite(value) ? value : 0
+}
+
+const activityWhen = timestamp => {
+  if (!timestamp) return 'Reciente'
+  const days = Math.floor((Date.now() - timestamp) / 86400000)
+  if (days <= 0) return 'Hoy'
+  if (days === 1) return 'Ayer'
+  if (days < 7) return `Hace ${days} días`
+  return new Intl.DateTimeFormat('es-CL', { day:'2-digit', month:'short' })
+    .format(new Date(timestamp))
+}
+
+const activityAssignment = submission =>
+  assignments.value.find(item =>
+    Number(item.id) === Number(submission?.assignmentId ?? submission?.assignment_id)
+  )
+
+const activityStudentName = id =>
+  students.value.find(student => Number(student.id) === Number(id))?.name || 'Estudiante'
+
+const studentRecentActivity = computed(() => {
+  const id = Number(currentUser.value?.id)
+  return submissions.value
+    .filter(item => studentIdFrom(item) === id)
+    .map(item => {
+      const assignment = activityAssignment(item)
+      const timestamp = activityTimestamp(item)
+      const graded = Number.isFinite(Number(item?.grade))
+      return {
+        key:`submission-${item.id}`, timestamp,
+        icon: graded ? '★' : '✓', tone: graded ? 'gold' : 'green',
+        title: graded ? 'Tarea revisada' : 'Tarea entregada',
+        description: graded
+          ? `${assignment?.title || 'Actividad'} · Nota ${Number(item.grade).toFixed(1)}`
+          : (assignment?.title || 'Actividad'),
+        when:activityWhen(timestamp),
+        to: assignment ? `/aula/clase/${assignment.lessonId}/tarea/${assignment.id}` : '/aula/tareas'
+      }
+    })
+    .sort((a,b) => b.timestamp-a.timestamp).slice(0,5)
+})
+
+const teacherRecentActivity = computed(() =>
+  submissions.value.map(item => {
+    const assignment = activityAssignment(item)
+    const timestamp = activityTimestamp(item)
+    const graded = Number.isFinite(Number(item?.grade))
+    return {
+      key:`teacher-submission-${item.id}`, timestamp,
+      icon:graded ? '★' : '✓', tone:graded ? 'gold' : 'green',
+      title:graded ? 'Tarea calificada' : 'Nueva entrega',
+      description:`${activityStudentName(studentIdFrom(item))} · ${assignment?.title || 'Actividad'}`,
+      when:activityWhen(timestamp),
+      to: assignment
+        ? `/aula/clase/${assignment.lessonId}/tarea/${assignment.id}/entregas/${item.id}`
+        : '/aula/calificaciones'
+    }
+  }).sort((a,b) => b.timestamp-a.timestamp).slice(0,6)
+)
+
 onMounted(
 
   loadDashboard
@@ -3277,6 +3358,39 @@ onMounted(
 @media(max-width:680px) {
   .academic-mini-grid { grid-template-columns:1fr; }
   .teacher-academic-score { grid-template-columns:1fr; }
+}
+
+
+/* DASHBOARD V11.4 · ACTIVIDAD RECIENTE */
+.recent-activity{padding:0;overflow:hidden}
+.recent-activity .panel-heading{padding:20px 22px 14px;margin:0}
+.activity-feed{border-top:1px solid #e6ebf1}
+.activity-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto 18px;gap:12px;align-items:center;min-height:66px;padding:10px 20px;border-bottom:1px solid #edf0f4;color:inherit;text-decoration:none;transition:.18s ease}
+.activity-row:hover{background:#fafbfd;transform:translateX(2px)}
+.activity-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;font-size:.78rem;font-weight:900}
+.activity-icon--green{background:#edf8f3;color:#2d8a63}
+.activity-icon--gold{background:#fff8e7;color:#9a7411}
+.activity-copy{min-width:0}
+.activity-copy strong,.activity-copy small{display:block}
+.activity-copy strong{color:#253247;font-size:.72rem}
+.activity-copy small{margin-top:3px;overflow:hidden;color:#748195;font-size:.62rem;text-overflow:ellipsis;white-space:nowrap}
+.activity-row time{color:#8a95a5;font-size:.58rem;font-weight:700;white-space:nowrap}
+.activity-row b{color:#9f1945}
+.activity-empty{padding:22px;border-top:1px solid #e6ebf1}
+.activity-empty strong,.activity-empty small{display:block}
+.activity-empty strong{color:#344359;font-size:.72rem}
+.activity-empty small{margin-top:5px;color:#7b8798;font-size:.62rem}
+@media(max-width:680px){.activity-row{grid-template-columns:34px minmax(0,1fr) 14px}.activity-row time{display:none}}
+
+
+/* DASHBOARD V11.5 · RESUMEN DEFINITIVO */
+.dashboard-legacy-metrics{display:none!important}
+.dashboard-summary-activity{
+  margin-top:16px;
+  border:1px solid #dbe3ec;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(23,32,51,.055)
 }
 
 </style>
