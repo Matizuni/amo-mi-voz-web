@@ -44,47 +44,96 @@
 
       </header>
 
-      <nav class="dashboard-context-nav" aria-label="Secciones del dashboard">
+      <section class="dashboard-focus" :class="{ 'dashboard-focus--clear': !primaryAction }">
+          <div class="dashboard-focus__icon">{{ primaryAction ? '→' : '✓' }}</div>
+          <div class="dashboard-focus__copy">
+            <span>{{ isTeacher ? 'PRIORIDAD DOCENTE' : 'SIGUIENTE PASO' }}</span>
+            <strong>{{ primaryAction?.title || (isTeacher ? 'El aula está al día' : 'Estás al día') }}</strong>
+            <p>{{ primaryAction?.description || (isTeacher ? 'No hay entregas pendientes de revisión en este momento.' : 'No tienes tareas pendientes registradas en este momento.') }}</p>
+          </div>
+          <RouterLink v-if="primaryAction" :to="primaryAction.to" class="dashboard-focus__action">
+            {{ primaryAction.label }}
+          </RouterLink>
+        </section>
+
+        <nav class="dashboard-context-nav" aria-label="Secciones del dashboard">
+
         <button type="button" :class="{ 'is-active': isDashboardTab('resumen') }" @click="setDashboardTab('resumen')"><span>01</span> Resumen</button>
+
         <button type="button" :class="{ 'is-active': isDashboardTab('academico') }" @click="setDashboardTab('academico')"><span>02</span> Académico</button>
+
         <button type="button" :class="{ 'is-active': isDashboardTab('seguimiento') }" @click="setDashboardTab('seguimiento')"><span>03</span> Seguimiento</button>
+
         <button type="button" :class="{ 'is-active': isDashboardTab('accesos') }" @click="setDashboardTab('accesos')"><span>04</span> Accesos</button>
+
       </nav>
 
       <section v-show="isDashboardTab('accesos')" class="dashboard-access-center">
+
         <header>
+
           <span>ACCESOS RÁPIDOS</span>
+
           <h2>{{ isTeacher ? 'Gestión del aula' : 'Mi espacio académico' }}</h2>
+
           <p>{{ isTeacher ? 'Entra directamente a las áreas principales de administración y seguimiento.' : 'Accede rápidamente a tus clases, tareas, evaluaciones y recursos.' }}</p>
+
         </header>
+
         <div class="dashboard-access-center__grid">
+
           <template v-if="isTeacher">
+
             <RouterLink to="/aula/programa-formativo"><span>Programa formativo</span><b>Clases y unidades →</b></RouterLink>
+
             <RouterLink to="/aula/alumnos"><span>Estudiantes</span><b>Directorio académico →</b></RouterLink>
+
             <RouterLink to="/aula/asistencia"><span>Asistencia</span><b>Registro y seguimiento →</b></RouterLink>
+
             <RouterLink to="/aula/calificaciones"><span>Libro de notas</span><b>Resultados y ponderaciones →</b></RouterLink>
+
             <RouterLink to="/aula/recursos"><span>Biblioteca</span><b>Material académico →</b></RouterLink>
+
             <RouterLink to="/aula/inscripciones"><span>Inscripciones</span><b>Gestión de postulantes →</b></RouterLink>
+
           </template>
+
           <template v-else>
+
             <RouterLink to="/aula/programa-formativo"><span>Programa formativo</span><b>Continuar aprendiendo →</b></RouterLink>
+
             <RouterLink to="/aula/mis-tareas"><span>Mis tareas</span><b>Pendientes y entregas →</b></RouterLink>
+
             <RouterLink to="/aula/evaluaciones"><span>Mis evaluaciones</span><b>Resultados y progreso →</b></RouterLink>
+
             <RouterLink to="/aula/asistencia"><span>Mi asistencia</span><b>Revisar registros →</b></RouterLink>
+
             <RouterLink to="/aula/recursos"><span>Biblioteca</span><b>Material de estudio →</b></RouterLink>
+
           </template>
+
         </div>
+
       </section>
 
       <template v-if="isTeacher">
+
         <section v-show="isDashboardTab('resumen')" class="command-overview">
+
           <div class="command-overview__intro"><span>CENTRO DE CONTROL DOCENTE</span><h2>Lo importante del aula, en una sola vista</h2><p>Supervisa estudiantes, clases, asistencia y entregas que requieren revisión.</p></div>
+
           <div class="command-overview__cards">
+
             <button type="button" @click="setDashboardTab('academico')"><span>PROGRAMA</span><strong>{{ lessons.length }}</strong><small>clases organizadas</small><b>Ver académico →</b></button>
+
             <button type="button" @click="setDashboardTab('seguimiento')"><span>POR REVISAR</span><strong>{{ pendingReviewCount }}</strong><small>entregas pendientes</small><b>Ir a seguimiento →</b></button>
+
             <RouterLink to="/aula/alumnos"><span>ESTUDIANTES</span><strong>{{ students.length }}</strong><small>matriculados</small><b>Abrir directorio →</b></RouterLink>
+
             <RouterLink to="/aula/asistencia"><span>ASISTENCIA</span><strong>{{ generalAttendancePercentage }}%</strong><small>promedio registrado</small><b>Gestionar →</b></RouterLink>
+
           </div>
+
         </section>
 
         <section v-show="isDashboardTab('resumen')" class="metric-grid">
@@ -105,7 +154,17 @@
 
             <div class="panel-heading"><div><span>PRÓXIMO</span><h2>Clase del programa</h2></div><RouterLink to="/aula/programa-formativo">Ver programa →</RouterLink></div>
 
-            <article v-if="nextLesson" class="next-lesson">
+            <article
+                v-if="nextLesson"
+                class="next-lesson"
+                :class="{ 'next-lesson--with-cover': nextLessonCoverUrl }"
+                :style="nextLessonCoverStyle"
+              >
+                <div
+                  v-if="nextLessonCoverUrl"
+                  class="next-lesson__wallpaper"
+                  aria-hidden="true"
+                ></div>
 
               <div class="lesson-index">{{ String(getAcademicLessonNumber(nextLesson)).padStart(2,'0') }}</div>
 
@@ -176,14 +235,23 @@
       </template>
 
       <template v-else>
+
         <section v-show="isDashboardTab('resumen')" class="command-overview">
+
           <div class="command-overview__intro"><span>MI CENTRO ACADÉMICO</span><h2>Tu avance, tus pendientes y tu próxima clase</h2><p>Continúa tu formación desde un resumen claro de lo que necesita tu atención.</p></div>
+
           <div class="command-overview__cards command-overview__cards--student">
+
             <button type="button" @click="setDashboardTab('academico')"><span>PRÓXIMA CLASE</span><strong>{{ nextLesson ? String(getAcademicLessonNumber(nextLesson)).padStart(2,'0') : '—' }}</strong><small>continuar programa</small><b>Ver académico →</b></button>
+
             <RouterLink to="/aula/mis-tareas"><span>PENDIENTES</span><strong>{{ studentPendingTasks.length }}</strong><small>tareas por completar</small><b>Ver mis tareas →</b></RouterLink>
+
             <button type="button" @click="setDashboardTab('seguimiento')"><span>ASISTENCIA</span><strong>{{ studentAttendancePercentage }}%</strong><small>{{ studentPresentCount }} presentes</small><b>Ver seguimiento →</b></button>
+
           </div>
+
         </section>
+
 
 
         <section v-show="isDashboardTab('resumen')" class="metric-grid metric-grid--student">
@@ -202,7 +270,17 @@
 
             <div class="panel-heading"><div><span>CONTINÚA APRENDIENDO</span><h2>Próxima clase</h2></div><RouterLink to="/aula/programa-formativo">Ver programa →</RouterLink></div>
 
-            <article v-if="nextLesson" class="next-lesson">
+            <article
+                v-if="nextLesson"
+                class="next-lesson"
+                :class="{ 'next-lesson--with-cover': nextLessonCoverUrl }"
+                :style="nextLessonCoverStyle"
+              >
+                <div
+                  v-if="nextLessonCoverUrl"
+                  class="next-lesson__wallpaper"
+                  aria-hidden="true"
+                ></div>
 
               <div class="lesson-index">{{ String(getAcademicLessonNumber(nextLesson)).padStart(2,'0') }}</div>
 
@@ -292,6 +370,8 @@
 
 
 
+
+
 <script setup>
 
 import {
@@ -345,11 +425,10 @@ import {
   fetchStudents
 
 } from '@/services/studentService'
+import { getLessonAppearance } from '@/services/lessonAppearanceService'
 
-/* =========================================================
 
-*   AUTENTICACIÓN*
-========================================================= */
+
 const {
 
   currentUser,
@@ -358,10 +437,8 @@ const {
 
 } = useAuth()
 
-/* =========================================================
 
-*   DATOS SUPABASE*
-========================================================= */
+
 const lessons = ref([])
 
 const assignments = ref([])
@@ -376,18 +453,18 @@ const isLoading = ref(true)
 
 const loadError = ref('')
 
-/* =========================================================
-   DASHBOARD · CENTRO DE CONTROL V10
-========================================================= */
+
+
 const activeDashboardTab = ref('resumen')
+
 const isDashboardTab = tab => activeDashboardTab.value === tab
+
 const setDashboardTab = tab => { activeDashboardTab.value = tab }
 
 
-/* =========================================================
 
-*   CARGAR DASHBOARD*
-========================================================= */
+
+
 const loadDashboard = async () => {
 
   isLoading.value = true
@@ -426,18 +503,6 @@ const loadDashboard = async () => {
 
       loadedLessons || []
 
-    /**
-
-*     * El profesor puede necesitar ver también borradores.*
-
-*     * El alumno solamente debe trabajar con tareas publicadas.*
-
-*     **
-
-*     * RLS ya protege esto en Supabase, pero además dejamos*
-
-*     * esta segunda protección en el frontend.*
- */
     assignments.value =
 
       isTeacher.value
@@ -498,10 +563,8 @@ const loadDashboard = async () => {
 
 }
 
-/* =========================================================
 
-*   NOMBRE*
-========================================================= */
+
 const firstName = computed(() => {
 
   const name =
@@ -522,10 +585,8 @@ const firstName = computed(() => {
 
 })
 
-/* =========================================================
 
-*   FECHAS*
-========================================================= */
+
 const spanishMonths = {
 
   enero: 0,
@@ -556,26 +617,6 @@ const spanishMonths = {
 
 }
 
-/**
-
-* * Convierte distintos formatos de fecha que pueda contener*
-
-* * una clase a un objeto Date.*
-
-* **
-
-* * Soporta, por ejemplo:*
-
-* **
-
-* * 2026-09-05*
-
-* * 05/09/2026*
-
-* * 5 de septiembre*
-
-* * 5 de septiembre de 2026*
- */
 const getLessonDate = lesson => {
 
   const rawDate =
@@ -592,10 +633,8 @@ const getLessonDate = lesson => {
 
   }
 
-  /* =========================================================
+  
 
-*     YYYY-MM-DD*
-========================================================= */
   const isoMatch =
 
     rawDate.match(
@@ -636,10 +675,8 @@ const getLessonDate = lesson => {
 
   }
 
-  /* =========================================================
+  
 
-*     DD/MM/YYYY*
-========================================================= */
   const slashMatch =
 
     rawDate.match(
@@ -680,12 +717,8 @@ const getLessonDate = lesson => {
 
   }
 
-  /* =========================================================
+  
 
-*     "5 de septiembre"*
-
-*     "5 de septiembre de 2026"*
-========================================================= */
   const normalized =
 
     rawDate
@@ -758,10 +791,8 @@ const getLessonDate = lesson => {
 
   }
 
-  /* =========================================================
+  
 
-*     ÚLTIMO INTENTO*
-========================================================= */
   const parsed =
 
     new Date(rawDate)
@@ -784,10 +815,8 @@ const getLessonDate = lesson => {
 
 }
 
-/* =========================================================
 
-*   CLASES ORDENADAS*
-========================================================= */
+
 const orderedLessons =
 
   computed(() => {
@@ -852,10 +881,8 @@ const orderedLessons =
 
   })
 
-/* =========================================================
 
-*   NUMERACIÓN ACADÉMICA*
-========================================================= */
+
 const getLessonUnitId = lesson =>
 
   lesson?.unitId ??
@@ -1018,10 +1045,31 @@ const formatLessonDate = value => {
 
 }
 
-/* =========================================================
 
-*   PRÓXIMA CLASE*
+
+/* =========================================================
+   WALLPAPER REAL DE LA PRÓXIMA CLASE
+   Mismo contrato usado por CourseHubView.
 ========================================================= */
+const lessonCoverUrl = lesson => {
+  if (!lesson) return ''
+
+  const direct =
+    lesson.cover_url ||
+    lesson.coverUrl ||
+    lesson.cover ||
+    lesson.image_url ||
+    lesson.imageUrl ||
+    lesson.thumbnail_url ||
+    lesson.thumbnailUrl ||
+    ''
+
+  if (direct) return direct
+
+  const appearance = getLessonAppearance(lesson.id)
+  return appearance?.coverUrl || ''
+}
+
 const nextLesson =
 
   computed(() => {
@@ -1072,12 +1120,6 @@ const nextLesson =
 
     }
 
-    /**
-
-*     * Si el ciclo ya terminó, mantenemos el comportamiento*
-
-*     * anterior del Dashboard y mostramos la última clase.*
- */
     return (
 
       orderedLessons.value[
@@ -1092,10 +1134,18 @@ const nextLesson =
 
   })
 
-/* =========================================================
 
-*   ASISTENCIA VÁLIDA*
-========================================================= */
+
+const nextLessonCoverUrl = computed(() =>
+  lessonCoverUrl(nextLesson.value)
+)
+
+const nextLessonCoverStyle = computed(() =>
+  nextLessonCoverUrl.value
+    ? { '--next-cover': `url("${nextLessonCoverUrl.value}")` }
+    : {}
+)
+
 const validAttendance =
 
   computed(() => {
@@ -1114,10 +1164,8 @@ const validAttendance =
 
   })
 
-/* =========================================================
 
-*   ASISTENCIA GENERAL PROFESOR*
-========================================================= */
+
 const generalAttendancePercentage =
 
   computed(() => {
@@ -1160,10 +1208,8 @@ const generalAttendancePercentage =
 
   })
 
-/* =========================================================
 
-*   ENTREGAS PENDIENTES PROFESOR*
-========================================================= */
+
 const pendingReviews =
 
   computed(() => {
@@ -1240,14 +1286,6 @@ const pendingReviews =
 
             )
 
-          /**
-
-*           * Si por alguna razón el estudiante ya no está*
-
-*           * activo, mantenemos igualmente el nombre guardado*
-
-*           * en la entrega.*
- */
           const normalizedStudent =
 
             student || {
@@ -1294,10 +1332,8 @@ const pendingReviewCount =
 
   )
 
-/* =========================================================
 
-*   ASISTENCIA POR CLASE*
-========================================================= */
+
 const lessonAttendanceRows =
 
   computed(() => {
@@ -1370,10 +1406,8 @@ const lessonAttendanceRows =
 
   })
 
-/* =========================================================
 
-*   ASISTENCIA POR ESTUDIANTE*
-========================================================= */
+
 const studentAttendanceRows =
 
   computed(() => {
@@ -1452,10 +1486,8 @@ const studentAttendanceRows =
 
   })
 
-/* =========================================================
 
-*   ENTREGAS DEL ALUMNO*
-========================================================= */
+
 const studentSubmissions =
 
   computed(() => {
@@ -1490,10 +1522,8 @@ const studentSubmissions =
 
   })
 
-/* =========================================================
 
-*   TAREAS DEL ALUMNO*
-========================================================= */
+
 const studentTaskRows =
 
   computed(() => {
@@ -1610,10 +1640,8 @@ const studentPendingTasks =
 
   )
 
-/* =========================================================
 
-*   ASISTENCIA DEL ALUMNO*
-========================================================= */
+
 const studentAttendanceRecords =
 
   computed(() => {
@@ -1708,10 +1736,8 @@ const studentAttendancePercentage =
 
   })
 
-/* =========================================================
 
-*   EVALUACIONES DEL ALUMNO*
-========================================================= */
+
 const hasGrade =
 
   submission => {
@@ -1766,10 +1792,8 @@ const studentReviewedSubmissions =
 
   )
 
-/* =========================================================
 
-*   PROMEDIO*
-========================================================= */
+
 const studentAverageGrade =
 
   computed(() => {
@@ -1852,10 +1876,8 @@ const studentAverageGrade =
 
   })
 
-/* =========================================================
 
-*   ÚLTIMA EVALUACIÓN*
-========================================================= */
+
 const latestReviewedSubmission =
 
   computed(() => {
@@ -1930,10 +1952,8 @@ const latestReviewedSubmission =
 
   })
 
-/* =========================================================
 
-*   NOMBRE DE TAREA*
-========================================================= */
+
 const getAssignmentTitle =
 
   taskId => {
@@ -1968,10 +1988,8 @@ const getAssignmentTitle =
 
   }
 
-/* =========================================================
 
-*   LINK DE ENTREGA*
-========================================================= */
+
 const getSubmissionTaskLink =
 
   submission => {
@@ -2018,10 +2036,8 @@ const getSubmissionTaskLink =
 
   }
 
-/* =========================================================
 
-*   PROGRESO VOCAL*
-========================================================= */
+
 const rubricCriteria = [
 
   {
@@ -2162,10 +2178,8 @@ const hasRubricProgress =
 
   )
 
-/* =========================================================
 
-*   INICIALES*
-========================================================= */
+
 const getInitials =
 
   name => {
@@ -2200,6 +2214,51 @@ const getInitials =
 
   }
 
+const primaryAction = computed(() => {
+  if (isTeacher.value) {
+    const review = pendingReviews.value[0]
+    if (review?.task) {
+      return {
+        title: `${pendingReviewCount.value} entrega${pendingReviewCount.value === 1 ? '' : 's'} por revisar`,
+        description: `${review.student?.name || 'Un estudiante'} espera retroalimentación en “${review.task.title || 'una actividad'}”.`,
+        to: '/aula/calificaciones',
+        label: 'Revisar entregas →'
+      }
+    }
+    if (nextLesson.value) {
+      return {
+        title: cleanLessonTitle(nextLesson.value.title),
+        description: `Próxima clase del programa · ${formatLessonDate(nextLesson.value.date)}.`,
+        to: `/aula/clase/${nextLesson.value.id}`,
+        label: 'Abrir clase →'
+      }
+    }
+    return null
+  }
+
+  const pending = studentPendingTasks.value[0]
+  if (pending?.task) {
+    return {
+      title: pending.task.title || 'Tarea pendiente',
+      description: pending.task.dueDate
+        ? `Fecha límite: ${formatLessonDate(pending.task.dueDate)}.`
+        : 'Tienes una actividad pendiente de entrega.',
+      to: `/aula/clase/${pending.task.lessonId}/tarea/${pending.task.id}`,
+      label: 'Continuar tarea →'
+    }
+  }
+
+  if (nextLesson.value) {
+    return {
+      title: cleanLessonTitle(nextLesson.value.title),
+      description: `Continúa tu programa · ${formatLessonDate(nextLesson.value.date)}.`,
+      to: `/aula/clase/${nextLesson.value.id}`,
+      label: 'Continuar clase →'
+    }
+  }
+  return null
+})
+
 const greeting = computed(() => {
 
   const hour = new Date().getHours()
@@ -2212,10 +2271,8 @@ const greeting = computed(() => {
 
 })
 
-/* =========================================================
 
-*   INICIAR*
-========================================================= */
+
 onMounted(
 
   loadDashboard
@@ -2252,13 +2309,9 @@ onMounted(
 
 
 
-/* =========================================================*
 
-*   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0*
 
-*   Sistema visual común para el SaaS*
 
-*========================================================= */
 
 .saas-dashboard {
 
@@ -2370,13 +2423,9 @@ onMounted(
 
 
 
-/* =========================================================*
 
-*   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0*
 
-*   Capa visual segura: no modifica lógica, datos ni estructura.*
 
-*========================================================= */
 
 .saas-dashboard {
 
@@ -2559,25 +2608,282 @@ onMounted(
 }
 
 
-/* =========================================================
-   DASHBOARD · COMMAND CENTER V10
-========================================================= */
+
+
+
 .dashboard-context-nav{position:sticky;top:14px;z-index:35;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 25px;padding:7px;border:1px solid #dbe3ec;border-radius:18px;background:rgba(255,255,255,.95);box-shadow:0 14px 36px rgba(20,32,51,.08);backdrop-filter:blur(16px)}
+
 .dashboard-context-nav button{min-height:58px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:13px;background:transparent;color:#536176;font:inherit;font-weight:850;cursor:pointer}
+
 .dashboard-context-nav button span{display:grid;width:25px;height:25px;place-items:center;border-radius:8px;background:#f2f5f8;color:#7a8798;font-size:10px}
+
 .dashboard-context-nav button:hover{background:#faf7f8;color:#9f1945;transform:translateY(-1px)}
+
 .dashboard-context-nav button.is-active{background:#9f1945;color:#fff;box-shadow:0 9px 22px rgba(159,25,69,.20)}
+
 .dashboard-context-nav button.is-active span{background:rgba(255,255,255,.16);color:#fff}
+
 .command-overview,.dashboard-access-center{margin-bottom:20px;padding:clamp(22px,3vw,31px);border:1px solid #dbe3ec;border-radius:24px;background:#fff;box-shadow:0 16px 44px rgba(20,32,51,.07);animation:dashPanelIn .35s cubic-bezier(.2,.75,.25,1)}
+
 .command-overview__intro,.dashboard-access-center>header{padding-bottom:19px;border-bottom:1px solid #e5eaf0}
+
 .command-overview__intro span,.dashboard-access-center>header span{color:#9f1945;font-size:11px;font-weight:900;letter-spacing:.12em}
+
 .command-overview__intro h2,.dashboard-access-center>header h2{margin:6px 0;color:#172033;font-size:clamp(24px,3vw,34px)}
+
 .command-overview__intro p,.dashboard-access-center>header p{max-width:720px;margin:0;color:#667085;line-height:1.6}
+
 .command-overview__cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:20px}.command-overview__cards--student{grid-template-columns:repeat(3,minmax(0,1fr))}
+
 .command-overview__cards>a,.command-overview__cards>button{min-height:164px;display:flex;flex-direction:column;align-items:flex-start;padding:19px;border:1px solid #dbe3ec;border-radius:18px;background:#f8fafc;color:#172033;text-align:left;text-decoration:none;font:inherit;cursor:pointer}
+
 .command-overview__cards>a:hover,.command-overview__cards>button:hover{transform:translateY(-3px);border-color:rgba(159,25,69,.28);background:#fff;box-shadow:0 13px 28px rgba(20,32,51,.08)}
+
 .command-overview__cards span{color:#9f1945;font-size:11px;font-weight:900;letter-spacing:.09em}.command-overview__cards strong{margin:9px 0 3px;font-size:34px}.command-overview__cards small{color:#667085}.command-overview__cards b{margin-top:auto;padding-top:15px;color:#9f1945;font-size:13px}
+
 .dashboard-access-center__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:20px}.dashboard-access-center__grid>a{min-height:112px;display:flex;flex-direction:column;justify-content:space-between;padding:18px;border:1px solid #dbe3ec;border-radius:16px;background:#f8fafc;color:#172033;text-decoration:none}.dashboard-access-center__grid>a:hover{transform:translateY(-3px);border-color:rgba(159,25,69,.28);background:#fff;box-shadow:0 12px 26px rgba(20,32,51,.08)}.dashboard-access-center__grid span{font-weight:900}.dashboard-access-center__grid b{color:#9f1945;font-size:12px}
+
 @keyframes dashPanelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@media(max-width:900px){.dashboard-context-nav{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(155px,1fr);overflow-x:auto}.command-overview__cards,.command-overview__cards--student,.dashboard-access-center__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.command-overview__cards,.command-overview__cards--student,.dashboard-access-center__grid{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.dashboard-context-nav button,.command-overview,.dashboard-access-center{animation:none!important;transition:none!important}}
+
+
+/* Dashboard inteligente · foco de acción */
+.dashboard-focus {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  border: 1px solid #ead9df;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fff 0%, #fffafb 72%, #fff8e7 100%);
+  box-shadow: 0 10px 28px rgba(23, 32, 51, .05);
+}
+.dashboard-focus--clear { border-color: #d6e7dd; background: linear-gradient(135deg,#fff,#f4faf7); }
+.dashboard-focus__icon {
+  display: grid; width: 42px; height: 42px; place-items: center;
+  border-radius: 12px; color: #fff; background: #9f1945; font-weight: 900;
+}
+.dashboard-focus--clear .dashboard-focus__icon { background: #2d8a63; }
+.dashboard-focus__copy span { display:block; color:#9f1945; font-size:.56rem; font-weight:900; letter-spacing:.12em; }
+.dashboard-focus__copy strong { display:block; margin:3px 0; color:#172033; font-size:.88rem; }
+.dashboard-focus__copy p { margin:0; color:#667085; font-size:.68rem; line-height:1.5; }
+.dashboard-focus__action {
+  min-height: 42px; display:inline-flex; align-items:center; justify-content:center;
+  padding:0 14px; border-radius:10px; color:#fff; background:#9f1945;
+  text-decoration:none; font-size:.68rem; font-weight:850;
+}
+.dashboard-focus__action:hover { background:#7f1237; transform:translateY(-1px); }
+
+@media (max-width: 680px) {
+  .dashboard-focus { grid-template-columns:auto 1fr; }
+  .dashboard-focus__action { grid-column:1/-1; width:100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .saas-dashboard,
+  .saas-dashboard *,
+  .saas-dashboard *::before,
+  .saas-dashboard *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* =========================================================
+   PRÓXIMA CLASE · CINEMATIC ACADEMIC CARD v11.1
+   Reutiliza la estética aprobada del CourseHub/Programa.
+========================================================= */
+.next-lesson {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 230px;
+  padding: 28px;
+  border: 1px solid rgba(217, 169, 29, .78);
+  border-radius: 18px;
+  background:
+    linear-gradient(100deg, rgba(13, 24, 44, .97) 0%, rgba(19, 32, 55, .92) 48%, rgba(31, 25, 37, .78) 100%),
+    radial-gradient(circle at 82% 18%, rgba(217, 169, 29, .20), transparent 34%),
+    linear-gradient(135deg, #14213a, #2c1730);
+  box-shadow:
+    0 18px 40px rgba(23, 32, 51, .14),
+    inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.next-lesson::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: .42;
+  background:
+    radial-gradient(circle at 78% 35%, rgba(217,169,29,.28) 0 1px, transparent 2px),
+    repeating-linear-gradient(165deg, transparent 0 31px, rgba(255,255,255,.025) 32px 33px);
+  pointer-events: none;
+}
+.next-lesson::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22px;
+  bottom: 22px;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(#f2d46b, #b98712);
+  box-shadow: 0 0 18px rgba(217,169,29,.35);
+}
+.lesson-index {
+  width: 68px;
+  height: 76px;
+  border: 1px solid rgba(235, 196, 73, .78);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #a81747, #73152f);
+  color: #fff7df;
+  box-shadow: 0 12px 24px rgba(0,0,0,.22);
+  font-size: 1.15rem;
+}
+.next-lesson__body > span {
+  color: #e7c34f;
+  letter-spacing: .10em;
+  text-shadow: 0 1px 10px rgba(0,0,0,.35);
+}
+.next-lesson__body h3 {
+  color: #fff7df;
+  font-size: clamp(1.28rem, 2vw, 1.65rem);
+  line-height: 1.15;
+  text-shadow: 0 2px 14px rgba(0,0,0,.42);
+}
+.next-lesson__body p {
+  color: rgba(240,244,250,.78);
+  max-width: 760px;
+  font-size: .78rem;
+}
+.next-lesson .button--dark {
+  min-height: 46px;
+  padding-inline: 18px;
+  border: 1px solid rgba(226,184,54,.72);
+  background: linear-gradient(135deg, #a81747, #821438);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(94, 15, 47, .24);
+}
+.next-lesson .button--dark:hover {
+  background: linear-gradient(135deg, #b61b50, #901641);
+  transform: translateY(-2px);
+}
+@media (max-width: 680px) {
+  .next-lesson { min-height: 0; padding: 20px; }
+  .lesson-index { width: 52px; height: 58px; }
+}
+
+
+/* =========================================================
+   DASHBOARD · PRÓXIMA CLASE CON PORTADA REAL v11.2
+   Misma lógica visual aprobada en CourseHubView.
+========================================================= */
+.next-lesson {
+  position: relative;
+  min-height: 330px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid #dbe3ec;
+  border-radius: 20px;
+  background: #f7f9fc;
+}
+.next-lesson__wallpaper {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background-image: var(--next-cover);
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.01);
+}
+.next-lesson--with-cover {
+  border-color: rgba(217,169,29,.82);
+  box-shadow: 0 18px 42px rgba(23,32,51,.16);
+}
+.next-lesson--with-cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(
+    90deg,
+    rgba(12,23,38,.96) 0%,
+    rgba(12,23,38,.90) 34%,
+    rgba(12,23,38,.68) 68%,
+    rgba(12,23,38,.46) 100%
+  );
+}
+.next-lesson--with-cover::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 55%;
+  z-index: -1;
+  background: linear-gradient(0deg, rgba(8,17,29,.38), transparent);
+}
+.next-lesson--with-cover .lesson-index {
+  width: 76px;
+  height: 94px;
+  border: 1px solid rgba(217,169,29,.9);
+  border-radius: 18px;
+  background: linear-gradient(145deg,#a81747,#761431);
+  color: #fff7df;
+  box-shadow: 0 12px 30px rgba(0,0,0,.25);
+  backdrop-filter: blur(10px);
+}
+.next-lesson--with-cover .next-lesson__body > span {
+  color: #f4ca55;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+.next-lesson--with-cover .next-lesson__body h3 {
+  position: relative;
+  display: inline-block;
+  margin: 9px 0 13px;
+  padding-bottom: 12px;
+  color: #fff7df !important;
+  font-size: clamp(1.45rem,2.4vw,2rem);
+  line-height: 1.08;
+  text-shadow: 0 2px 14px rgba(0,0,0,.42);
+}
+.next-lesson--with-cover .next-lesson__body h3::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 64px;
+  height: 3px;
+  border-radius: 999px;
+  background: #d9a91d;
+}
+.next-lesson--with-cover .next-lesson__body p {
+  max-width: 720px;
+  color: rgba(255,255,255,.84);
+  font-size: .82rem;
+  line-height: 1.7;
+  text-shadow: 0 1px 8px rgba(0,0,0,.24);
+  -webkit-line-clamp: 4;
+}
+.next-lesson--with-cover .button--dark {
+  min-height: 54px;
+  padding: 0 20px;
+  border: 1px solid rgba(217,169,29,.72);
+  border-radius: 13px;
+  background: #9f1945;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(159,25,69,.28);
+}
+.next-lesson--with-cover .button--dark:hover {
+  background: #7f1237;
+  transform: translateY(-2px);
+}
+@media (max-width: 680px) {
+  .next-lesson { min-height: 300px; }
+  .next-lesson--with-cover .lesson-index { width: 58px; height: 68px; }
+}
 
 </style>
