@@ -39,7 +39,7 @@
           <div class="review__avatar">{{ (submission.studentName || 'E').charAt(0).toUpperCase() }}</div>
           <div>
             <div class="review__eyebrow">
-              <span>CLASE {{ lessonId }}</span>
+              <span>CLASE {{ lessonDisplayNumber }}</span>
               <span>{{ evaluationLabel }}</span>
             </div>
             <p class="review__kicker">Revisión de entrega</p>
@@ -283,6 +283,10 @@ import {
 } from '@/services/assignmentService'
 
 import {
+  fetchLessonById
+} from '@/services/lessonService'
+
+import {
   createSubmissionSignedUrl,
   fetchSubmissionsByAssignment,
   updateSubmission
@@ -308,6 +312,7 @@ const submissionId = computed(() =>
 )
 
 const task = ref(null)
+const lesson = ref(null)
 const submission = ref(null)
 
 const isLoading = ref(true)
@@ -317,6 +322,21 @@ const isOpeningFile = ref(false)
 
 const saveMessage = ref('')
 const saveMessageType = ref('success')
+
+const lessonDisplayNumber = computed(() => {
+  const number = Number(
+    lesson.value?.lessonNumber
+  )
+
+  if (
+    !Number.isInteger(number) ||
+    number <= 0
+  ) {
+    return '—'
+  }
+
+  return String(number).padStart(2, '0')
+})
 
 const vocalRubricCriteria = [
   { key: 'tuning', label: 'Afinación', description: 'Precisión, estabilidad y control de las alturas.' },
@@ -426,9 +446,11 @@ const loadPage = async () => {
 
   try {
     const [
+      loadedLesson,
       loadedTask,
       loadedSubmissions
     ] = await Promise.all([
+      fetchLessonById(lessonId.value),
       fetchAssignmentById(taskId.value),
       fetchSubmissionsByAssignment(taskId.value)
     ])
@@ -454,6 +476,7 @@ const loadPage = async () => {
       )
     }
 
+    lesson.value = loadedLesson
     task.value = loadedTask
     submission.value = loadedSubmission
 
@@ -466,6 +489,7 @@ const loadPage = async () => {
       error
     )
 
+    lesson.value = null
     task.value = null
     submission.value = null
 

@@ -32,7 +32,7 @@
       <header class="submissions__hero">
         <div class="submissions__hero-main">
           <div class="submissions__eyebrow">
-            <span>CLASE {{ lessonId }}</span>
+            <span>CLASE {{ lessonDisplayNumber }}</span>
             <span>ENTREGAS</span>
             <span class="submissions__evaluation-chip">{{ evaluationLabel }}</span>
           </div>
@@ -251,6 +251,12 @@ import {
 
 import {
 
+  fetchLessonById
+
+} from '@/services/lessonService'
+
+import {
+
   createSubmissionSignedUrl,
 
   fetchSubmissionsByAssignment
@@ -293,6 +299,8 @@ const taskId = computed(() =>
 
 const task = ref(null)
 
+const lesson = ref(null)
+
 const students = ref([])
 
 const submissions = ref([])
@@ -308,6 +316,21 @@ const searchTerm = ref('')
 const openingSubmissionId =
 
   ref(null)
+
+const lessonDisplayNumber = computed(() => {
+  const number = Number(
+    lesson.value?.lessonNumber
+  )
+
+  if (
+    !Number.isInteger(number) ||
+    number <= 0
+  ) {
+    return '—'
+  }
+
+  return String(number).padStart(2, '0')
+})
 
 /* =========================================================
 
@@ -327,6 +350,8 @@ const loadPage = async () => {
 
       loadedStudents,
 
+      loadedLesson,
+
       loadedTask,
 
       loadedSubmissions
@@ -334,6 +359,12 @@ const loadPage = async () => {
     ] = await Promise.all([
 
       fetchStudents(),
+
+      fetchLessonById(
+
+        lessonId.value
+
+      ),
 
       fetchAssignmentById(
 
@@ -375,6 +406,10 @@ const loadPage = async () => {
 
     }
 
+    lesson.value =
+
+      loadedLesson
+
     students.value =
 
       sortStudents(
@@ -400,6 +435,8 @@ const loadPage = async () => {
       error
 
     )
+
+    lesson.value = null
 
     students.value = []
 
