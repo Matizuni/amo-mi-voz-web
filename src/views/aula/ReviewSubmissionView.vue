@@ -1,180 +1,117 @@
 <template>
   <section class="review">
-    <RouterLink
-      :to="`/aula/clase/${lessonId}/tarea/${taskId}/entregas`"
-      class="review__back"
-    >
-      ← Volver a entregas
-    </RouterLink>
+    <nav class="review__nav" aria-label="Navegación de revisión">
+      <RouterLink
+        :to="`/aula/clase/${lessonId}/tarea/${taskId}/entregas`"
+        class="review__back"
+      >
+        <span aria-hidden="true">←</span>
+        Volver a entregas
+      </RouterLink>
+      <span class="review__crumb">Aula Virtual / Revisión de entrega</span>
+    </nav>
 
-    <!-- =====================================================
-         CARGA
-    ====================================================== -->
-    <section
-      v-if="isLoading"
-      class="state-card"
-    >
+    <section v-if="isLoading" class="state-card">
       <div class="loading-spinner"></div>
       <h1>Cargando entrega...</h1>
       <p>Sincronizando archivo y evaluación con Supabase.</p>
     </section>
 
-    <!-- =====================================================
-         ERROR
-    ====================================================== -->
-    <section
-      v-else-if="loadError"
-      class="state-card state-card--error"
-    >
+    <section v-else-if="loadError" class="state-card state-card--error">
       <div class="state-card__icon">!</div>
-
       <h1>No pudimos cargar la entrega</h1>
-
       <p>{{ loadError }}</p>
-
       <div class="state-card__actions">
-        <button
-          type="button"
-          @click="loadPage"
-        >
-          Reintentar
-        </button>
-
-        <RouterLink
-          :to="`/aula/clase/${lessonId}/tarea/${taskId}/entregas`"
-        >
-          Volver
-        </RouterLink>
+        <button type="button" @click="loadPage">Reintentar</button>
+        <RouterLink :to="`/aula/clase/${lessonId}/tarea/${taskId}/entregas`">Volver</RouterLink>
       </div>
     </section>
 
-    <!-- =====================================================
-         SIN PERMISO
-    ====================================================== -->
-    <section
-      v-else-if="!isTeacher"
-      class="state-card"
-    >
+    <section v-else-if="!isTeacher" class="state-card">
       <div class="state-card__icon">!</div>
       <h1>Vista exclusiva del profesor</h1>
-      <p>La revisión y calificación de entregas está reservada al docente.</p>
+      <p>La revisión de entregas está reservada al docente.</p>
     </section>
 
-    <!-- =====================================================
-         REVISIÓN
-    ====================================================== -->
     <template v-else-if="submission && task">
-      <header class="review__hero">
-        <div>
-          <div class="review__eyebrow">
-            <span>CLASE {{ lessonId }}</span>
-            <span>{{ task.title }}</span>
-            <span>SUPABASE</span>
+      <header class="review__header">
+        <div class="review__identity">
+          <div class="review__avatar">{{ (submission.studentName || 'E').charAt(0).toUpperCase() }}</div>
+          <div>
+            <div class="review__eyebrow">
+              <span>CLASE {{ lessonId }}</span>
+              <span>{{ evaluationLabel }}</span>
+            </div>
+            <p class="review__kicker">Revisión de entrega</p>
+            <h1>{{ submission.studentName }}</h1>
+            <p class="review__task">{{ task.title }}</p>
           </div>
-
-          <p class="review__kicker">Revisión de entrega</p>
-
-          <h1>{{ submission.studentName }}</h1>
-
-          <p class="review__description">
-            Evalúa el trabajo del estudiante, revisa el archivo enviado
-            y guarda la retroalimentación directamente en Supabase.
-          </p>
         </div>
 
-        <aside
-          class="review__status"
-          :class="{
-            'review__status--reviewed':
-              form.status === 'reviewed'
-          }"
-        >
-          <span>ESTADO</span>
+        <aside class="review__status" :class="`review__status--${form.status}`">
+          <span>ESTADO ACTUAL</span>
           <strong>{{ statusLabel }}</strong>
-
           <small>
             {{
               submission.reviewedAt
                 ? `Última revisión: ${formatDateTime(submission.reviewedAt)}`
-                : 'Aún sin revisión'
+                : 'Pendiente de revisión docente'
             }}
           </small>
         </aside>
       </header>
 
-      <!-- ===================================================
-           RESUMEN
-      ==================================================== -->
-      <section class="review__summary">
-        <article>
-          <span>ESTUDIANTE</span>
-          <strong>{{ submission.studentName }}</strong>
-          <small>ID {{ submission.studentId }}</small>
-        </article>
-
-        <article>
+      <section class="review__summary" aria-label="Resumen de la entrega">
+        <div>
           <span>ARCHIVO</span>
           <strong>{{ submission.fileName || 'Sin nombre' }}</strong>
-          <small>{{ formatFileSize(submission.fileSize) }}</small>
-        </article>
-
-        <article>
+          <small>{{ fileTypeLabel }} · {{ formatFileSize(submission.fileSize) }}</small>
+        </div>
+        <div>
           <span>ENTREGADO</span>
           <strong>{{ submittedDate }}</strong>
           <small>{{ submittedTime }}</small>
-        </article>
-
-        <article>
-          <span>PUNTAJE TAREA</span>
-          <strong>{{ task.points ?? 100 }} pts</strong>
-          <small>máximo</small>
-        </article>
-
-        <article>
+        </div>
+        <div>
+          <span>EVALUACIÓN</span>
+          <strong>{{ evaluationLabel }}</strong>
+          <small>{{ usesRubric ? 'Con criterios de rúbrica' : usesGrade ? 'Con calificación' : 'Revisión y feedback' }}</small>
+        </div>
+        <div v-if="usesGrade">
           <span>NOTA</span>
           <strong>{{ form.grade || '—' }}</strong>
-          <small>escala 1,0–7,0</small>
-        </article>
-
-        <article>
+          <small>Escala 1,0–7,0</small>
+        </div>
+        <div v-if="usesRubric && rubricCriteria.length">
           <span>RÚBRICA</span>
           <strong>{{ rubricAverage }}/5</strong>
-          <small>promedio actual</small>
-        </article>
+          <small>{{ rubricPerformanceLabel }}</small>
+        </div>
       </section>
 
       <div class="review__layout">
-        <!-- =================================================
-             ARCHIVO
-        ================================================== -->
         <aside class="review-file">
-          <div class="review-file__top">
+          <header class="card-heading">
             <div>
-              <p class="review-file__label">Archivo entregado</p>
-              <h2>{{ submission.fileName || 'Archivo del estudiante' }}</h2>
+              <p>ENTREGA DEL ESTUDIANTE</p>
+              <h2>Archivo entregado</h2>
             </div>
+            <span class="private-chip">PRIVADO</span>
+          </header>
 
-            <span class="review-file__private">
-              PRIVADO
-            </span>
-          </div>
-
-          <div class="review-file__meta">
-            <div>
-              <span>Tipo</span>
-              <strong>{{ fileTypeLabel }}</strong>
-            </div>
-
-            <div>
-              <span>Tamaño</span>
-              <strong>{{ formatFileSize(submission.fileSize) }}</strong>
-            </div>
-
-            <div>
-              <span>Entrega</span>
-              <strong>{{ formatDateTime(submission.submittedAt) }}</strong>
+          <div class="file-card">
+            <div class="file-card__icon">{{ fileTypeLabel.charAt(0) }}</div>
+            <div class="file-card__copy">
+              <strong>{{ submission.fileName || 'Archivo del estudiante' }}</strong>
+              <span>{{ fileTypeLabel }} · {{ formatFileSize(submission.fileSize) }}</span>
             </div>
           </div>
+
+          <dl class="file-meta">
+            <div><dt>Estudiante</dt><dd>{{ submission.studentName }}</dd></div>
+            <div><dt>Entrega</dt><dd>{{ formatDateTime(submission.submittedAt) }}</dd></div>
+            <div><dt>Actividad</dt><dd>{{ task.title }}</dd></div>
+          </dl>
 
           <button
             type="button"
@@ -182,240 +119,136 @@
             :disabled="isOpeningFile"
             @click="openFile"
           >
-            {{
-              isOpeningFile
-                ? 'Preparando archivo...'
-                : 'Abrir archivo entregado'
-            }}
+            {{ isOpeningFile ? 'Preparando acceso...' : 'Abrir archivo entregado' }}
+            <span aria-hidden="true">↗</span>
           </button>
 
-          <div class="review-file__notice">
-            <strong>Acceso temporal</strong>
-            <p>
-              El archivo está almacenado en un bucket privado.
-              Se abre mediante una URL firmada temporal.
-            </p>
+          <div class="security-note">
+            <span>✓</span>
+            <div>
+              <strong>Acceso seguro y temporal</strong>
+              <p>El archivo se abre mediante una URL firmada temporal desde el almacenamiento privado.</p>
+            </div>
           </div>
         </aside>
 
-        <!-- =================================================
-             FORMULARIO
-        ================================================== -->
         <main class="evaluation">
           <form @submit.prevent="saveReview">
-            <header class="evaluation__header">
+            <header class="card-heading evaluation__heading">
               <div>
-                <p class="evaluation__label">Evaluación docente</p>
+                <p>EVALUACIÓN DOCENTE</p>
                 <h2>Revisión del profesor</h2>
+                <small>{{ evaluationLabel }}</small>
               </div>
-
-              <span>GUARDADO EN SUPABASE</span>
+              <span class="save-chip">SUPABASE</span>
             </header>
 
             <div
               v-if="saveMessage"
               class="evaluation__message"
-              :class="{
-                'evaluation__message--error':
-                  saveMessageType === 'error'
-              }"
+              :class="{ 'evaluation__message--error': saveMessageType === 'error' }"
             >
               {{ saveMessage }}
             </div>
 
-            <!-- ESTADO -->
             <section class="evaluation-section">
-              <div class="evaluation-section__heading">
+              <div class="section-title">
                 <span>01</span>
-
-                <div>
-                  <p>Estado</p>
-                  <h3>Resultado de la revisión</h3>
-                </div>
+                <div><small>ESTADO</small><h3>Resultado de la revisión</h3></div>
               </div>
-
               <div class="form-group">
-                <label for="status">
-                  Estado de la entrega
-                </label>
-
-                <select
-                  id="status"
-                  v-model="form.status"
-                >
-                  <option value="delivered">
-                    Entregado
-                  </option>
-
-                  <option value="reviewed">
-                    Revisado
-                  </option>
-
-                  <option value="returned">
-                    Devuelto
-                  </option>
+                <label for="status">Estado de la entrega</label>
+                <select id="status" v-model="form.status">
+                  <option value="delivered">Entregado</option>
+                  <option value="reviewed">Revisado</option>
+                  <option value="returned">Devuelto para corregir</option>
                 </select>
-
-                <small>
-                  “Revisado” marca la evaluación como completada.
-                  “Devuelto” indica que el estudiante debe corregir.
-                </small>
+                <small>“Revisado” completa la revisión. “Devuelto” solicita una nueva corrección al estudiante.</small>
               </div>
             </section>
 
-            <!-- RÚBRICA -->
-            <section class="evaluation-section">
-              <div class="evaluation-section__heading">
+            <section v-if="usesRubric" class="evaluation-section">
+              <div class="section-title">
                 <span>02</span>
-
                 <div>
-                  <p>Rúbrica vocal</p>
+                  <small>{{ evaluationType === 'vocal_rubric' ? 'RÚBRICA VOCAL' : 'RÚBRICA' }}</small>
                   <h3>Criterios de evaluación</h3>
                 </div>
               </div>
 
-              <div class="rubric">
-                <article
-                  v-for="criterion in rubricCriteria"
-                  :key="criterion.key"
-                  class="rubric__item"
-                >
-                  <div class="rubric__copy">
-                    <strong>{{ criterion.label }}</strong>
-                    <small>{{ criterion.description }}</small>
+              <div v-if="rubricCriteria.length" class="rubric">
+                <article v-for="criterion in rubricCriteria" :key="criterion.key" class="rubric__item">
+                  <div class="rubric__top">
+                    <div>
+                      <strong>{{ criterion.label }}</strong>
+                      <small>{{ criterion.description }}</small>
+                    </div>
+                    <label>
+                      <select v-model.number="form.rubric[criterion.key]" :aria-label="criterion.label">
+                        <option :value="1">1</option>
+                        <option :value="2">2</option>
+                        <option :value="3">3</option>
+                        <option :value="4">4</option>
+                        <option :value="5">5</option>
+                      </select>
+                      <span>/ 5</span>
+                    </label>
                   </div>
-
-                  <div class="rubric__control">
-                    <select
-                      v-model.number="form.rubric[criterion.key]"
-                      :aria-label="criterion.label"
-                    >
-                      <option :value="1">1</option>
-                      <option :value="2">2</option>
-                      <option :value="3">3</option>
-                      <option :value="4">4</option>
-                      <option :value="5">5</option>
-                    </select>
-
-                    <span>/ 5</span>
-                  </div>
-
                   <div class="rubric__bar">
-                    <div
-                      class="rubric__fill"
-                      :style="{
-                        width: `${
-                          (
-                            Number(form.rubric[criterion.key]) /
-                            5
-                          ) * 100
-                        }%`
-                      }"
-                    ></div>
+                    <div :style="{ width: `${(Number(form.rubric[criterion.key]) / 5) * 100}%` }"></div>
                   </div>
                 </article>
+
+                <div class="rubric-summary">
+                  <div><span>PROMEDIO</span><strong>{{ rubricAverage }}/5</strong></div>
+                  <div><span>REFERENCIA</span><strong>{{ rubricPerformanceLabel }}</strong></div>
+                </div>
               </div>
 
-              <div class="rubric-summary">
-                <div>
-                  <span>PROMEDIO RÚBRICA</span>
-                  <strong>{{ rubricAverage }}/5</strong>
-                </div>
-
-                <div>
-                  <span>REFERENCIA</span>
-                  <strong>{{ rubricPerformanceLabel }}</strong>
-                </div>
+              <div v-else class="empty-rubric">
+                <strong>Esta rúbrica aún no tiene criterios configurados.</strong>
+                <p>Puedes guardar estado, nota y retroalimentación sin inventar criterios de evaluación.</p>
               </div>
             </section>
 
-            <!-- NOTA -->
-            <section class="evaluation-section">
-              <div class="evaluation-section__heading">
-                <span>03</span>
-
-                <div>
-                  <p>Calificación</p>
-                  <h3>Nota final</h3>
-                </div>
+            <section v-if="usesGrade" class="evaluation-section">
+              <div class="section-title">
+                <span>{{ usesRubric ? '03' : '02' }}</span>
+                <div><small>CALIFICACIÓN</small><h3>Nota final</h3></div>
               </div>
-
               <div class="grade-row">
                 <div class="form-group">
-                  <label for="grade">
-                    Nota final
-                  </label>
-
-                  <input
-                    id="grade"
-                    v-model="form.grade"
-                    type="number"
-                    min="1"
-                    max="7"
-                    step="0.1"
-                    placeholder="Ej: 6.5"
-                  >
-
-                  <small>
-                    Escala chilena de 1,0 a 7,0.
-                  </small>
+                  <label for="grade">Nota final</label>
+                  <input id="grade" v-model="form.grade" type="number" min="1" max="7" step="0.1" placeholder="Ej: 6.5">
+                  <small>Escala chilena de 1,0 a 7,0.</small>
                 </div>
-
-                <div class="grade-preview">
-                  <span>NOTA</span>
-                  <strong>{{ form.grade || '—' }}</strong>
-                </div>
+                <div class="grade-preview"><span>NOTA</span><strong>{{ form.grade || '—' }}</strong></div>
               </div>
             </section>
 
-            <!-- FEEDBACK -->
             <section class="evaluation-section">
-              <div class="evaluation-section__heading">
-                <span>04</span>
-
-                <div>
-                  <p>Retroalimentación</p>
-                  <h3>Comentario para el estudiante</h3>
-                </div>
+              <div class="section-title">
+                <span>{{ usesRubric ? '04' : usesGrade ? '03' : '02' }}</span>
+                <div><small>RETROALIMENTACIÓN</small><h3>Comentario para el estudiante</h3></div>
               </div>
-
               <div class="form-group">
-                <label for="feedback">
-                  Observaciones del profesor
-                </label>
-
+                <label for="feedback">Observaciones del profesor</label>
                 <textarea
                   id="feedback"
                   v-model.trim="form.feedback"
-                  rows="8"
-                  placeholder="Ej: Muy buen control respiratorio. Trabajar la afinación en las notas largas y mantener mayor claridad en las consonantes..."
+                  rows="7"
+                  placeholder="Escribe una retroalimentación clara, concreta y útil para el estudiante..."
                 ></textarea>
-
-                <small>
-                  Este comentario aparecerá en la vista de la tarea del alumno.
-                </small>
+                <small>Este comentario aparecerá en la vista de la tarea del estudiante.</small>
               </div>
             </section>
 
-            <!-- GUARDAR -->
             <footer class="evaluation__footer">
-              <RouterLink
-                :to="`/aula/clase/${lessonId}/tarea/${taskId}/entregas`"
-                class="evaluation__cancel"
-              >
+              <RouterLink :to="`/aula/clase/${lessonId}/tarea/${taskId}/entregas`" class="evaluation__cancel">
                 Cancelar
               </RouterLink>
-
-              <button
-                type="submit"
-                class="evaluation__save"
-                :disabled="isSaving"
-              >
-                {{
-                  isSaving
-                    ? 'Guardando evaluación...'
-                    : 'Guardar evaluación'
-                }}
+              <button type="submit" class="evaluation__save" :disabled="isSaving">
+                {{ isSaving ? 'Guardando...' : 'Guardar revisión' }}
               </button>
             </footer>
           </form>
@@ -424,6 +257,7 @@
     </template>
   </section>
 </template>
+
 
 <script setup>
 import {
@@ -484,38 +318,57 @@ const isOpeningFile = ref(false)
 const saveMessage = ref('')
 const saveMessageType = ref('success')
 
-const rubricCriteria = [
-  {
-    key: 'tuning',
-    label: 'Afinación',
-    description:
-      'Precisión, estabilidad y control de las alturas.'
-  },
-  {
-    key: 'rhythm',
-    label: 'Ritmo',
-    description:
-      'Pulso, entradas, duración y precisión rítmica.'
-  },
-  {
-    key: 'breathing',
-    label: 'Respiración',
-    description:
-      'Administración del aire y manejo de las frases.'
-  },
-  {
-    key: 'diction',
-    label: 'Dicción',
-    description:
-      'Claridad del texto, consonantes y articulación.'
-  },
-  {
-    key: 'interpretation',
-    label: 'Interpretación',
-    description:
-      'Expresión, intención, fraseo y musicalidad.'
-  }
+const vocalRubricCriteria = [
+  { key: 'tuning', label: 'Afinación', description: 'Precisión, estabilidad y control de las alturas.' },
+  { key: 'rhythm', label: 'Ritmo', description: 'Pulso, entradas, duración y precisión rítmica.' },
+  { key: 'breathing', label: 'Respiración', description: 'Administración del aire y manejo de las frases.' },
+  { key: 'diction', label: 'Dicción', description: 'Claridad del texto, consonantes y articulación.' },
+  { key: 'interpretation', label: 'Interpretación', description: 'Expresión, intención, fraseo y musicalidad.' }
 ]
+
+const evaluationType = computed(() =>
+  task.value?.evaluationType || 'simple'
+)
+
+const usesGrade = computed(() =>
+  ['graded', 'vocal_rubric', 'custom_rubric'].includes(evaluationType.value)
+)
+
+const usesRubric = computed(() =>
+  ['vocal_rubric', 'custom_rubric'].includes(evaluationType.value)
+)
+
+const evaluationLabel = computed(() => {
+  const labels = {
+    simple: 'Entrega simple',
+    graded: 'Calificada',
+    vocal_rubric: 'Rúbrica vocal',
+    custom_rubric: 'Rúbrica personalizada'
+  }
+  return labels[evaluationType.value] || 'Entrega simple'
+})
+
+const customCriteria = computed(() => {
+  const config = task.value?.rubricConfig || {}
+  const raw = Array.isArray(config) ? config : config.criteria
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((item, index) => ({
+      key: String(item?.key || item?.id || `criterion_${index + 1}`),
+      label: String(item?.label || item?.name || `Criterio ${index + 1}`),
+      description: String(item?.description || '')
+    }))
+    .filter(item => item.key)
+})
+
+const rubricCriteria = computed(() => {
+  if (evaluationType.value === 'custom_rubric' && customCriteria.value.length) {
+    return customCriteria.value
+  }
+  return evaluationType.value === 'vocal_rubric'
+    ? vocalRubricCriteria
+    : []
+})
 
 const form = reactive({
   status: 'delivered',
@@ -557,6 +410,13 @@ const hydrateForm = value => {
 
   form.rubric.interpretation =
     Number(value?.rubric?.interpretation ?? 3)
+
+  rubricCriteria.value.forEach(criterion => {
+    if (!(criterion.key in form.rubric)) {
+      form.rubric[criterion.key] =
+        Number(value?.rubric?.[criterion.key] ?? 3)
+    }
+  })
 }
 
 const loadPage = async () => {
@@ -619,8 +479,8 @@ const loadPage = async () => {
 
 const rubricAverage = computed(() => {
   const values =
-    Object.values(form.rubric)
-      .map(Number)
+    rubricCriteria.value
+      .map(criterion => Number(form.rubric[criterion.key]))
       .filter(Number.isFinite)
 
   if (!values.length) {
@@ -793,77 +653,58 @@ const openFile = async () => {
 }
 
 const saveReview = async () => {
-  if (
-    !submission.value ||
-    isSaving.value
-  ) {
-    return
-  }
+  if (!submission.value || isSaving.value) return
 
   isSaving.value = true
   saveMessage.value = ''
   saveMessageType.value = 'success'
 
   try {
-    const gradeValue =
-      form.grade === '' ||
-      form.grade === null
-        ? ''
-        : String(form.grade)
+    let gradeValue = ''
 
-    if (gradeValue !== '') {
-      const numericGrade =
-        Number(gradeValue)
+    if (usesGrade.value) {
+      gradeValue =
+        form.grade === '' || form.grade === null
+          ? ''
+          : String(form.grade)
 
-      if (
-        !Number.isFinite(numericGrade) ||
-        numericGrade < 1 ||
-        numericGrade > 7
-      ) {
-        throw new Error(
-          'La nota debe estar entre 1,0 y 7,0.'
-        )
+      if (gradeValue !== '') {
+        const numericGrade = Number(gradeValue)
+
+        if (
+          !Number.isFinite(numericGrade) ||
+          numericGrade < 1 ||
+          numericGrade > 7
+        ) {
+          throw new Error('La nota debe estar entre 1,0 y 7,0.')
+        }
       }
     }
 
-    const reviewedAt =
-      new Date().toISOString()
+    let rubricValue = null
 
-    const updated =
-      await updateSubmission(
-        submission.value.id,
-        {
-          status:
-            form.status,
-          grade:
-            gradeValue,
-          feedback:
-            form.feedback,
-          rubric: {
-            tuning:
-              Number(form.rubric.tuning),
-            rhythm:
-              Number(form.rubric.rhythm),
-            breathing:
-              Number(form.rubric.breathing),
-            diction:
-              Number(form.rubric.diction),
-            interpretation:
-              Number(form.rubric.interpretation)
-          },
-          reviewedAt
-        }
-      )
+    if (usesRubric.value && rubricCriteria.value.length) {
+      rubricValue = rubricCriteria.value.reduce((result, criterion) => {
+        result[criterion.key] = Number(form.rubric[criterion.key] ?? 3)
+        return result
+      }, {})
+    }
 
-    submission.value =
-      updated
-
-    hydrateForm(
-      updated
+    const updated = await updateSubmission(
+      submission.value.id,
+      {
+        status: form.status,
+        grade: gradeValue,
+        feedback: form.feedback,
+        rubric: rubricValue,
+        reviewedAt: new Date().toISOString()
+      }
     )
 
-    saveMessage.value =
-      'Evaluación guardada correctamente en Supabase.'
+    submission.value = updated
+    hydrateForm(updated)
+
+    saveMessage.value = 'Revisión guardada correctamente.'
 
     setTimeout(() => {
       router.push(
@@ -871,14 +712,8 @@ const saveReview = async () => {
       )
     }, 500)
   } catch (error) {
-    console.error(
-      'Error guardando evaluación:',
-      error
-    )
-
-    saveMessageType.value =
-      'error'
-
+    console.error('Error guardando evaluación:', error)
+    saveMessageType.value = 'error'
     saveMessage.value =
       error?.message ||
       'No se pudo guardar la evaluación.'
@@ -950,838 +785,148 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/styles/abstracts/variables' as variables;
-
+<style scoped>
 .review {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
+  --ink:#172033; --body:#344359; --muted:#667085; --line:#dbe3ec;
+  --canvas:#f5f7fb; --wine:#9f1945; --wine-dark:#7f1237; --gold:#d9a91d;
+  --green:#2d8a63; --red:#be4856;
+  min-height:100%; padding:clamp(18px,3vw,34px); color:var(--body);
+  background:var(--canvas);
+}
+.review__nav { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:0 auto 18px; max-width:1440px; }
+.review__back { display:inline-flex; align-items:center; gap:9px; color:var(--ink); font-weight:800; text-decoration:none; }
+.review__back:hover { color:var(--wine); }
+.review__crumb { color:var(--muted); font-size:.76rem; }
+.review__header {
+  max-width:1440px; margin:0 auto; padding:25px 28px; display:flex; justify-content:space-between; gap:24px; align-items:center;
+  border:1px solid var(--line); border-radius:20px; background:#fff; box-shadow:0 12px 32px rgba(31,48,73,.06);
+}
+.review__identity { display:flex; align-items:center; gap:18px; min-width:0; }
+.review__avatar { display:grid; place-items:center; width:62px; height:62px; flex:0 0 auto; border-radius:18px; color:#fff; background:linear-gradient(145deg,var(--wine),var(--wine-dark)); font-size:1.55rem; font-weight:900; box-shadow:0 9px 20px rgba(159,25,69,.2); }
+.review__eyebrow { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:7px; }
+.review__eyebrow span { padding:5px 8px; border:1px solid #ead8a4; border-radius:999px; color:#8c6807; background:#fff9e9; font-size:.59rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.review__kicker { margin:0 0 3px; color:var(--wine); font-size:.68rem; font-weight:900; letter-spacing:.11em; text-transform:uppercase; }
+.review__header h1 { margin:0; color:var(--ink); font-size:clamp(1.55rem,3vw,2.35rem); line-height:1.05; }
+.review__task { margin:7px 0 0; color:var(--muted); font-size:.92rem; }
+.review__status { min-width:220px; padding:15px 17px; border:1px solid #ead8a4; border-radius:15px; background:#fffaf0; }
+.review__status span,.review__status strong,.review__status small { display:block; }
+.review__status span { color:#9a7312; font-size:.59rem; font-weight:900; letter-spacing:.1em; }
+.review__status strong { margin:4px 0; color:var(--ink); font-size:.9rem; }
+.review__status small { color:var(--muted); font-size:.68rem; line-height:1.4; }
+.review__status--reviewed { border-color:#bfe2d3; background:#f1faf6; }
+.review__status--reviewed strong { color:var(--green); }
+.review__status--returned { border-color:#efcbd0; background:#fff5f6; }
+.review__status--returned strong { color:var(--red); }
+
+.review__summary { max-width:1440px; margin:14px auto 0; display:flex; flex-wrap:wrap; gap:0; overflow:hidden; border:1px solid var(--line); border-radius:16px; background:#fff; }
+.review__summary > div { min-width:170px; flex:1 1 180px; padding:15px 18px; border-right:1px solid #edf1f5; }
+.review__summary > div:last-child { border-right:0; }
+.review__summary span,.review__summary strong,.review__summary small { display:block; }
+.review__summary span { color:var(--muted); font-size:.58rem; font-weight:900; letter-spacing:.09em; }
+.review__summary strong { margin-top:4px; overflow:hidden; color:var(--ink); font-size:.83rem; text-overflow:ellipsis; white-space:nowrap; }
+.review__summary small { margin-top:2px; color:var(--muted); font-size:.67rem; }
+
+.review__layout { max-width:1440px; margin:18px auto 0; display:grid; grid-template-columns:minmax(300px,.8fr) minmax(520px,1.4fr); gap:18px; align-items:start; }
+.review-file,.evaluation { border:1px solid var(--line); border-radius:18px; background:#fff; box-shadow:0 10px 28px rgba(31,48,73,.045); }
+.review-file { padding:22px; position:sticky; top:18px; }
+.evaluation form { padding:22px; }
+.card-heading { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; padding-bottom:17px; border-bottom:1px solid #edf1f5; }
+.card-heading p { margin:0 0 4px; color:var(--wine); font-size:.61rem; font-weight:900; letter-spacing:.1em; }
+.card-heading h2 { margin:0; color:var(--ink); font-size:1.08rem; }
+.card-heading small { display:block; margin-top:5px; color:var(--muted); }
+.private-chip,.save-chip { padding:6px 8px; border:1px solid #ead8a4; border-radius:999px; color:#8c6807; background:#fff9e9; font-size:.56rem; font-weight:900; letter-spacing:.08em; }
+
+.file-card { display:flex; gap:13px; align-items:center; margin:18px 0; padding:15px; border:1px solid #e3e9f0; border-radius:14px; background:#f8fafc; }
+.file-card__icon { display:grid; place-items:center; width:44px; height:44px; flex:0 0 auto; border-radius:12px; color:#fff; background:var(--wine); font-weight:900; }
+.file-card__copy { min-width:0; }
+.file-card__copy strong,.file-card__copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-card__copy strong { color:var(--ink); font-size:.82rem; }
+.file-card__copy span { margin-top:4px; color:var(--muted); font-size:.68rem; }
+.file-meta { margin:0 0 18px; }
+.file-meta div { display:flex; justify-content:space-between; gap:14px; padding:11px 0; border-bottom:1px solid #edf1f5; }
+.file-meta dt { color:var(--muted); font-size:.68rem; }
+.file-meta dd { margin:0; max-width:65%; color:var(--ink); font-size:.69rem; font-weight:750; text-align:right; }
+.review-file__open { width:100%; min-height:44px; display:flex; justify-content:center; align-items:center; gap:8px; border:0; border-radius:12px; color:#fff; background:var(--wine); font:inherit; font-size:.75rem; font-weight:850; cursor:pointer; }
+.review-file__open:hover:not(:disabled),.evaluation__save:hover:not(:disabled) { background:var(--wine-dark); transform:translateY(-1px); }
+.review-file__open:disabled,.evaluation__save:disabled { opacity:.6; cursor:not-allowed; }
+.security-note { display:flex; gap:10px; margin-top:15px; padding:13px; border:1px solid #dce8e2; border-radius:12px; background:#f6fbf8; }
+.security-note > span { color:var(--green); font-weight:900; }
+.security-note strong { display:block; color:var(--ink); font-size:.69rem; }
+.security-note p { margin:3px 0 0; color:var(--muted); font-size:.64rem; line-height:1.45; }
+
+.evaluation__message { margin:16px 0 0; padding:11px 13px; border:1px solid #bfe2d3; border-radius:11px; color:#246f51; background:#f1faf6; font-size:.72rem; font-weight:700; }
+.evaluation__message--error { border-color:#efcbd0; color:#a33b48; background:#fff5f6; }
+.evaluation-section { padding:22px 0; border-bottom:1px solid #edf1f5; }
+.section-title { display:flex; gap:11px; align-items:center; margin-bottom:16px; }
+.section-title > span { display:grid; place-items:center; width:31px; height:31px; border:1px solid #ead8a4; border-radius:9px; color:#9a7312; background:#fff9e9; font-size:.63rem; font-weight:900; }
+.section-title small { display:block; color:var(--wine); font-size:.57rem; font-weight:900; letter-spacing:.09em; }
+.section-title h3 { margin:2px 0 0; color:var(--ink); font-size:.9rem; }
+.form-group label { display:block; margin-bottom:7px; color:var(--ink); font-size:.7rem; font-weight:800; }
+.form-group select,.form-group input,.form-group textarea,.rubric select { width:100%; border:1px solid #cfd8e3; border-radius:11px; outline:0; color:var(--ink); background:#fff; font:inherit; }
+.form-group select,.form-group input { height:43px; padding:0 12px; }
+.form-group textarea { min-height:140px; padding:12px; resize:vertical; line-height:1.55; }
+.form-group select:focus,.form-group input:focus,.form-group textarea:focus,.rubric select:focus { border-color:rgba(159,25,69,.6); box-shadow:0 0 0 3px rgba(159,25,69,.08); }
+.form-group > small { display:block; margin-top:6px; color:var(--muted); font-size:.64rem; line-height:1.45; }
+
+.rubric { display:grid; gap:10px; }
+.rubric__item { padding:14px; border:1px solid #e1e7ee; border-radius:13px; background:#fbfcfe; }
+.rubric__top { display:flex; justify-content:space-between; gap:16px; align-items:center; }
+.rubric__top strong { display:block; color:var(--ink); font-size:.76rem; }
+.rubric__top small { display:block; margin-top:3px; color:var(--muted); font-size:.63rem; line-height:1.35; }
+.rubric__top label { display:flex; align-items:center; gap:6px; flex:0 0 auto; color:var(--muted); font-size:.68rem; }
+.rubric__top select { width:58px; height:36px; padding:0 8px; }
+.rubric__bar { height:5px; margin-top:11px; overflow:hidden; border-radius:999px; background:#e8edf3; }
+.rubric__bar div { height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--wine),var(--gold)); transition:width .2s ease; }
+.rubric-summary { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:2px; }
+.rubric-summary > div { padding:12px 14px; border:1px solid #ead8a4; border-radius:11px; background:#fffaf0; }
+.rubric-summary span,.rubric-summary strong { display:block; }
+.rubric-summary span { color:#9a7312; font-size:.55rem; font-weight:900; letter-spacing:.08em; }
+.rubric-summary strong { margin-top:3px; color:var(--ink); font-size:.78rem; }
+.empty-rubric { padding:16px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc; }
+.empty-rubric strong { color:var(--ink); font-size:.76rem; }
+.empty-rubric p { margin:5px 0 0; color:var(--muted); font-size:.67rem; line-height:1.5; }
+
+.grade-row { display:grid; grid-template-columns:minmax(0,1fr) 110px; gap:12px; align-items:end; }
+.grade-preview { display:grid; min-height:72px; place-items:center; align-content:center; border:1px solid #ead8a4; border-radius:12px; background:#fffaf0; }
+.grade-preview span { color:#9a7312; font-size:.56rem; font-weight:900; letter-spacing:.08em; }
+.grade-preview strong { margin-top:2px; color:var(--wine); font-size:1.25rem; }
+.evaluation__footer { display:flex; justify-content:flex-end; gap:10px; padding-top:20px; }
+.evaluation__cancel,.evaluation__save { min-height:42px; padding:0 17px; border-radius:11px; font:inherit; font-size:.72rem; font-weight:850; text-decoration:none; }
+.evaluation__cancel { display:inline-flex; align-items:center; border:1px solid #d4dce6; color:var(--ink); background:#fff; }
+.evaluation__save { border:0; color:#fff; background:var(--wine); cursor:pointer; }
+
+.state-card { max-width:760px; margin:80px auto; padding:38px; border:1px solid var(--line); border-radius:18px; background:#fff; text-align:center; }
+.state-card h1 { color:var(--ink); }
+.state-card p { color:var(--muted); }
+.state-card__icon { display:grid; width:44px; height:44px; margin:0 auto; place-items:center; border-radius:50%; color:#fff; background:var(--wine); font-weight:900; }
+.state-card__actions { display:flex; justify-content:center; gap:10px; margin-top:18px; }
+.state-card__actions a,.state-card__actions button { padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#fff; font:inherit; font-weight:800; text-decoration:none; cursor:pointer; }
+.loading-spinner { width:36px; height:36px; margin:0 auto 15px; border:3px solid #e5eaf0; border-top-color:var(--wine); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+@media (max-width:1000px) {
+  .review__layout { grid-template-columns:1fr; }
+  .review-file { position:static; }
+}
+@media (max-width:700px) {
+  .review { padding:14px; }
+  .review__crumb { display:none; }
+  .review__header { align-items:flex-start; flex-direction:column; padding:20px; }
+  .review__status { width:100%; min-width:0; }
+  .review__summary { display:grid; grid-template-columns:1fr 1fr; }
+  .review__summary > div { min-width:0; border-bottom:1px solid #edf1f5; }
+  .evaluation form,.review-file { padding:17px; }
+  .rubric__top { align-items:flex-start; }
+}
+@media (max-width:480px) {
+  .review__identity { align-items:flex-start; }
+  .review__avatar { width:48px; height:48px; border-radius:14px; }
+  .review__summary { grid-template-columns:1fr; }
+  .grade-row,.rubric-summary { grid-template-columns:1fr; }
+  .evaluation__footer { flex-direction:column-reverse; }
+  .evaluation__cancel,.evaluation__save { justify-content:center; width:100%; }
+}
+@media (prefers-reduced-motion:reduce) {
+  * { scroll-behavior:auto !important; transition:none !important; animation-duration:.01ms !important; }
 }
-
-.review__back {
-  display: inline-block;
-  margin-bottom: variables.$spacing-xl;
-  color: variables.$color-primary;
-  font-weight: variables.$font-weight-semibold;
-  text-decoration: none;
-}
-
-.review__hero {
-  display: flex;
-  gap: variables.$spacing-2xl;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: variables.$spacing-xl;
-  padding: variables.$spacing-3xl;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(variables.$color-primary, 0.18),
-      transparent 36%
-    ),
-    variables.$color-surface;
-}
-
-.review__hero > div {
-  max-width: 900px;
-}
-
-.review__eyebrow {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-  margin-bottom: variables.$spacing-md;
-}
-
-.review__eyebrow span {
-  padding: 5px 9px;
-  border: 1px solid variables.$color-primary;
-  border-radius: 999px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.review__kicker {
-  margin: 0 0 variables.$spacing-sm;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-sm;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.review__hero h1 {
-  margin: 0 0 variables.$spacing-md;
-  font-size: clamp(3rem, 6vw, 5rem);
-}
-
-.review__description {
-  max-width: 760px;
-  margin: 0;
-  line-height: 1.7;
-  opacity: 0.68;
-}
-
-.review__status {
-  min-width: 220px;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
-}
-
-.review__status--reviewed {
-  border-color: variables.$color-primary;
-}
-
-.review__status span,
-.review__status strong,
-.review__status small {
-  display: block;
-}
-
-.review__status span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.review__status strong {
-  margin: variables.$spacing-sm 0;
-  font-size: 1.2rem;
-}
-
-.review__status small {
-  opacity: 0.5;
-}
-
-.review__summary {
-  display: grid;
-  gap: variables.$spacing-md;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  margin-bottom: variables.$spacing-xl;
-}
-
-.review__summary article {
-  min-width: 0;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-}
-
-.review__summary span,
-.review__summary strong,
-.review__summary small {
-  display: block;
-}
-
-.review__summary span {
-  margin-bottom: 6px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.review__summary strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.review__summary small {
-  margin-top: 4px;
-  opacity: 0.45;
-}
-
-.review__layout {
-  display: grid;
-  gap: variables.$spacing-xl;
-  grid-template-columns: 370px minmax(0, 1fr);
-}
-
-.review-file,
-.evaluation {
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-surface;
-}
-
-.review-file {
-  position: sticky;
-  top: 2rem;
-  align-self: start;
-  padding: variables.$spacing-xl;
-}
-
-.review-file__top {
-  display: flex;
-  gap: variables.$spacing-md;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: variables.$spacing-xl;
-}
-
-.review-file__label,
-.evaluation__label {
-  margin: 0;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.review-file__top h2 {
-  margin: variables.$spacing-sm 0 0;
-  word-break: break-word;
-}
-
-.review-file__private,
-.evaluation__header > span {
-  flex-shrink: 0;
-  padding: 4px 7px;
-  border: 1px solid variables.$color-primary;
-  border-radius: 999px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.review-file__meta {
-  display: grid;
-  gap: variables.$spacing-sm;
-}
-
-.review-file__meta > div {
-  padding: variables.$spacing-md;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
-}
-
-.review-file__meta span,
-.review-file__meta strong {
-  display: block;
-}
-
-.review-file__meta span {
-  margin-bottom: 4px;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.review-file__open {
-  width: 100%;
-  margin-top: variables.$spacing-lg;
-  padding: variables.$spacing-md;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-primary;
-  color: variables.$color-white;
-  font: inherit;
-  font-weight: variables.$font-weight-semibold;
-  cursor: pointer;
-}
-
-.review-file__open:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.review-file__notice {
-  margin-top: variables.$spacing-xl;
-  padding-top: variables.$spacing-xl;
-  border-top: 1px solid variables.$color-border;
-}
-
-.review-file__notice strong {
-  color: variables.$color-primary;
-}
-
-.review-file__notice p {
-  margin-bottom: 0;
-  line-height: 1.6;
-  font-size: variables.$font-size-sm;
-  opacity: 0.55;
-}
-
-.evaluation {
-  overflow: hidden;
-}
-
-.evaluation form {
-  display: grid;
-}
-
-.evaluation__header {
-  display: flex;
-  gap: variables.$spacing-lg;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: variables.$spacing-2xl;
-  border-bottom: 1px solid variables.$color-border;
-  background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(variables.$color-primary, 0.08),
-      transparent 35%
-    ),
-    variables.$color-surface;
-}
-
-.evaluation__header h2 {
-  margin: variables.$spacing-sm 0 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-}
-
-.evaluation__message {
-  margin: variables.$spacing-xl variables.$spacing-2xl 0;
-  padding: variables.$spacing-md;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
-  color: variables.$color-primary;
-}
-
-.evaluation__message--error {
-  border-color: #d85151;
-  color: #ff7777;
-}
-
-.evaluation-section {
-  padding: variables.$spacing-2xl;
-  border-bottom: 1px solid variables.$color-border;
-}
-
-.evaluation-section__heading {
-  display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
-  margin-bottom: variables.$spacing-xl;
-}
-
-.evaluation-section__heading > span {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid variables.$color-primary;
-  border-radius: 50%;
-  color: variables.$color-primary;
-  font-weight: variables.$font-weight-semibold;
-}
-
-.evaluation-section__heading p {
-  margin: 0;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-  font-weight: variables.$font-weight-semibold;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.evaluation-section__heading h3 {
-  margin: 3px 0 0;
-  font-size: 1.5rem;
-}
-
-.form-group {
-  display: grid;
-  gap: variables.$spacing-sm;
-}
-
-.form-group label {
-  color: variables.$color-primary;
-  font-weight: variables.$font-weight-semibold;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: variables.$spacing-md;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  outline: 0;
-  background: variables.$color-background;
-  color: variables.$color-white;
-  font: inherit;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: variables.$color-primary;
-}
-
-.form-group textarea {
-  resize: vertical;
-}
-
-.form-group small {
-  line-height: 1.55;
-  opacity: 0.48;
-}
-
-.rubric {
-  display: grid;
-  gap: variables.$spacing-md;
-}
-
-.rubric__item {
-  display: grid;
-  gap: variables.$spacing-md;
-  grid-template-columns: minmax(0, 1fr) 115px;
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
-}
-
-.rubric__copy strong,
-.rubric__copy small {
-  display: block;
-}
-
-.rubric__copy small {
-  margin-top: 5px;
-  line-height: 1.5;
-  opacity: 0.52;
-}
-
-.rubric__control {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.rubric__control select {
-  width: 72px;
-  padding: 10px;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  outline: 0;
-  background: variables.$color-surface;
-  color: variables.$color-white;
-  font: inherit;
-  font-weight: variables.$font-weight-semibold;
-  text-align: center;
-}
-
-.rubric__control span {
-  opacity: 0.5;
-}
-
-.rubric__bar {
-  overflow: hidden;
-  height: 7px;
-  grid-column: 1 / -1;
-  border-radius: 999px;
-  background: variables.$color-surface;
-}
-
-.rubric__fill {
-  height: 100%;
-  border-radius: inherit;
-  background: variables.$color-primary;
-}
-
-.rubric-summary {
-  display: grid;
-  gap: variables.$spacing-md;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: variables.$spacing-lg;
-}
-
-.rubric-summary > div {
-  padding: variables.$spacing-lg;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background: rgba(variables.$color-primary, 0.05);
-}
-
-.rubric-summary span,
-.rubric-summary strong {
-  display: block;
-}
-
-.rubric-summary span {
-  margin-bottom: variables.$spacing-sm;
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.rubric-summary strong {
-  font-size: 1.3rem;
-}
-
-.grade-row {
-  display: grid;
-  gap: variables.$spacing-lg;
-  grid-template-columns: minmax(0, 1fr) 140px;
-}
-
-.grade-preview {
-  display: grid;
-  place-items: center;
-  align-content: center;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background: variables.$color-background;
-}
-
-.grade-preview span,
-.grade-preview strong {
-  display: block;
-}
-
-.grade-preview span {
-  color: variables.$color-primary;
-  font-size: variables.$font-size-xs;
-}
-
-.grade-preview strong {
-  margin-top: 6px;
-  color: variables.$color-primary;
-  font-size: 2rem;
-}
-
-.evaluation__footer {
-  display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
-  justify-content: flex-end;
-  padding: variables.$spacing-2xl;
-}
-
-.evaluation__cancel,
-.evaluation__save {
-  padding: variables.$spacing-md variables.$spacing-xl;
-  border-radius: variables.$radius-lg;
-  font: inherit;
-  font-weight: variables.$font-weight-semibold;
-  text-decoration: none;
-}
-
-.evaluation__cancel {
-  border: 1px solid variables.$color-border;
-  color: variables.$color-white;
-}
-
-.evaluation__save {
-  border: 1px solid variables.$color-primary;
-  background: variables.$color-primary;
-  color: variables.$color-white;
-  cursor: pointer;
-}
-
-.evaluation__save:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.state-card {
-  display: grid;
-  min-height: 420px;
-  gap: variables.$spacing-md;
-  place-items: center;
-  align-content: center;
-  padding: variables.$spacing-3xl;
-  border: 1px dashed variables.$color-border;
-  border-radius: variables.$radius-lg;
-  text-align: center;
-}
-
-.state-card p {
-  margin: 0;
-  opacity: 0.55;
-}
-
-.state-card__icon {
-  display: grid;
-  width: 64px;
-  height: 64px;
-  place-items: center;
-  border-radius: 50%;
-  background: #d85151;
-  color: variables.$color-white;
-  font-size: 2rem;
-}
-
-.state-card__actions {
-  display: flex;
-  gap: variables.$spacing-md;
-  align-items: center;
-  margin-top: variables.$spacing-md;
-}
-
-.state-card__actions button,
-.state-card__actions a {
-  padding: variables.$spacing-sm variables.$spacing-md;
-  border: 1px solid variables.$color-primary;
-  border-radius: variables.$radius-lg;
-  background: transparent;
-  color: variables.$color-primary;
-  font: inherit;
-  font-weight: variables.$font-weight-semibold;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 3px solid variables.$color-border;
-  border-top-color: variables.$color-primary;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 1150px) {
-  .review__summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .review__layout {
-    grid-template-columns: 1fr;
-  }
-
-  .review-file {
-    position: static;
-  }
-}
-
-@media (max-width: 760px) {
-  .review__hero {
-    align-items: stretch;
-    flex-direction: column;
-    padding: variables.$spacing-xl;
-  }
-
-  .review__status {
-    width: 100%;
-  }
-
-  .review__summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .evaluation__header,
-  .evaluation__footer {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .evaluation-section {
-    padding: variables.$spacing-xl;
-  }
-
-  .rubric__item,
-  .grade-row,
-  .rubric-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .rubric__control {
-    justify-content: flex-start;
-  }
-
-  .evaluation__cancel,
-  .evaluation__save {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-@media (max-width: 520px) {
-  .review__summary {
-    grid-template-columns: 1fr;
-  }
-}
-
-
-/* =========================================================
-   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
-   Sistema visual común para el SaaS
-========================================================= */
-.review {
-  --amv-canvas: #f5f7fb;
-  --amv-card: #ffffff;
-  --amv-ink: #172033;
-  --amv-body: #344359;
-  --amv-muted: #667085;
-  --amv-line: #dbe3ec;
-  --amv-wine: #9f1945;
-  --amv-wine-dark: #7f1237;
-  --amv-gold: #d9a91d;
-  --amv-gold-soft: #fff8e7;
-  --amv-green: #2d8a63;
-  --amv-red: #be4856;
-  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
-  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
-  --amv-radius-sm: 12px;
-  --amv-radius-md: 18px;
-  --amv-radius-lg: 24px;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-.review :where(a, button, input, textarea, select, [role="button"]) {
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
-}
-
-.review :where(a, button, input, textarea, select, [role="button"]):focus-visible {
-  outline: 3px solid rgba(159, 25, 69, .22) !important;
-  outline-offset: 3px;
-}
-
-.review :where(button, [role="button"], .button, .btn):not(:disabled):active {
-  transform: translateY(1px) scale(.99);
-}
-
-.review :where(input, textarea, select) {
-  font-size: max(16px, 1em);
-}
-
-.review :where(table tbody tr) {
-  transition: background-color .18s ease;
-}
-
-.review :where(table tbody tr):hover {
-  background-color: rgba(159, 25, 69, .025);
-}
-
-.review :where(.card, [class*="-card"], [class*="__card"]) {
-  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
-}
-
-.review :where(.card, [class*="-card"], [class*="__card"]):hover {
-  border-color: rgba(159, 25, 69, .16);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .review *, .review *::before, .review *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-}
-
-
-/* =========================================================
-   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
-   Capa visual segura: no modifica lógica, datos ni estructura.
-========================================================= */
-.review {
-  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
-}
-
-.review :where(
-  article,
-  [class$="__card"],
-  [class*="-card"],
-  [class*="_card"]
-) {
-  transition:
-    transform .24s cubic-bezier(.2,.75,.25,1),
-    box-shadow .24s ease,
-    border-color .24s ease,
-    background-color .24s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .review :where(
-    article,
-    [class$="__card"],
-    [class*="-card"],
-    [class*="_card"]
-  ):hover {
-    transform: translateY(-2px);
-  }
-
-  .review :where(
-    button,
-    .button,
-    .btn,
-    a[class*="button"],
-    a[class*="cta"]
-  ):not(:disabled):hover {
-    transform: translateY(-2px);
-    filter: saturate(1.04);
-  }
-
-  .review :where(img) {
-    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
-  }
-
-  .review :where(
-    [class*="cover"],
-    [class*="hero"],
-    [class*="visual"],
-    [class*="gallery"]
-  ):hover img {
-    transform: scale(1.018);
-  }
-}
-
-.review :where(
-  button,
-  .button,
-  .btn,
-  a[class*="button"],
-  a[class*="cta"]
-) {
-  will-change: transform;
-}
-
-.review :where(input, textarea, select):focus {
-  transform: translateY(-1px);
-}
-
-.review :where(
-  [class*="progress"] > *,
-  [class*="bar"] > *,
-  progress
-) {
-  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
-}
-
-.review ::selection {
-  color: #ffffff;
-  background: #9f1945;
-}
-
-@keyframes amvViewEnter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .review,
-  .review *,
-  .review *::before,
-  .review *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
 </style>
