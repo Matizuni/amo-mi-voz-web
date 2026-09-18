@@ -1,6 +1,5 @@
 import {
   computed,
-  onBeforeUnmount,
   ref
 } from 'vue'
 
@@ -18,9 +17,6 @@ import {
 
 /* =========================================================
    ESTADO GLOBAL
-
-   Está fuera de useNotifications para que todas las vistas
-   compartan el mismo estado.
 ========================================================= */
 
 const notifications =
@@ -34,6 +30,12 @@ const notificationError =
 
 let realtimeChannel =
   null
+
+let realtimeAuthId =
+  null
+
+let realtimeGeneration =
+  0
 
 /* =========================================================
    COMPOSABLE
@@ -59,7 +61,7 @@ export const useNotifications =
       )
 
     /* =====================================================
-       CARGAR
+       CARGAR NOTIFICACIONES
     ===================================================== */
 
     const loadNotifications =
@@ -69,8 +71,7 @@ export const useNotifications =
           !currentUser.value?.authId
         ) {
           notifications.value = []
-
-          return
+          return []
         }
 
         isLoadingNotifications.value =
@@ -81,8 +82,13 @@ export const useNotifications =
 
         try {
 
-          notifications.value =
+          const loadedNotifications =
             await fetchMyNotifications()
+
+          notifications.value =
+            loadedNotifications
+
+          return loadedNotifications
 
         } catch (error) {
 
@@ -101,7 +107,6 @@ export const useNotifications =
 
           isLoadingNotifications.value =
             false
-
         }
       }
 
@@ -157,59 +162,13 @@ export const useNotifications =
       }
 
     /* =====================================================
-       INICIAR REALTIME
-    ===================================================== */
-
-    const startNotificationsRealtime =
-      async () => {
-
-        await stopNotificationsRealtime()
-
-        /*
-         * MUY IMPORTANTE:
-         *
-         * currentUser.id puede ser el ID numérico
-         * de students cuando es alumno.
-         *
-         * currentUser.authId siempre representa
-         * el UUID de Supabase Auth.
-         */
-
-        const authId =
-          currentUser.value?.authId
-
-        if (!authId) {
-          return
-        }
-
-        realtimeChannel =
-          subscribeToMyNotifications(
-            authId,
-            async () => {
-
-              /*
-               * Cuando Supabase informa INSERT/UPDATE,
-               * recargamos el buzón.
-               *
-               * Más adelante podemos optimizar esto
-               * actualizando solamente el elemento afectado.
-               */
-
-              await loadNotifications()
-            }
-          )
-      }
-
-    /* =====================================================
        DETENER REALTIME
     ===================================================== */
 
     const stopNotificationsRealtime =
       async () => {
 
-        if (!realtimeChannel) {
-          return
-        }
+        realtimeGeneration += 1
 
         const channel =
           realtimeChannel
@@ -217,42 +176,137 @@ export const useNotifications =
         realtimeChannel =
           null
 
-        await unsubscribeFromNotifications(
-          channel
-        )
+        realtimeAuthId =
+          null
+
+        if (!channel) {
+          return
+        }
+
+        try {
+
+          await unsubscribeFromNotifications(
+            channel
+          )
+
+        } catch (error) {
+
+          console.warn(
+            'No fue posible cerrar el canal de notificaciones:',
+            error
+          )
+        }
       }
 
     /* =====================================================
-       LIMPIEZA
+       INICIAR REALTIME
     ===================================================== */
 
-    onBeforeUnmount(
-      stopNotificationsRealtime
-    )
+    const startNotificationsRealtime =
+      async () => {
+
+        const authId =
+          currentUser.value?.authId
+
+        if (!authId) {
+
+          await stopNotificationsRealtime()
+
+          return
+        }
+
+        /*
+         * Si ya tenemos un canal para este mismo usuario,
+         * no lo destruimos ni creamos otro.
+         */
+
+        if (
+          realtimeChannel &&
+          realtimeAuthId === authId
+        ) {
+          return
+        }
+
+        /*
+         * Si cambió la sesión, cerramos el canal anterior.
+         */
+
+        await stopNotificationsRealtime()
+
+        const generation =
+          realtimeGeneration
+
+        realtimeAuthId =
+          authId
+
+        realtimeChannel =
+          subscribeToMyNotifications(
+            authId,
+
+            async payload => {
+
+              /*
+               * Ignoramos callbacks pertenecientes
+               * a un canal que ya fue reemplazado.
+               */
+
+              if (
+                generation !==
+                realtimeGeneration
+              ) {
+                return
+              }
+
+              console.debug(
+                '[Notifications Realtime]',
+                payload
+              )
+
+              /*
+               * Reconsultamos el buzón.
+               *
+               * Esto mantiene una única fuente de verdad
+               * y funciona tanto para INSERT como UPDATE.
+               */
+
+              try {
+
+                await loadNotifications()
+
+              } catch (error) {
+
+                console.error(
+                  'Realtime recibió un cambio, pero no fue posible actualizar el buzón:',
+                  error
+                )
+              }
+            }
+          )
+      }
 
     /* =====================================================
-       API
+       IMPORTANTE
+
+       NO usamos onBeforeUnmount aquí.
+
+       El canal es global y compartido.
+
+       Su ciclo de vida debe controlarlo AulaLayout:
+       - iniciar cuando existe sesión
+       - detener al cerrar sesión
     ===================================================== */
 
     return {
-
       notifications,
-
       unreadCount,
-
       isLoadingNotifications,
-
       notificationError,
 
       loadNotifications,
-
       readNotification,
-
       readAllNotifications,
 
       startNotificationsRealtime,
-
       stopNotificationsRealtime
-
     }
   }

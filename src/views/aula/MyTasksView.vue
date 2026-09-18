@@ -2,7 +2,9 @@
 
   <section class="my-tasks">
 
-    
+
+
+
 
     <header class="tasks-hero">
 
@@ -40,7 +42,9 @@
 
     </header>
 
-    
+
+
+
 
     <section
 
@@ -82,7 +86,9 @@
 
     <template v-else>
 
-      
+
+
+
 
       <section class="tasks-summary" aria-label="Resumen de tareas" v-show="isTasksTab('resumen')">
 
@@ -152,7 +158,9 @@
 
       </section>
 
-      
+
+
+
 
       <section v-show="isTasksTab('resumen')" class="tasks-priority" :class="{ 'is-clear': !nextPendingTask }">
 
@@ -376,7 +384,6 @@
 
 
 
-      
 
 
 
@@ -386,7 +393,24 @@
 
 
 
-      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       <section class="tasks-section" v-show="!isTasksTab('resumen')">
 
@@ -780,6 +804,10 @@ const setTasksTab = tab => {
 
 
 
+
+
+
+
 const loadPage = async () => {
 
   isLoading.value = true
@@ -1056,29 +1084,60 @@ const getAcceptedFileLabel = type => {
 
 }
 
-const formatDate = value => {
-
-  if (!value) {
-
-    return '—'
-
-  }
-
-  const parts =
-
-    String(value).split('-')
-
-  if (parts.length === 3) {
-
-    const [year, month, day] = parts
-
-    return `${day}/${month}/${year}`
-
-  }
-
-  return value
-
+const getDeadlineTimestamp = value => {
+  if (!value) return Number.POSITIVE_INFINITY
+  const timestamp = new Date(value).getTime()
+  return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp
 }
+
+const getDeadlineStatus = (dueDate, academicStatus = 'pending') => {
+  if (academicStatus !== 'pending') return 'completed'
+  if (!dueDate) return 'none'
+
+  const due = new Date(dueDate)
+  if (Number.isNaN(due.getTime())) return 'none'
+
+  const now = new Date()
+  const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const localDueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+  const dayDifference = Math.round((localDueDay - localToday) / 86400000)
+
+  if (due.getTime() < now.getTime()) return 'overdue'
+  if (dayDifference === 0) return 'today'
+  if (dayDifference === 1) return 'tomorrow'
+  return 'upcoming'
+}
+
+const getDeadlineLabel = item => {
+  const labels = {
+    none: 'SIN FECHA LÍMITE',
+    upcoming: 'PRÓXIMA',
+    tomorrow: 'VENCE MAÑANA',
+    today: 'VENCE HOY',
+    overdue: 'ATRASADA',
+    completed: 'COMPLETADA'
+  }
+
+  return labels[item?.deadlineStatus] || 'SIN FECHA LÍMITE'
+}
+
+const formatDeadline = value => {
+  if (!value) return 'Sin fecha límite'
+
+  try {
+    return new Intl.DateTimeFormat('es-CL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(value))
+  } catch {
+    return value
+  }
+}
+
+const formatDate = value => formatDeadline(value)
 
 const formatDateTime = value => {
 
@@ -2561,16 +2620,30 @@ onMounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .my-tasks,
+
   .my-tasks *,
+
   .my-tasks *::before,
+
   .my-tasks *::after {
+
     scroll-behavior: auto !important;
+
     animation-duration: 0.01ms !important;
+
     animation-iteration-count: 1 !important;
+
     transition-duration: 0.01ms !important;
+
   }
+
 }
+
+
+
+
 
 
 
@@ -2735,15 +2808,25 @@ onMounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .my-tasks,
+
   .my-tasks *,
+
   .my-tasks *::before,
+
   .my-tasks *::after {
+
     scroll-behavior: auto !important;
+
     animation-duration: 0.01ms !important;
+
     animation-iteration-count: 1 !important;
+
     transition-duration: 0.01ms !important;
+
   }
+
 }
 
 .tasks-context-nav {
@@ -2986,7 +3069,11 @@ onMounted(() => {
 
 
 
-*/* AMV · MY TASKS v11.0 · AGENDA DE ENTREGAS PRO */*
+
+
+
+
+**/* AMV · MY TASKS v11.0 · AGENDA DE ENTREGAS PRO */**
 
 .tasks-hero{
 
@@ -3056,6 +3143,57 @@ onMounted(() => {
 
   .tasks-context-nav button{min-width:150px;flex:0 0 auto}
 
+}
+
+
+
+/* =========================================================
+   PLAZOS INTELIGENTES
+========================================================= */
+.task-card__deadline {
+  padding: 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: .5rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.task-card__deadline--none {
+  color: var(--muted);
+  background: var(--surface-soft);
+}
+
+.task-card__deadline--upcoming {
+  border-color: #e3d394;
+  color: var(--gold-dark);
+  background: var(--gold-soft);
+}
+
+.task-card__deadline--tomorrow {
+  border-color: #e6c96e;
+  color: #765800;
+  background: #fff7d9;
+}
+
+.task-card__deadline--today {
+  border-color: #e3b4c3;
+  color: var(--wine);
+  background: #fff3f7;
+}
+
+.task-card__deadline--overdue {
+  border-color: #efc6cc;
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.task-card--pending:has(.task-card__deadline--today) {
+  border-left-color: var(--wine);
+}
+
+.task-card--pending:has(.task-card__deadline--overdue) {
+  border-left-color: var(--danger);
 }
 
 </style>

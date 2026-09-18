@@ -152,8 +152,11 @@ const createAssignmentPayload = assignment => {
       'audio',
 
     due_date:
-      assignment.dueDate ||
-      '',
+      assignment.dueDate
+        ? new Date(
+          assignment.dueDate
+        ).toISOString()
+        : null,
 
     points:
       Number(

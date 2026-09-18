@@ -362,7 +362,16 @@
 
                 <div class="activity-number activity-number--task">✓</div>
 
-                <div class="activity-copy"><strong>{{ row.task.title || 'Tarea' }}</strong><span>Clase {{ getAcademicLessonNumberById(row.task.lessonId) }}</span></div>
+                <div class="activity-copy">
+                  <strong>{{ row.task.title || 'Tarea' }}</strong>
+                  <span>
+                    Clase {{ getAcademicLessonNumberById(row.task.lessonId) }}
+                    · {{ row.deadline?.label || 'Pendiente' }}
+                    <template v-if="row.task.dueDate || row.task.due_date">
+                      · {{ formatAssignmentDeadline(row.task.dueDate ?? row.task.due_date) }}
+                    </template>
+                  </span>
+                </div>
 
                 <RouterLink :to="`/aula/clase/${row.task.lessonId}/tarea/${row.task.id}`" class="row-link">Abrir →</RouterLink>
 
@@ -1794,6 +1803,118 @@ const studentSubmissions =
 
 
 
+
+/* =========================================================
+   DASHBOARD V11.6 · SMART DEADLINES
+   Misma semántica académica usada por Mis tareas.
+   Zona horaria oficial: America/Santiago.
+========================================================= */
+const ACADEMIC_TIME_ZONE = 'America/Santiago'
+
+const chileDateParts = value => {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ACADEMIC_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date)
+
+  const get = type => Number(parts.find(part => part.type === type)?.value)
+  const year = get('year')
+  const month = get('month')
+  const day = get('day')
+
+  if (!year || !month || !day) return null
+  return { year, month, day }
+}
+
+const academicDayNumber = value => {
+  const parts = chileDateParts(value)
+  if (!parts) return null
+  return Math.floor(Date.UTC(parts.year, parts.month - 1, parts.day) / 86400000)
+}
+
+const parseDueDate = value => {
+  if (!value) return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const getDeadlineState = task => {
+  const due = parseDueDate(task?.dueDate ?? task?.due_date)
+  if (!due) {
+    return {
+      key: 'no-date',
+      label: 'Sin fecha límite',
+      tone: 'neutral',
+      priority: 5,
+      timestamp: Number.POSITIVE_INFINITY
+    }
+  }
+
+  const now = new Date()
+  const today = academicDayNumber(now)
+  const dueDay = academicDayNumber(due)
+
+  if (due.getTime() <= now.getTime()) {
+    return {
+      key: 'overdue',
+      label: 'Atrasada',
+      tone: 'danger',
+      priority: 0,
+      timestamp: due.getTime()
+    }
+  }
+
+  const difference = dueDay - today
+
+  if (difference === 0) {
+    return {
+      key: 'today',
+      label: 'Vence hoy',
+      tone: 'danger',
+      priority: 1,
+      timestamp: due.getTime()
+    }
+  }
+
+  if (difference === 1) {
+    return {
+      key: 'tomorrow',
+      label: 'Vence mañana',
+      tone: 'warning',
+      priority: 2,
+      timestamp: due.getTime()
+    }
+  }
+
+  return {
+    key: 'upcoming',
+    label: 'Próxima',
+    tone: 'info',
+    priority: 3,
+    timestamp: due.getTime()
+  }
+}
+
+const formatAssignmentDeadline = value => {
+  const due = parseDueDate(value)
+  if (!due) return 'Sin fecha límite'
+
+  return new Intl.DateTimeFormat('es-CL', {
+    timeZone: ACADEMIC_TIME_ZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(due)
+}
+
 const studentTaskRows =
 
   computed(() => {
@@ -1884,7 +2005,11 @@ const studentTaskRows =
 
             submission,
 
-            status
+            status,
+
+            deadline: status === 'pending'
+              ? getDeadlineState(task)
+              : null
 
           }
 
@@ -1895,19 +2020,18 @@ const studentTaskRows =
   })
 
 const studentPendingTasks =
-
   computed(() =>
+    studentTaskRows.value
+      .filter(row => row.status === 'pending')
+      .sort((a, b) => {
+        const priorityA = a.deadline?.priority ?? 5
+        const priorityB = b.deadline?.priority ?? 5
+        if (priorityA !== priorityB) return priorityA - priorityB
 
-    studentTaskRows.value.filter(
-
-      row =>
-
-        row.status ===
-
-        'pending'
-
-    )
-
+        const timeA = a.deadline?.timestamp ?? Number.POSITIVE_INFINITY
+        const timeB = b.deadline?.timestamp ?? Number.POSITIVE_INFINITY
+        return timeA - timeB
+      })
   )
 
 
@@ -2508,11 +2632,14 @@ const primaryAction = computed(() => {
 
   const pending = studentPendingTasks.value[0]
   if (pending?.task) {
+    const deadline = pending.deadline || getDeadlineState(pending.task)
+    const dueValue = pending.task.dueDate ?? pending.task.due_date
+
     return {
       title: pending.task.title || 'Tarea pendiente',
-      description: pending.task.dueDate
-        ? `Fecha límite: ${formatLessonDate(pending.task.dueDate)}.`
-        : 'Tienes una actividad pendiente de entrega.',
+      description: dueValue
+        ? `${deadline.label} · ${formatAssignmentDeadline(dueValue)}.`
+        : 'Sin fecha límite · Tienes una actividad pendiente de entrega.',
       to: `/aula/clase/${pending.task.lessonId}/tarea/${pending.task.id}`,
       label: 'Continuar tarea →'
     }
@@ -3383,7 +3510,7 @@ onMounted(
 @media(max-width:680px){.activity-row{grid-template-columns:34px minmax(0,1fr) 14px}.activity-row time{display:none}}
 
 
-/* DASHBOARD V11.5 · RESUMEN DEFINITIVO */
+/* DASHBOARD V11.6 · SMART DEADLINES */
 .dashboard-legacy-metrics{display:none!important}
 .dashboard-summary-activity{
   margin-top:16px;

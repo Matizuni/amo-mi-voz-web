@@ -52,9 +52,6 @@ const normalizeNotification = notification => {
 
 /* =========================================================
    OBTENER MIS NOTIFICACIONES
-
-   RLS se encarga de que el usuario solamente pueda
-   consultar las notificaciones cuyo user_id = auth.uid().
 ========================================================= */
 
 export const fetchMyNotifications =
@@ -209,40 +206,118 @@ export const markAllNotificationsAsRead =
 
 /* =========================================================
    REALTIME
-
-   IMPORTANTE:
-   usamos authUserId, no studentId.
-
-   En tu arquitectura:
-   currentUser.authId = UUID real de Supabase Auth.
 ========================================================= */
 
 export const subscribeToMyNotifications =
   (
     authUserId,
-    callback
+    callback,
+    statusCallback = null
   ) => {
 
     if (!authUserId) {
       return null
     }
 
-    return supabase
-      .channel(
-        `notifications:${authUserId}`
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter:
-            `user_id=eq.${authUserId}`
-        },
-        callback
-      )
-      .subscribe()
+    const channelName =
+      `notifications:${authUserId}:${Date.now()}`
+
+    const channel =
+      supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter:
+              `user_id=eq.${authUserId}`
+          },
+
+          payload => {
+
+            console.debug(
+              '[Notifications] Cambio recibido:',
+              payload
+            )
+
+            if (
+              typeof callback ===
+              'function'
+            ) {
+              callback(payload)
+            }
+          }
+        )
+        .subscribe(
+          (
+            status,
+            error
+          ) => {
+
+            console.debug(
+              '[Notifications] Estado Realtime:',
+              status
+            )
+
+            if (error) {
+              console.error(
+                '[Notifications] Error Realtime:',
+                error
+              )
+            }
+
+            if (
+              status ===
+              'SUBSCRIBED'
+            ) {
+              console.debug(
+                '[Notifications] Canal conectado:',
+                authUserId
+              )
+            }
+
+            if (
+              status ===
+              'CHANNEL_ERROR'
+            ) {
+              console.error(
+                '[Notifications] El canal sufrió un error.'
+              )
+            }
+
+            if (
+              status ===
+              'TIMED_OUT'
+            ) {
+              console.warn(
+                '[Notifications] La conexión agotó el tiempo de espera.'
+              )
+            }
+
+            if (
+              status ===
+              'CLOSED'
+            ) {
+              console.warn(
+                '[Notifications] El canal fue cerrado.'
+              )
+            }
+
+            if (
+              typeof statusCallback ===
+              'function'
+            ) {
+              statusCallback(
+                status,
+                error
+              )
+            }
+          }
+        )
+
+    return channel
   }
 
 /* =========================================================
@@ -256,7 +331,21 @@ export const unsubscribeFromNotifications =
       return
     }
 
-    await supabase.removeChannel(
-      channel
-    )
+    try {
+
+      await supabase.removeChannel(
+        channel
+      )
+
+    } catch (error) {
+
+      console.warn(
+        '[Notifications] No fue posible eliminar el canal:',
+        error
+      )
+    }
   }
+
+export {
+  normalizeNotification
+}
