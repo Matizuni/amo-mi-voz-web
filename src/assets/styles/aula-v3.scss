@@ -1,0 +1,127 @@
+:root {
+  --amv-canvas: #f5f7fb;
+  --amv-surface: #ffffff;
+  --amv-surface-soft: #f9fafb;
+  --amv-ink: #172033;
+  --amv-body: #344359;
+  --amv-muted: #667085;
+  --amv-border: #dbe3ec;
+  --amv-wine: #9f1945;
+  --amv-wine-dark: #7f1237;
+  --amv-gold: #d9a91d;
+  --amv-gold-soft: #fff8e7;
+  --amv-green: #2d8a63;
+  --amv-red: #be4856;
+  --amv-blue: #315f9b;
+  --amv-radius-sm: 10px;
+  --amv-radius-md: 16px;
+  --amv-radius-lg: 24px;
+  --amv-shadow: 0 14px 38px rgba(23, 32, 51, .08);
+  --amv-focus: 0 0 0 4px rgba(159, 25, 69, .16);
+  --amv-content: 1240px;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--amv-canvas); color: var(--amv-ink); }
+
+/* Universal classroom affordances. Scoped view CSS remains in control,
+   this layer only normalizes interaction and readability. */
+.aula-layout :where(button, a, input, select, textarea) {
+  font: inherit;
+}
+.aula-layout :where(button, a, input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: var(--amv-focus);
+}
+.aula-layout :where(button, [role='button'], a) {
+  -webkit-tap-highlight-color: transparent;
+}
+.aula-layout :where(input, select, textarea) {
+  min-height: 44px;
+}
+.aula-layout :where(button, .button, .sidebar-link, .topbar-action) {
+  min-height: 44px;
+}
+.aula-layout :where(p, li, label, input, select, textarea, button) {
+  line-height: 1.5;
+}
+.aula-layout :where(.panel, .state-card, .metric-card, .summary-card) {
+  border-color: var(--amv-border);
+}
+
+.amv-page-shell {
+  width: min(100%, var(--amv-content));
+  margin: 0 auto;
+}
+.amv-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.amv-page-header__eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--amv-wine);
+  font-size: .73rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+.amv-page-header h1 {
+  margin: 0;
+  color: var(--amv-ink);
+  font-size: clamp(2rem, 3vw, 3rem);
+  letter-spacing: -.045em;
+  line-height: 1.05;
+}
+.amv-page-header p {
+  max-width: 720px;
+  margin: 10px 0 0;
+  color: var(--amv-muted);
+}
+.amv-primary-action,
+.amv-secondary-action {
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.amv-primary-action { border: 1px solid var(--amv-wine); background: var(--amv-wine); color: #fff; }
+.amv-primary-action:hover { background: var(--amv-wine-dark); }
+.amv-secondary-action { border: 1px solid var(--amv-border); background: #fff; color: var(--amv-ink); }
+
+.amv-card {
+  background: var(--amv-surface);
+  border: 1px solid var(--amv-border);
+  border-radius: var(--amv-radius-md);
+  box-shadow: 0 8px 24px rgba(23, 32, 51, .04);
+}
+.amv-section-title span {
+  color: var(--amv-wine);
+  font-size: .7rem;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+.amv-section-title h2 { margin: 5px 0 0; font-size: 1.35rem; letter-spacing: -.025em; }
+
+@media (max-width: 760px) {
+  .amv-page-header { align-items: stretch; flex-direction: column; }
+  .amv-page-header__actions { width: 100%; display: grid; grid-template-columns: 1fr; }
+  .amv-primary-action, .amv-secondary-action { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}

@@ -235,6 +235,16 @@ const router = createRouter({
             ),
         },
 
+        {
+          path: 'estudiante/:studentId/voz',
+          name: 'aula-estudiante-voz',
+
+          component: () =>
+            import(
+              '@/views/aula/VocalProfileView.vue'
+            ),
+        },
+
         /* =================================================
            CLASE
         ================================================== */

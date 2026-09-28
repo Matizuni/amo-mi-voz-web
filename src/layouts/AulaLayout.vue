@@ -772,94 +772,56 @@ const initials = computed(() =>
 )
 
 const teacherNav = [
-
   { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
-
-  { label: 'Centro del curso', to: '/aula/curso', icon: 'course' },
-
+  { label: 'Clases', to: '/aula/curso', icon: 'course' },
   { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
-
-  { label: 'Contenido', to: '/aula/programa-formativo', icon: 'program' },
-
   { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
-
-  { label: 'Alumnos', to: '/aula/alumnos', icon: 'users' },
-
-  { label: 'Inscripciones', to: '/aula/inscripciones', icon: 'inbox' },
-
+  { label: 'Estudiantes', to: '/aula/alumnos', icon: 'users' },
   { label: 'Asistencia', to: '/aula/asistencia', icon: 'attendance' },
-
   { label: 'Calificaciones', to: '/aula/calificaciones', icon: 'grades' },
-
+  { label: 'Inscripciones', to: '/aula/inscripciones', icon: 'inbox' },
+  { label: 'Programa completo', to: '/aula/programa-formativo', icon: 'program' },
 ]
 
 const studentNav = computed(() => [
-
   { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
-
-  { label: 'Mi curso', to: '/aula/curso', icon: 'course' },
-
-  { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
-
-  { label: 'Contenido', to: '/aula/programa-formativo', icon: 'program' },
-
-  { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
-
+  { label: 'Mis clases', to: '/aula/curso', icon: 'course' },
   { label: 'Mis tareas', to: '/aula/mis-tareas', icon: 'tasks' },
-
-  { label: 'Mis evaluaciones', to: '/aula/evaluaciones', icon: 'grades' },
-
+  { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
+  { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
+  { label: 'Mis resultados', to: '/aula/evaluaciones', icon: 'grades' },
   ...(currentUser.value?.studentId
-
     ? [
-
         {
-
           label: 'Mi progreso',
-
           to: `/aula/estudiante/${currentUser.value.studentId}`,
-
           icon: 'progress',
-
         },
-
+        {
+          label: 'Mi voz',
+          to: `/aula/estudiante/${currentUser.value.studentId}/voz`,
+          icon: 'activity',
+        },
       ]
-
     : []),
-
 ])
 
-const navGroups = computed(() =>
+const navGroups = computed(() => {
+  if (isTeacher.value) {
+    return [
+      { label: 'TRABAJO DIARIO', items: teacherNav.slice(0, 4) },
+      { label: 'ESTUDIANTES', items: teacherNav.slice(4, 8) },
+      { label: 'MÁS', items: teacherNav.slice(8) },
+      { label: 'CUENTA', items: [{ label: 'Mi cuenta', to: '/aula/cuenta', icon: 'account' }] },
+    ].filter(group => group.items.length)
+  }
 
-  [
-
-    {
-
-      label: 'APRENDIZAJE',
-
-      items: isTeacher.value ? teacherNav.slice(0, 5) : studentNav.value.slice(0, 7),
-
-    },
-
-    {
-
-      label: isTeacher.value ? 'GESTIÓN ACADÉMICA' : 'SEGUIMIENTO',
-
-      items: isTeacher.value ? teacherNav.slice(5) : studentNav.value.slice(7),
-
-    },
-
-    {
-
-      label: 'CUENTA',
-
-      items: [{ label: 'Mi cuenta', to: '/aula/cuenta', icon: 'account' }],
-
-    },
-
-  ].filter(group => group.items.length),
-
-)
+  return [
+    { label: 'MI DÍA', items: studentNav.value.slice(0, 5) },
+    { label: 'MI PROGRESO', items: studentNav.value.slice(5) },
+    { label: 'CUENTA', items: [{ label: 'Mi cuenta', to: '/aula/cuenta', icon: 'account' }] },
+  ].filter(group => group.items.length)
+})
 
 const sectionNames = {
 
@@ -876,6 +838,8 @@ const sectionNames = {
   'aula-alumnos': 'Alumnos',
 
   'aula-estudiante': isStudent.value ? 'Mi progreso' : 'Perfil de estudiante',
+
+  'aula-estudiante-voz': isStudent.value ? 'Mi voz' : 'Seguimiento vocal',
 
   'aula-clase': 'Clase',
 

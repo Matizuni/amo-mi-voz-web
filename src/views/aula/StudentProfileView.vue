@@ -113,13 +113,20 @@
         </div>
 
         <div class="student-profile__hero-actions">
+          <RouterLink
+            :to="`/aula/estudiante/${student.id}/voz`"
+            class="student-profile__edit-profile"
+          >
+            Seguimiento vocal IA
+          </RouterLink>
+
           <button
             v-if="isTeacher"
             type="button"
             class="student-profile__edit-profile"
             @click="startEditingVocalProfile"
           >
-            Editar ficha vocal
+            Editar datos vocales
           </button>
         </div>
       </header>
