@@ -754,12 +754,12 @@
                           <span
                             class="lesson-status"
                             :class="
-                              `lesson-status--${lessonItem.status}`
+                              `lesson-status--${getLessonDisplayStatus(lessonItem)}`
                             "
                           >
                             {{
                               getStatusLabel(
-                                lessonItem.status
+                                getLessonDisplayStatus(lessonItem)
                               )
                             }}
                           </span>
@@ -1841,8 +1841,187 @@ const unassignedLessons =
   })
 
 /* =========================================================
-   PROGRESO
+   PROGRESO DOCENTE · REALIZACIÓN SEGÚN CALENDARIO
+
+   Para el profesor, una clase publicada/planificada cuya fecha
+   académica ya pasó se considera realizada.
+
+   Esto NO modifica lesson.status en Supabase.
+   Solamente determina cómo se calcula el avance del programa.
 ========================================================= */
+
+const ACADEMIC_TIME_ZONE =
+  'America/Santiago'
+
+const academicTodayKey = () => {
+  const parts =
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: ACADEMIC_TIME_ZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(new Date())
+
+  const get = type =>
+    parts.find(
+      part => part.type === type,
+    )?.value || ''
+
+  return `${get('year')}-${get('month')}-${get('day')}`
+}
+
+const getLessonAcademicDateKey =
+  value => {
+    if (!value) return ''
+
+    const raw =
+      String(value).trim()
+
+    if (!raw) return ''
+
+    /*
+     * ISO:
+     * 2026-09-24
+     * 2026-09-24T10:00:00
+     */
+    const iso = raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})/,
+    )
+
+    if (iso) {
+      return `${iso[1]}-${iso[2]}-${iso[3]}`
+    }
+
+    /*
+     * Chile:
+     * 24-09-2026
+     */
+    const cl = raw.match(
+      /^(\d{1,2})-(\d{1,2})-(\d{4})/,
+    )
+
+    if (cl) {
+      return `${cl[3]}-${String(cl[2]).padStart(2, '0')}-${String(cl[1]).padStart(2, '0')}`
+    }
+
+    /*
+     * Español:
+     * 24 de septiembre de 2026
+     * 24 de septiembre
+     */
+    const monthMap = {
+      enero: 1,
+      febrero: 2,
+      marzo: 3,
+      abril: 4,
+      mayo: 5,
+      junio: 6,
+      julio: 7,
+      agosto: 8,
+      septiembre: 9,
+      setiembre: 9,
+      octubre: 10,
+      noviembre: 11,
+      diciembre: 12,
+    }
+
+    const spanish = raw.match(
+      /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)(?:\s+de\s+(\d{4}))?$/i,
+    )
+
+    if (spanish) {
+      const day =
+        Number(spanish[1])
+
+      const month =
+        monthMap[
+          spanish[2].toLowerCase()
+        ]
+
+      const year =
+        Number(spanish[3]) ||
+        Number(
+          academicTodayKey().slice(0, 4),
+        )
+
+      if (month) {
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      }
+    }
+
+    /*
+     * Último intento para formatos que
+     * JavaScript pueda interpretar.
+     */
+    const parsed =
+      new Date(raw)
+
+    if (
+      Number.isNaN(
+        parsed.getTime(),
+      )
+    ) {
+      return ''
+    }
+
+    const parts =
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: ACADEMIC_TIME_ZONE,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(parsed)
+
+    const get = type =>
+      parts.find(
+        part => part.type === type,
+      )?.value || ''
+
+    return `${get('year')}-${get('month')}-${get('day')}`
+  }
+
+const isLessonRealizedByCalendar =
+  lesson => {
+    if (!lesson) return false
+
+    /*
+     * Una clase marcada manualmente
+     * como completed siempre cuenta.
+     */
+    if (
+      lesson.status ===
+      'completed'
+    ) {
+      return true
+    }
+
+    /* Los borradores no cuentan. */
+    if (
+      lesson.status ===
+      'draft'
+    ) {
+      return false
+    }
+
+    const lessonDateKey =
+      getLessonAcademicDateKey(
+        lesson.date,
+      )
+
+    if (!lessonDateKey) {
+      return false
+    }
+
+    /*
+     * La sesión ya ocurrió cuando
+     * su fecha es anterior a hoy
+     * en horario de Santiago.
+     */
+    return (
+      lessonDateKey <
+      academicTodayKey()
+    )
+  }
 
 const isLessonCompleted =
   lessonId => {
@@ -1856,9 +2035,8 @@ const isLessonCompleted =
             Number(lessonId),
         )
 
-      return (
-        lesson?.status ===
-        'completed'
+      return isLessonRealizedByCalendar(
+        lesson,
       )
     }
 
@@ -1883,8 +2061,9 @@ const completedCount =
       return programLessons.value
         .filter(
           lesson =>
-            lesson.status ===
-            'completed',
+            isLessonRealizedByCalendar(
+              lesson,
+            ),
         )
         .length
     }
@@ -2149,8 +2328,25 @@ const toggleUnit =
   }
 
 /* =========================================================
-   LABELS
+   LABELS / ESTADO VISUAL DE LAS CLASES
 ========================================================= */
+
+const getLessonDisplayStatus =
+  lesson => {
+    if (
+      isTeacher.value &&
+      isLessonRealizedByCalendar(
+        lesson,
+      )
+    ) {
+      return 'completed'
+    }
+
+    return (
+      lesson?.status ||
+      'available'
+    )
+  }
 
 const getStatusLabel =
   status => {
@@ -2166,6 +2362,9 @@ const getStatusLabel =
 
       completed:
         'Realizada',
+
+      draft:
+        'Borrador',
     }
 
     return (
