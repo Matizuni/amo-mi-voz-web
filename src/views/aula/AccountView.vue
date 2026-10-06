@@ -1,1878 +1,400 @@
 <template>
-  <section class="account-page">
-    <!-- =====================================================
-         HERO · MI CUENTA
-    ====================================================== -->
-    <header class="account-hero">
-      <div class="account-hero__identity">
-        <div class="account-avatar" aria-hidden="true">
-          {{ initials }}
-        </div>
-
-        <div>
-          <span class="eyebrow">MI CUENTA · AULA VIRTUAL</span>
-
-          <h1>{{ currentUser?.name || 'Mi cuenta' }}</h1>
-
-          <p>
-            Administra tu información de acceso, revisa los datos asociados
-            a tu perfil y mantén segura tu cuenta del Aula Virtual.
-          </p>
-
-          <div class="account-hero__badges">
-            <span class="role-badge">
-              {{ roleLabel }}
-            </span>
-
-            <span
-              v-if="isStudent && currentUser?.voice"
-              class="voice-badge"
-            >
-              {{ currentUser.voice }}
-            </span>
-
-            <span class="status-badge">
-              <i></i>
-              Cuenta activa
-            </span>
-          </div>
-        </div>
+  <section class="profile-page">
+    <header class="profile-hero">
+      <div class="profile-hero__copy">
+        <span class="profile-kicker"><i></i> MI CUENTA · AULA VIRTUAL</span>
+        <h1>Tu perfil.<br><span>Tu identidad.</span></h1>
+        <p>Administra los datos que aparecen en el Aula Virtual y mantén tu acceso protegido.</p>
       </div>
 
-      <div class="account-hero__security">
-        <span class="account-hero__security-icon">✓</span>
-
+      <div class="profile-hero__identity">
+        <button
+          type="button"
+          class="profile-avatar profile-avatar--hero"
+          title="Cambiar foto de perfil"
+          @click="chooseAvatar"
+        >
+          <img v-if="avatarPreview" :src="avatarPreview" alt="Foto de perfil" />
+          <span v-else>{{ initials }}</span>
+          <small>✎</small>
+        </button>
         <div>
-          <small>SESIÓN PROTEGIDA</small>
-          <strong>Acceso seguro</strong>
-          <span>Supabase Auth</span>
+          <span>{{ roleLabel }}</span>
+          <strong>{{ form.displayName || 'Usuario' }}</strong>
+          <small v-if="isStudent && student?.voice">{{ student.voice }}</small>
         </div>
       </div>
     </header>
 
-    <!-- =====================================================
-         RESUMEN
-    ====================================================== -->
-    <section class="account-summary" aria-label="Resumen de la cuenta">
-      <article>
-        <span class="summary-icon">ID</span>
-        <div>
-          <small>TIPO DE CUENTA</small>
-          <strong>{{ roleLabel }}</strong>
-          <p>{{ isTeacher ? 'Gestión académica' : 'Acceso de estudiante' }}</p>
-        </div>
-      </article>
+    <input
+      ref="avatarInput"
+      class="sr-only"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      @change="handleAvatarChange"
+    />
 
-      <article>
-        <span class="summary-icon">✉</span>
-        <div>
-          <small>CORREO DE ACCESO</small>
-          <strong class="summary-email">{{ currentUser?.email || 'Sin correo' }}</strong>
-          <p>Correo asociado a tu inicio de sesión</p>
-        </div>
+    <section class="profile-overview">
+      <article class="overview-card overview-card--identity">
+        <span class="overview-card__icon">👤</span>
+        <div><small>NOMBRE EN EL AULA</small><strong>{{ form.displayName || 'Usuario' }}</strong><p>Se muestra en tu experiencia académica.</p></div>
       </article>
-
       <article>
-        <span class="summary-icon">✓</span>
-        <div>
-          <small>ESTADO</small>
-          <strong>Activa</strong>
-          <p>Tu cuenta puede ingresar al Aula Virtual</p>
-        </div>
+        <span class="overview-card__icon">✉</span>
+        <div><small>CORREO DE ACCESO</small><strong>{{ profile?.email || 'Sin correo' }}</strong><p>Solo lectura desde el portal.</p></div>
       </article>
-
       <article>
-        <span class="summary-icon">↻</span>
-        <div>
-          <small>ÚLTIMO ACCESO</small>
-          <strong>{{ lastSignInLabel }}</strong>
-          <p>Última autenticación registrada</p>
-        </div>
+        <span class="overview-card__icon">✓</span>
+        <div><small>ESTADO</small><strong>Cuenta activa</strong><p>Acceso autenticado con Supabase.</p></div>
       </article>
     </section>
 
-    <!-- =====================================================
-         NAVEGACIÓN INTERNA
-    ====================================================== -->
-    <nav class="account-tabs" aria-label="Secciones de Mi cuenta">
-      <a href="#profile">Perfil</a>
-      <a href="#academic">Información académica</a>
-      <a href="#security">Seguridad</a>
+    <nav class="profile-tabs" aria-label="Secciones de la cuenta">
+      <a href="#profile-data">Perfil</a>
+      <a href="#academic-data">Información académica</a>
+      <a href="#security-data">Seguridad</a>
     </nav>
 
-    <!-- =====================================================
-         PERFIL
-    ====================================================== -->
-    <section id="profile" class="account-section">
-      <header class="section-header">
-        <div class="section-heading">
-          <span>01</span>
-
-          <div>
-            <small>INFORMACIÓN PERSONAL</small>
-            <h2>Perfil de la cuenta</h2>
-          </div>
-        </div>
-
-        <p>
-          Estos datos identifican tu cuenta dentro de la plataforma.
-        </p>
+    <section id="profile-data" class="profile-section">
+      <header class="profile-section__header">
+        <div><span>01</span><small>IDENTIDAD</small><h2>Información de perfil</h2></div>
+        <p>Edita únicamente la información que debe aparecer en la plataforma.</p>
       </header>
 
-      <div class="profile-grid">
-        <article class="profile-card profile-card--identity">
-          <div class="profile-card__top">
-            <span class="profile-avatar">{{ initials }}</span>
-
-            <div>
-              <small>NOMBRE EN EL AULA</small>
-              <strong>{{ currentUser?.name || 'Usuario' }}</strong>
-              <span>{{ roleLabel }}</span>
-            </div>
-          </div>
-
-          <p>
-            Este es el nombre que aparece en las distintas áreas del Aula Virtual.
-          </p>
-        </article>
-
-        <article class="profile-card">
-          <small>CORREO ELECTRÓNICO</small>
-          <strong>{{ currentUser?.email || 'Sin correo asociado' }}</strong>
-          <p>
-            Se utiliza para iniciar sesión y recibir comunicaciones de acceso.
-          </p>
-
-          <button
-            v-if="currentUser?.email"
-            type="button"
-            class="text-button"
-            @click="copyEmail"
-          >
-            {{ emailCopied ? 'Correo copiado ✓' : 'Copiar correo' }}
-          </button>
-        </article>
-
-        <article class="profile-card">
-          <small>IDENTIFICADOR DE CUENTA</small>
-          <strong class="mono-value">{{ shortAccountId }}</strong>
-          <p>
-            Identificador técnico de tu cuenta. No necesitas memorizarlo.
-          </p>
-        </article>
-
-        <article class="profile-card">
-          <small>CUENTA CREADA</small>
-          <strong>{{ createdAtLabel }}</strong>
-          <p>
-            Fecha de creación de tu acceso en la plataforma.
-          </p>
-        </article>
-      </div>
-    </section>
-
-    <!-- =====================================================
-         INFORMACIÓN ACADÉMICA
-    ====================================================== -->
-    <section id="academic" class="account-section">
-      <header class="section-header">
-        <div class="section-heading">
-          <span>02</span>
-
-          <div>
-            <small>PERFIL ACADÉMICO</small>
-            <h2>Tu relación con el Aula Virtual</h2>
-          </div>
-        </div>
-
-        <p>
-          La información académica disponible depende del tipo de cuenta.
-        </p>
-      </header>
-
-      <div class="academic-card">
-        <div class="academic-card__main">
-          <span class="academic-card__icon">
-            {{ isTeacher ? 'P' : 'E' }}
-          </span>
-
-          <div>
-            <small>ROL ACTUAL</small>
-            <h3>{{ roleLabel }}</h3>
-            <p v-if="isTeacher">
-              Puedes administrar clases, alumnos, inscripciones, asistencia,
-              evaluaciones, recursos y calificaciones.
-            </p>
-            <p v-else>
-              Tu cuenta está vinculada a tu experiencia de aprendizaje dentro
-              del curso.
-            </p>
-          </div>
-        </div>
-
-        <div class="academic-details">
-          <article>
-            <span>ESPACIO</span>
-            <strong>Academia Amo Mi Voz</strong>
-          </article>
-
-          <article v-if="isStudent">
-            <span>CLASIFICACIÓN VOCAL</span>
-            <strong>{{ currentUser?.voice || 'Sin registrar' }}</strong>
-          </article>
-
-          <article v-if="isStudent">
-            <span>PERFIL DE ESTUDIANTE</span>
-            <strong>{{ currentUser?.studentId ? 'Vinculado' : 'Pendiente' }}</strong>
-          </article>
-
-          <article v-if="isTeacher">
-            <span>PERMISOS</span>
-            <strong>Gestión académica</strong>
-          </article>
-        </div>
-
-        <RouterLink
-          v-if="isStudent && currentUser?.studentId"
-          :to="`/aula/estudiante/${currentUser.studentId}`"
-          class="academic-link"
-        >
-          Abrir mi perfil académico
-          <span>→</span>
-        </RouterLink>
-      </div>
-    </section>
-
-    <!-- =====================================================
-         SEGURIDAD
-    ====================================================== -->
-    <section id="security" class="account-section">
-      <header class="section-header">
-        <div class="section-heading">
-          <span>03</span>
-
-          <div>
-            <small>SEGURIDAD</small>
-            <h2>Acceso y contraseña</h2>
-          </div>
-        </div>
-
-        <p>
-          Mantén tus credenciales actualizadas y protege el acceso a tu cuenta.
-        </p>
-      </header>
-
-      <div class="security-layout">
-        <aside class="security-guide">
-          <span class="security-guide__icon">✓</span>
-
-          <div>
-            <small>ACCESO PERSONAL</small>
-            <h3>Tu contraseña es privada</h3>
-            <p>
-              La Academia Amo Mi Voz no puede ver tu contraseña. Utiliza una
-              clave que no compartas con profesores, compañeros ni terceros.
-            </p>
-          </div>
-
-          <div class="security-guide__tips">
-            <article>
-              <span>01</span>
-              <p>Usa al menos 8 caracteres.</p>
-            </article>
-
-            <article>
-              <span>02</span>
-              <p>Evita reutilizar contraseñas de otros servicios.</p>
-            </article>
-
-            <article>
-              <span>03</span>
-              <p>Cámbiala si sospechas que alguien más la conoce.</p>
-            </article>
-          </div>
-        </aside>
-
-        <article class="password-card">
-          <div class="password-card__header">
-            <div>
-              <span class="eyebrow">CAMBIAR CONTRASEÑA</span>
-              <h3>Actualiza tu clave de acceso</h3>
-              <p>
-                Crea una contraseña nueva para tu cuenta.
-              </p>
-            </div>
-
-            <span class="password-card__badge">Seguro</span>
-          </div>
-
-          <form
-            class="password-form"
-            @submit.prevent="changePassword"
-          >
-            <div class="form-field">
-              <div class="field-heading">
-                <label for="password">Nueva contraseña</label>
-                <span>Obligatorio</span>
-              </div>
-
-              <div class="input-wrapper">
-                <input
-                  id="password"
-                  v-model="password"
-                  :type="showPassword ? 'text' : 'password'"
-                  autocomplete="new-password"
-                  placeholder="Escribe tu nueva contraseña"
-                  @input="clearMessages"
-                />
-
-                <button
-                  type="button"
-                  class="show-button"
-                  :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-                  @click="showPassword = !showPassword"
-                >
-                  {{ showPassword ? 'Ocultar' : 'Mostrar' }}
-                </button>
-              </div>
-            </div>
-
-            <div class="form-field">
-              <div class="field-heading">
-                <label for="confirmation">Confirmar contraseña</label>
-                <span>Verificación</span>
-              </div>
-
-              <div class="input-wrapper">
-                <input
-                  id="confirmation"
-                  v-model="confirmation"
-                  :type="showConfirmation ? 'text' : 'password'"
-                  autocomplete="new-password"
-                  placeholder="Repite tu nueva contraseña"
-                  @input="clearMessages"
-                />
-
-                <button
-                  type="button"
-                  class="show-button"
-                  :aria-label="showConfirmation ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-                  @click="showConfirmation = !showConfirmation"
-                >
-                  {{ showConfirmation ? 'Ocultar' : 'Mostrar' }}
-                </button>
-              </div>
-            </div>
-
-            <div class="requirements">
-              <div
-                class="requirement"
-                :class="{ 'is-valid': passwordIsLongEnough }"
-              >
-                <span>{{ passwordIsLongEnough ? '✓' : '○' }}</span>
-                Mínimo 8 caracteres
-              </div>
-
-              <div
-                class="requirement"
-                :class="{ 'is-valid': passwordsMatch }"
-              >
-                <span>{{ passwordsMatch ? '✓' : '○' }}</span>
-                Las contraseñas coinciden
-              </div>
-            </div>
-
-            <div
-              v-if="errorMessage"
-              class="message message--error"
-              role="alert"
-            >
-              <span>!</span>
-              <div>
-                <strong>No pudimos actualizar la contraseña</strong>
-                <p>{{ errorMessage }}</p>
-              </div>
-            </div>
-
-            <div
-              v-if="successMessage"
-              class="message message--success"
-              role="status"
-            >
-              <span>✓</span>
-              <div>
-                <strong>Contraseña actualizada</strong>
-                <p>{{ successMessage }}</p>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              class="submit-button"
-              :disabled="!formIsValid || loading"
-            >
-              <span v-if="loading" class="button-spinner"></span>
-              {{ loading ? 'Actualizando...' : 'Actualizar contraseña' }}
-              <span v-if="!loading">→</span>
+      <div class="profile-editor-grid">
+        <article class="profile-editor-card profile-editor-card--photo">
+          <div class="profile-editor-card__photo-wrap">
+            <button type="button" class="profile-avatar profile-avatar--large" @click="chooseAvatar">
+              <img v-if="avatarPreview" :src="avatarPreview" alt="Foto de perfil" />
+              <span v-else>{{ initials }}</span>
+              <b>✎</b>
             </button>
-          </form>
+          </div>
+          <div>
+            <span>FOTOGRAFÍA</span>
+            <h3>Tu foto de perfil</h3>
+            <p>JPG, PNG o WEBP. Máximo 5 MB.</p>
+            <div class="photo-actions">
+              <button type="button" class="button button--ghost" :disabled="isUploadingAvatar" @click="chooseAvatar">
+                {{ isUploadingAvatar ? 'Subiendo…' : 'Cambiar foto' }}
+              </button>
+              <button v-if="profile?.avatar_url" type="button" class="button button--text" :disabled="isUploadingAvatar" @click="removeAvatar">
+                Quitar foto
+              </button>
+            </div>
+          </div>
         </article>
+
+        <form class="profile-editor-card" @submit.prevent="saveProfile">
+          <div class="form-field">
+            <label for="display-name">Nombre que aparece en el Aula</label>
+            <input id="display-name" v-model.trim="form.displayName" maxlength="120" autocomplete="name" required />
+            <small>Este nombre se sincroniza con tu perfil académico cuando corresponde.</small>
+          </div>
+
+          <div class="readonly-field">
+            <span>Correo electrónico</span>
+            <strong>{{ profile?.email || 'Sin correo' }}</strong>
+            <small>Por seguridad, el correo de acceso no se cambia desde este portal.</small>
+          </div>
+
+          <div v-if="errorMessage" class="message message--error"><b>!</b><span>{{ errorMessage }}</span></div>
+          <div v-if="successMessage" class="message message--success"><b>✓</b><span>{{ successMessage }}</span></div>
+
+          <button class="button button--primary" type="submit" :disabled="isSavingProfile">
+            {{ isSavingProfile ? 'Guardando…' : 'Guardar cambios' }}
+            <span v-if="!isSavingProfile">→</span>
+          </button>
+        </form>
       </div>
     </section>
+
+    <section id="academic-data" class="profile-section">
+      <header class="profile-section__header">
+        <div><span>02</span><small>ACADÉMICO</small><h2>Tu relación con AMO MI VOZ</h2></div>
+        <p>Estos datos conectan tu identidad con el entorno académico.</p>
+      </header>
+
+      <div class="academic-grid">
+        <article><span>ROL</span><strong>{{ roleLabel }}</strong><small>{{ isTeacher ? 'Gestión académica' : 'Experiencia de aprendizaje' }}</small></article>
+        <article v-if="isStudent"><span>CLASIFICACIÓN VOCAL</span><strong>{{ student?.voice || 'Sin registrar' }}</strong><small>Definida por el equipo docente.</small></article>
+        <article v-if="isStudent"><span>PERFIL ACADÉMICO</span><strong>{{ profile?.student_id ? 'Vinculado' : 'Pendiente' }}</strong><small>Relación con tu ficha de estudiante.</small></article>
+        <article v-if="isTeacher"><span>PERMISOS</span><strong>Profesor</strong><small>Puede gestionar alumnos y contenido.</small></article>
+      </div>
+
+      <RouterLink v-if="isStudent && profile?.student_id" :to="`/aula/estudiante/${profile.student_id}`" class="academic-link">
+        Abrir mi perfil académico <span>→</span>
+      </RouterLink>
+    </section>
+
+    <section id="security-data" class="profile-section">
+      <header class="profile-section__header">
+        <div><span>03</span><small>SEGURIDAD</small><h2>Acceso protegido</h2></div>
+        <p>La contraseña no se modifica desde este portal.</p>
+      </header>
+
+      <div class="security-card">
+        <div class="security-card__visual"><span>✉</span><i></i><b></b></div>
+        <div class="security-card__copy">
+          <span>RECUPERACIÓN POR CORREO</span>
+          <h3>¿Necesitas cambiar tu contraseña?</h3>
+          <p>Solicita un enlace de recuperación. El cambio de contraseña se realizará únicamente a través del flujo seguro de Supabase Auth.</p>
+          <button type="button" class="button button--primary" :disabled="isSendingReset" @click="sendRecovery">
+            {{ isSendingReset ? 'Enviando enlace…' : 'Enviar enlace de recuperación' }}
+            <span v-if="!isSendingReset">→</span>
+          </button>
+          <div v-if="recoveryMessage" class="message message--success"><b>✓</b><span>{{ recoveryMessage }}</span></div>
+          <div v-if="recoveryError" class="message message--error"><b>!</b><span>{{ recoveryError }}</span></div>
+        </div>
+      </div>
+
+      <article class="security-note">
+        <span>🔒</span>
+        <div><strong>La contraseña no está visible para profesores ni administradores.</strong><p>El portal tampoco ofrece un formulario directo para reemplazarla; solo envía el enlace de recuperación al correo autenticado.</p></div>
+      </article>
+    </section>
+
+    <footer class="profile-footer"><span>AMO MI VOZ</span><i></i><span>IDENTIDAD · SEGURIDAD · AULA VIRTUAL</span></footer>
   </section>
 </template>
 
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+import { fetchMyProfile, fetchMyStudentProfile, updateMyProfile, uploadMyAvatar, requestPasswordRecovery } from '@/services/accountProfileService'
+import { supabase } from '@/lib/supabase'
 
-import {
-  RouterLink,
-} from 'vue-router'
+const { currentUser, isTeacher, isStudent } = useAuth()
 
-import {
-  supabase,
-} from '@/lib/supabase'
-
-import {
-  useAuth,
-} from '@/composables/useAuth'
-
-const {
-  currentUser,
-  isTeacher,
-  isStudent,
-} = useAuth()
-
-const password = ref('')
-const confirmation = ref('')
-
-const showPassword = ref(false)
-const showConfirmation = ref(false)
-
-const loading = ref(false)
-
+const profile = ref(null)
+const student = ref(null)
+const avatarInput = ref(null)
+const avatarPreview = ref('')
+const localObjectUrl = ref('')
+const form = reactive({ displayName: '' })
+const isSavingProfile = ref(false)
+const isUploadingAvatar = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const recoveryMessage = ref('')
+const recoveryError = ref('')
+const isSendingReset = ref(false)
 
-const authUser = ref(null)
-const emailCopied = ref(false)
-
-const passwordIsLongEnough = computed(() => {
-  return password.value.length >= 8
-})
-
-const passwordsMatch = computed(() => {
-  return (
-    confirmation.value.length > 0 &&
-    password.value === confirmation.value
-  )
-})
-
-const formIsValid = computed(() => {
-  return passwordIsLongEnough.value &&
-    passwordsMatch.value
-})
-
-const roleLabel = computed(() => {
-  return isTeacher.value
-    ? 'Profesor'
-    : 'Estudiante'
-})
-
+const roleLabel = computed(() => isTeacher.value ? 'Profesor' : 'Estudiante')
 const initials = computed(() => {
-  return String(
-    currentUser.value?.name ||
-    'Usuario'
-  )
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(word => word[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  const value = form.displayName || currentUser.value?.name || 'Usuario'
+  return String(value).split(/\s+/).filter(Boolean).map(word => word[0]).slice(0, 2).join('').toUpperCase()
 })
 
-const shortAccountId = computed(() => {
-  const id =
-    currentUser.value?.authId ||
-    authUser.value?.id ||
-    ''
-
-  if (!id) {
-    return 'No disponible'
+async function loadProfile() {
+  profile.value = await fetchMyProfile()
+  form.displayName = profile.value?.display_name || currentUser.value?.name || ''
+  if (isStudent.value && profile.value?.student_id) {
+    student.value = await fetchMyStudentProfile(profile.value.student_id)
   }
-
-  return `${String(id).slice(0, 8)}…${String(id).slice(-4)}`
-})
-
-const createdAtLabel = computed(() => {
-  return formatAuthDate(
-    authUser.value?.created_at,
-    'No disponible'
-  )
-})
-
-const lastSignInLabel = computed(() => {
-  return formatAuthDate(
-    authUser.value?.last_sign_in_at,
-    'Sesión actual'
-  )
-})
-
-function formatAuthDate(value, fallback) {
-  if (!value) {
-    return fallback
-  }
-
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return fallback
-  }
-
-  return new Intl.DateTimeFormat(
-    'es-CL',
-    {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }
-  )
-    .format(date)
-    .replace('.', '')
+  avatarPreview.value = profile.value?.avatar_url || ''
 }
 
-function clearMessages() {
+function chooseAvatar() {
+  avatarInput.value?.click()
+}
+
+async function handleAvatarChange(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
   errorMessage.value = ''
   successMessage.value = ''
-}
 
-async function loadAccountDetails() {
-  try {
-    const {
-      data,
-      error,
-    } =
-      await supabase.auth.getUser()
-
-    if (error) {
-      throw error
-    }
-
-    authUser.value =
-      data?.user ||
-      null
-  } catch (error) {
-    console.error(
-      'Error cargando datos de la cuenta:',
-      error
-    )
-  }
-}
-
-async function copyEmail() {
-  const email =
-    currentUser.value?.email
-
-  if (!email) {
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    errorMessage.value = 'La foto debe estar en formato JPG, PNG o WEBP.'
+    event.target.value = ''
     return
   }
 
-  try {
-    await navigator.clipboard.writeText(email)
-
-    emailCopied.value = true
-
-    window.setTimeout(() => {
-      emailCopied.value = false
-    }, 1800)
-  } catch (error) {
-    console.error(
-      'No fue posible copiar el correo:',
-      error
-    )
-  }
-}
-
-async function changePassword() {
-  clearMessages()
-
-  if (!formIsValid.value) {
-    errorMessage.value =
-      'Revisa que la contraseña tenga al menos 8 caracteres y que ambas coincidan.'
-
+  if (file.size > 5 * 1024 * 1024) {
+    errorMessage.value = 'La foto supera el máximo permitido de 5 MB.'
+    event.target.value = ''
     return
   }
 
+  if (localObjectUrl.value) URL.revokeObjectURL(localObjectUrl.value)
+  localObjectUrl.value = URL.createObjectURL(file)
+  avatarPreview.value = localObjectUrl.value
+  isUploadingAvatar.value = true
+
   try {
-    loading.value = true
-
-    const {
-      error,
-    } =
-      await supabase.auth.updateUser({
-        password:
-          password.value,
-      })
-
-    if (error) {
-      throw error
-    }
-
-    password.value = ''
-    confirmation.value = ''
-
-    successMessage.value =
-      'Tu nueva contraseña quedó guardada correctamente.'
+    const result = await uploadMyAvatar(file)
+    avatarPreview.value = result?.avatar_url || avatarPreview.value
+    await loadProfile()
+    successMessage.value = 'Foto de perfil actualizada correctamente.'
+    window.dispatchEvent(new CustomEvent('amv:profile-updated'))
   } catch (error) {
-    console.error(
-      'Error al cambiar contraseña:',
-      error
-    )
-
-    errorMessage.value =
-      error?.message ||
-      'Ocurrió un problema al actualizar la contraseña.'
+    console.error('Error subiendo avatar:', error)
+    errorMessage.value = error?.message || 'No se pudo actualizar la foto de perfil.'
+    await loadProfile().catch(() => {})
   } finally {
-    loading.value = false
+    isUploadingAvatar.value = false
+    if (avatarInput.value) avatarInput.value.value = ''
   }
 }
 
-onMounted(loadAccountDetails)
+async function removeAvatar() {
+  if (!profile.value?.avatar_path) return
+  isUploadingAvatar.value = true
+  errorMessage.value = ''
+  try {
+    const user = await supabase.auth.getUser()
+    const { error: storageError } = await supabase.storage.from('profile-avatars').remove([profile.value.avatar_path])
+    if (storageError) throw storageError
+    const { error } = await supabase.from('profiles').update({ avatar_url: null, avatar_path: null }).eq('id', user.data?.user?.id)
+    if (error) throw error
+    await loadProfile()
+    successMessage.value = 'Foto de perfil eliminada.'
+    window.dispatchEvent(new CustomEvent('amv:profile-updated'))
+  } catch (error) {
+    console.error('Error quitando avatar:', error)
+    errorMessage.value = error?.message || 'No se pudo quitar la foto.'
+  } finally {
+    isUploadingAvatar.value = false
+  }
+}
+
+async function saveProfile() {
+  errorMessage.value = ''
+  successMessage.value = ''
+  isSavingProfile.value = true
+  try {
+    await updateMyProfile({ displayName: form.displayName })
+    await loadProfile()
+    successMessage.value = 'Tus datos de perfil fueron actualizados correctamente.'
+    window.dispatchEvent(new CustomEvent('amv:profile-updated'))
+  } catch (error) {
+    console.error('Error guardando perfil:', error)
+    errorMessage.value = error?.message || 'No se pudieron guardar tus cambios.'
+  } finally {
+    isSavingProfile.value = false
+  }
+}
+
+async function sendRecovery() {
+  recoveryMessage.value = ''
+  recoveryError.value = ''
+  isSendingReset.value = true
+  try {
+    await requestPasswordRecovery(profile.value?.email || currentUser.value?.email)
+    recoveryMessage.value = `Te enviamos un enlace de recuperación a ${profile.value?.email || currentUser.value?.email}.`
+  } catch (error) {
+    console.error('Error enviando recuperación:', error)
+    recoveryError.value = error?.message || 'No fue posible enviar el enlace de recuperación.'
+  } finally {
+    isSendingReset.value = false
+  }
+}
+
+onMounted(() => {
+  loadProfile().catch(error => {
+    console.error('Error cargando perfil:', error)
+    errorMessage.value = error?.message || 'No fue posible cargar tu perfil.'
+  })
+})
+
+onBeforeUnmount(() => {
+  if (localObjectUrl.value) URL.revokeObjectURL(localObjectUrl.value)
+})
 </script>
 
 <style scoped>
-.account-page {
-  --ink: #152033;
-  --ink-soft: #344359;
-  --muted: #6f7c8f;
-  --muted-2: #8b98aa;
-  --line: #dbe3ec;
-  --line-strong: #cbd6e2;
-  --surface: #ffffff;
-  --surface-soft: #f7f9fc;
-  --wine: #9f1945;
-  --wine-dark: #7f1237;
-  --gold: #d9a91d;
-  --gold-dark: #987000;
-  --gold-soft: #fff8e7;
-  --green: #2d8a63;
-  --green-soft: #edf8f3;
-  --danger: #be4856;
-  --danger-soft: #fff3f5;
-
-  width: min(1180px, calc(100% - 40px));
-  margin-inline: auto;
-  padding: 42px 0 80px;
-  color: var(--ink);
-}
-
-/* =====================================================
-   HERO
-===================================================== */
-
-.account-hero {
-  position: relative;
-  display: flex;
-  gap: 32px;
-  align-items: center;
-  justify-content: space-between;
-  overflow: hidden;
-  padding: 30px 32px;
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background:
-    radial-gradient(
-      circle at 90% 8%,
-      rgba(217, 169, 29, 0.13),
-      transparent 30%
-    ),
-    linear-gradient(
-      135deg,
-      #ffffff 0%,
-      #fbfcfe 65%,
-      #fffaf0 100%
-    );
-  box-shadow:
-    0 14px 36px
-    rgba(31, 48, 73, 0.055);
-}
-
-.account-hero::before {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 125px;
-  height: 3px;
-  content: '';
-  background:
-    linear-gradient(
-      90deg,
-      var(--wine),
-      var(--gold)
-    );
-}
-
-.account-hero__identity {
-  display: flex;
-  gap: 21px;
-  align-items: center;
-  min-width: 0;
-}
-
-.account-avatar {
-  display: grid;
-  width: 76px;
-  height: 76px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid #e4c967;
-  border-radius: 20px;
-  color: #775900;
-  background:
-    linear-gradient(
-      145deg,
-      #fffaf0,
-      #f8e6aa
-    );
-  box-shadow:
-    0 10px 24px
-    rgba(217, 169, 29, 0.1);
-  font-size: 1.12rem;
-  font-weight: 900;
-}
-
-.eyebrow {
-  display: inline-block;
-  color: var(--gold-dark);
-  font-size: 0.61rem;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-}
-
-.account-hero h1 {
-  margin: 6px 0 10px;
-  color: var(--ink);
-  font-size:
-    clamp(2.15rem, 4.6vw, 3.55rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
-}
-
-.account-hero__identity p {
-  max-width: 680px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.83rem;
-  line-height: 1.65;
-}
-
-.account-hero__badges {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
-.role-badge,
-.voice-badge,
-.status-badge {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  padding: 7px 10px;
-  border-radius: 999px;
-  font-size: 0.59rem;
-  font-weight: 850;
-}
-
-.role-badge {
-  border: 1px solid #d7e0e9;
-  color: #536276;
-  background: #fff;
-}
-
-.voice-badge {
-  border: 1px solid #e5d194;
-  color: #7e5e00;
-  background: var(--gold-soft);
-}
-
-.status-badge {
-  border: 1px solid #c7dfd1;
-  color: var(--green);
-  background: var(--green-soft);
-}
-
-.status-badge i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-}
-
-.account-hero__security {
-  display: flex;
-  gap: 11px;
-  align-items: center;
-  flex: 0 0 auto;
-  min-width: 190px;
-  padding: 14px;
-  border: 1px solid #d3e5db;
-  border-radius: 14px;
-  background:
-    rgba(255, 255, 255, 0.72);
-}
-
-.account-hero__security-icon {
-  display: grid;
-  width: 37px;
-  height: 37px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 11px;
-  color: #fff;
-  background: var(--green);
-  font-size: 0.7rem;
-  font-weight: 900;
-}
-
-.account-hero__security small,
-.account-hero__security strong,
-.account-hero__security span {
-  display: block;
-}
-
-.account-hero__security small {
-  color: #668a76;
-  font-size: 0.45rem;
-  font-weight: 900;
-  letter-spacing: 0.11em;
-}
-
-.account-hero__security strong {
-  margin: 2px 0;
-  color: #285f44;
-  font-size: 0.69rem;
-}
-
-.account-hero__security div > span {
-  color: var(--muted);
-  font-size: 0.56rem;
-}
-
-/* =====================================================
-   SUMMARY
-===================================================== */
-
-.account-summary {
-  display: grid;
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.account-summary article {
-  display: flex;
-  min-width: 0;
-  min-height: 108px;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 17px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fff;
-  box-shadow:
-    0 7px 20px
-    rgba(31, 48, 73, 0.03);
-}
-
-.summary-icon {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 10px;
-  color: var(--gold-dark);
-  background: var(--gold-soft);
-  font-size: 0.55rem;
-  font-weight: 900;
-}
-
-.account-summary small,
-.account-summary strong,
-.account-summary p {
-  display: block;
-}
-
-.account-summary small {
-  color: var(--muted-2);
-  font-size: 0.46rem;
-  font-weight: 850;
-  letter-spacing: 0.09em;
-}
-
-.account-summary strong {
-  overflow: hidden;
-  margin-top: 4px;
-  color: var(--ink);
-  font-size: 0.72rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.account-summary p {
-  margin: 5px 0 0;
-  color: var(--muted);
-  font-size: 0.57rem;
-  line-height: 1.4;
-}
-
-.summary-email {
-  max-width: 180px;
-}
-
-/* =====================================================
-   TABS
-===================================================== */
-
-.account-tabs {
-  position: sticky;
-  top: 70px;
-  z-index: 7;
-  display: flex;
-  gap: 4px;
-  margin: 16px 0 34px;
-  padding: 7px;
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background:
-    rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 8px 22px
-    rgba(31, 48, 73, 0.045);
-  backdrop-filter: blur(10px);
-}
-
-.account-tabs a {
-  flex: 0 0 auto;
-  padding: 9px 13px;
-  border-radius: 9px;
-  color: #627186;
-  font-size: 0.67rem;
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.account-tabs a:hover {
-  color: var(--wine);
-  background: #fff5f8;
-}
-
-/* =====================================================
-   SECTION
-===================================================== */
-
-.account-section {
-  margin-bottom: 38px;
-  scroll-margin-top: 145px;
-}
-
-.section-header {
-  display: flex;
-  gap: 22px;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 17px;
-}
-
-.section-heading {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.section-heading > span {
-  display: grid;
-  width: 39px;
-  height: 39px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid #ead17d;
-  border-radius: 50%;
-  color: var(--gold-dark);
-  background: var(--gold-soft);
-  font-size: 0.58rem;
-  font-weight: 900;
-}
-
-.section-heading small {
-  display: block;
-  margin-bottom: 3px;
-  color: var(--gold-dark);
-  font-size: 0.53rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-}
-
-.section-heading h2 {
-  margin: 0;
-  color: var(--ink);
-  font-size:
-    clamp(1.45rem, 2.6vw, 2rem);
-  letter-spacing: -0.03em;
-}
-
-.section-header > p {
-  max-width: 410px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.69rem;
-  line-height: 1.55;
-  text-align: right;
-}
-
-/* =====================================================
-   PROFILE
-===================================================== */
-
-.profile-grid {
-  display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.profile-card {
-  min-width: 0;
-  min-height: 150px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 17px;
-  background: #fff;
-  box-shadow:
-    0 8px 23px
-    rgba(31, 48, 73, 0.035);
-}
-
-.profile-card--identity {
-  background:
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(217, 169, 29, 0.08),
-      transparent 40%
-    ),
-    #fff;
-}
-
-.profile-card__top {
-  display: flex;
-  gap: 13px;
-  align-items: center;
-}
-
-.profile-avatar {
-  display: grid;
-  width: 47px;
-  height: 47px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid #e6cf82;
-  border-radius: 13px;
-  color: #7b5c00;
-  background: var(--gold-soft);
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
-.profile-card small,
-.profile-card strong,
-.profile-card__top span {
-  display: block;
-}
-
-.profile-card small {
-  color: var(--gold-dark);
-  font-size: 0.49rem;
-  font-weight: 900;
-  letter-spacing: 0.09em;
-}
-
-.profile-card strong {
-  overflow-wrap: anywhere;
-  margin-top: 7px;
-  color: var(--ink);
-  font-size: 0.84rem;
-}
-
-.profile-card__top strong {
-  margin-top: 2px;
-}
-
-.profile-card__top div > span {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 0.61rem;
-}
-
-.profile-card p {
-  max-width: 480px;
-  margin: 10px 0 0;
-  color: var(--muted);
-  font-size: 0.65rem;
-  line-height: 1.55;
-}
-
-.text-button {
-  margin-top: 12px;
-  padding: 0;
-  border: 0;
-  color: var(--wine);
-  background: transparent;
-  font: inherit;
-  font-size: 0.62rem;
-  font-weight: 850;
-  cursor: pointer;
-}
-
-.mono-value {
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    monospace;
-  letter-spacing: 0.01em;
-}
-
-/* =====================================================
-   ACADEMIC
-===================================================== */
-
-.academic-card {
-  padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background:
-    radial-gradient(
-      circle at 92% 8%,
-      rgba(217, 169, 29, 0.09),
-      transparent 32%
-    ),
-    #fff;
-  box-shadow:
-    0 9px 25px
-    rgba(31, 48, 73, 0.04);
-}
-
-.academic-card__main {
-  display: flex;
-  gap: 15px;
-  align-items: flex-start;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e8edf3;
-}
-
-.academic-card__icon {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid #e4c75c;
-  border-radius: 13px;
-  color: #775800;
-  background: var(--gold-soft);
-  font-size: 0.74rem;
-  font-weight: 900;
-}
-
-.academic-card__main small {
-  color: var(--gold-dark);
-  font-size: 0.49rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-.academic-card__main h3 {
-  margin: 3px 0 5px;
-  color: var(--ink);
-  font-size: 1.1rem;
-}
-
-.academic-card__main p {
-  max-width: 720px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.68rem;
-  line-height: 1.55;
-}
-
-.academic-details {
-  display: grid;
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 17px;
-}
-
-.academic-details article {
-  min-height: 82px;
-  padding: 14px;
-  border: 1px solid #e3e8ee;
-  border-radius: 12px;
-  background: #f8fafc;
-}
-
-.academic-details span,
-.academic-details strong {
-  display: block;
-}
-
-.academic-details span {
-  color: var(--muted-2);
-  font-size: 0.46rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.academic-details strong {
-  margin-top: 5px;
-  color: var(--ink-soft);
-  font-size: 0.69rem;
-}
-
-.academic-link {
-  display: inline-flex;
-  gap: 7px;
-  align-items: center;
-  margin-top: 18px;
-  color: var(--wine);
-  font-size: 0.65rem;
-  font-weight: 850;
-  text-decoration: none;
-}
-
-/* =====================================================
-   SECURITY
-===================================================== */
-
-.security-layout {
-  display: grid;
-  grid-template-columns:
-    minmax(270px, 0.72fr)
-    minmax(0, 1.28fr);
-  gap: 14px;
-}
-
-.security-guide,
-.password-card {
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-  box-shadow:
-    0 9px 25px
-    rgba(31, 48, 73, 0.04);
-}
-
-.security-guide {
-  padding: 22px;
-}
-
-.security-guide__icon {
-  display: grid;
-  width: 43px;
-  height: 43px;
-  margin-bottom: 19px;
-  place-items: center;
-  border-radius: 13px;
-  color: #fff;
-  background: var(--green);
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
-.security-guide small {
-  color: var(--gold-dark);
-  font-size: 0.49rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-.security-guide h3 {
-  margin: 4px 0 8px;
-  color: var(--ink);
-  font-size: 1.15rem;
-}
-
-.security-guide > div > p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.67rem;
-  line-height: 1.62;
-}
-
-.security-guide__tips {
-  display: grid;
-  gap: 9px;
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid #e8edf3;
-}
-
-.security-guide__tips article {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 9px;
-  align-items: center;
-}
-
-.security-guide__tips article > span {
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  border-radius: 8px;
-  color: var(--gold-dark);
-  background: var(--gold-soft);
-  font-size: 0.49rem;
-  font-weight: 900;
-}
-
-.security-guide__tips p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.61rem;
-  line-height: 1.45;
-}
-
-.password-card {
-  padding: 24px;
-}
-
-.password-card__header {
-  display: flex;
-  gap: 18px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 21px;
-}
-
-.password-card__header h3 {
-  margin: 4px 0 6px;
-  color: var(--ink);
-  font-size: 1.3rem;
-  letter-spacing: -0.025em;
-}
-
-.password-card__header p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.67rem;
-}
-
-.password-card__badge {
-  padding: 6px 9px;
-  border-radius: 999px;
-  color: var(--green);
-  background: var(--green-soft);
-  font-size: 0.5rem;
-  font-weight: 900;
-}
-
-.password-form {
-  display: grid;
-  gap: 17px;
-}
-
-.form-field {
-  display: grid;
-  gap: 7px;
-}
-
-.field-heading {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-}
-
-.form-field label {
-  color: var(--ink-soft);
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
-.field-heading > span {
-  color: var(--muted-2);
-  font-size: 0.51rem;
-}
-
-.input-wrapper {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  overflow: hidden;
-  border: 1px solid var(--line-strong);
-  border-radius: 11px;
-  background: #fbfcfe;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
-}
-
-.input-wrapper:focus-within {
-  border-color: #aec0d3;
-  background: #fff;
-  box-shadow:
-    0 0 0 4px
-    rgba(63, 111, 168, 0.08);
-}
-
-.input-wrapper input {
-  width: 100%;
-  min-width: 0;
-  min-height: 49px;
-  padding: 0 14px;
-  border: 0;
-  outline: 0;
-  color: var(--ink);
-  background: transparent;
-  font: inherit;
-}
-
-.input-wrapper input::placeholder {
-  color: #9aa6b7;
-}
-
-.show-button {
-  min-width: 84px;
-  padding: 0 13px;
-  border: 0;
-  border-left: 1px solid #e1e7ed;
-  color: var(--wine);
-  background: transparent;
-  font: inherit;
-  font-size: 0.64rem;
-  font-weight: 850;
-  cursor: pointer;
-}
-
-.requirements {
-  display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding: 13px;
-  border: 1px solid #e3e8ee;
-  border-radius: 11px;
-  background: #f8fafc;
-}
-
-.requirement {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  color: #7f8a99;
-  font-size: 0.64rem;
-}
-
-.requirement span {
-  display: grid;
-  width: 19px;
-  height: 19px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  font-size: 0.45rem;
-}
-
-.requirement.is-valid {
-  color: var(--green);
-}
-
-.message {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 12px 13px;
-  border-radius: 11px;
-}
-
-.message > span {
-  display: grid;
-  width: 25px;
-  height: 25px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 0.55rem;
-  font-weight: 900;
-}
-
-.message strong,
-.message p {
-  display: block;
-}
-
-.message strong {
-  font-size: 0.66rem;
-}
-
-.message p {
-  margin: 3px 0 0;
-  font-size: 0.61rem;
-  line-height: 1.45;
-}
-
-.message--error {
-  border: 1px solid #efcbd1;
-  background: var(--danger-soft);
-}
-
-.message--error > span {
-  background: var(--danger);
-}
-
-.message--error strong,
-.message--error p {
-  color: #98404d;
-}
-
-.message--success {
-  border: 1px solid #c8e2d3;
-  background: var(--green-soft);
-}
-
-.message--success > span {
-  background: var(--green);
-}
-
-.message--success strong,
-.message--success p {
-  color: #286747;
-}
-
-.submit-button {
-  display: inline-flex;
-  min-height: 47px;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--wine);
-  border-radius: 10px;
-  color: #fff;
-  background: var(--wine);
-  font: inherit;
-  font-size: 0.67rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow:
-    0 8px 20px
-    rgba(159, 25, 69, 0.15);
-}
-
-.submit-button:hover:not(:disabled) {
-  background: var(--wine-dark);
-  transform: translateY(-1px);
-}
-
-.submit-button:disabled {
-  border-color: #d8dee5;
-  color: #98a3b0;
-  background: #edf1f5;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-.button-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid
-    rgba(255, 255, 255, 0.35);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
-
-@media (max-width: 980px) {
-  .account-summary {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-  .security-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .academic-details {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
-  .account-page {
-    width:
-      min(100% - 28px, 1180px);
-    padding: 28px 0 55px;
-  }
-
-  .account-hero {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 23px;
-  }
-
-  .account-hero__security {
-    width: 100%;
-  }
-
-  .section-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .section-header > p {
-    max-width: none;
-    text-align: left;
-  }
-
-  .profile-grid,
-  .account-summary,
-  .academic-details,
-  .requirements {
-    grid-template-columns: 1fr;
-  }
-
-  .account-tabs {
-    top: 58px;
-  }
-}
-
-@media (max-width: 520px) {
-  .account-hero__identity {
-    align-items: flex-start;
-  }
-
-  .account-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 16px;
-  }
-
-  .password-card,
-  .security-guide,
-  .academic-card,
-  .profile-card {
-    padding: 18px;
-  }
-
-  .input-wrapper {
-    grid-template-columns: 1fr;
-  }
-
-  .show-button {
-    min-height: 38px;
-    border-top: 1px solid #e1e7ed;
-    border-left: 0;
-    text-align: left;
-  }
-}
-
-
-/* =========================================================
-   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
-   Sistema visual común para el SaaS
-========================================================= */
-.account-page {
-  --amv-canvas: #f5f7fb;
-  --amv-card: #ffffff;
-  --amv-ink: #172033;
-  --amv-body: #344359;
-  --amv-muted: #667085;
-  --amv-line: #dbe3ec;
-  --amv-wine: #9f1945;
-  --amv-wine-dark: #7f1237;
-  --amv-gold: #d9a91d;
-  --amv-gold-soft: #fff8e7;
-  --amv-green: #2d8a63;
-  --amv-red: #be4856;
-  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
-  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
-  --amv-radius-sm: 12px;
-  --amv-radius-md: 18px;
-  --amv-radius-lg: 24px;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-.account-page :where(a, button, input, textarea, select, [role="button"]) {
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
-}
-
-.account-page :where(a, button, input, textarea, select, [role="button"]):focus-visible {
-  outline: 3px solid rgba(159, 25, 69, .22) !important;
-  outline-offset: 3px;
-}
-
-.account-page :where(button, [role="button"], .button, .btn):not(:disabled):active {
-  transform: translateY(1px) scale(.99);
-}
-
-.account-page :where(input, textarea, select) {
-  font-size: max(16px, 1em);
-}
-
-.account-page :where(table tbody tr) {
-  transition: background-color .18s ease;
-}
-
-.account-page :where(table tbody tr):hover {
-  background-color: rgba(159, 25, 69, .025);
-}
-
-.account-page :where(.card, [class*="-card"], [class*="__card"]) {
-  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
-}
-
-.account-page :where(.card, [class*="-card"], [class*="__card"]):hover {
-  border-color: rgba(159, 25, 69, .16);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .account-page *, .account-page *::before, .account-page *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-}
-
-
-/* =========================================================
-   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
-   Capa visual segura: no modifica lógica, datos ni estructura.
-========================================================= */
-.account-page {
-  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
-}
-
-.account-page :where(
-  article,
-  [class$="__card"],
-  [class*="-card"],
-  [class*="_card"]
-) {
-  transition:
-    transform .24s cubic-bezier(.2,.75,.25,1),
-    box-shadow .24s ease,
-    border-color .24s ease,
-    background-color .24s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .account-page :where(
-    article,
-    [class$="__card"],
-    [class*="-card"],
-    [class*="_card"]
-  ):hover {
-    transform: translateY(-2px);
-  }
-
-  .account-page :where(
-    button,
-    .button,
-    .btn,
-    a[class*="button"],
-    a[class*="cta"]
-  ):not(:disabled):hover {
-    transform: translateY(-2px);
-    filter: saturate(1.04);
-  }
-
-  .account-page :where(img) {
-    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
-  }
-
-  .account-page :where(
-    [class*="cover"],
-    [class*="hero"],
-    [class*="visual"],
-    [class*="gallery"]
-  ):hover img {
-    transform: scale(1.018);
-  }
-}
-
-.account-page :where(
-  button,
-  .button,
-  .btn,
-  a[class*="button"],
-  a[class*="cta"]
-) {
-  will-change: transform;
-}
-
-.account-page :where(input, textarea, select):focus {
-  transform: translateY(-1px);
-}
-
-.account-page :where(
-  [class*="progress"] > *,
-  [class*="bar"] > *,
-  progress
-) {
-  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
-}
-
-.account-page ::selection {
-  color: #ffffff;
-  background: #9f1945;
-}
-
-@keyframes amvViewEnter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .account-page,
-  .account-page *,
-  .account-page *::before,
-  .account-page *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
+.profile-page {
+  --ink:#172033; --muted:#738198; --line:#dfe6ee; --surface:#fff; --soft:#f6f8fb;
+  --wine:#a6194a; --wine-deep:#7c1238; --gold:#d9a91d; --gold-deep:#9a7200; --green:#2b966d;
+  width:min(1180px,calc(100% - 40px)); margin:0 auto; padding:34px 0 76px; color:var(--ink);
+}
+.profile-hero,.overview-card,.profile-editor-card,.academic-grid article,.security-card,.security-note {
+  border:1px solid var(--line); background:var(--surface); box-shadow:0 16px 38px rgba(18,31,51,.055);
+}
+.profile-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; gap:28px; padding:34px; border-radius:26px; background:
+  radial-gradient(circle at 85% 10%,rgba(217,169,29,.18),transparent 26%),
+  radial-gradient(circle at 72% 90%,rgba(166,25,74,.08),transparent 30%), linear-gradient(135deg,#fff,#fbfcfe 64%,#fff9ef); }
+.profile-hero::before { content:''; position:absolute; inset:0; background:linear-gradient(110deg,transparent 10%,rgba(255,255,255,.7) 42%,transparent 74%); transform:translateX(-110%); animation:shine 5.5s ease-in-out infinite; pointer-events:none; }
+@keyframes shine { 0%,55%{transform:translateX(-110%)} 75%,100%{transform:translateX(110%)} }
+.profile-kicker { color:var(--gold-deep); font-weight:900; font-size:.68rem; letter-spacing:.18em; }
+.profile-kicker i { display:inline-block; width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:8px;box-shadow:0 0 14px rgba(43,150,109,.45); }
+.profile-hero h1 { margin:14px 0 12px; font-size:clamp(3rem,6vw,5.2rem); line-height:.94; letter-spacing:-.06em; }
+.profile-hero h1 span { color:var(--gold-deep); }
+.profile-hero p { max-width:660px; margin:0; color:var(--muted); font-size:.95rem; line-height:1.7; }
+.profile-hero__identity { display:flex; align-items:center; gap:15px; align-self:center; min-width:260px; }
+.profile-hero__identity > div { display:flex; flex-direction:column; min-width:0; }
+.profile-hero__identity span { color:var(--gold-deep); font-size:.58rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+.profile-hero__identity strong { font-size:1.05rem; margin-top:4px; }
+.profile-hero__identity small { margin-top:3px; color:var(--muted); }
+.profile-avatar { position:relative; display:grid; place-items:center; flex:0 0 auto; overflow:hidden; border:0; background:linear-gradient(145deg,#8e123e,#b62159); color:#fff; cursor:pointer; box-shadow:0 12px 28px rgba(166,25,74,.22); }
+.profile-avatar img { width:100%;height:100%;object-fit:cover; }
+.profile-avatar--hero { width:74px;height:74px;border-radius:24px; }
+.profile-avatar--large { width:104px;height:104px;border-radius:30px; border:4px solid #fff; box-shadow:0 15px 35px rgba(166,25,74,.22); }
+.profile-avatar--hero small,.profile-avatar--large b { position:absolute; right:5px; bottom:5px; display:grid;place-items:center; width:24px;height:24px;border-radius:50%;background:#fff;color:var(--wine);font-size:.7rem; }
+.sr-only { position:absolute; width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap; }
+.profile-overview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:15px 0 16px; }
+.overview-card { display:flex; gap:12px; align-items:flex-start; padding:18px; border-radius:18px; }
+.overview-card__icon { width:38px;height:38px;display:grid;place-items:center;flex:0 0 auto;border-radius:12px;background:#fff5df;border:1px solid #efd895; }
+.overview-card small,.academic-grid span { display:block; color:#8b96a8; font-size:.52rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase; }
+.overview-card strong { display:block;margin-top:5px;font-size:.9rem; }
+.overview-card p { margin:4px 0 0;color:var(--muted);font-size:.66rem;line-height:1.45; }
+.profile-tabs { position:sticky;top:0;z-index:30;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:7px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);box-shadow:0 12px 30px rgba(17,31,52,.08); }
+.profile-tabs a { display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:12px;color:#637188;text-decoration:none;font-size:.72rem;font-weight:850;transition:.22s ease; }
+.profile-tabs a:hover { color:var(--wine);background:#fbf3f6;transform:translateY(-1px); }
+.profile-section { margin-top:32px; }
+.profile-section__header { display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:14px; }
+.profile-section__header > div { display:grid; grid-template-columns:42px minmax(0,1fr); column-gap:12px; align-items:end; }
+.profile-section__header > div > span { grid-row:1 / span 2; display:grid;place-items:center;width:42px;height:42px;border:1px solid #e5c96d;border-radius:50%;color:var(--gold-deep);font-weight:900; }
+.profile-section__header small { color:var(--wine);font-size:.57rem;font-weight:900;letter-spacing:.16em; }
+.profile-section__header h2 { margin:2px 0 0;font-size:2rem;letter-spacing:-.04em; }
+.profile-section__header p { margin:0;color:var(--muted);max-width:470px;font-size:.75rem;line-height:1.6;text-align:right; }
+.profile-editor-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+.profile-editor-card { padding:24px;border-radius:20px; }
+.profile-editor-card--photo { display:flex;gap:20px;align-items:center;background:linear-gradient(145deg,#fff,#fbf7ff); }
+.profile-editor-card--photo > div:last-child { min-width:0; }
+.profile-editor-card--photo span,.security-card__copy > span { color:var(--wine);font-size:.56rem;font-weight:900;letter-spacing:.14em; }
+.profile-editor-card h3 { margin:7px 0 5px;font-size:1.15rem; }
+.profile-editor-card p { margin:0;color:var(--muted);font-size:.7rem;line-height:1.55; }
+.photo-actions { display:flex;gap:8px;flex-wrap:wrap;margin-top:15px; }
+.form-field,.readonly-field { display:grid;gap:7px;margin-bottom:14px; }
+.form-field label,.readonly-field > span { color:#465468;font-size:.72rem;font-weight:800; }
+.form-field input { width:100%;height:48px;padding:0 13px;border:1px solid var(--line);border-radius:12px;color:var(--ink);outline:none;background:#fff;transition:.2s ease; }
+.form-field input:focus { border-color:var(--wine);box-shadow:0 0 0 3px rgba(166,25,74,.08); }
+.form-field small,.readonly-field small { color:var(--muted);font-size:.63rem;line-height:1.45; }
+.readonly-field { padding:14px;border:1px solid #e7ebf0;border-radius:14px;background:var(--soft); }
+.readonly-field strong { font-size:.82rem;word-break:break-all; }
+.button { display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 15px;border:0;border-radius:11px;font-size:.72rem;font-weight:900;cursor:pointer;transition:.22s ease; }
+.button:hover:not(:disabled) { transform:translateY(-2px); }
+.button:disabled { opacity:.55;cursor:not-allowed; }
+.button--primary { background:var(--wine);color:#fff;box-shadow:0 10px 22px rgba(166,25,74,.18); }
+.button--ghost { background:#fff;border:1px solid var(--line);color:#465468; }
+.button--text { background:transparent;color:var(--wine); }
+.message { display:flex;gap:9px;align-items:flex-start;padding:11px 12px;margin:10px 0;border-radius:12px;font-size:.7rem;line-height:1.45; }
+.message b { width:22px;height:22px;display:grid;place-items:center;border-radius:50%;flex:0 0 auto; }
+.message--success { background:#ecfdf3;color:#166534; }.message--success b{background:#d1fae5;}
+.message--error { background:#fff1f2;color:#9f1239; }.message--error b{background:#ffe4e6;}
+.academic-grid { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px; }
+.academic-grid article { padding:20px;border-radius:18px; }
+.academic-grid strong { display:block;margin-top:7px;font-size:.9rem; }
+.academic-grid small { display:block;margin-top:4px;color:var(--muted);font-size:.64rem;line-height:1.45; }
+.academic-link { display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:12px 14px;border:1px solid #ead1da;border-radius:12px;background:#fff7fa;color:var(--wine);text-decoration:none;font-size:.7rem;font-weight:900; }
+.security-card { display:grid;grid-template-columns:160px minmax(0,1fr);gap:28px;padding:26px;border-radius:22px;background:linear-gradient(145deg,#fff,#fff9f0);overflow:hidden; }
+.security-card__visual { position:relative;display:grid;place-items:center;min-height:190px;border-radius:18px;background:radial-gradient(circle at center,rgba(217,169,29,.22),transparent 47%),linear-gradient(145deg,#f9f3df,#fff); }
+.security-card__visual span { position:relative;z-index:2;width:72px;height:72px;display:grid;place-items:center;border-radius:24px;background:#fff;border:1px solid #eddda8;color:var(--gold-deep);font-size:2rem;box-shadow:0 12px 28px rgba(217,169,29,.18); }
+.security-card__visual i,.security-card__visual b { position:absolute;border:1px solid rgba(217,169,29,.35);border-radius:50%;animation:orbit 4.5s linear infinite; }
+.security-card__visual i { width:125px;height:125px; }.security-card__visual b { width:165px;height:165px;animation-direction:reverse;animation-duration:7s; }
+@keyframes orbit { to { transform:rotate(360deg); } }
+.security-card__copy { align-self:center; }
+.security-card__copy h3 { margin:7px 0 8px;font-size:1.5rem;letter-spacing:-.03em; }
+.security-card__copy p { max-width:690px;margin:0;color:var(--muted);font-size:.76rem;line-height:1.65; }
+.security-card__copy .button { margin-top:16px; }
+.security-note { display:flex;gap:12px;margin-top:12px;padding:15px 17px;border-radius:16px;background:#fbfcfe; }
+.security-note > span { font-size:1.1rem; }.security-note strong{font-size:.74rem}.security-note p{margin:4px 0 0;color:var(--muted);font-size:.65rem;line-height:1.45}
+.profile-footer { display:flex;justify-content:center;gap:9px;margin-top:36px;color:#8d98a9;font-size:.54rem;font-weight:900;letter-spacing:.14em; }
+.profile-footer i { width:4px;height:4px;border-radius:50%;background:var(--gold); }
+@media (max-width:900px){ .profile-overview,.academic-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.profile-editor-grid{grid-template-columns:1fr;}.security-card{grid-template-columns:1fr;}.profile-section__header{align-items:flex-start;flex-direction:column;}.profile-section__header p{text-align:left;} }
+@media (max-width:640px){ .profile-page{width:min(100% - 22px,1180px);padding-top:20px;}.profile-hero{grid-template-columns:1fr;padding:22px;border-radius:20px;}.profile-hero__identity{min-width:0;}.profile-overview,.academic-grid{grid-template-columns:1fr;}.profile-tabs{grid-template-columns:1fr;position:static;}.profile-section__header h2{font-size:1.6rem;}.profile-editor-card--photo{align-items:flex-start;flex-direction:column;}.security-card{padding:18px;}.security-card__visual{min-height:160px;} }
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important;}}
 </style>

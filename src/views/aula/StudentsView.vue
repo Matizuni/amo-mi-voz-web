@@ -594,6 +594,15 @@
               <div class="student-card__admin">
                 <button
                   type="button"
+                  class="student-card__edit"
+                  :disabled="isStudentBusy(student.id)"
+                  @click="openEditStudent(student)"
+                >
+                  ✎ Editar datos
+                </button>
+
+                <button
+                  type="button"
                   :disabled="isStudentBusy(student.id)"
                   @click="
                     askDeactivateStudent(student)
@@ -627,6 +636,58 @@
         </div>
       </template>
     </template>
+
+    <!-- =====================================================
+         MODAL EDITAR
+    ====================================================== -->
+    <Transition name="modal">
+      <div
+        v-if="studentToEdit"
+        class="students-modal"
+        @click.self="cancelEditStudent"
+      >
+        <section class="students-modal__card students-edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-student-title">
+          <button type="button" class="students-modal__close" :disabled="isSavingStudentEdit" aria-label="Cerrar" @click="cancelEditStudent">×</button>
+          <div class="students-modal__icon students-modal__icon--edit">✎</div>
+          <p class="students-modal__eyebrow">Gestión académica</p>
+          <h2 id="edit-student-title">Editar estudiante</h2>
+          <p class="students-modal__lead">Corrige los datos académicos visibles de <strong>{{ studentToEdit.name }}</strong> sin tocar sus credenciales de acceso.</p>
+
+          <form class="student-edit-form" @submit.prevent="saveStudentEdit">
+            <label>
+              <span>Nombre completo</span>
+              <input v-model.trim="editStudentForm.name" type="text" maxlength="120" required />
+            </label>
+
+            <label>
+              <span>Clasificación vocal</span>
+              <select v-model="editStudentForm.voice">
+                <option value="">Sin clasificar</option>
+                <option value="Soprano">Soprano</option>
+                <option value="Alto">Alto</option>
+                <option value="Tenor">Tenor</option>
+                <option value="Bajo">Bajo</option>
+              </select>
+            </label>
+
+            <label class="student-edit-switch">
+              <input v-model="editStudentForm.active" type="checkbox" />
+              <span>
+                <strong>Cuenta académica activa</strong>
+                <small>Desactivar desde aquí mantiene los datos almacenados.</small>
+              </span>
+            </label>
+
+            <div class="students-modal__actions">
+              <button type="button" class="modal-button modal-button--secondary" :disabled="isSavingStudentEdit" @click="cancelEditStudent">Cancelar</button>
+              <button type="submit" class="modal-button modal-button--edit" :disabled="isSavingStudentEdit">
+                {{ isSavingStudentEdit ? 'Guardando…' : 'Guardar cambios' }}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </Transition>
 
     <!-- =====================================================
          MODAL DESACTIVAR
@@ -897,6 +958,10 @@ import {
   fetchStudents
 } from '@/services/studentService'
 
+import {
+  updateStudentByTeacher
+} from '@/services/accountProfileService'
+
 /* =========================================================
    ROUTER
 ========================================================= */
@@ -944,6 +1009,44 @@ const toastType = ref('success')
 let toastTimer = null
 
 /* =========================================================
+   EDITAR DATOS ACADÉMICOS
+========================================================= */
+
+const openEditStudent = student => {
+  if (!student || isStudentBusy(student.id)) return
+  studentToEdit.value = student
+  editStudentForm.value = {
+    name: student.name || '',
+    voice: student.voice || '',
+    active: student.active !== false,
+  }
+}
+
+const cancelEditStudent = () => {
+  if (isSavingStudentEdit.value) return
+  studentToEdit.value = null
+}
+
+const saveStudentEdit = async () => {
+  const student = studentToEdit.value
+  if (!student || isSavingStudentEdit.value) return
+
+  isSavingStudentEdit.value = true
+
+  try {
+    const updated = await updateStudentByTeacher(student.id, editStudentForm.value)
+    studentToEdit.value = null
+    await loadStudents()
+    showToast(`${updated.name} fue actualizado correctamente.`, 'success')
+  } catch (error) {
+    console.error('Error editando estudiante:', error)
+    showToast(error?.message || 'No fue posible actualizar al estudiante.', 'error')
+  } finally {
+    isSavingStudentEdit.value = false
+  }
+}
+
+/* =========================================================
    DESACTIVAR
 ========================================================= */
 
@@ -959,6 +1062,13 @@ const studentToDelete = ref(null)
 const isDeleting = ref(false)
 const deletingStudentId = ref(null)
 const deleteConfirmation = ref('')
+
+/* =========================================================
+   EDITAR DATOS ACADÉMICOS
+========================================================= */
+const studentToEdit = ref(null)
+const editStudentForm = ref({ name: '', voice: '', active: true })
+const isSavingStudentEdit = ref(false)
 
 /* =========================================================
    CARGAR
@@ -1385,6 +1495,13 @@ const getInitials = name => {
 const handleKeydown = event => {
   if (event.key !== 'Escape') {
     return
+  }
+
+  if (
+    studentToEdit.value &&
+    !isSavingStudentEdit.value
+  ) {
+    cancelEditStudent()
   }
 
   if (
@@ -4213,4 +4330,25 @@ onBeforeUnmount(() => {
   }
 }
 
+</style>
+
+
+<style lang="scss" scoped">
+.students .student-card__edit { color:#8d6c08; background:#fffaf0; border-color:#ebd38a; }
+.students .student-card__edit:hover:not(:disabled) { color:#6f5200; background:#fff5dc; }
+.students .students-edit-modal { border-color:#e2cf8d; background:linear-gradient(145deg,#fff,#fffaf1); }
+.students .students-modal__icon--edit { color:#997100; background:#fff5d9; box-shadow:0 12px 26px rgba(217,169,29,.12); }
+.students .student-edit-form { display:grid; gap:14px; }
+.students .student-edit-form > label:not(.student-edit-switch) { display:grid; gap:7px; }
+.students .student-edit-form > label > span { color:#455366; font-size:.72rem; font-weight:850; }
+.students .student-edit-form input[type="text"],
+.students .student-edit-form select { width:100%; min-height:46px; padding:0 12px; border:1px solid #dce3eb; border-radius:11px; background:#fff; color:#172033; outline:none; }
+.students .student-edit-form input[type="text"]:focus,
+.students .student-edit-form select:focus { border-color:#c39a24; box-shadow:0 0 0 3px rgba(195,154,36,.1); }
+.students .student-edit-switch { display:flex; gap:11px; align-items:center; padding:13px 14px; border:1px solid #e5ebf1; border-radius:12px; background:#f8fafc; }
+.students .student-edit-switch input { width:18px; height:18px; accent-color:#9f1945; }
+.students .student-edit-switch strong,.students .student-edit-switch small { display:block; }
+.students .student-edit-switch strong { color:#263449; font-size:.73rem; }
+.students .student-edit-switch small { margin-top:3px; color:#7b8798; font-size:.62rem; }
+.students .modal-button--edit { border:0; background:#9f1945; color:#fff; box-shadow:0 9px 22px rgba(159,25,69,.16); }
 </style>
