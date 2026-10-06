@@ -641,7 +641,7 @@ import {
   requestVocalAnalysis,
   uploadVocalRecording,
   VOCAL_DIMENSIONS
-} from '@/services/VocalIntelligenceService'
+} from '@/services/vocalIntelligenceService'
 
 /* =========================================================
    BASE
