@@ -1,2110 +1,1162 @@
 <template>
-
   <section class="calendar-page">
-
     <header class="calendar-hero">
-
-      <div>
-
+      <div class="calendar-hero__copy">
         <span class="eyebrow">AULA VIRTUAL · PLANIFICACIÓN</span>
-
-        <h1>Calendario</h1>
-
-        <p>
-
-          Revisa clases, entregas y fechas importantes del curso
-
-          en un solo lugar.
-
-        </p>
-
+        <div class="hero-title-row">
+          <div>
+            <h1>Calendario académico</h1>
+            <p>
+              Clases, tareas, quiz, pruebas y eventos especiales reunidos en un solo lugar.
+            </p>
+          </div>
+          <div class="hero-date">
+            <span>HOY</span>
+            <strong>{{ todayDay }}</strong>
+            <small>{{ todayMonth }}</small>
+          </div>
+        </div>
       </div>
 
-      <div class="hero-date">
+      <div class="hero-actions">
+        <div class="hero-stat">
+          <span>PRÓXIMO HITO</span>
+          <strong>{{ nextEvent?.title || 'Sin eventos próximos' }}</strong>
+          <small v-if="nextEvent">{{ nextEventDateLabel }}</small>
+          <small v-else>Agrega una fecha al calendario.</small>
+        </div>
 
-        <span>HOY</span>
-
-        <strong>{{ todayDay }}</strong>
-
-        <small>{{ todayMonth }}</small>
-
+        <button
+          v-if="isTeacher"
+          type="button"
+          class="primary-action"
+          @click="openCreateEvent()"
+        >
+          + Nuevo evento
+        </button>
       </div>
-
     </header>
 
     <section v-if="isLoading" class="state-card">
-
       <span class="loader"></span>
-
       <strong>Organizando tu calendario…</strong>
-
     </section>
 
     <section v-else-if="errorMessage" class="state-card state-card--error">
-
       <strong>No pudimos cargar el calendario</strong>
-
       <p>{{ errorMessage }}</p>
-
       <button type="button" @click="loadCalendar">Reintentar</button>
-
     </section>
 
     <template v-else>
+      <section class="calendar-insight-row">
+        <article class="insight-card insight-card--wine">
+          <span class="insight-icon">♪</span>
+          <div>
+            <small>ESTA SEMANA</small>
+            <strong>{{ weekEventCount }}</strong>
+            <p>actividades y fechas importantes</p>
+          </div>
+        </article>
 
-      <section class="calendar-overview" aria-label="Resumen del calendario">
-        <article><span>CLASES</span><strong>{{ lessonEventCount }}</strong><small>Programadas</small></article>
-        <article><span>TAREAS</span><strong>{{ assignmentEventCount }}</strong><small>Con fecha límite</small></article>
-        <article><span>PRÓXIMA FECHA</span><strong>{{ nextEventDay }}</strong><small>{{ nextEventLabel }}</small></article>
-        <article class="calendar-overview__accent"><span>ESTE MES</span><strong>{{ visibleMonthEventCount }}</strong><small>Actividades registradas</small></article>
+        <article class="insight-card insight-card--gold">
+          <span class="insight-icon">★</span>
+          <div>
+            <small>PRUEBAS</small>
+            <strong>{{ assessmentCount }}</strong>
+            <p>quiz y pruebas programadas</p>
+          </div>
+        </article>
+
+        <article class="insight-card insight-card--green">
+          <span class="insight-icon">◉</span>
+          <div>
+            <small>EVENTOS</small>
+            <strong>{{ customEventCount }}</strong>
+            <p>audiciones, ensayos y actividades especiales</p>
+          </div>
+        </article>
+
+        <article class="insight-card insight-card--slate">
+          <span class="insight-icon">▣</span>
+          <div>
+            <small>REGISTRO</small>
+            <strong>{{ events.length }}</strong>
+            <p>fechas visibles en este calendario</p>
+          </div>
+        </article>
       </section>
 
       <div class="calendar-toolbar">
-
         <div class="month-nav">
-
           <button type="button" aria-label="Mes anterior" @click="changeMonth(-1)">←</button>
-
           <div>
-
             <strong>{{ monthTitle }}</strong>
-
-            <span>{{ events.length }} actividades registradas</span>
-
+            <span>{{ filteredEvents.length }} fechas visibles</span>
           </div>
-
           <button type="button" aria-label="Mes siguiente" @click="changeMonth(1)">→</button>
+        </div>
 
+        <div class="view-switch" aria-label="Vista del calendario">
+          <button
+            type="button"
+            :class="{ active: activeView === 'month' }"
+            @click="activeView = 'month'"
+          >
+            Mes
+          </button>
+          <button
+            type="button"
+            :class="{ active: activeView === 'agenda' }"
+            @click="activeView = 'agenda'"
+          >
+            Agenda
+          </button>
         </div>
 
         <div class="filters" aria-label="Filtrar calendario">
-
           <button
-
             v-for="filter in filters"
-
             :key="filter.value"
-
             type="button"
-
             :class="{ active: activeFilter === filter.value }"
-
             @click="activeFilter = filter.value"
-
           >
-
-            <span :class="`dot dot--${filter.value}`"></span>
-
+            <span class="filter-dot" :class="`filter-dot--${filter.value}`"></span>
             {{ filter.label }}
-
           </button>
-
         </div>
 
         <button class="today-button" type="button" @click="goToday">
-
           Hoy
-
         </button>
-
       </div>
 
-      <div class="calendar-layout">
-
+      <div v-if="activeView === 'month'" class="calendar-layout">
         <section class="month-card">
-
           <div class="weekdays">
-
             <span v-for="day in weekdayLabels" :key="day">{{ day }}</span>
-
           </div>
 
           <div class="month-grid">
-
             <button
-
               v-for="cell in calendarCells"
-
               :key="cell.key"
-
               type="button"
-
               class="day-cell"
-
               :class="{
-
                 'is-outside': !cell.isCurrentMonth,
-
                 'is-today': cell.isToday,
-
                 'is-selected': selectedDateKey === cell.key,
-
-                'has-events': cell.events.length
-
+                'has-events': cell.events.length,
               }"
-
               @click="selectedDateKey = cell.key"
-
             >
-
               <span class="day-number">{{ cell.day }}</span>
-
               <div class="day-events">
-
                 <span
-
-                  v-for="event in cell.events.slice(0, 3)"
-
+                  v-for="event in cell.events.slice(0, 4)"
                   :key="event.id"
-
                   class="event-chip"
-
                   :class="`event-chip--${event.type}`"
-
                 >
-
+                  <span class="event-chip__dot"></span>
                   {{ event.shortTitle }}
-
                 </span>
-
-                <small v-if="cell.events.length > 3">
-
-                  +{{ cell.events.length - 3 }} más
-
+                <small v-if="cell.events.length > 4">
+                  +{{ cell.events.length - 4 }} más
                 </small>
-
               </div>
-
             </button>
-
           </div>
-
         </section>
 
         <aside class="agenda-card">
-
-          <header>
-
+          <header class="agenda-card__header">
             <div>
-
-              <span class="eyebrow">AGENDA</span>
-
+              <span class="eyebrow">AGENDA DEL DÍA</span>
               <h2>{{ selectedDateLabel }}</h2>
-
             </div>
-
             <span class="agenda-count">{{ selectedEvents.length }}</span>
-
           </header>
 
           <div v-if="selectedEvents.length" class="agenda-list">
-
             <article
-
               v-for="event in selectedEvents"
-
               :key="event.id"
-
               class="agenda-item"
-
+              :class="`agenda-item--${event.type}`"
             >
-
-              <span class="agenda-marker" :class="`agenda-marker--${event.type}`"></span>
-
-              <div>
-
-                <small>{{ event.typeLabel }}</small>
-
+              <div class="agenda-marker"></div>
+              <div class="agenda-copy">
+                <div class="agenda-topline">
+                  <small>{{ event.typeLabel }}</small>
+                  <span v-if="event.source === 'manual'" class="source-badge">EVENTO</span>
+                </div>
                 <strong>{{ event.title }}</strong>
-
                 <p>{{ event.meta }}</p>
-
+                <p v-if="event.location" class="agenda-location">⌖ {{ event.location }}</p>
               </div>
 
-              <RouterLink :to="event.to">Abrir →</RouterLink>
-
+              <div class="agenda-actions">
+                <RouterLink v-if="event.to" :to="event.to">Abrir →</RouterLink>
+                <template v-else-if="isTeacher && event.source === 'manual'">
+                  <button type="button" @click="openEditEvent(event.raw)">Editar</button>
+                  <button type="button" class="danger-link" @click="confirmDelete(event.raw)">Eliminar</button>
+                </template>
+              </div>
             </article>
-
           </div>
 
           <div v-else class="agenda-empty">
-
             <div>✓</div>
-
             <strong>Sin actividades</strong>
-
-            <p>No hay clases ni entregas registradas para este día.</p>
-
+            <p>No hay fechas programadas para este día.</p>
+            <button v-if="isTeacher" type="button" @click="openCreateEvent(selectedDateKey)">+ Agregar evento</button>
           </div>
 
           <section class="upcoming">
-
             <header>
-
               <span>PRÓXIMAMENTE</span>
-
-              <strong>Siguientes fechas</strong>
-
+              <strong>Próximos eventos</strong>
             </header>
-
-            <RouterLink
-              v-for="event in upcomingEvents.slice(0, 5)"
-              :key="`up-${event.id}`"
-              :to="event.to"
-              class="upcoming-link"
-            >
-
-              <div class="upcoming-date">
-
+            <article v-for="event in upcomingEvents.slice(0, 6)" :key="`up-${event.id}`">
+              <div class="upcoming-date" :class="`upcoming-date--${event.type}`">
                 <strong>{{ formatDay(event.date) }}</strong>
-
                 <span>{{ formatMonthShort(event.date) }}</span>
-
               </div>
-
               <div>
-
                 <small>{{ event.typeLabel }}</small>
-
                 <strong>{{ event.title }}</strong>
-
               </div>
-
-            </RouterLink>
-
-            <p v-if="!upcomingEvents.length" class="empty-inline">
-
-              No hay próximas fechas registradas.
-
-            </p>
-
+            </article>
+            <p v-if="!upcomingEvents.length" class="empty-inline">No hay próximas fechas registradas.</p>
           </section>
-
         </aside>
-
       </div>
 
+      <section v-else class="agenda-full-card">
+        <header class="agenda-full-card__header">
+          <div>
+            <span class="eyebrow">AGENDA COMPLETA</span>
+            <h2>Tu recorrido académico</h2>
+            <p>Todas las fechas ordenadas cronológicamente.</p>
+          </div>
+          <button type="button" class="ghost-action" @click="goToday">Volver a hoy</button>
+        </header>
+
+        <div class="agenda-timeline">
+          <article
+            v-for="event in listEvents"
+            :key="event.id"
+            class="timeline-item"
+            :class="`timeline-item--${event.type}`"
+          >
+            <div class="timeline-date">
+              <strong>{{ formatDay(event.date) }}</strong>
+              <span>{{ formatMonthShort(event.date) }}</span>
+            </div>
+            <div class="timeline-line">
+              <span></span>
+            </div>
+            <div class="timeline-body">
+              <div class="timeline-heading">
+                <span class="timeline-kind">{{ event.typeLabel }}</span>
+                <strong>{{ event.title }}</strong>
+              </div>
+              <p v-if="event.meta">{{ event.meta }}</p>
+              <p v-if="event.location">⌖ {{ event.location }}</p>
+              <div class="timeline-actions">
+                <RouterLink v-if="event.to" :to="event.to">Abrir →</RouterLink>
+                <template v-else-if="isTeacher && event.source === 'manual'">
+                  <button type="button" @click="openEditEvent(event.raw)">Editar</button>
+                  <button type="button" class="danger-link" @click="confirmDelete(event.raw)">Eliminar</button>
+                </template>
+              </div>
+            </div>
+          </article>
+
+          <div v-if="!listEvents.length" class="agenda-empty agenda-empty--large">
+            <div>✓</div>
+            <strong>No hay fechas con este filtro</strong>
+            <p>Prueba con otro filtro o crea un nuevo evento.</p>
+          </div>
+        </div>
+      </section>
     </template>
 
-  </section>
+    <Transition name="modal-fade">
+      <div v-if="isEventModalOpen" class="modal-backdrop" @click.self="closeEventModal">
+        <section class="event-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-event-title">
+          <header class="event-modal__header">
+            <div>
+              <span class="eyebrow">GESTIÓN DEL CALENDARIO</span>
+              <h2 id="calendar-event-title">{{ editingEvent ? 'Editar evento' : 'Nuevo evento' }}</h2>
+              <p>Publica una fecha especial para todo el curso o solo para estudiantes.</p>
+            </div>
+            <button type="button" class="modal-close" aria-label="Cerrar" @click="closeEventModal">×</button>
+          </header>
 
+          <div class="event-type-grid">
+            <button
+              v-for="preset in eventPresets"
+              :key="preset.value"
+              type="button"
+              class="event-type-option"
+              :class="[
+                `event-type-option--${preset.value}`,
+                { active: form.eventType === preset.value },
+              ]"
+              @click="form.eventType = preset.value"
+            >
+              <span>{{ preset.glyph }}</span>
+              <div>
+                <strong>{{ preset.label }}</strong>
+                <small>{{ preset.description }}</small>
+              </div>
+            </button>
+          </div>
+
+          <form class="event-form" @submit.prevent="saveEvent">
+            <label>
+              <span>Título</span>
+              <input v-model="form.title" type="text" maxlength="120" placeholder="Ej.: Audición de repertorio" required />
+            </label>
+
+            <div class="form-grid form-grid--2">
+              <label>
+                <span>{{ form.allDay ? 'Fecha' : 'Inicio' }}</span>
+                <input v-model="form.startsAt" :type="form.allDay ? 'date' : 'datetime-local'" required />
+              </label>
+              <label>
+                <span>{{ form.allDay ? 'Fecha final' : 'Fin' }}</span>
+                <input v-model="form.endsAt" :type="form.allDay ? 'date' : 'datetime-local'" />
+              </label>
+            </div>
+
+            <label class="toggle-field">
+              <input v-model="form.allDay" type="checkbox" />
+              <span class="toggle-ui"></span>
+              <div>
+                <strong>Todo el día</strong>
+                <small>Ideal para audiciones, feriados o anuncios.</small>
+              </div>
+            </label>
+
+            <div class="form-grid form-grid--2">
+              <label>
+                <span>Lugar</span>
+                <input v-model="form.location" type="text" maxlength="180" placeholder="Ej.: Pueblito Artesanal La Calera" />
+              </label>
+              <label>
+                <span>Visible para</span>
+                <select v-model="form.scope">
+                  <option value="all">Todo el curso</option>
+                  <option value="students">Solo estudiantes</option>
+                  <option value="teachers">Solo profesores</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              <span>Descripción</span>
+              <textarea v-model="form.description" rows="4" maxlength="1000" placeholder="Detalles, instrucciones o recordatorios."></textarea>
+            </label>
+
+            <p v-if="modalError" class="modal-error">{{ modalError }}</p>
+
+            <footer class="event-modal__footer">
+              <button type="button" class="ghost-action" @click="closeEventModal">Cancelar</button>
+              <button type="submit" class="primary-action" :disabled="isSavingEvent">
+                {{ isSavingEvent ? 'Guardando…' : editingEvent ? 'Guardar cambios' : 'Publicar evento' }}
+              </button>
+            </footer>
+          </form>
+        </section>
+      </div>
+    </Transition>
+
+    <Transition name="modal-fade">
+      <div v-if="eventToDelete" class="modal-backdrop" @click.self="eventToDelete = null">
+        <section class="confirm-modal" role="dialog" aria-modal="true">
+          <span class="confirm-icon">!</span>
+          <h2>Eliminar evento</h2>
+          <p>¿Seguro que quieres eliminar <strong>{{ eventToDelete.title }}</strong>? Esta acción no se puede deshacer.</p>
+          <div class="confirm-actions">
+            <button type="button" class="ghost-action" @click="eventToDelete = null">Cancelar</button>
+            <button type="button" class="danger-action" :disabled="isDeletingEvent" @click="deleteEvent">{{ isDeletingEvent ? 'Eliminando…' : 'Eliminar evento' }}</button>
+          </div>
+        </section>
+      </div>
+    </Transition>
+
+    <Transition name="toast">
+      <div v-if="toastMessage" class="calendar-toast" :class="{ 'calendar-toast--error': toastType === 'error' }">
+        <span>{{ toastType === 'error' ? '!' : '✓' }}</span>
+        <div>
+          <strong>{{ toastType === 'error' ? 'No pudimos actualizar' : 'Calendario actualizado' }}</strong>
+          <small>{{ toastMessage }}</small>
+        </div>
+      </div>
+    </Transition>
+  </section>
 </template>
 
 <script setup>
-
-import { computed, onMounted, ref } from 'vue'
-
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
-
 import { fetchLessons } from '@/services/lessonService'
-
 import { fetchAssignments } from '@/services/assignmentService'
+import { fetchQuizzes } from '@/services/quizService'
+import {
+  fetchCalendarEvents,
+  createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
+} from '@/services/calendarEventService'
+import { useAuth } from '@/composables/useAuth'
+
+const { isTeacher } = useAuth()
 
 const isLoading = ref(true)
-
 const errorMessage = ref('')
-
 const lessons = ref([])
-
 const assignments = ref([])
-
+const quizzes = ref([])
+const manualEvents = ref([])
 const activeFilter = ref('all')
-
+const activeView = ref('month')
 const selectedDateKey = ref('')
-
 const visibleMonth = ref(startOfMonth(new Date()))
 
+const isEventModalOpen = ref(false)
+const editingEvent = ref(null)
+const eventToDelete = ref(null)
+const isSavingEvent = ref(false)
+const isDeletingEvent = ref(false)
+const modalError = ref('')
+const toastMessage = ref('')
+const toastType = ref('success')
+let toastTimer = null
+
+const form = ref(emptyForm())
+
 const filters = [
-
   { label: 'Todo', value: 'all' },
-
   { label: 'Clases', value: 'lesson' },
-
   { label: 'Tareas', value: 'assignment' },
+  { label: 'Quiz', value: 'quiz' },
+  { label: 'Pruebas', value: 'test' },
+  { label: 'Eventos', value: 'manual' },
+]
 
+const eventPresets = [
+  { value: 'audition', label: 'Audición', glyph: '♪', description: 'Evaluación o muestra vocal' },
+  { value: 'rehearsal', label: 'Ensayo', glyph: '♫', description: 'Preparación y práctica' },
+  { value: 'concert', label: 'Concierto', glyph: '★', description: 'Presentación o cierre' },
+  { value: 'meeting', label: 'Reunión', glyph: '◉', description: 'Coordinación académica' },
+  { value: 'announcement', label: 'Anuncio', glyph: '!', description: 'Información importante' },
+  { value: 'holiday', label: 'Feriado', glyph: '☼', description: 'Día sin clases' },
+  { value: 'other', label: 'Otro', glyph: '＋', description: 'Fecha especial' },
 ]
 
 const weekdayLabels = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']
+const monthNames = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
 
-const monthNames = [
-
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-
-]
+function emptyForm() {
+  return {
+    title: '',
+    eventType: 'audition',
+    startsAt: dateToInputValue(new Date(), false),
+    endsAt: '',
+    allDay: false,
+    location: '',
+    scope: 'all',
+    description: '',
+  }
+}
 
 function startOfMonth(date) {
-
   return new Date(date.getFullYear(), date.getMonth(), 1)
-
 }
 
 function dateKey(date) {
-
-  return [
-
-    date.getFullYear(),
-
-    String(date.getMonth() + 1).padStart(2, '0'),
-
-    String(date.getDate()).padStart(2, '0'),
-
-  ].join('-')
-
-}
-
-function normalizeText(value = '') {
-
-  return String(value).trim().toLowerCase()
-
+  return [date.getFullYear(), String(date.getMonth()+1).padStart(2,'0'), String(date.getDate()).padStart(2,'0')].join('-')
 }
 
 function parseDateValue(value) {
-
-  if (!value) {
-
-    return null
-
+  if (!value) return null
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return new Date(value)
+  const raw = String(value).trim()
+  if (raw.includes('T') && /(?:Z|[+-]\d{2}:?\d{2})$/.test(raw)) {
+    const zoned = new Date(raw)
+    return Number.isNaN(zoned.getTime()) ? null : zoned
   }
-
-  if (
-
-    value instanceof Date &&
-
-    !Number.isNaN(
-
-      value.getTime(),
-
-    )
-
-  ) {
-
-    return value
-
-  }
-
-  const raw =
-
-    String(value).trim()
-
-  
-
-  const iso =
-
-    raw.match(
-
-      /^(\d{4})-(\d{2})-(\d{2})/,
-
-    )
-
-  if (iso) {
-
-    return new Date(
-
-      Number(iso[1]),
-
-      Number(iso[2]) - 1,
-
-      Number(iso[3]),
-
-    )
-
-  }
-
-
-
-  
-
-  const cl =
-
-    raw.match(
-
-      /^(\d{1,2})-(\d{1,2})-(\d{4})/,
-
-    )
-
-  if (cl) {
-
-    return new Date(
-
-      Number(cl[3]),
-
-      Number(cl[2]) - 1,
-
-      Number(cl[1]),
-
-    )
-
-  }
-
-
-
-  
-
-  const monthMap = {
-
-    enero: 0,
-
-    febrero: 1,
-
-    marzo: 2,
-
-    abril: 3,
-
-    mayo: 4,
-
-    junio: 5,
-
-    julio: 6,
-
-    agosto: 7,
-
-    septiembre: 8,
-
-    setiembre: 8,
-
-    octubre: 9,
-
-    noviembre: 10,
-
-    diciembre: 11,
-
-  }
-
-
-
-  
-
-  const spanishWithYear =
-
-    raw.match(
-
-      /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+de\s+(\d{4})/i,
-
-    )
-
-  if (spanishWithYear) {
-
-    const month =
-
-      monthMap[
-
-        normalizeText(
-
-          spanishWithYear[2],
-
-        )
-
-      ]
-
-    if (
-
-      month !== undefined
-
-    ) {
-
-      return new Date(
-
-        Number(
-
-          spanishWithYear[3],
-
-        ),
-
-        month,
-
-        Number(
-
-          spanishWithYear[1],
-
-        ),
-
-      )
-
-    }
-
-  }
-
-
-
-  
-
-  const spanishWithoutYear =
-
-    raw.match(
-
-      /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)$/i,
-
-    )
-
-  if (spanishWithoutYear) {
-
-    const month =
-
-      monthMap[
-
-        normalizeText(
-
-          spanishWithoutYear[2],
-
-        )
-
-      ]
-
-    if (
-
-      month !== undefined
-
-    ) {
-
-      return new Date(
-
-        new Date().getFullYear(),
-
-        month,
-
-        Number(
-
-          spanishWithoutYear[1],
-
-        ),
-
-      )
-
-    }
-
-  }
-
-
-
-  
-
-  const parsed =
-
-    new Date(raw)
-
-  return Number.isNaN(
-
-    parsed.getTime(),
-
-  )
-
-    ? null
-
-    : parsed
-
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/)
+  if (iso) return new Date(Number(iso[1]), Number(iso[2])-1, Number(iso[3]), Number(iso[4] || 0), Number(iso[5] || 0))
+  const cl = raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/)
+  if (cl) return new Date(Number(cl[3]), Number(cl[2])-1, Number(cl[1]))
+  const parsed = new Date(raw)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-const events = computed(() => {
+function normalizeAssessmentType(value) {
+  const type = String(value || '').trim().toLowerCase()
+  return ['test','prueba','exam','examen'].some(item => type.includes(item)) ? 'test' : 'quiz'
+}
 
-  const lessonEvents = lessons.value
+function normalizeText(value='') {
+  return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+}
 
-    .map(lesson => {
+function dateToInputValue(date, allDay) {
+  const safe = date instanceof Date ? date : parseDateValue(date)
+  if (!safe) return ''
+  const base = `${safe.getFullYear()}-${String(safe.getMonth()+1).padStart(2,'0')}-${String(safe.getDate()).padStart(2,'0')}`
+  if (allDay) return base
+  return `${base}T${String(safe.getHours()).padStart(2,'0')}:${String(safe.getMinutes()).padStart(2,'0')}`
+}
 
-      const date = parseDateValue(lesson.date)
+function localInputToISO(value, allDay = false) {
+  if (!value) return null
+  if (allDay) {
+    const date = parseDateValue(`${value}T00:00`)
+    return date ? date.toISOString() : null
+  }
+  const date = parseDateValue(value)
+  return date ? date.toISOString() : null
+}
 
-      if (!date) return null
+const eventTypeLabel = value => {
+  const labels = {
+    audition: 'AUDICIÓN',
+    rehearsal: 'ENSAYO',
+    concert: 'CONCIERTO',
+    meeting: 'REUNIÓN',
+    announcement: 'ANUNCIO',
+    holiday: 'FERIADO',
+    other: 'EVENTO',
+  }
+  return labels[value] || 'EVENTO'
+}
 
-      return {
+const toCalendarEvent = raw => {
+  const type = raw?.eventType || raw?.event_type || 'other'
+  const date = parseDateValue(raw?.startsAt || raw?.starts_at)
+  return {
+    id: `manual-${raw.id}`,
+    source: 'manual',
+    type: 'manual',
+    date,
+    raw,
+    title: raw.title,
+    shortTitle: raw.title,
+    typeLabel: eventTypeLabel(type),
+    location: raw.location || '',
+    meta: raw.allDay ? 'Todo el día' : timeRangeLabel(raw.startsAt, raw.endsAt),
+    to: null,
+  }
+}
 
-        id: `lesson-${lesson.id}`,
+function timeRangeLabel(start, end) {
+  const s = parseDateValue(start)
+  const e = parseDateValue(end)
+  if (!s) return ''
+  const formatter = new Intl.DateTimeFormat('es-CL', { hour:'2-digit', minute:'2-digit' })
+  return e ? `${formatter.format(s)} — ${formatter.format(e)}` : formatter.format(s)
+}
 
-        type: 'lesson',
+const lessonEvents = computed(() => lessons.value.map(lesson => {
+  const date = parseDateValue(lesson.date)
+  if (!date) return null
+  return {
+    id:`lesson-${lesson.id}`,
+    source:'generated',
+    type:'lesson',
+    date,
+    title:lesson.title || 'Clase del programa',
+    shortTitle:String(lesson.title || 'Clase').replace(/^Clase\s+[IVXLCDM0-9]+\s*[-·:]?\s*/i,'') || 'Clase',
+    typeLabel:'CLASE',
+    meta:[lesson.time, lesson.modality].filter(Boolean).join(' · '),
+    location:lesson.location || '',
+    to:`/aula/clase/${lesson.id}`,
+  }
+}).filter(Boolean))
 
-        typeLabel: 'CLASE',
+const assignmentEvents = computed(() => assignments.value.map(assignment => {
+  const date = parseDateValue(assignment.dueDate)
+  if (!date || assignment.status === 'draft') return null
+  return {
+    id:`assignment-${assignment.id}`,
+    source:'generated',
+    type:'assignment',
+    date,
+    title:assignment.title || 'Tarea del curso',
+    shortTitle:assignment.title || 'Tarea',
+    typeLabel:'TAREA',
+    meta:`${assignment.points ?? 100} pts · Fecha límite`,
+    location:'',
+    to:`/aula/clase/${assignment.lessonId}/tarea/${assignment.id}`,
+  }
+}).filter(Boolean))
 
-        date,
+const quizEvents = computed(() => quizzes.value.map(quiz => {
+  if (quiz.status !== 'published') return null
+  const rawDate = quiz.closesAt || quiz.opensAt
+  const date = parseDateValue(rawDate)
+  if (!date) return null
+  const type = normalizeAssessmentType(quiz.assessmentType)
+  return {
+    id:`${type}-${quiz.id}`,
+    source:'generated',
+    type,
+    date,
+    title:quiz.title || (type === 'test' ? 'Prueba de unidad' : 'Quiz formativo'),
+    shortTitle:quiz.title || (type === 'test' ? 'Prueba' : 'Quiz'),
+    typeLabel:type === 'test' ? 'PRUEBA' : 'QUIZ',
+    meta:[quiz.opensAt ? `Abre ${timeRangeLabel(quiz.opensAt)}` : '', quiz.closesAt ? `Cierra ${timeRangeLabel(quiz.closesAt)}` : ''].filter(Boolean).join(' · '),
+    location:'',
+    to:`/aula/clase/${quiz.lessonId}/evaluacion/${quiz.id}`,
+  }
+}).filter(Boolean))
 
-        title: lesson.title || 'Clase del programa',
+const events = computed(() => [
+  ...lessonEvents.value,
+  ...assignmentEvents.value,
+  ...quizEvents.value,
+  ...manualEvents.value.map(toCalendarEvent),
+].filter(event => event.date && !Number.isNaN(event.date.getTime())).sort((a,b) => a.date - b.date))
 
-        shortTitle: lesson.title?.replace(/^Clase\s+[IVXLCDM0-9]+\s*[-·:]?\s*/i, '') || 'Clase',
-
-        meta: [lesson.time, lesson.modality, lesson.location].filter(Boolean).join(' · '),
-
-        to: `/aula/clase/${lesson.id}`,
-
-      }
-
-    })
-
-    .filter(Boolean)
-
-  const assignmentEvents = assignments.value
-
-    .map(assignment => {
-
-      const date = parseDateValue(assignment.dueDate)
-
-      if (!date) return null
-
-      return {
-
-        id: `assignment-${assignment.id}`,
-
-        type: 'assignment',
-
-        typeLabel: 'ENTREGA',
-
-        date,
-
-        title: assignment.title || 'Tarea del curso',
-
-        shortTitle: assignment.title || 'Tarea',
-
-        meta: `${assignment.points ?? 100} pts · Fecha límite`,
-
-        to: `/aula/clase/${assignment.lessonId}/tarea/${assignment.id}`,
-
-      }
-
-    })
-
-    .filter(Boolean)
-
-  return [...lessonEvents, ...assignmentEvents].sort((a, b) => a.date - b.date)
-
-})
-
-const filteredEvents = computed(() =>
-
-  activeFilter.value === 'all'
-
-    ? events.value
-
-    : events.value.filter(event => event.type === activeFilter.value)
-
-)
+const filteredEvents = computed(() => activeFilter.value === 'all' ? events.value : events.value.filter(event => event.type === activeFilter.value))
 
 const calendarCells = computed(() => {
-
   const year = visibleMonth.value.getFullYear()
-
   const month = visibleMonth.value.getMonth()
-
   const first = new Date(year, month, 1)
-
-  const mondayOffset = (first.getDay() + 6) % 7
-
-  const start = new Date(year, month, 1 - mondayOffset)
-
+  const mondayOffset = (first.getDay()+6)%7
+  const start = new Date(year, month, 1-mondayOffset)
   const todayKey = dateKey(new Date())
-
-  return Array.from({ length: 42 }, (_, index) => {
-
+  return Array.from({length:42},(_,index)=>{
     const date = new Date(start)
-
-    date.setDate(start.getDate() + index)
-
+    date.setDate(start.getDate()+index)
     const key = dateKey(date)
-
     return {
-
       key,
-
       date,
-
-      day: date.getDate(),
-
-      isCurrentMonth: date.getMonth() === month,
-
-      isToday: key === todayKey,
-
-      events: filteredEvents.value.filter(event => dateKey(event.date) === key),
-
+      day:date.getDate(),
+      isCurrentMonth:date.getMonth()===month,
+      isToday:key===todayKey,
+      events:filteredEvents.value.filter(event=>dateKey(event.date)===key),
     }
-
   })
-
 })
 
-const selectedEvents = computed(() =>
-
-  filteredEvents.value.filter(event => dateKey(event.date) === selectedDateKey.value)
-
-)
+const selectedEvents = computed(() => filteredEvents.value.filter(event => dateKey(event.date) === selectedDateKey.value))
 
 const upcomingEvents = computed(() => {
-
   const today = new Date()
-
-  today.setHours(0, 0, 0, 0)
-
-  return filteredEvents.value.filter(event => event.date >= today)
-
+  today.setHours(0,0,0,0)
+  return events.value.filter(event=>event.date>=today)
 })
 
-const lessonEventCount = computed(() =>
-  events.value.filter(event => event.type === 'lesson').length
-)
+const listEvents = computed(() => filteredEvents.value.filter(event=>event.date >= new Date(new Date().setHours(0,0,0,0))))
 
-const assignmentEventCount = computed(() =>
-  events.value.filter(event => event.type === 'assignment').length
-)
+const nextEvent = computed(() => upcomingEvents.value[0] || null)
+const nextEventDateLabel = computed(() => nextEvent.value ? new Intl.DateTimeFormat('es-CL',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}).format(nextEvent.value.date) : '')
 
-const nextAcademicEvent = computed(() => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return events.value.find(event => event.date >= today) || null
-})
-
-const nextEventDay = computed(() =>
-  nextAcademicEvent.value
-    ? `${formatDay(nextAcademicEvent.value.date)} ${formatMonthShort(nextAcademicEvent.value.date)}`
-    : '—'
-)
-
-const nextEventLabel = computed(() =>
-  nextAcademicEvent.value?.title || 'Sin próximas fechas'
-)
-
-const visibleMonthEventCount = computed(() => {
-  const year = visibleMonth.value.getFullYear()
-  const month = visibleMonth.value.getMonth()
-  return events.value.filter(event =>
-    event.date.getFullYear() === year &&
-    event.date.getMonth() === month
-  ).length
-})
-
-const monthTitle = computed(() => {
-
-  const date = visibleMonth.value
-
-  return `${monthNames[date.getMonth()]} ${date.getFullYear()}`
-
-})
-
+const monthTitle = computed(() => `${monthNames[visibleMonth.value.getMonth()]} ${visibleMonth.value.getFullYear()}`)
 const selectedDateLabel = computed(() => {
-
-  const parsed = parseDateValue(selectedDateKey.value)
-
-  if (!parsed) return 'Selecciona un día'
-
-  return new Intl.DateTimeFormat('es-CL', {
-
-    weekday: 'long',
-
-    day: 'numeric',
-
-    month: 'long',
-
-  }).format(parsed)
-
+  const date = parseDateValue(selectedDateKey.value)
+  if (!date) return 'Selecciona un día'
+  return new Intl.DateTimeFormat('es-CL',{weekday:'long',day:'numeric',month:'long'}).format(date)
 })
 
 const todayDay = computed(() => new Date().getDate())
+const todayMonth = computed(() => new Intl.DateTimeFormat('es-CL',{month:'short'}).format(new Date()).replace('.','').toUpperCase())
 
-const todayMonth = computed(() =>
+const assessmentCount = computed(() => quizEvents.value.length)
+const customEventCount = computed(() => manualEvents.value.length)
 
-  new Intl.DateTimeFormat('es-CL', { month: 'short' })
+const weekEventCount = computed(() => {
+  const now = new Date()
+  const start = new Date(now)
+  start.setHours(0,0,0,0)
+  const day = (start.getDay()+6)%7
+  start.setDate(start.getDate()-day)
+  const end = new Date(start)
+  end.setDate(end.getDate()+7)
+  return events.value.filter(event => event.date>=start && event.date<end).length
+})
 
-    .format(new Date())
-
-    .replace('.', '')
-
-    .toUpperCase()
-
-)
-
-function formatDay(date) {
-
-  return String(date.getDate()).padStart(2, '0')
-
-}
-
-function formatMonthShort(date) {
-
-  return new Intl.DateTimeFormat('es-CL', { month: 'short' })
-
-    .format(date)
-
-    .replace('.', '')
-
-    .toUpperCase()
-
-}
+function formatDay(date) { return String(date.getDate()).padStart(2,'0') }
+function formatMonthShort(date) { return new Intl.DateTimeFormat('es-CL',{month:'short'}).format(date).replace('.','').toUpperCase() }
 
 function changeMonth(offset) {
-
   const date = new Date(visibleMonth.value)
-
-  date.setMonth(date.getMonth() + offset)
-
+  date.setMonth(date.getMonth()+offset)
   visibleMonth.value = startOfMonth(date)
-
   selectedDateKey.value = dateKey(visibleMonth.value)
-
 }
 
 function goToday() {
-
   const today = new Date()
-
   visibleMonth.value = startOfMonth(today)
-
   selectedDateKey.value = dateKey(today)
+}
 
+function openCreateEvent(selectedKey = '') {
+  editingEvent.value = null
+  modalError.value = ''
+  form.value = emptyForm()
+  if (selectedKey) {
+    form.value.startsAt = dateToInputValue(parseDateValue(`${selectedKey}T16:00`), false)
+  }
+  isEventModalOpen.value = true
+}
+
+function openEditEvent(event) {
+  editingEvent.value = event
+  modalError.value = ''
+  const allDay = Boolean(event.allDay)
+  form.value = {
+    title:event.title || '',
+    eventType:event.eventType || 'other',
+    startsAt:dateToInputValue(event.startsAt, allDay),
+    endsAt:dateToInputValue(event.endsAt, allDay),
+    allDay,
+    location:event.location || '',
+    scope:event.scope || 'all',
+    description:event.description || '',
+  }
+  isEventModalOpen.value = true
+}
+
+function closeEventModal() {
+  isEventModalOpen.value = false
+  editingEvent.value = null
+  modalError.value = ''
+}
+
+function confirmDelete(event) {
+  eventToDelete.value = event
+}
+
+async function saveEvent() {
+  modalError.value = ''
+  if (!form.value.title.trim()) {
+    modalError.value = 'Escribe un título para el evento.'
+    return
+  }
+  const startsAt = localInputToISO(form.value.startsAt, form.value.allDay)
+  const endsAt = form.value.endsAt ? localInputToISO(form.value.endsAt, form.value.allDay) : null
+  if (!startsAt) {
+    modalError.value = 'Selecciona una fecha válida.'
+    return
+  }
+  if (endsAt && new Date(endsAt) < new Date(startsAt)) {
+    modalError.value = 'La fecha de término no puede ser anterior al inicio.'
+    return
+  }
+
+  isSavingEvent.value = true
+  try {
+    const payload = {
+      title:form.value.title,
+      eventType:form.value.eventType,
+      startsAt,
+      endsAt,
+      allDay:form.value.allDay,
+      location:form.value.location,
+      scope:form.value.scope,
+      description:form.value.description,
+    }
+    const saved = editingEvent.value
+      ? await updateCalendarEvent(editingEvent.value.id, payload)
+      : await createCalendarEvent(payload)
+
+    if (editingEvent.value) {
+      const index = manualEvents.value.findIndex(item=>Number(item.id)===Number(saved.id))
+      if (index>=0) manualEvents.value[index] = saved
+      else manualEvents.value.push(saved)
+    } else {
+      manualEvents.value.push(saved)
+    }
+
+    const date = parseDateValue(saved.startsAt)
+    if (date) {
+      visibleMonth.value = startOfMonth(date)
+      selectedDateKey.value = dateKey(date)
+    }
+    closeEventModal()
+    showToast(editingEvent.value ? 'Evento actualizado.' : 'Evento publicado.')
+  } catch (error) {
+    console.error('Error guardando evento:', error)
+    modalError.value = error?.message || 'No fue posible guardar el evento.'
+  } finally {
+    isSavingEvent.value = false
+  }
+}
+
+async function deleteEvent() {
+  if (!eventToDelete.value?.id) return
+  isDeletingEvent.value = true
+  try {
+    await deleteCalendarEvent(eventToDelete.value.id)
+    manualEvents.value = manualEvents.value.filter(item=>Number(item.id)!==Number(eventToDelete.value.id))
+    selectedDateKey.value = selectedDateKey.value || dateKey(new Date())
+    showToast('Evento eliminado.')
+    eventToDelete.value = null
+  } catch (error) {
+    console.error('Error eliminando evento:', error)
+    showToast(error?.message || 'No fue posible eliminar el evento.','error')
+  } finally {
+    isDeletingEvent.value = false
+  }
+}
+
+function showToast(message,type='success') {
+  clearTimeout(toastTimer)
+  toastType.value = type
+  toastMessage.value = message
+  toastTimer = setTimeout(()=>{ toastMessage.value='' },3500)
 }
 
 async function loadCalendar() {
-
   isLoading.value = true
-
   errorMessage.value = ''
-
   try {
-
-    const [lessonData, assignmentData] = await Promise.all([
-
+    const results = await Promise.all([
       fetchLessons(),
-
       fetchAssignments(),
-
+      fetchQuizzes(),
+      fetchCalendarEvents(),
     ])
-
-    lessons.value = lessonData || []
-
-    assignments.value = assignmentData || []
-
-    const today = new Date()
-
-    visibleMonth.value = startOfMonth(today)
-
-    selectedDateKey.value = dateKey(today)
-
+    lessons.value = results[0] || []
+    assignments.value = results[1] || []
+    quizzes.value = results[2] || []
+    manualEvents.value = results[3] || []
+    goToday()
   } catch (error) {
-
     console.error('Error cargando calendario:', error)
-
-    errorMessage.value =
-
-      'No fue posible consultar las clases y tareas del curso.'
-
+    errorMessage.value = error?.message || 'No fue posible consultar el calendario.'
   } finally {
-
     isLoading.value = false
-
   }
-
 }
 
-onMounted(loadCalendar)
+function handleKeydown(event) {
+  if (event.key === 'Escape') {
+    if (isEventModalOpen.value) closeEventModal()
+    if (eventToDelete.value) eventToDelete.value = null
+  }
+}
 
+onMounted(() => {
+  loadCalendar()
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  clearTimeout(toastTimer)
+})
 </script>
 
 <style scoped lang="scss">
-
 .calendar-page {
-
   --ink:#152033;
-
-  --muted:#6f7c8f;
-
-  --line:#dbe3ec;
-
-  --wine:#9f1945;
-
-  --gold:#d9a91d;
-
-  --green:#2d8a63;
-
+  --muted:#748095;
+  --line:#dde5ed;
+  --soft:#f5f7fa;
+  --wine:#a7194b;
+  --wine-dark:#7f1039;
+  --wine-soft:#fff0f4;
+  --gold:#d6a51d;
+  --gold-dark:#92700a;
+  --gold-soft:#fff6dc;
+  --violet:#8062b9;
+  --violet-soft:#f2edfb;
+  --green:#2c8b63;
+  --green-soft:#ebf8f1;
+  --slate:#53647b;
   display:grid;
-
   gap:18px;
-
   color:var(--ink);
-
 }
+
+button,input,select,textarea { font:inherit; }
+button { cursor:pointer; }
 
 .calendar-hero {
-
   display:flex;
-
   justify-content:space-between;
-
-  gap:30px;
-
-  align-items:end;
-
-  padding:30px 32px;
-
+  gap:28px;
+  align-items:stretch;
+  padding:28px;
   border:1px solid var(--line);
-
-  border-radius:22px;
-
+  border-radius:24px;
   background:
-
-    radial-gradient(circle at 91% 5%,rgba(217,169,29,.13),transparent 31%),
-
-    linear-gradient(135deg,#fff 0%,#fbfcfe 65%,#fffaf0 100%);
-
-  box-shadow:0 14px 35px rgba(31,48,73,.05);
-
+    radial-gradient(circle at 92% 15%, rgba(167,25,75,.12), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(214,165,29,.08), transparent 32%),
+    linear-gradient(135deg,#ffffff,#fbfcfe 64%,#fffaf2);
+  box-shadow:0 18px 44px rgba(28,43,64,.065);
 }
 
-.eyebrow {
-
-  color:#a87900;
-
-  font-size:.65rem;
-
-  font-weight:900;
-
-  letter-spacing:.15em;
-
-}
-
-.calendar-hero h1 {
-
-  margin:8px 0 8px;
-
-  font-size:clamp(2.5rem,5vw,4.2rem);
-
-  line-height:1;
-
-  letter-spacing:-.05em;
-
-}
-
-.calendar-hero p {
-
-  max-width:650px;
-
-  margin:0;
-
-  color:var(--muted);
-
-  line-height:1.6;
-
-}
-
-.hero-date {
-
-  width:104px;
-
-  height:104px;
-
-  display:grid;
-
-  place-items:center;
-
-  align-content:center;
-
-  border:1px solid #ead17d;
-
-  border-radius:20px;
-
-  background:#fffaf0;
-
-}
-
-.hero-date span,.hero-date small {
-
-  color:#9c750d;
-
-  font-size:.58rem;
-
-  font-weight:900;
-
-  letter-spacing:.12em;
-
-}
-
-.hero-date strong {
-
-  color:var(--ink);
-
-  font-size:2rem;
-
-  line-height:1.1;
-
-}
-
-.calendar-toolbar {
-
-  display:grid;
-
-  grid-template-columns:auto 1fr auto;
-
-  gap:16px;
-
-  align-items:center;
-
-  padding:12px;
-
-  border:1px solid var(--line);
-
-  border-radius:15px;
-
-  background:#fff;
-
-}
-
-.month-nav {
-
-  display:flex;
-
-  gap:10px;
-
-  align-items:center;
-
-}
-
-.month-nav button,.today-button {
-
-  height:40px;
-
-  min-width:40px;
-
-  border:1px solid #ccd6e1;
-
-  border-radius:10px;
-
-  color:#536276;
-
-  background:#fff;
-
-  font-weight:800;
-
-  cursor:pointer;
-
-}
-
-.month-nav div {
-
-  min-width:150px;
-
-}
-
-.month-nav strong {
-
-  display:block;
-
-  text-transform:capitalize;
-
-}
-
-.month-nav span {
-
-  display:block;
-
-  margin-top:2px;
-
-  color:#8a97a9;
-
-  font-size:.62rem;
-
-}
-
-.filters {
-
-  display:flex;
-
-  gap:7px;
-
-  justify-content:center;
-
-  flex-wrap:wrap;
-
-}
-
-.filters button {
-
-  display:flex;
-
-  align-items:center;
-
-  gap:7px;
-
-  padding:9px 12px;
-
-  border:1px solid transparent;
-
-  border-radius:9px;
-
-  color:#68778a;
-
-  background:#f7f9fc;
-
-  font-size:.7rem;
-
-  font-weight:750;
-
-  cursor:pointer;
-
-}
-
-.filters button.active {
-
-  border-color:#d7e0e8;
-
-  color:#344359;
-
-  background:#fff;
-
-  box-shadow:0 4px 12px rgba(31,48,73,.05);
-
-}
-
-.dot {
-
-  width:7px;
-
-  height:7px;
-
-  border-radius:50%;
-
-  background:#8996a7;
-
-}
-
-.dot--lesson{background:var(--gold)}
-
-.dot--assignment{background:var(--wine)}
-
-.dot--all{background:#607086}
-
-.calendar-layout {
-
-  display:grid;
-
-  grid-template-columns:minmax(0,1.65fr) minmax(300px,.62fr);
-
-  gap:18px;
-
-}
-
-.month-card,.agenda-card {
-
-  border:1px solid var(--line);
-
-  border-radius:18px;
-
-  background:#fff;
-
-  box-shadow:0 8px 24px rgba(31,48,73,.035);
-
-  overflow:hidden;
-
-}
-
-.weekdays {
-
-  display:grid;
-
-  grid-template-columns:repeat(7,1fr);
-
-  border-bottom:1px solid #e7ecf1;
-
-  background:#f8fafc;
-
-}
-
-.weekdays span {
-
-  padding:11px;
-
-  color:#8a97a9;
-
-  font-size:.58rem;
-
-  font-weight:850;
-
-  text-align:center;
-
-}
-
-.month-grid {
-
-  display:grid;
-
-  grid-template-columns:repeat(7,1fr);
-
-}
-
-.day-cell {
-
-  min-height:118px;
-
-  padding:10px;
-
-  border:0;
-
-  border-right:1px solid #edf1f4;
-
-  border-bottom:1px solid #edf1f4;
-
-  color:var(--ink);
-
-  background:#fff;
-
-  text-align:left;
-
-  cursor:pointer;
-
-}
-
+.calendar-hero__copy { flex:1; min-width:0; }
+.eyebrow { color:#a67807; font-size:.62rem; font-weight:950; letter-spacing:.16em; text-transform:uppercase; }
+
+.hero-title-row { display:flex; justify-content:space-between; align-items:flex-end; gap:22px; margin-top:8px; }
+.calendar-hero h1 { margin:0; font-size:clamp(2.3rem,5vw,4rem); line-height:.98; letter-spacing:-.06em; }
+.calendar-hero p { max-width:720px; margin:10px 0 0; color:var(--muted); line-height:1.55; }
+
+.hero-date { width:92px; min-width:92px; height:92px; display:grid; place-items:center; align-content:center; border:1px solid rgba(214,165,29,.42); border-radius:20px; background:rgba(255,250,238,.88); box-shadow:0 10px 25px rgba(116,89,20,.08); }
+.hero-date span,.hero-date small { color:#a37b12; font-size:.52rem; font-weight:900; letter-spacing:.13em; }
+.hero-date strong { font-size:1.9rem; line-height:1; }
+
+.hero-actions { display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; gap:14px; min-width:290px; }
+.hero-stat { min-width:250px; padding:14px 16px; border:1px solid #e6eaf0; border-radius:15px; background:rgba(255,255,255,.78); }
+.hero-stat span { display:block; color:#a67807; font-size:.53rem; font-weight:900; letter-spacing:.13em; }
+.hero-stat strong { display:block; margin-top:4px; font-size:.82rem; }
+.hero-stat small { display:block; margin-top:4px; color:#8b96a7; font-size:.62rem; text-transform:capitalize; }
+
+.primary-action { border:0; border-radius:11px; padding:11px 16px; color:#fff; background:linear-gradient(135deg,var(--wine),var(--wine-dark)); font-size:.7rem; font-weight:850; box-shadow:0 10px 22px rgba(167,25,75,.2); }
+.primary-action:hover { transform:translateY(-1px); }
+.primary-action:disabled { opacity:.6; transform:none; cursor:not-allowed; }
+.ghost-action { border:1px solid #d4dde7; border-radius:10px; padding:10px 14px; color:#5e6d82; background:#fff; font-size:.69rem; font-weight:800; }
+
+.calendar-insight-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.insight-card { display:flex; align-items:center; gap:12px; min-width:0; padding:14px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 7px 20px rgba(28,43,64,.035); }
+.insight-icon { width:42px; height:42px; min-width:42px; display:grid; place-items:center; border-radius:13px; font-size:1rem; font-weight:900; }
+.insight-card small { display:block; font-size:.52rem; font-weight:900; letter-spacing:.12em; }
+.insight-card strong { display:block; margin-top:2px; font-size:1.15rem; }
+.insight-card p { margin:2px 0 0; color:#8b96a7; font-size:.6rem; line-height:1.35; }
+.insight-card--wine .insight-icon { color:var(--wine); background:var(--wine-soft); }
+.insight-card--wine small { color:var(--wine); }
+.insight-card--gold .insight-icon { color:var(--gold-dark); background:var(--gold-soft); }
+.insight-card--gold small { color:var(--gold-dark); }
+.insight-card--green .insight-icon { color:var(--green); background:var(--green-soft); }
+.insight-card--green small { color:var(--green); }
+.insight-card--slate .insight-icon { color:var(--slate); background:#eef2f7; }
+.insight-card--slate small { color:var(--slate); }
+
+.calendar-toolbar { display:grid; grid-template-columns:auto auto 1fr auto; gap:12px; align-items:center; padding:12px; border:1px solid var(--line); border-radius:16px; background:#fff; }
+.month-nav { display:flex; gap:9px; align-items:center; }
+.month-nav button,.today-button { height:40px; min-width:40px; border:1px solid #d2dbe6; border-radius:10px; color:#55657a; background:#fff; font-weight:800; }
+.month-nav button:hover,.today-button:hover { border-color:#b8c5d3; }
+.month-nav div { min-width:150px; }
+.month-nav strong { display:block; text-transform:capitalize; font-size:.78rem; }
+.month-nav span { display:block; margin-top:2px; color:#8d98a8; font-size:.57rem; }
+
+.view-switch { display:flex; padding:3px; border:1px solid #e1e7ee; border-radius:10px; background:#f6f8fa; }
+.view-switch button { border:0; border-radius:7px; padding:8px 11px; color:#7a8797; background:transparent; font-size:.64rem; font-weight:800; }
+.view-switch button.active { color:var(--ink); background:#fff; box-shadow:0 3px 10px rgba(28,43,64,.07); }
+
+.filters { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; }
+.filters button { display:flex; align-items:center; gap:6px; border:1px solid transparent; border-radius:9px; padding:8px 10px; color:#748095; background:#f7f9fb; font-size:.61rem; font-weight:800; }
+.filters button.active { color:#3d4a5d; border-color:#dce4eb; background:#fff; box-shadow:0 3px 10px rgba(28,43,64,.05); }
+.filter-dot { width:7px; height:7px; border-radius:50%; background:#8794a7; }
+.filter-dot--lesson { background:var(--wine); }
+.filter-dot--assignment { background:#d15a5a; }
+.filter-dot--quiz { background:var(--violet); }
+.filter-dot--test { background:var(--gold); }
+.filter-dot--manual { background:var(--green); }
+
+.calendar-layout { display:grid; grid-template-columns:minmax(0,1.72fr) minmax(320px,.68fr); gap:16px; }
+.month-card,.agenda-card,.agenda-full-card { overflow:hidden; border:1px solid var(--line); border-radius:20px; background:#fff; box-shadow:0 9px 28px rgba(28,43,64,.04); }
+.weekdays { display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid #e6ebf0; background:#f8fafb; }
+.weekdays span { padding:11px 6px; color:#8b97a8; font-size:.55rem; font-weight:900; text-align:center; letter-spacing:.08em; }
+.month-grid { display:grid; grid-template-columns:repeat(7,1fr); }
+.day-cell { min-height:128px; padding:9px; border:0; border-right:1px solid #edf1f4; border-bottom:1px solid #edf1f4; color:var(--ink); background:#fff; text-align:left; }
 .day-cell:nth-child(7n) { border-right:0; }
-
-.day-cell.is-outside { background:#fafbfd; color:#b0bac6; }
-
-.day-cell.is-selected { box-shadow:inset 0 0 0 2px rgba(159,25,69,.22); }
-
-.day-cell.is-today .day-number {
-
-  color:#fff;
-
-  background:var(--wine);
-
-}
-
-.day-number {
-
-  width:28px;
-
-  height:28px;
-
-  display:grid;
-
-  place-items:center;
-
-  border-radius:9px;
-
-  font-size:.72rem;
-
-  font-weight:800;
-
-}
-
-.day-events {
-
-  display:grid;
-
-  gap:5px;
-
-  margin-top:7px;
-
-}
-
-.event-chip {
-
-  overflow:hidden;
-
-  padding:5px 6px;
-
-  border-radius:6px;
-
-  font-size:.56rem;
-
-  font-weight:750;
-
-  white-space:nowrap;
-
-  text-overflow:ellipsis;
-
-}
-
-.event-chip--lesson {
-
-  color:#80600b;
-
-  background:#fff5d7;
-
-}
-
-.event-chip--assignment {
-
-  color:#8d2444;
-
-  background:#fff0f4;
-
-}
-
-.day-events small {
-
-  color:#8b97a7;
-
-  font-size:.53rem;
-
-}
-
-.agenda-card {
-
-  padding:20px;
-
-}
-
-.agenda-card>header {
-
-  display:flex;
-
-  justify-content:space-between;
-
-  gap:14px;
-
-  align-items:flex-start;
-
-  padding-bottom:16px;
-
-  border-bottom:1px solid #e8edf2;
-
-}
-
-.agenda-card h2 {
-
-  margin:4px 0 0;
-
-  text-transform:capitalize;
-
-  font-size:1.12rem;
-
-}
-
-.agenda-count {
-
-  min-width:34px;
-
-  height:34px;
-
-  display:grid;
-
-  place-items:center;
-
-  border-radius:10px;
-
-  color:#7c5d08;
-
-  background:#fff6db;
-
-  font-size:.74rem;
-
-  font-weight:850;
-
-}
-
-.agenda-list {
-
-  display:grid;
-
-}
-
-.agenda-item {
-
-  display:grid;
-
-  grid-template-columns:auto minmax(0,1fr) auto;
-
-  gap:11px;
-
-  align-items:start;
-
-  padding:15px 0;
-
-  border-bottom:1px solid #edf1f4;
-
-}
-
-.agenda-marker {
-
-  width:9px;
-
-  height:9px;
-
-  margin-top:5px;
-
-  border-radius:50%;
-
-}
-
-.agenda-marker--lesson{background:var(--gold)}
-
-.agenda-marker--assignment{background:var(--wine)}
-
-.agenda-item small {
-
-  color:#9b770e;
-
-  font-size:.54rem;
-
-  font-weight:850;
-
-}
-
-.agenda-item strong {
-
-  display:block;
-
-  margin-top:3px;
-
-  font-size:.76rem;
-
-}
-
-.agenda-item p {
-
-  margin:4px 0 0;
-
-  color:#7d8999;
-
-  font-size:.63rem;
-
-  line-height:1.45;
-
-}
-
-.agenda-item a {
-
-  color:var(--wine);
-
-  font-size:.62rem;
-
-  font-weight:800;
-
-  text-decoration:none;
-
-}
-
-.agenda-empty {
-
-  min-height:190px;
-
-  display:grid;
-
-  place-items:center;
-
-  align-content:center;
-
-  text-align:center;
-
-}
-
-.agenda-empty div {
-
-  width:44px;
-
-  height:44px;
-
-  display:grid;
-
-  place-items:center;
-
-  border-radius:13px;
-
-  color:var(--green);
-
-  background:#edf8f3;
-
-  font-weight:900;
-
-}
-
-.agenda-empty strong {
-
-  margin-top:10px;
-
-}
-
-.agenda-empty p {
-
-  max-width:230px;
-
-  margin:5px 0 0;
-
-  color:#8a97a9;
-
-  font-size:.67rem;
-
-  line-height:1.5;
-
-}
-
-.upcoming {
-
-  margin-top:20px;
-
-  padding-top:18px;
-
-  border-top:1px solid #e8edf2;
-
-}
-
-.upcoming>header span {
-
-  color:#a87900;
-
-  font-size:.56rem;
-
-  font-weight:900;
-
-  letter-spacing:.12em;
-
-}
-
-.upcoming>header strong {
-
-  display:block;
-
-  margin-top:3px;
-
-  font-size:.83rem;
-
-}
-
-.upcoming article {
-
-  display:grid;
-
-  grid-template-columns:42px 1fr;
-
-  gap:10px;
-
-  align-items:center;
-
-  padding:10px 0;
-
-}
-
-.upcoming-date {
-
-  height:42px;
-
-  display:grid;
-
-  place-items:center;
-
-  align-content:center;
-
-  border-radius:10px;
-
-  background:#f5f7fa;
-
-}
-
-.upcoming-date strong {
-
-  font-size:.8rem;
-
-}
-
-.upcoming-date span {
-
-  color:#9c760d;
-
-  font-size:.48rem;
-
-  font-weight:850;
-
-}
-
-.upcoming article small {
-
-  color:#8e9baa;
-
-  font-size:.52rem;
-
-}
-
-.upcoming article>div:last-child>strong {
-
-  display:block;
-
-  margin-top:2px;
-
-  font-size:.68rem;
-
-}
-
-.state-card {
-
-  min-height:220px;
-
-  display:grid;
-
-  gap:10px;
-
-  place-items:center;
-
-  align-content:center;
-
-  border:1px solid var(--line);
-
-  border-radius:18px;
-
-  background:#fff;
-
-  color:#536276;
-
-}
-
-.loader {
-
-  width:28px;
-
-  height:28px;
-
-  border:3px solid #e1e7ed;
-
-  border-top-color:var(--wine);
-
-  border-radius:50%;
-
-  animation:spin .8s linear infinite;
-
-}
-
-.state-card--error p {
-
-  margin:0;
-
-  color:#8794a4;
-
-}
-
-.state-card--error button {
-
-  padding:8px 12px;
-
-  border:1px solid #ccd6e1;
-
-  border-radius:9px;
-
-  color:var(--wine);
-
-  background:#fff;
-
-}
-
-.empty-inline {
-
-  color:#8a97a9;
-
-  font-size:.66rem;
-
-}
-
-@keyframes spin { to { transform:rotate(360deg) } }
-
-@media (max-width: 1050px) {
-
-  .calendar-layout { grid-template-columns:1fr; }
-
-  .agenda-card { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-
-  .agenda-card>header { grid-column:1/-1; }
-
-  .upcoming { margin:0; padding:0 0 0 20px; border-top:0; border-left:1px solid #e8edf2; }
-
-}
-
-@media (max-width: 760px) {
-
-  .calendar-hero { align-items:flex-start; flex-direction:column; padding:24px; }
-
-  .hero-date { width:86px; height:86px; }
-
-  .calendar-toolbar { grid-template-columns:1fr auto; }
-
+.day-cell:hover { background:#fcfdfe; }
+.day-cell.is-outside { background:#fafbfd; color:#b1bac5; }
+.day-cell.is-selected { box-shadow:inset 0 0 0 2px rgba(167,25,75,.2); }
+.day-cell.is-today .day-number { color:#fff; background:var(--wine); }
+.day-number { width:28px; height:28px; display:grid; place-items:center; border-radius:9px; font-size:.72rem; font-weight:850; }
+.day-events { display:grid; gap:4px; margin-top:7px; }
+.event-chip { display:flex; align-items:center; gap:5px; overflow:hidden; max-width:100%; padding:5px 6px; border-radius:7px; font-size:.53rem; font-weight:800; white-space:nowrap; text-overflow:ellipsis; }
+.event-chip__dot { width:6px; height:6px; min-width:6px; border-radius:50%; background:currentColor; opacity:.7; }
+.event-chip--lesson { color:var(--wine); background:var(--wine-soft); }
+.event-chip--assignment { color:#b33d49; background:#fff1f2; }
+.event-chip--quiz { color:#7255a7; background:var(--violet-soft); }
+.event-chip--test { color:var(--gold-dark); background:var(--gold-soft); }
+.event-chip--manual { color:var(--green); background:var(--green-soft); }
+.day-events small { color:#8f9aaa; font-size:.53rem; }
+
+.agenda-card { padding:19px; }
+.agenda-card__header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:14px; border-bottom:1px solid #e8edf2; }
+.agenda-card h2 { margin:4px 0 0; text-transform:capitalize; font-size:1.08rem; }
+.agenda-count { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; color:var(--wine); background:var(--wine-soft); font-size:.72rem; font-weight:900; }
+.agenda-list { display:grid; }
+.agenda-item { display:grid; grid-template-columns:8px minmax(0,1fr) auto; gap:10px; padding:14px 0; border-bottom:1px solid #edf1f4; }
+.agenda-marker { width:6px; height:100%; min-height:42px; border-radius:8px; background:#b1bbc7; }
+.agenda-item--lesson .agenda-marker { background:var(--wine); }
+.agenda-item--assignment .agenda-marker { background:#c64c58; }
+.agenda-item--quiz .agenda-marker { background:var(--violet); }
+.agenda-item--test .agenda-marker { background:var(--gold); }
+.agenda-item--manual .agenda-marker { background:var(--green); }
+.agenda-topline { display:flex; align-items:center; gap:6px; }
+.agenda-item small { color:#8c98a8; font-size:.52rem; font-weight:900; letter-spacing:.08em; }
+.source-badge { padding:3px 5px; border-radius:5px; color:var(--green); background:var(--green-soft); font-size:.45rem; font-weight:900; }
+.agenda-copy>strong { display:block; margin-top:3px; font-size:.75rem; line-height:1.25; }
+.agenda-copy p { margin:4px 0 0; color:#8290a1; font-size:.59rem; line-height:1.45; }
+.agenda-location { color:#6c788a !important; }
+.agenda-actions { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+.agenda-actions a,.agenda-actions button { border:0; padding:0; color:var(--wine); background:transparent; font-size:.59rem; font-weight:850; text-decoration:none; }
+.agenda-actions button.danger-link { color:#b23d4f; }
+.agenda-empty { display:grid; place-items:center; align-content:center; min-height:180px; text-align:center; }
+.agenda-empty div { width:44px; height:44px; display:grid; place-items:center; border-radius:13px; color:var(--green); background:var(--green-soft); font-weight:900; }
+.agenda-empty strong { margin-top:10px; font-size:.8rem; }
+.agenda-empty p { max-width:240px; margin:5px 0 0; color:#8a96a6; font-size:.63rem; line-height:1.5; }
+.agenda-empty button { margin-top:11px; border:1px solid #d8e0e8; border-radius:9px; padding:8px 11px; color:var(--wine); background:#fff; font-size:.61rem; font-weight:850; }
+
+.upcoming { margin-top:18px; padding-top:17px; border-top:1px solid #e8edf2; }
+.upcoming>header span { color:#a67807; font-size:.52rem; font-weight:900; letter-spacing:.12em; }
+.upcoming>header strong { display:block; margin-top:3px; font-size:.78rem; }
+.upcoming article { display:grid; grid-template-columns:42px 1fr; gap:9px; align-items:center; padding:9px 0; }
+.upcoming-date { display:grid; place-items:center; align-content:center; width:42px; height:42px; border-radius:10px; background:#f5f7fa; }
+.upcoming-date strong { font-size:.75rem; }
+.upcoming-date span { color:#8c98a8; font-size:.48rem; font-weight:900; }
+.upcoming-date--lesson { background:var(--wine-soft); color:var(--wine); }
+.upcoming-date--assignment { background:#fff1f2; color:#b33d49; }
+.upcoming-date--quiz { background:var(--violet-soft); color:#7255a7; }
+.upcoming-date--test { background:var(--gold-soft); color:var(--gold-dark); }
+.upcoming-date--manual { background:var(--green-soft); color:var(--green); }
+.upcoming article small { color:#8d99a9; font-size:.5rem; }
+.upcoming article>div:last-child>strong { display:block; margin-top:2px; font-size:.64rem; }
+.empty-inline { color:#8a96a6; font-size:.62rem; }
+
+.agenda-full-card { padding:22px; }
+.agenda-full-card__header { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; padding-bottom:18px; border-bottom:1px solid #e8edf2; }
+.agenda-full-card__header h2 { margin:4px 0 3px; font-size:1.3rem; }
+.agenda-full-card__header p { margin:0; color:#7f8b9d; font-size:.67rem; }
+.agenda-timeline { padding:16px 0 4px; }
+.timeline-item { display:grid; grid-template-columns:54px 20px minmax(0,1fr); gap:10px; align-items:start; padding:12px 0; }
+.timeline-date { display:grid; place-items:center; align-content:center; width:54px; height:54px; border:1px solid #e2e8ee; border-radius:14px; background:#fbfcfd; }
+.timeline-date strong { font-size:.9rem; }
+.timeline-date span { color:#9aa5b4; font-size:.5rem; font-weight:900; }
+.timeline-line { position:relative; height:100%; min-height:54px; display:flex; justify-content:center; }
+.timeline-line::before { content:''; position:absolute; top:0; bottom:-24px; width:1px; background:#e8edf2; }
+.timeline-line span { position:relative; z-index:1; width:9px; height:9px; margin-top:16px; border-radius:50%; background:#94a1b2; }
+.timeline-item--lesson .timeline-line span { background:var(--wine); }
+.timeline-item--assignment .timeline-line span { background:#c64c58; }
+.timeline-item--quiz .timeline-line span { background:var(--violet); }
+.timeline-item--test .timeline-line span { background:var(--gold); }
+.timeline-item--manual .timeline-line span { background:var(--green); }
+.timeline-body { padding:3px 0 12px; border-bottom:1px solid #eef1f4; }
+.timeline-heading { display:flex; flex-direction:column; gap:4px; }
+.timeline-kind { color:#a67807; font-size:.52rem; font-weight:900; letter-spacing:.11em; }
+.timeline-heading strong { font-size:.9rem; }
+.timeline-body p { margin:5px 0 0; color:#7f8b9d; font-size:.64rem; }
+.timeline-actions { display:flex; gap:10px; margin-top:8px; }
+.timeline-actions a,.timeline-actions button { border:0; padding:0; color:var(--wine); background:transparent; font-size:.6rem; font-weight:850; text-decoration:none; }
+.timeline-actions .danger-link { color:#b23d4f; }
+.agenda-empty--large { min-height:260px; }
+
+.state-card { min-height:240px; display:grid; place-items:center; align-content:center; gap:10px; border:1px solid var(--line); border-radius:18px; background:#fff; color:#55657a; }
+.loader { width:30px; height:30px; border:3px solid #e0e6ec; border-top-color:var(--wine); border-radius:50%; animation:spin .8s linear infinite; }
+.state-card--error p { margin:0; color:#8793a4; }
+.state-card--error button { border:1px solid #ccd6df; border-radius:9px; padding:8px 12px; color:var(--wine); background:#fff; }
+
+.modal-backdrop { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:22px; background:rgba(8,16,28,.55); backdrop-filter:blur(9px); }
+.event-modal,.confirm-modal { width:min(760px,100%); max-height:min(90vh,900px); overflow:auto; border:1px solid rgba(255,255,255,.4); border-radius:22px; background:#fff; box-shadow:0 35px 80px rgba(8,16,28,.28); }
+.event-modal__header { display:flex; justify-content:space-between; gap:16px; padding:22px 22px 15px; border-bottom:1px solid #e8edf2; }
+.event-modal__header h2 { margin:5px 0 4px; font-size:1.35rem; }
+.event-modal__header p { margin:0; color:#7f8b9d; font-size:.65rem; }
+.modal-close { width:34px; height:34px; border:1px solid #dde4eb; border-radius:10px; color:#6b788a; background:#fff; font-size:1.25rem; }
+.event-type-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:16px 22px 0; }
+.event-type-option { display:flex; gap:8px; align-items:center; min-width:0; padding:9px; border:1px solid #e2e8ee; border-radius:11px; text-align:left; background:#fbfcfd; }
+.event-type-option>span { width:32px; height:32px; display:grid; place-items:center; flex:none; border-radius:9px; background:#edf1f5; font-weight:900; }
+.event-type-option strong { display:block; font-size:.63rem; }
+.event-type-option small { display:block; margin-top:2px; color:#8b96a7; font-size:.46rem; line-height:1.2; }
+.event-type-option--audition.active,.event-type-option--rehearsal.active,.event-type-option--concert.active { border-color:rgba(44,139,99,.45); background:var(--green-soft); }
+.event-type-option--audition.active>span,.event-type-option--rehearsal.active>span,.event-type-option--concert.active>span { color:var(--green); background:#d8f1e4; }
+.event-type-option--meeting.active,.event-type-option--announcement.active,.event-type-option--other.active { border-color:rgba(167,25,75,.3); background:var(--wine-soft); }
+.event-type-option--meeting.active>span,.event-type-option--announcement.active>span,.event-type-option--other.active>span { color:var(--wine); background:#fbe0e9; }
+.event-type-option--holiday.active { border-color:rgba(214,165,29,.45); background:var(--gold-soft); }
+.event-type-option--holiday.active>span { color:var(--gold-dark); background:#ffedb7; }
+
+.event-form { display:grid; gap:14px; padding:18px 22px 22px; }
+.event-form label { display:grid; gap:6px; }
+.event-form label>span { color:#5f6c7e; font-size:.61rem; font-weight:850; }
+.event-form input,.event-form select,.event-form textarea { width:100%; border:1px solid #dce4eb; border-radius:10px; padding:10px 11px; outline:none; color:var(--ink); background:#fff; font-size:.68rem; }
+.event-form input:focus,.event-form select:focus,.event-form textarea:focus { border-color:rgba(167,25,75,.5); box-shadow:0 0 0 3px rgba(167,25,75,.07); }
+.form-grid { display:grid; gap:11px; }
+.form-grid--2 { grid-template-columns:1fr 1fr; }
+.toggle-field { display:flex !important; grid-template-columns:none !important; align-items:center; gap:10px !important; padding:10px 12px; border:1px solid #e4e9ef; border-radius:11px; background:#fbfcfd; }
+.toggle-field input { display:none; }
+.toggle-ui { width:36px; height:20px; flex:none; border-radius:999px; background:#d5dde6; position:relative; }
+.toggle-ui::after { content:''; position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,.15); transition:transform .2s ease; }
+.toggle-field input:checked + .toggle-ui { background:var(--wine); }
+.toggle-field input:checked + .toggle-ui::after { transform:translateX(16px); }
+.toggle-field strong { display:block; font-size:.65rem; }
+.toggle-field small { display:block; margin-top:2px; color:#8b96a7; font-size:.52rem; }
+.modal-error { margin:0; padding:10px 11px; border-radius:9px; color:#a33c4e; background:#fff1f3; font-size:.62rem; }
+.event-modal__footer { display:flex; justify-content:flex-end; gap:9px; padding-top:2px; }
+
+.confirm-modal { width:min(420px,100%); padding:24px; text-align:center; }
+.confirm-icon { width:48px; height:48px; margin:0 auto; display:grid; place-items:center; border-radius:15px; color:#ad3a4d; background:#fff0f3; font-weight:900; }
+.confirm-modal h2 { margin:12px 0 6px; font-size:1.1rem; }
+.confirm-modal p { margin:0; color:#7e8a9a; font-size:.68rem; line-height:1.55; }
+.confirm-actions { display:flex; justify-content:center; gap:8px; margin-top:18px; }
+.danger-action { border:0; border-radius:10px; padding:10px 14px; color:#fff; background:#ae3d50; font-size:.65rem; font-weight:850; }
+.danger-action:disabled { opacity:.6; }
+
+.calendar-toast { position:fixed; right:20px; bottom:20px; z-index:1200; display:flex; gap:10px; align-items:center; max-width:340px; padding:12px 14px; border:1px solid #dce7e1; border-radius:14px; background:#f6fcf8; box-shadow:0 16px 34px rgba(28,43,64,.15); }
+.calendar-toast>span { width:28px; height:28px; display:grid; place-items:center; border-radius:9px; color:var(--green); background:#dff3e7; font-weight:900; }
+.calendar-toast strong { display:block; font-size:.65rem; }
+.calendar-toast small { display:block; margin-top:2px; color:#6f7f78; font-size:.55rem; }
+.calendar-toast--error { border-color:#f0d4da; background:#fff7f8; }
+.calendar-toast--error>span { color:#b03f53; background:#fbe1e6; }
+
+.modal-fade-enter-active,.modal-fade-leave-active,.toast-enter-active,.toast-leave-active { transition:opacity .18s ease; }
+.modal-fade-enter-from,.modal-fade-leave-to,.toast-enter-from,.toast-leave-to { opacity:0; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+@media (max-width: 1180px) {
+  .calendar-insight-row { grid-template-columns:repeat(2,1fr); }
+  .calendar-toolbar { grid-template-columns:auto auto 1fr; }
+  .today-button { justify-self:end; }
   .filters { grid-column:1/-1; justify-content:flex-start; }
-
-  .weekdays span { font-size:.5rem; padding:9px 3px; }
-
-  .day-cell { min-height:84px; padding:6px; }
-
-  .event-chip { font-size:0; width:7px; height:7px; padding:0; border-radius:50%; }
-
-  .day-events { display:flex; gap:3px; }
-
-  .agenda-card { display:block; }
-
-  .upcoming { margin-top:20px; padding:18px 0 0; border-left:0; border-top:1px solid #e8edf2; }
-
+  .event-type-grid { grid-template-columns:repeat(3,1fr); }
 }
 
-
-
-
-
-.calendar-page {
-
-  --amv-canvas: #f5f7fb;
-
-  --amv-card: #ffffff;
-
-  --amv-ink: #172033;
-
-  --amv-body: #344359;
-
-  --amv-muted: #667085;
-
-  --amv-line: #dbe3ec;
-
-  --amv-wine: #9f1945;
-
-  --amv-wine-dark: #7f1237;
-
-  --amv-gold: #d9a91d;
-
-  --amv-gold-soft: #fff8e7;
-
-  --amv-green: #2d8a63;
-
-  --amv-red: #be4856;
-
-  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
-
-  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
-
-  --amv-radius-sm: 12px;
-
-  --amv-radius-md: 18px;
-
-  --amv-radius-lg: 24px;
-
-  text-rendering: optimizeLegibility;
-
-  -webkit-font-smoothing: antialiased;
-
+@media (max-width: 980px) {
+  .calendar-hero { flex-direction:column; }
+  .hero-actions { align-items:stretch; min-width:0; }
+  .hero-stat { min-width:0; }
+  .calendar-layout { grid-template-columns:1fr; }
 }
 
-.calendar-page :where(a, button, input, textarea, select, [role="button"]) {
-
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
-
+@media (max-width: 720px) {
+  .calendar-hero { padding:21px; border-radius:19px; }
+  .hero-title-row { align-items:flex-start; }
+  .hero-date { width:78px; min-width:78px; height:78px; }
+  .calendar-insight-row { grid-template-columns:1fr 1fr; }
+  .calendar-toolbar { grid-template-columns:1fr auto; }
+  .view-switch { justify-self:end; }
+  .month-nav div { min-width:125px; }
+  .month-grid { grid-auto-rows:minmax(78px,auto); }
+  .day-cell { min-height:78px; padding:6px; }
+  .event-chip { width:7px; height:7px; padding:0; border-radius:50%; }
+  .event-chip__dot { display:none; }
+  .event-chip { font-size:0; }
+  .event-type-grid { grid-template-columns:1fr 1fr; }
+  .form-grid--2 { grid-template-columns:1fr; }
 }
 
-.calendar-page :where(a, button, input, textarea, select, [role="button"]):focus-visible {
-
-  outline: 3px solid rgba(159, 25, 69, .22) !important;
-
-  outline-offset: 3px;
-
+@media (max-width: 500px) {
+  .calendar-insight-row { grid-template-columns:1fr; }
+  .calendar-hero h1 { font-size:2.15rem; }
+  .hero-title-row { flex-direction:column; }
+  .calendar-toolbar { grid-template-columns:1fr; }
+  .view-switch,.today-button { justify-self:start; }
+  .weekdays span { padding:8px 2px; font-size:.47rem; }
+  .day-number { width:25px; height:25px; font-size:.65rem; }
+  .day-cell { min-height:70px; }
+  .event-modal { border-radius:18px; }
+  .event-modal__header { padding:18px; }
+  .event-form { padding:15px 18px 18px; }
+  .event-type-grid { padding:14px 18px 0; }
 }
-
-.calendar-page :where(button, [role="button"], .button, .btn):not(:disabled):active {
-
-  transform: translateY(1px) scale(.99);
-
-}
-
-.calendar-page :where(input, textarea, select) {
-
-  font-size: max(16px, 1em);
-
-}
-
-.calendar-page :where(table tbody tr) {
-
-  transition: background-color .18s ease;
-
-}
-
-.calendar-page :where(table tbody tr):hover {
-
-  background-color: rgba(159, 25, 69, .025);
-
-}
-
-.calendar-page :where(.card, [class*="-card"], [class*="__card"]) {
-
-  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
-
-}
-
-.calendar-page :where(.card, [class*="-card"], [class*="__card"]):hover {
-
-  border-color: rgba(159, 25, 69, .16);
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  .calendar-page *, .calendar-page *::before, .calendar-page *::after {
-
-    scroll-behavior: auto !important;
-
-    animation-duration: .01ms !important;
-
-    animation-iteration-count: 1 !important;
-
-    transition-duration: .01ms !important;
-
-  }
-
-}
-
-
-
-
-
-.calendar-page {
-
-  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
-
-}
-
-.calendar-page :where(
-
-  article,
-
-  [class$="__card"],
-
-  [class*="-card"],
-
-  [class*="_card"]
-
-) {
-
-  transition:
-
-    transform .24s cubic-bezier(.2,.75,.25,1),
-
-    box-shadow .24s ease,
-
-    border-color .24s ease,
-
-    background-color .24s ease;
-
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-  .calendar-page :where(
-
-    article,
-
-    [class$="__card"],
-
-    [class*="-card"],
-
-    [class*="_card"]
-
-  ):hover {
-
-    transform: translateY(-2px);
-
-  }
-
-  .calendar-page :where(
-
-    button,
-
-    .button,
-
-    .btn,
-
-    a[class*="button"],
-
-    a[class*="cta"]
-
-  ):not(:disabled):hover {
-
-    transform: translateY(-2px);
-
-    filter: saturate(1.04);
-
-  }
-
-  .calendar-page :where(img) {
-
-    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
-
-  }
-
-  .calendar-page :where(
-
-    [class*="cover"],
-
-    [class*="hero"],
-
-    [class*="visual"],
-
-    [class*="gallery"]
-
-  ):hover img {
-
-    transform: scale(1.018);
-
-  }
-
-}
-
-.calendar-page :where(
-
-  button,
-
-  .button,
-
-  .btn,
-
-  a[class*="button"],
-
-  a[class*="cta"]
-
-) {
-
-  will-change: transform;
-
-}
-
-.calendar-page :where(input, textarea, select):focus {
-
-  transform: translateY(-1px);
-
-}
-
-.calendar-page :where(
-
-  [class*="progress"] > *,
-
-  [class*="bar"] > *,
-
-  progress
-
-) {
-
-  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
-
-}
-
-.calendar-page ::selection {
-
-  color: #ffffff;
-
-  background: #9f1945;
-
-}
-
-@keyframes amvViewEnter {
-
-  from {
-
-    opacity: 0;
-
-    transform: translateY(8px);
-
-  }
-
-  to {
-
-    opacity: 1;
-
-    transform: translateY(0);
-
-  }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  .calendar-page,
-
-  .calendar-page *,
-
-  .calendar-page *::before,
-
-  .calendar-page *::after {
-
-    animation-duration: .01ms !important;
-
-    animation-iteration-count: 1 !important;
-
-    transition-duration: .01ms !important;
-
-    scroll-behavior: auto !important;
-
-  }
-
-}
-
-
-
-/* =========================================================
-   AMV · CALENDAR v11.0 · AGENDA ACADÉMICA PRO
-========================================================= */
-.calendar-page{gap:22px!important}
-.calendar-hero{
-  position:relative;overflow:hidden;min-height:220px;align-items:center!important;
-  padding:34px 38px!important;border-radius:26px!important;
-  background:radial-gradient(circle at 88% 15%,rgba(217,169,29,.20),transparent 25%),
-             radial-gradient(circle at 72% 115%,rgba(159,25,69,.12),transparent 35%),
-             linear-gradient(135deg,#fff 0%,#fbfcfe 62%,#fff8e7 100%)!important;
-  box-shadow:0 18px 46px rgba(23,32,51,.07)!important
-}
-.calendar-hero::after{
-  content:'';position:absolute;right:-70px;top:-95px;width:310px;height:310px;
-  border:1px solid rgba(217,169,29,.18);border-radius:50%;
-  box-shadow:0 0 0 38px rgba(217,169,29,.035),0 0 0 78px rgba(159,25,69,.025);
-  pointer-events:none
-}
-.calendar-hero>*{position:relative;z-index:1}
-.calendar-hero h1{color:#172033!important;font-size:clamp(3rem,5.4vw,4.8rem)!important;font-weight:950}
-.hero-date{
-  width:112px!important;height:112px!important;border-color:rgba(217,169,29,.52)!important;
-  background:linear-gradient(145deg,#9f1945,#771033)!important;
-  box-shadow:0 16px 34px rgba(111,17,53,.20)
-}
-.hero-date span,.hero-date small{color:#ffe17d!important}
-.hero-date strong{color:#fff!important;font-size:2.2rem!important}
-
-.calendar-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.calendar-overview article{
-  min-width:0;padding:18px 20px;border:1px solid var(--line);border-radius:17px;
-  background:#fff;box-shadow:0 8px 24px rgba(31,48,73,.035)
-}
-.calendar-overview article span{display:block;color:#8b6b0d;font-size:.61rem;font-weight:950;letter-spacing:.10em}
-.calendar-overview article strong{
-  display:block;overflow:hidden;margin-top:6px;color:#172033;font-size:1.45rem;
-  font-weight:950;white-space:nowrap;text-overflow:ellipsis
-}
-.calendar-overview article small{
-  display:block;overflow:hidden;margin-top:3px;color:#7a8798;font-size:.66rem;
-  white-space:nowrap;text-overflow:ellipsis
-}
-.calendar-overview__accent{
-  border-color:rgba(159,25,69,.18)!important;
-  background:radial-gradient(circle at 100% 0,rgba(217,169,29,.12),transparent 38%),
-             linear-gradient(145deg,#fff,#fff8fb)!important
-}
-.calendar-overview__accent strong{color:#9f1945!important}
-
-.calendar-toolbar{padding:14px!important;border-radius:18px!important;box-shadow:0 8px 24px rgba(31,48,73,.035)}
-.month-nav button,.today-button{border-color:#d9e0e8!important;background:#fff!important}
-.month-nav button:hover,.today-button:hover{
-  border-color:rgba(159,25,69,.28)!important;color:#9f1945!important;background:#fff8fb!important
-}
-.filters button.active{
-  border-color:rgba(159,25,69,.20)!important;color:#8b153d!important;
-  background:#fff7fa!important;box-shadow:0 5px 14px rgba(159,25,69,.07)!important
-}
-.month-card,.agenda-card{border-radius:22px!important;box-shadow:0 12px 34px rgba(31,48,73,.05)!important}
-.weekdays{background:linear-gradient(180deg,#fafbfd,#f6f8fb)!important}
-.day-cell{transition:background-color .18s ease,box-shadow .18s ease,transform .18s ease!important}
-.day-cell:hover{position:relative;z-index:1;background:#fffafc!important;box-shadow:inset 0 0 0 1px rgba(159,25,69,.12)}
-.day-cell.is-selected{background:#fff9fb!important;box-shadow:inset 0 0 0 2px rgba(159,25,69,.32)!important}
-.day-cell.is-today .day-number{box-shadow:0 5px 13px rgba(159,25,69,.20)}
-.event-chip--lesson{border-left:3px solid #d9a91d;color:#725506!important;background:#fff7dd!important}
-.event-chip--assignment{border-left:3px solid #9f1945;color:#8d2444!important;background:#fff0f4!important}
-.agenda-card{background:linear-gradient(180deg,#fff 0%,#fff 72%,#fffcf5 100%)!important}
-.agenda-count{color:#fff!important;background:linear-gradient(145deg,#9f1945,#7f1237)!important}
-.agenda-item{border-radius:12px;padding:15px 9px!important;transition:background-color .18s ease,transform .18s ease}
-.agenda-item:hover{background:#fafbfd}
-.agenda-item a{padding:7px 9px;border-radius:8px;background:#fff3f7}
-.upcoming-link{
-  display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:center;
-  padding:10px 0;color:inherit;text-decoration:none;border-radius:11px
-}
-.upcoming-link:hover{padding-left:7px;padding-right:7px;background:#fafbfd}
-.upcoming-link .upcoming-date{border:1px solid rgba(217,169,29,.24);background:#fff8e7!important}
-
-@media(max-width:900px){.calendar-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:620px){
-  .calendar-hero{min-height:0;padding:25px 20px!important}
-  .calendar-hero h1{font-size:2.7rem!important}
-  .calendar-overview{grid-template-columns:1fr 1fr;gap:8px}
-  .calendar-overview article{padding:15px}
-  .calendar-overview article strong{font-size:1.18rem}
-  .calendar-layout{gap:13px!important}
-}
-
 </style>
