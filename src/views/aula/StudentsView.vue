@@ -4333,7 +4333,7 @@ onBeforeUnmount(() => {
 </style>
 
 
-<style lang="scss" scoped">
+<style lang="scss" scoped>
 .students .student-card__edit { color:#8d6c08; background:#fffaf0; border-color:#ebd38a; }
 .students .student-card__edit:hover:not(:disabled) { color:#6f5200; background:#fff5dc; }
 .students .students-edit-modal { border-color:#e2cf8d; background:linear-gradient(145deg,#fff,#fffaf1); }
