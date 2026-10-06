@@ -192,6 +192,7 @@
           <span class="workspace-profile__avatar avatar avatar--workspace avatar--photo">
             <img
               v-if="profileAvatarUrl"
+              :key="profileAvatarUserId"
               :src="profileAvatarUrl"
               :alt="`Foto de ${currentUser?.name || 'usuario'}`"
             />
@@ -324,20 +325,52 @@ const resetMessage = ref('')
 const isSendingReset = ref(false)
 const mobileOpen = ref(false)
 const profileAvatarUrl = ref('')
+const profileAvatarUserId = ref('')
 
-const loadProfileAvatar = async () => {
+const clearProfileAvatar = () => {
+  profileAvatarUrl.value = ''
+  profileAvatarUserId.value = ''
+}
+
+const loadProfileAvatar = async (expectedUserId = '') => {
   try {
     const { data: userData } = await supabase.auth.getUser()
-    const userId = userData?.user?.id
-    if (!userId) { profileAvatarUrl.value = ''; return }
+    const userId = userData?.user?.id || ''
+
+    if (!userId) {
+      clearProfileAvatar()
+      return
+    }
+
+    // Evita que una respuesta atrasada termine mostrando el avatar
+    // del usuario anterior después de cambiar de sesión.
+    if (expectedUserId && userId !== expectedUserId) {
+      return
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('avatar_url, display_name')
       .eq('id', userId)
       .maybeSingle()
+
     if (error) throw error
+
+    // La sesión pudo cambiar mientras Supabase respondía.
+    const { data: latestUserData } = await supabase.auth.getUser()
+    const latestUserId = latestUserData?.user?.id || ''
+
+    if (latestUserId !== userId) {
+      return
+    }
+
+    profileAvatarUserId.value = userId
     profileAvatarUrl.value = data?.avatar_url || ''
-    if (currentUser.value && data?.display_name) {
+
+    if (
+      currentUser.value &&
+      data?.display_name
+    ) {
       currentUser.value.name = data.display_name
     }
   } catch (error) {
@@ -348,6 +381,8 @@ const loadProfileAvatar = async () => {
 const handleProfileUpdated = () => {
   loadProfileAvatar()
 }
+
+let authSubscription = null
 
 const loginError = computed(
   () => localError.value || authError.value || '',
@@ -544,14 +579,43 @@ onMounted(async () => {
   try {
     await initializeAuth()
     await loadProfileAvatar()
-    window.addEventListener('amv:profile-updated', handleProfileUpdated)
+
+    authSubscription = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        const nextUserId = session?.user?.id || ''
+
+        // Cambio de cuenta: limpiar primero para que nunca quede
+        // visible el avatar de la sesión anterior.
+        if (nextUserId !== profileAvatarUserId.value) {
+          profileAvatarUrl.value = ''
+          profileAvatarUserId.value = nextUserId
+        }
+
+        if (nextUserId) {
+          // Dejamos que el callback de Supabase termine antes de
+          // consultar nuevamente la tabla profiles.
+          window.setTimeout(() => {
+            loadProfileAvatar(nextUserId)
+          }, 0)
+        }
+      },
+    )
+
+    window.addEventListener(
+      'amv:profile-updated',
+      handleProfileUpdated,
+    )
   } finally {
     authReady.value = true
   }
 })
 
 onUnmounted(() => {
-  window.removeEventListener('amv:profile-updated', handleProfileUpdated)
+  window.removeEventListener(
+    'amv:profile-updated',
+    handleProfileUpdated,
+  )
+  authSubscription?.data?.subscription?.unsubscribe?.()
 })
 </script>
 
