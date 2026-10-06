@@ -136,37 +136,37 @@ const materials = ref([])
 
 const parseDate = value => {
 
-  if (!value) return null
+  if (!value) return null
 
-  const raw = String(value).trim().toLowerCase()
+  const raw = String(value).trim().toLowerCase()
 
-  const iso = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T12:00:00` : raw
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T12:00:00` : raw
 
-  let d = new Date(iso)
+  let d = new Date(iso)
 
-  if (!Number.isNaN(d.getTime())) return d
-
-
-
-  const months = { enero:0, febrero:1, marzo:2, abril:3, mayo:4, junio:5, julio:6, agosto:7, septiembre:8, setiembre:8, octubre:9, noviembre:10, diciembre:11 }
-
-  const match = raw.match(/(\d{1,2})\s+(?:de\s+)?([a-záéíóúñ]+)(?:\s+(?:de\s+)?(\d{4}))?/)
-
-  if (!match) return null
+  if (!Number.isNaN(d.getTime())) return d
 
 
 
-  const monthName = match[2].normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const months = { enero:0, febrero:1, marzo:2, abril:3, mayo:4, junio:5, julio:6, agosto:7, septiembre:8, setiembre:8, octubre:9, noviembre:10, diciembre:11 }
 
-  const month = months[monthName]
+  const match = raw.match(/(\d{1,2})\s+(?:de\s+)?([a-záéíóúñ]+)(?:\s+(?:de\s+)?(\d{4}))?/)
 
-  if (month === undefined) return null
+  if (!match) return null
 
-  const year = match[3] ? Number(match[3]) : new Date().getFullYear()
 
-  d = new Date(year, month, Number(match[1]), 12, 0, 0)
 
-  return Number.isNaN(d.getTime()) ? null : d
+  const monthName = match[2].normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
+  const month = months[monthName]
+
+  if (month === undefined) return null
+
+  const year = match[3] ? Number(match[3]) : new Date().getFullYear()
+
+  d = new Date(year, month, Number(match[1]), 12, 0, 0)
+
+  return Number.isNaN(d.getTime()) ? null : d
 
 }
 
@@ -174,19 +174,19 @@ const parseDate = value => {
 
 const formatLessonDate = value => {
 
-  const d = parseDate(value)
+  const d = parseDate(value)
 
-  if (!d) return String(value || '').toUpperCase()
+  if (!d) return String(value || '').toUpperCase()
 
-  return d.toLocaleDateString('es-CL', {
+  return d.toLocaleDateString('es-CL', {
 
-    day: '2-digit',
+    day: '2-digit',
 
-    month: 'long',
+    month: 'long',
 
-    year: 'numeric',
+    year: 'numeric',
 
-  }).toUpperCase()
+  }).toUpperCase()
 
 }
 
@@ -194,37 +194,37 @@ const formatLessonDate = value => {
 
 const lessonCoverUrl = lesson => {
 
-  if (!lesson) return ''
+  if (!lesson) return ''
 
 
 
-  const direct =
+  const direct =
 
-    lesson.cover_url ||
+    lesson.cover_url ||
 
-    lesson.coverUrl ||
+    lesson.coverUrl ||
 
-    lesson.cover ||
+    lesson.cover ||
 
-    lesson.image_url ||
+    lesson.image_url ||
 
-    lesson.imageUrl ||
+    lesson.imageUrl ||
 
-    lesson.thumbnail_url ||
+    lesson.thumbnail_url ||
 
-    lesson.thumbnailUrl ||
+    lesson.thumbnailUrl ||
 
-    ''
-
-
-
-  if (direct) return direct
+    ''
 
 
 
-  const appearance = getLessonAppearance(lesson.id)
+  if (direct) return direct
 
-  return appearance?.coverUrl || ''
+
+
+  const appearance = getLessonAppearance(lesson.id)
+
+  return appearance?.coverUrl || ''
 
 }
 
@@ -232,9 +232,9 @@ const lessonCoverUrl = lesson => {
 
 const lessonCoverStyle = lesson => {
 
-  const url = lessonCoverUrl(lesson)
+  const url = lessonCoverUrl(lesson)
 
-  return url ? { '--lesson-cover': `url("${String(url).replace(/"/g, '\\\\"')}")` } : {}
+  return url ? { '--lesson-cover': `url("${String(url).replace(/"/g, '\\\\"')}")` } : {}
 
 }
 
@@ -242,71 +242,71 @@ const lessonCoverStyle = lesson => {
 
 const materialsForLesson = id =>
 
-  materials.value.filter(item => Number(item.lessonId) === Number(id)).length
+  materials.value.filter(item => Number(item.lessonId) === Number(id)).length
 
 
 
 const assignmentsForLesson = id =>
 
-  assignments.value.filter(item => Number(item.lessonId) === Number(id)).length
+  assignments.value.filter(item => Number(item.lessonId) === Number(id)).length
 
 
 
 const loadCourse = async () => {
 
-  loading.value = true
+  loading.value = true
 
-  errorMessage.value = ''
-
-
-
-  try {
-
-    const results = await Promise.allSettled([
-
-      fetchLessons(),
-
-      fetchAssignments(),
-
-      fetchMaterials(),
-
-    ])
+  errorMessage.value = ''
 
 
 
-    lessons.value = results[0].status === 'fulfilled' ? results[0].value : []
+  try {
 
-    assignments.value = results[1].status === 'fulfilled' ? results[1].value : []
+    const results = await Promise.allSettled([
 
-    materials.value = results[2].status === 'fulfilled' ? results[2].value : []
+      fetchLessons(),
 
+      fetchAssignments(),
 
+      fetchMaterials(),
 
-    if (results.every(result => result.status === 'rejected')) {
-
-      throw results[0].reason
-
-    }
+    ])
 
 
 
-    if (results.some(result => result.status === 'rejected')) {
+    lessons.value = results[0].status === 'fulfilled' ? results[0].value : []
 
-      console.warn('Algunos datos secundarios no pudieron cargarse.')
+    assignments.value = results[1].status === 'fulfilled' ? results[1].value : []
 
-    }
+    materials.value = results[2].status === 'fulfilled' ? results[2].value : []
 
-  } catch (error) {
 
-    console.error(error)
 
-    errorMessage.value = error?.message || 'Error inesperado.'
+    if (results.every(result => result.status === 'rejected')) {
 
-  } finally {
+      throw results[0].reason
 
-    loading.value = false
+    }
 
-  }
+
+
+    if (results.some(result => result.status === 'rejected')) {
+
+      console.warn('Algunos datos secundarios no pudieron cargarse.')
+
+    }
+
+  } catch (error) {
+
+    console.error(error)
+
+    errorMessage.value = error?.message || 'Error inesperado.'
+
+  } finally {
+
+    loading.value = false
+
+  }
 
 }
 
@@ -318,7 +318,7 @@ onMounted(loadCourse)
 
 
 
-<style scoped lang="scss">
+<style scoped>
 .course-hub--classes {
   --wine: #b51652;
   --wine-dark: #7f1039;
