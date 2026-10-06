@@ -139,8 +139,14 @@
           </div>
           <div class="amv-welcome__status">
             <span>{{ lessonCompleted ? '✓' : '♪' }}</span>
-            <strong>{{ lessonCompleted ? 'Clase completada' : 'Sigue avanzando' }}</strong>
-            <small>{{ learningSummary.pending }} elemento{{ learningSummary.pending === 1 ? '' : 's' }} pendiente{{ learningSummary.pending === 1 ? '' : 's' }}</small>
+            <strong>{{ lessonCompleted ? 'Clase completada' : lessonViewProgress.percentage >= 100 ? 'Todo revisado' : 'Sigue avanzando' }}</strong>
+            <small>
+              {{ lessonCompleted
+                ? 'Todos los elementos requeridos están completados.'
+                : lessonViewProgress.pending > 0
+                  ? `${lessonViewProgress.pending} elemento${lessonViewProgress.pending === 1 ? '' : 's'} pendiente${lessonViewProgress.pending === 1 ? '' : 's'} por revisar.`
+                  : 'Ya revisaste todos los elementos. Si corresponde, completa la entrega o evaluación.' }}
+            </small>
           </div>
         </section>
 
@@ -168,22 +174,52 @@
             <div class="amv-step-chart">
               <div class="amv-step-chart__item">
                 <span class="amv-step-chart__label"><b>01</b> Estudiar</span>
-                <span class="amv-step-chart__track"><i :style="{ width: lessonMaterials.length ? '100%' : '10%' }"></i></span>
-                <strong>{{ lessonMaterials.length }}</strong>
+                <span class="amv-step-chart__track">
+                  <i
+                    :style="{
+                      width: lessonMaterials.length
+                        ? `${Math.round((lessonMaterials.filter(material => isMaterialCompleted(material) || isMaterialViewed(material)).length / lessonMaterials.length) * 100)}%`
+                        : '0%'
+                    }"
+                  ></i>
+                </span>
+                <strong>
+                  {{ lessonMaterials.filter(material => isMaterialCompleted(material) || isMaterialViewed(material)).length }}/{{ lessonMaterials.length }}
+                </strong>
               </div>
               <div class="amv-step-chart__item">
                 <span class="amv-step-chart__label"><b>02</b> Practicar</span>
-                <span class="amv-step-chart__track"><i :style="{ width: publishedAssignments.length ? '78%' : '10%' }"></i></span>
-                <strong>{{ publishedAssignments.length }}</strong>
+                <span class="amv-step-chart__track">
+                  <i
+                    :style="{
+                      width: publishedAssignments.length
+                        ? `${Math.round((publishedAssignments.filter(task => isAssignmentCompleted(task)).length / publishedAssignments.length) * 100)}%`
+                        : '0%'
+                    }"
+                  ></i>
+                </span>
+                <strong>
+                  {{ publishedAssignments.filter(task => isAssignmentCompleted(task)).length }}/{{ publishedAssignments.length }}
+                </strong>
               </div>
               <div class="amv-step-chart__item">
                 <span class="amv-step-chart__label"><b>03</b> Comprobar</span>
-                <span class="amv-step-chart__track"><i :style="{ width: visibleQuizzes.length ? '62%' : '10%' }"></i></span>
-                <strong>{{ visibleQuizzes.length }}</strong>
+                <span class="amv-step-chart__track">
+                  <i
+                    :style="{
+                      width: visibleQuizzes.length
+                        ? `${Math.round((visibleQuizzes.filter(quiz => isQuizCompleted(quiz)).length / visibleQuizzes.length) * 100)}%`
+                        : '0%'
+                    }"
+                  ></i>
+                </span>
+                <strong>
+                  {{ visibleQuizzes.filter(quiz => isQuizCompleted(quiz)).length }}/{{ visibleQuizzes.length }}
+                </strong>
               </div>
               <div class="amv-step-chart__item">
                 <span class="amv-step-chart__label"><b>04</b> Aprender</span>
-                <span class="amv-step-chart__track"><i :style="{ width: hasAcademicContent ? '88%' : '10%' }"></i></span>
+                <span class="amv-step-chart__track"><i :style="{ width: hasAcademicContent ? '100%' : '0%' }"></i></span>
                 <strong>{{ objectives.length + contents.length }}</strong>
               </div>
             </div>
@@ -229,14 +265,46 @@
           </button>
         </div>
 
-        <section v-if="primaryMaterial" class="amv-feature">
-          <div class="amv-feature__icon">📄</div>
+        <section
+          v-if="primaryMaterial"
+          class="amv-feature"
+          :class="{
+            'amv-feature--done': isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial),
+            'amv-feature--pending': !isMaterialCompleted(primaryMaterial) && !isMaterialViewed(primaryMaterial),
+          }"
+        >
+          <div class="amv-feature__icon" aria-hidden="true">
+            {{ (isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial)) ? '✓' : '📄' }}
+          </div>
           <div>
             <span class="amv-kicker">COMIENZA POR AQUÍ</span>
             <h3>{{ getMaterialDisplayName(primaryMaterial) }}</h3>
             <p>{{ getMaterialSubtitle(primaryMaterial) || 'Material principal de esta clase.' }}</p>
+            <span
+              class="amv-feature__status"
+              :class="(isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial)) ? 'is-done' : 'is-pending'"
+            >
+              {{ (isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial)) ? '✓ VISTO · CUENTA EN TU PROGRESO' : '○ PENDIENTE · FALTA REVISAR' }}
+            </span>
           </div>
-          <button type="button" class="amv-primary-btn" @click="handleMaterialClick(primaryMaterial)">Abrir material <span>→</span></button>
+          <a
+            v-if="primaryMaterial.url"
+            :href="primaryMaterial.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="amv-primary-btn"
+            @click="handleMaterialClick($event, primaryMaterial)"
+          >
+            {{ (isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial)) ? 'Revisar material' : 'Abrir material' }} <span>→</span>
+          </a>
+          <button
+            v-else
+            type="button"
+            class="amv-primary-btn"
+            disabled
+          >
+            Material no disponible <span>—</span>
+          </button>
         </section>
 
         <section class="amv-next" v-if="nextPendingLearningItem">
@@ -253,7 +321,14 @@
           <span class="amv-count">{{ lessonMaterials.length }}</span>
         </section>
 
-        <section v-if="primaryMaterial" class="amv-primary-material amv-primary-material--preview">
+        <section
+          v-if="primaryMaterial"
+          class="amv-primary-material amv-primary-material--preview"
+          :class="{
+            'amv-learning-item--done': isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial),
+            'amv-learning-item--pending': !isMaterialCompleted(primaryMaterial) && !isMaterialViewed(primaryMaterial),
+          }"
+        >
           <div class="amv-material-preview amv-material-preview--primary">
             <template v-if="getMaterialPreviewKind(primaryMaterial) === 'image'">
               <img :src="primaryMaterial.url" :alt="getMaterialDisplayName(primaryMaterial)" loading="lazy" />
@@ -262,7 +337,17 @@
               <iframe :src="`${primaryMaterial.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(primaryMaterial)}`" loading="lazy"></iframe>
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'audio'">
-              <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 26" :key="`primary-audio-${n}`" :style="{ '--h': `${20 + ((n * 29) % 68)}%`, '--d': `${(n % 9) * 0.07}s` }"></i></div><span>🎧 AUDIO</span></div>
+              <div class="amv-audio-preview">
+                <div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 26" :key="`primary-audio-${n}`" :style="{ '--h': `${20 + ((n * 29) % 68)}%`, '--d': `${(n % 9) * 0.07}s` }"></i></div>
+                <span>🎧 AUDIO</span>
+                <audio
+                  class="amv-audio-player"
+                  :src="primaryMaterial.url"
+                  controls
+                  preload="metadata"
+                  @play="handleTrackedMaterialOpen(primaryMaterial)"
+                ></audio>
+              </div>
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'video'">
               <video :src="primaryMaterial.url" controls preload="metadata"></video>
@@ -277,7 +362,13 @@
             <span class="amv-kicker">MATERIAL PRINCIPAL</span>
             <h3>{{ getMaterialDisplayName(primaryMaterial) }}</h3>
             <p>{{ getMaterialSubtitle(primaryMaterial) || 'Documento principal preparado para esta clase.' }}</p>
-            <div class="amv-meta-row"><span>📄 {{ getMaterialType(primaryMaterial) }}</span><span v-if="primaryMaterial.size || primaryMaterial.fileSize">💾 {{ formatFileSize(primaryMaterial.size || primaryMaterial.fileSize) }}</span><span class="amv-status">✓ Disponible</span></div>
+            <div class="amv-meta-row">
+              <span>📄 {{ getMaterialType(primaryMaterial) }}</span>
+              <span v-if="primaryMaterial.size || primaryMaterial.fileSize">💾 {{ formatFileSize(primaryMaterial.size || primaryMaterial.fileSize) }}</span>
+              <span class="amv-status" :class="(isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial)) ? 'amv-status--done' : 'amv-status--pending'">
+                {{ (isMaterialCompleted(primaryMaterial) || isMaterialViewed(primaryMaterial)) ? '✓ Visto' : '○ Pendiente' }}
+              </span>
+            </div>
             <div class="amv-material-actions">
               <a v-if="primaryMaterial.url" class="amv-open-btn" :href="primaryMaterial.url" target="_blank" rel="noopener" @click="handleMaterialClick($event, primaryMaterial)">Abrir completo <span>↗</span></a>
               <a v-if="primaryMaterial.url" class="amv-download-btn" :href="primaryMaterial.url" download @click="handleTrackedMaterialOpen(primaryMaterial)">↓ Descargar</a>
@@ -286,7 +377,15 @@
         </section>
 
         <div class="amv-resource-grid">
-          <article v-for="material in secondaryMaterials" :key="material.id" class="amv-resource-card">
+          <article
+            v-for="material in secondaryMaterials"
+            :key="material.id"
+            class="amv-resource-card"
+            :class="{
+              'amv-learning-item--done': isMaterialCompleted(material) || isMaterialViewed(material),
+              'amv-learning-item--pending': !isMaterialCompleted(material) && !isMaterialViewed(material),
+            }"
+          >
             <div class="amv-material-preview">
               <template v-if="getMaterialPreviewKind(material) === 'image'">
                 <img :src="material.url" :alt="getMaterialDisplayName(material)" loading="lazy" />
@@ -295,7 +394,17 @@
                 <iframe :src="`${material.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(material)}`" loading="lazy"></iframe>
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'audio'">
-                <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 20" :key="`${material.id}-audio-${n}`" :style="{ '--h': `${22 + ((n * 37) % 65)}%`, '--d': `${(n % 8) * 0.08}s` }"></i></div><span>🎧 AUDIO</span></div>
+                <div class="amv-audio-preview">
+                  <div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 20" :key="`${material.id}-audio-${n}`" :style="{ '--h': `${22 + ((n * 37) % 65)}%`, '--d': `${(n % 8) * 0.08}s` }"></i></div>
+                  <span>🎧 AUDIO</span>
+                  <audio
+                    class="amv-audio-player"
+                    :src="material.url"
+                    controls
+                    preload="metadata"
+                    @play="handleTrackedMaterialOpen(material)"
+                  ></audio>
+                </div>
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'video'">
                 <video :src="material.url" controls preload="metadata"></video>
@@ -310,6 +419,9 @@
               <small>{{ getMaterialType(material) }}</small>
               <h3>{{ getMaterialDisplayName(material) }}</h3>
               <p>{{ getMaterialSubtitle(material) || 'Recurso disponible para esta clase.' }}</p>
+              <span class="amv-learning-state-pill" :class="(isMaterialCompleted(material) || isMaterialViewed(material)) ? 'is-done' : 'is-pending'">
+                {{ (isMaterialCompleted(material) || isMaterialViewed(material)) ? '✓ Visto' : '○ Pendiente' }}
+              </span>
               <div class="amv-resource-card__actions">
                 <a v-if="material.url" class="amv-card-action amv-card-action--open" :href="material.url" target="_blank" rel="noopener" @click="handleMaterialClick($event, material)">Abrir ↗</a>
                 <a v-if="material.url" class="amv-card-action" :href="material.url" download @click="handleTrackedMaterialOpen(material)">Descargar ↓</a>
@@ -334,6 +446,7 @@
             :key="task.id"
             :to="`/aula/clase/${lesson.id}/tarea/${task.id}`"
             class="amv-task"
+            :class="(isAssignmentCompleted(task) || isAssignmentViewed(task)) ? 'amv-task--completed' : 'amv-task--pending'"
             @click="handleAssignmentOpen(task)"
           >
             <span class="amv-task__number">{{ String(index + 1).padStart(2, '0') }}</span>
@@ -344,7 +457,7 @@
               <em>{{ task.points ?? 100 }} pts · {{ task.dueDate ? `Entrega ${formatDate(task.dueDate)}` : 'Sin fecha límite' }}</em>
             </span>
             <span class="amv-task__state">
-              {{ isAssignmentCompleted(task) ? '✓ Entregada' : isAssignmentViewed(task) ? '◐ Vista' : 'Comenzar' }}
+              {{ isAssignmentCompleted(task) ? '✓ Entregada' : isAssignmentViewed(task) ? '✓ Vista' : '○ Pendiente' }}
               <b>→</b>
             </span>
           </RouterLink>
@@ -365,21 +478,27 @@
             v-for="quiz in visibleQuizzes"
             :key="quiz.id"
             class="amv-quiz"
-            :class="{ 'amv-quiz--completed': isQuizCompleted(quiz), 'amv-quiz--closed': quiz.status === 'closed' }"
+            :class="{ 'amv-quiz--completed': isQuizCompleted(quiz), 'amv-quiz--viewed': !isQuizCompleted(quiz) && isQuizViewed(quiz), 'amv-quiz--pending': !isQuizCompleted(quiz) && !isQuizViewed(quiz), 'amv-quiz--closed': quiz.status === 'closed' }"
           >
             <span class="amv-quiz__icon">{{ quiz.assessmentType === 'test' ? '📝' : '🧠' }}</span>
             <div class="amv-quiz__body">
-              <div class="amv-badges"><span>{{ getQuizTypeLabel(quiz.assessmentType) }}</span><span>{{ getQuizStatusLabel(quiz.status) }}</span><span v-if="isQuizCompleted(quiz)">✓ Completada</span></div>
+              <div class="amv-badges">
+              <span>{{ getQuizTypeLabel(quiz.assessmentType) }}</span>
+              <span>{{ getQuizStatusLabel(quiz.status) }}</span>
+              <span v-if="isQuizCompleted(quiz)">✓ Completada</span>
+              <span v-else-if="isQuizViewed(quiz)">✓ Vista</span>
+              <span v-else>○ Pendiente</span>
+            </div>
               <h3>{{ quiz.title }}</h3>
               <p v-if="quiz.description">{{ quiz.description }}</p>
               <div class="amv-meta-row"><span>{{ quiz.totalPoints || 0 }} pts</span><span v-if="quiz.attemptsAllowed">{{ quiz.attemptsAllowed }} intento{{ quiz.attemptsAllowed === 1 ? '' : 's' }}</span><span v-if="quiz.timeLimitMinutes">⏱ {{ quiz.timeLimitMinutes }} min</span><span>{{ getQuizAvailabilityLabel(quiz) }}</span></div>
             </div>
             <RouterLink
-              :to="isQuizCompleted(quiz) ? '/aula/evaluaciones' : `/aula/clase/${lesson.id}/evaluacion/${quiz.id}`"
+              :to="isQuizCompleted(quiz) ? getQuizResultRoute(quiz) : `/aula/clase/${lesson.id}/evaluacion/${quiz.id}`"
               class="amv-quiz__action"
               @click="!isQuizCompleted(quiz) && handleQuizOpen(quiz)"
             >
-              {{ isQuizCompleted(quiz) ? 'Resultados' : quiz.status === 'published' ? 'Comenzar' : 'Ver estado' }}
+              {{ isQuizCompleted(quiz) ? 'Ver resultado' : quiz.status === 'published' ? 'Comenzar' : 'Ver estado' }}
               <span>→</span>
             </RouterLink>
           </article>
@@ -1944,6 +2063,12 @@ const loadLesson =
           loadedEvaluationAttempts || []
 
         /*
+         * Los botones de resultado usan el attemptId real.
+         * Nunca enviamos al alumno a una vista genérica cuando
+         * ya existe un intento terminado para este quiz.
+         */
+
+        /*
          * Registrar que el alumno efectivamente entró
          * a esta clase.
          */
@@ -2137,39 +2262,49 @@ const nextLesson =
 ========================================================= */
 
 /*
- * Solo ciertos elementos bloquean la finalización de la clase.
+ * PROGRESO CANÓNICO DE LA CLASE
  *
- * - Material principal: requerido.
- * - Tareas publicadas: requeridas.
- * - Quiz/pruebas publicadas: requeridos.
- * - Recursos complementarios: se registran, pero son opcionales.
+ * Todos los recursos visibles de la sesión forman parte del avance:
+ * - Todos los materiales publicados.
+ * - Tareas publicadas.
+ * - Quiz / pruebas publicadas.
+ *
+ * Así el porcentaje que se muestra dentro de la clase representa
+ * exactamente los mismos elementos que el alumno puede completar
+ * y ver en esta pantalla.
  */
 const requiredLearningItems =
   computed(() => {
     const items = []
 
-    if (
-      primaryMaterial.value?.id
+    for (
+      const material of lessonMaterials.value.filter(
+        item => item?.status !== 'draft'
+      )
     ) {
+      if (!material?.id) {
+        continue
+      }
+
       items.push({
         type:
           LEARNING_ITEM_TYPES.MATERIAL,
 
         id:
-          Number(
-            primaryMaterial.value.id,
-          ),
+          Number(material.id),
 
         title:
           getMaterialDisplayName(
-            primaryMaterial.value,
+            material,
           ),
 
         kind:
-          'Material principal',
+          Number(material.id) === Number(primaryMaterial.value?.id)
+            ? 'Material principal'
+            : 'Material',
 
         href:
-          primaryMaterial.value.url ||
+          material.url ||
           null,
       })
     }
@@ -2242,13 +2377,13 @@ const learningSummary =
         learningItemProgress.value,
 
       /*
-       * Los materiales complementarios se registran,
-       * pero no bloquean la finalización automática.
+       * Todos los materiales publicados participan del porcentaje.
+       * Los materiales secundarios dejan de quedar fuera del cálculo.
        */
       materials:
-        primaryMaterial.value
-          ? [primaryMaterial.value]
-          : [],
+        lessonMaterials.value.filter(
+          item => item?.status !== 'draft'
+        ),
 
       assignments:
         publishedAssignments.value,
@@ -2258,9 +2393,59 @@ const learningSummary =
     }),
   )
 
+const isLearningItemSeen =
+  (itemType, itemId) =>
+    isLearningItemCompleted(
+      learningItemProgress.value,
+      itemType,
+      itemId,
+    ) ||
+    isLearningItemViewed(
+      learningItemProgress.value,
+      itemType,
+      itemId,
+    )
+
+const lessonViewProgress =
+  computed(() => {
+    const items =
+      requiredLearningItems.value
+
+    if (!items.length) {
+      return {
+        total: 0,
+        completed: 0,
+        pending: 0,
+        percentage: 0,
+      }
+    }
+
+    const completed =
+      items.filter(item =>
+        isLearningItemSeen(
+          item.type,
+          item.id,
+        ),
+      ).length
+
+    const total = items.length
+
+    return {
+      total,
+      completed,
+      pending: Math.max(
+        0,
+        total - completed,
+      ),
+      percentage: Math.round(
+        (completed / total) * 100,
+      ),
+    }
+  })
+
 const lessonItemPercentage =
   computed(() =>
-    learningSummary.value
+    lessonViewProgress.value
       .percentage,
   )
 
@@ -2396,6 +2581,54 @@ const isAssignmentViewed =
       LEARNING_ITEM_TYPES.ASSIGNMENT,
       assignment?.id,
     )
+
+const getLatestFinishedQuizAttempt =
+  quiz => {
+    const quizId = Number(quiz?.id)
+
+    if (
+      !Number.isFinite(quizId) ||
+      quizId <= 0
+    ) {
+      return null
+    }
+
+    return (
+      evaluationAttempts.value
+        .filter(
+          attempt =>
+            Number(attempt?.quizId) === quizId &&
+            isFinishedAttempt(attempt),
+        )
+        .sort(
+          (a, b) =>
+            Number(b?.attemptNumber || 0) -
+            Number(a?.attemptNumber || 0) ||
+            new Date(
+              b?.gradedAt ||
+              b?.submittedAt ||
+              b?.startedAt ||
+              0,
+            ) -
+            new Date(
+              a?.gradedAt ||
+              a?.submittedAt ||
+              a?.startedAt ||
+              0,
+            ),
+        )[0] || null
+    )
+  }
+
+const getQuizResultRoute =
+  quiz => {
+    const attempt =
+      getLatestFinishedQuizAttempt(quiz)
+
+    return attempt?.attemptId
+      ? `/aula/evaluaciones/intento/${attempt.attemptId}`
+      : '/aula/evaluaciones'
+  }
 
 const isQuizCompleted =
   quiz =>
@@ -2740,6 +2973,48 @@ const syncAutomaticLessonCompletion =
    REGISTRAR INTERACCIONES
 ========================================================= */
 
+const upsertLocalLearningItem =
+  (itemType, itemId, status = 'viewed') => {
+    const normalizedItemId = Number(itemId)
+
+    if (
+      !itemType ||
+      !Number.isFinite(normalizedItemId) ||
+      normalizedItemId <= 0
+    ) {
+      return
+    }
+
+    const index =
+      learningItemProgress.value.findIndex(
+        item =>
+          item.itemType === itemType &&
+          Number(item.itemId) === normalizedItemId,
+      )
+
+    if (index >= 0) {
+      const current =
+        learningItemProgress.value[index]
+
+      learningItemProgress.value[index] = {
+        ...current,
+        status:
+          status === 'completed' ||
+          current?.status === 'completed'
+            ? 'completed'
+            : 'viewed',
+      }
+      return
+    }
+
+    learningItemProgress.value.push({
+      lessonId: Number(lesson.value?.id),
+      itemType,
+      itemId: normalizedItemId,
+      status,
+    })
+  }
+
 const recordItemViewed =
   async (
     itemType,
@@ -2755,6 +3030,12 @@ const recordItemViewed =
     ) {
       return
     }
+
+    upsertLocalLearningItem(
+      itemType,
+      itemId,
+      'viewed',
+    )
 
     try {
       await markLearningItemViewed({
@@ -2804,6 +3085,12 @@ const recordItemCompleted =
     ) {
       return
     }
+
+    upsertLocalLearningItem(
+      itemType,
+      itemId,
+      'completed',
+    )
 
     try {
       await markLearningItemCompleted({
@@ -3700,6 +3987,54 @@ const showToast = (
     }, 3500)
 }
 
+const refreshProgressOnReturn =
+  async () => {
+    if (
+      isTeacher.value ||
+      !studentId.value ||
+      !lesson.value?.id
+    ) {
+      return
+    }
+
+    try {
+      const [
+        loadedLearningProgress,
+        loadedEvaluationAttempts,
+      ] = await Promise.all([
+        fetchMyLessonLearningProgress(
+          lesson.value.id,
+        ),
+        fetchMyEvaluationAttempts(),
+      ])
+
+      learningItemProgress.value =
+        loadedLearningProgress || []
+
+      evaluationAttempts.value =
+        loadedEvaluationAttempts || []
+
+      await syncCompletedEvaluations()
+      await refreshLearningProgress()
+      await syncAutomaticLessonCompletion()
+    } catch (error) {
+      console.warn(
+        'No fue posible actualizar el progreso al volver a la clase:',
+        error,
+      )
+    }
+  }
+
+const handleWindowFocus = () => {
+  refreshProgressOnReturn()
+}
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    refreshProgressOnReturn()
+  }
+}
+
 /* =========================================================
    ROUTE
 ========================================================= */
@@ -3719,11 +4054,15 @@ watch(
 onMounted(() => {
   refreshLessonAppearance()
   window.addEventListener('amv:lesson-appearance', onAppearanceChanged)
+  window.addEventListener('focus', handleWindowFocus)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
   loadLesson()
 })
 
 onUnmounted(() => {
   window.removeEventListener('amv:lesson-appearance', onAppearanceChanged)
+  window.removeEventListener('focus', handleWindowFocus)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
   clearTimeout(
     toastTimer,
   )
@@ -3732,6 +4071,30 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 @use '@/assets/styles/abstracts/variables' as variables;
+
+/* =========================================================
+   AMV · PROGRESO DE ACTIVIDADES
+   Pendiente = amarillo · Entregada = verde
+========================================================= */
+
+.amv-task { position:relative !important; overflow:hidden !important; border:1px solid rgba(217,169,29,.24) !important; background:linear-gradient(135deg,#fffdf7 0%,#fff8e4 100%) !important; box-shadow:0 12px 28px rgba(105,82,17,.065) !important; transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease,background .24s ease !important; }
+.amv-task::before { content:''; position:absolute; inset:0 auto 0 0; width:4px; border-radius:4px 0 0 4px; background:linear-gradient(180deg,#e5c451,#af850b); transition:width .24s ease; }
+.amv-task::after { content:''; position:absolute; width:160px; height:160px; right:-90px; top:-100px; border-radius:50%; background:rgba(217,169,29,.075); filter:blur(4px); pointer-events:none; }
+.amv-task:hover { transform:translateY(-3px) !important; border-color:rgba(217,169,29,.42) !important; box-shadow:0 18px 38px rgba(105,82,17,.10) !important; }
+.amv-task:hover::before { width:6px; }
+.amv-task--completed { border-color:rgba(45,138,99,.24) !important; background:linear-gradient(135deg,#fff 0%,#f3fbf7 100%) !important; box-shadow:0 12px 28px rgba(45,138,99,.055) !important; }
+.amv-task--completed::before { background:linear-gradient(180deg,#55bb86,#227651); }
+.amv-task--completed::after { background:rgba(45,138,99,.065); }
+.amv-task--completed:hover { border-color:rgba(45,138,99,.42) !important; box-shadow:0 18px 38px rgba(45,138,99,.095) !important; }
+.amv-task--completed .amv-task__state { color:#227651 !important; background:rgba(45,138,99,.09) !important; border-color:rgba(45,138,99,.18) !important; }
+.amv-task--pending .amv-task__state { color:#9a7307 !important; background:rgba(217,169,29,.10) !important; border-color:rgba(217,169,29,.20) !important; }
+.amv-task--completed .amv-task__icon { color:#227651 !important; background:#ecf8f1 !important; border-color:rgba(45,138,99,.20) !important; box-shadow:0 0 0 4px rgba(45,138,99,.04),0 8px 18px rgba(45,138,99,.08) !important; }
+.amv-task--pending .amv-task__icon { color:#aa7d08 !important; background:#fff9e8 !important; border-color:rgba(217,169,29,.22) !important; box-shadow:0 0 0 4px rgba(217,169,29,.035),0 8px 18px rgba(190,147,28,.075) !important; }
+.amv-task--completed .amv-task__number { color:#2a805b !important; background:rgba(45,138,99,.07) !important; border-color:rgba(45,138,99,.14) !important; }
+.amv-task--pending .amv-task__number { color:#a07a0a !important; background:rgba(217,169,29,.07) !important; border-color:rgba(217,169,29,.14) !important; }
+.amv-primary-btn[href] { display:inline-flex !important; align-items:center; justify-content:center; text-decoration:none !important; }
+.amv-primary-btn:disabled { opacity:.56; cursor:not-allowed; }
+@media (prefers-reduced-motion:reduce) { .amv-task { transition:none !important; } }
 
 /* =========================================================
    BASE
@@ -6746,6 +7109,78 @@ a.lesson-navigation__item:hover,
     grid-column: 2;
     justify-self: start;
   }
+}
+
+/* =========================================================
+   PROGRESO VISUAL POR ELEMENTO
+   Verde = visto/completado · Amarillo = pendiente
+========================================================= */
+
+.amv-learning-item--done {
+  border-color: rgba(45, 138, 99, .30) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f1faf5 100%) !important;
+  box-shadow: 0 14px 32px rgba(45, 138, 99, .075) !important;
+}
+
+.amv-learning-item--pending {
+  border-color: rgba(217, 169, 29, .30) !important;
+  background: linear-gradient(135deg, #fffef9 0%, #fff9e9 100%) !important;
+  box-shadow: 0 14px 32px rgba(170, 125, 8, .065) !important;
+}
+
+.amv-status--done {
+  color: #227651 !important;
+  border-color: rgba(45, 138, 99, .18) !important;
+  background: rgba(45, 138, 99, .09) !important;
+}
+
+.amv-status--pending {
+  color: #9a7307 !important;
+  border-color: rgba(217, 169, 29, .20) !important;
+  background: rgba(217, 169, 29, .10) !important;
+}
+
+.amv-learning-state-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: .65rem;
+  padding: .33rem .62rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: .56rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.amv-learning-state-pill.is-done {
+  color: #227651;
+  border-color: rgba(45, 138, 99, .18);
+  background: rgba(45, 138, 99, .09);
+}
+
+.amv-learning-state-pill.is-pending {
+  color: #9a7307;
+  border-color: rgba(217, 169, 29, .20);
+  background: rgba(217, 169, 29, .10);
+}
+
+.amv-quiz--viewed {
+  border-color: rgba(45, 138, 99, .24) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f4fbf7 100%) !important;
+  box-shadow: 0 14px 30px rgba(45, 138, 99, .065) !important;
+}
+
+.amv-quiz--viewed .amv-quiz__icon {
+  color: #227651 !important;
+  background: #edf8f1 !important;
+  border-color: rgba(45, 138, 99, .20) !important;
+}
+
+.amv-quiz--pending {
+  border-color: rgba(217, 169, 29, .24) !important;
+  background: linear-gradient(135deg, #fffef9 0%, #fff9e9 100%) !important;
 }
 
 @media (max-width: 1050px) {
@@ -10514,6 +10949,13 @@ a.lesson-navigation__item:hover,
     linear-gradient(145deg,#fbf8ff,#eee8f7);
 }
 .amv-audio-preview > span { color:#654589; font-size:.54rem; font-weight:950; letter-spacing:.16em; }
+.amv-audio-player {
+  width: min(92%, 420px);
+  height: 38px;
+  border-radius: 999px;
+  accent-color: #9f1945;
+  filter: drop-shadow(0 8px 18px rgba(112,75,152,.12));
+}
 .amv-audio-wave { display:flex; align-items:center; justify-content:center; gap:3px; width:88%; height:80px; }
 .amv-audio-wave i {
   display:block;
@@ -11673,4 +12115,89 @@ a.lesson-navigation__item:hover,
   }
 }
 
+
+/* =========================================================
+   V27 · MATERIAL PRINCIPAL SINCRONIZADO CON EL MISMO ITEM
+   El resumen utiliza exactamente el mismo material.id y el
+   mismo estado granular que la pestaña Material.
+========================================================= */
+.amv-feature {
+  position: relative;
+  transition:
+    border-color .25s ease,
+    background .25s ease,
+    box-shadow .25s ease,
+    transform .25s ease;
+}
+
+.amv-feature--done {
+  border-color: #b9dfcf !important;
+  background:
+    linear-gradient(110deg, #f3fbf7 0%, #ffffff 74%) !important;
+  box-shadow:
+    0 16px 38px rgba(42, 122, 85, .09),
+    inset 0 0 0 1px rgba(42, 122, 85, .045);
+}
+
+.amv-feature--done .amv-feature__icon {
+  background: #e8f7ef !important;
+  border: 1px solid #c5e5d5;
+  color: #24784f;
+  box-shadow: 0 8px 22px rgba(42, 122, 85, .12);
+}
+
+.amv-feature--pending {
+  border-color: #ead7a3 !important;
+  background:
+    linear-gradient(110deg, #fffaf0 0%, #ffffff 74%) !important;
+}
+
+.amv-feature--pending .amv-feature__icon {
+  background: #fff4d9 !important;
+  border: 1px solid #ecd7a0;
+  color: #9a6c0e;
+  box-shadow: 0 8px 22px rgba(154, 108, 14, .09);
+}
+
+.amv-feature__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  margin-top: 9px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: .49rem;
+  font-weight: 950;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+.amv-feature__status.is-done {
+  border: 1px solid #c6e7d6;
+  background: #eaf8f0;
+  color: #287950;
+}
+
+.amv-feature__status.is-pending {
+  border: 1px solid #ecd7a0;
+  background: #fff4d9;
+  color: #95680c;
+}
+
+.amv-feature--done .amv-primary-btn {
+  box-shadow:
+    0 8px 18px rgba(143, 23, 63, .13);
+}
+
+.amv-step-chart__item > strong {
+  min-width: 34px;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .amv-feature__status {
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
 </style>

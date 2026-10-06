@@ -29,6 +29,7 @@
         v-for="(lesson, index) in lessons"
         :key="lesson.id"
         class="lesson-card"
+        :class="{ 'lesson-card--completed': isLessonCompleted(lesson.id) }"
       >
         <RouterLink
           :to="`/aula/clase/${lesson.id}`"
@@ -54,6 +55,47 @@
 
             <h2>{{ lesson.title }}</h2>
             <span class="lesson-accent" aria-hidden="true"></span>
+
+            <div
+              v-if="isStudent"
+              class="lesson-card__progress-mini"
+              :class="{
+                'is-complete': getLessonProgress(lesson.id) >= 100,
+                'is-active': getLessonProgress(lesson.id) > 0 && getLessonProgress(lesson.id) < 100,
+              }"
+            >
+              <div class="lesson-card__progress-head">
+                <span>
+                  {{
+                    getLessonProgress(lesson.id) >= 100
+                      ? '✓ CLASE COMPLETADA'
+                      : getLessonProgress(lesson.id) > 0
+                        ? 'EN PROGRESO'
+                        : 'PENDIENTE'
+                  }}
+                </span>
+                <strong>{{ getLessonProgress(lesson.id) }}%</strong>
+              </div>
+
+              <div class="lesson-card__progress-track" aria-hidden="true">
+                <i
+                  class="lesson-card__progress-fill"
+                  :style="{ width: `${getLessonProgress(lesson.id)}%` }"
+                ></i>
+
+                <b
+                  v-for="particle in 10"
+                  :key="`lesson-progress-${lesson.id}-${particle}`"
+                  class="lesson-card__progress-particle"
+                  :style="{
+                    left: `${Math.min(96, Math.max(3, getLessonProgress(lesson.id) + (particle - 5) * 3.6))}%`,
+                    animationDelay: `${particle * 0.09}s`,
+                  }"
+                ></b>
+              </div>
+
+              <small>{{ getLessonProgressCaption(lesson.id) }}</small>
+            </div>
           </div>
 
           <div class="lesson-card__info">
@@ -75,13 +117,13 @@
               </div>
 
               <div
-                v-if="materialsForLesson(lesson.id) || assignmentsForLesson(lesson.id)"
+                v-if="totalLearningItemsForLesson(lesson.id)"
                 class="lesson-detail"
               >
                 <span class="detail-icon">◈</span>
                 <div>
-                  <strong>{{ materialsForLesson(lesson.id) + assignmentsForLesson(lesson.id) }}</strong>
-                  <span>recursos y actividades</span>
+                  <strong>{{ totalLearningItemsForLesson(lesson.id) }}</strong>
+                  <span>recursos y evaluaciones</span>
                 </div>
               </div>
             </div>
@@ -106,7 +148,9 @@
 
 <script setup>
 
-import { onMounted, ref } from 'vue'
+import { computed, onActivated, onMounted, onUnmounted, ref } from 'vue'
+
+import { useAuth } from '@/composables/useAuth'
 
 import { RouterLink } from 'vue-router'
 
@@ -120,6 +164,14 @@ import { fetchMaterials } from '@/services/materialService'
 
 import { getLessonAppearance } from '@/services/lessonAppearanceService'
 
+import { fetchProgressByStudent } from '@/services/lessonProgressService'
+
+import {
+  fetchMyLessonLearningProgress,
+} from '@/services/learningProgressService'
+
+import { fetchQuizzes } from '@/services/quizService'
+
 
 
 const loading = ref(true)
@@ -132,7 +184,97 @@ const assignments = ref([])
 
 const materials = ref([])
 
+const quizzes = ref([])
 
+const studentProgress = ref([])
+
+const lessonLearningProgress = ref({})
+
+const { currentUser, isStudent } = useAuth()
+
+const getPrimaryMaterialForLesson = lessonId => {
+  const items = materials.value.filter(
+    item => Number(item.lessonId) === Number(lessonId),
+  )
+
+  if (!items.length) return null
+
+  const explicitPrimary = items.find(item =>
+    String(item.storagePath || '').includes('/material-principal/'),
+  )
+
+  if (explicitPrimary) return explicitPrimary
+
+  const titledPrimary = items.find(item =>
+    String(item.title || '')
+      .toLowerCase()
+      .includes('material principal'),
+  )
+
+  if (titledPrimary) return titledPrimary
+
+  return (
+    items.find(
+      item =>
+        item.type === 'pdf' ||
+        item.mimeType === 'application/pdf',
+    ) || null
+  )
+}
+
+const getPublishedAssignmentsForLesson = lessonId =>
+  assignments.value.filter(
+    assignment =>
+      Number(assignment.lessonId) === Number(lessonId) &&
+      assignment.status !== 'draft',
+  )
+
+const getVisibleQuizzesForLesson = lessonId =>
+  quizzes.value.filter(
+    quiz =>
+      Number(quiz.lessonId) === Number(lessonId) &&
+      quiz.status === 'published',
+  )
+
+const isLessonLegacyCompleted = lessonId =>
+  studentProgress.value.some(
+    row =>
+      Number(row.lessonId) === Number(lessonId) &&
+      row.completed,
+  )
+
+const getLessonProgress = lessonId => {
+  const stored = lessonLearningProgress.value?.[Number(lessonId)]
+  const percentage = Number(stored?.percentage)
+
+  // Compatibilidad con clases antiguas sin elementos granulares.
+  if (Number(stored?.total) === 0) {
+    return isLessonLegacyCompleted(lessonId) ? 100 : 0
+  }
+
+  if (Number.isFinite(percentage)) {
+    return Math.max(0, Math.min(100, Math.round(percentage)))
+  }
+
+  return isLessonLegacyCompleted(lessonId) ? 100 : 0
+}
+
+const getLessonProgressCaption = lessonId => {
+  const percentage = getLessonProgress(lessonId)
+
+  if (percentage >= 100) {
+    return 'Todos los elementos de esta clase están completados.'
+  }
+
+  if (percentage > 0) {
+    return 'Tu avance se guarda automáticamente. Continúa donde quedaste.'
+  }
+
+  return 'Comienza con el material principal para iniciar esta clase.'
+}
+
+const isLessonCompleted = lessonId =>
+  isStudent.value && getLessonProgress(lessonId) >= 100
 
 const parseDate = value => {
 
@@ -252,6 +394,123 @@ const assignmentsForLesson = id =>
 
 
 
+const quizzesForLesson = id =>
+
+  quizzes.value.filter(
+    item =>
+      Number(item.lessonId) === Number(id) &&
+      item.status === 'published',
+  ).length
+
+
+
+const totalLearningItemsForLesson = id =>
+
+  materialsForLesson(id) +
+  assignmentsForLesson(id) +
+  quizzesForLesson(id)
+
+
+
+let courseLoaded = false
+
+const refreshCourseProgress = async () => {
+
+  if (!isStudent.value || !currentUser.value?.id || !lessons.value.length) {
+    return
+  }
+
+  try {
+    try {
+      studentProgress.value = await fetchProgressByStudent(
+        currentUser.value.id,
+      )
+    } catch (progressError) {
+      console.warn(
+        'No se pudo refrescar el progreso legado del alumno:',
+        progressError,
+      )
+    }
+
+    const progressEntries = await Promise.all(
+      lessons.value.map(async lesson => {
+        const lessonId = Number(lesson.id)
+
+        try {
+          const progress = await fetchMyLessonLearningProgress(lessonId)
+
+          const lessonMaterials = materials.value.filter(
+            item =>
+              Number(item.lessonId) === Number(lessonId) &&
+              item.status !== 'draft',
+          )
+
+          const normalizedProgress = Array.isArray(progress)
+            ? progress
+            : []
+
+          const items = [
+            ...lessonMaterials.map(material => ({
+              type: 'material',
+              id: Number(material.id),
+            })),
+            ...getPublishedAssignmentsForLesson(lessonId).map(assignment => ({
+              type: 'assignment',
+              id: Number(assignment.id),
+            })),
+            ...getVisibleQuizzesForLesson(lessonId).map(quiz => ({
+              type: 'quiz',
+              id: Number(quiz.id),
+            })),
+          ].filter(item => Number.isFinite(item.id) && item.id > 0)
+
+          const isSeen = item =>
+            normalizedProgress.some(row =>
+              String(row.itemType ?? row.item_type ?? '') === String(item.type) &&
+              Number(row.itemId ?? row.item_id) === item.id &&
+              (row.status === 'completed' || row.status === 'viewed')
+            )
+
+          const total = items.length
+          const completed = items.filter(isSeen).length
+
+          return [
+            lessonId,
+            {
+              total,
+              completed,
+              pending: Math.max(0, total - completed),
+              percentage: total
+                ? Math.round((completed / total) * 100)
+                : (isLessonLegacyCompleted(lessonId) ? 100 : 0),
+            },
+          ]
+        } catch (progressError) {
+          console.warn(
+            `No se pudo refrescar el progreso granular de la clase ${lessonId}:`,
+            progressError,
+          )
+          return [
+            lessonId,
+            {
+              percentage: isLessonLegacyCompleted(lessonId) ? 100 : 0,
+            },
+          ]
+        }
+      }),
+    )
+
+    lessonLearningProgress.value = Object.fromEntries(progressEntries)
+  } catch (error) {
+    console.warn(
+      'No fue posible actualizar el progreso al volver a Mis clases:',
+      error,
+    )
+  }
+}
+
+
+
 const loadCourse = async () => {
 
   loading.value = true
@@ -270,6 +529,8 @@ const loadCourse = async () => {
 
       fetchMaterials(),
 
+      fetchQuizzes(),
+
     ])
 
 
@@ -279,6 +540,8 @@ const loadCourse = async () => {
     assignments.value = results[1].status === 'fulfilled' ? results[1].value : []
 
     materials.value = results[2].status === 'fulfilled' ? results[2].value : []
+
+    quizzes.value = results[3].status === 'fulfilled' ? results[3].value : []
 
 
 
@@ -296,6 +559,92 @@ const loadCourse = async () => {
 
     }
 
+    if (isStudent.value && currentUser.value?.id) {
+      try {
+        studentProgress.value = await fetchProgressByStudent(
+          currentUser.value.id,
+        )
+      } catch (progressError) {
+        console.warn('No se pudo cargar el progreso legado del alumno:', progressError)
+        studentProgress.value = []
+      }
+
+      const progressEntries = await Promise.all(
+        lessons.value.map(async lesson => {
+          const lessonId = Number(lesson.id)
+
+          try {
+            const progress =
+              await fetchMyLessonLearningProgress(lessonId)
+
+            const lessonMaterials = materials.value.filter(
+              item =>
+                Number(item.lessonId) === Number(lessonId) &&
+                item.status !== 'draft',
+            )
+
+            const normalizedProgress = Array.isArray(progress)
+              ? progress
+              : []
+
+            const items = [
+              ...lessonMaterials.map(material => ({
+                type: 'material',
+                id: Number(material.id),
+              })),
+              ...getPublishedAssignmentsForLesson(lessonId).map(assignment => ({
+                type: 'assignment',
+                id: Number(assignment.id),
+              })),
+              ...getVisibleQuizzesForLesson(lessonId).map(quiz => ({
+                type: 'quiz',
+                id: Number(quiz.id),
+              })),
+            ].filter(item => Number.isFinite(item.id) && item.id > 0)
+
+            const isSeen = item =>
+              normalizedProgress.some(row =>
+                String(row.itemType ?? row.item_type ?? '') === String(item.type) &&
+                Number(row.itemId ?? row.item_id) === item.id &&
+                (row.status === 'completed' || row.status === 'viewed')
+              )
+
+            const total = items.length
+            const completed = items.filter(isSeen).length
+
+            const summary = {
+              total,
+              completed,
+              pending: Math.max(0, total - completed),
+              percentage: total
+                ? Math.round((completed / total) * 100)
+                : (isLessonLegacyCompleted(lessonId) ? 100 : 0),
+            }
+
+            return [lessonId, summary]
+          } catch (progressError) {
+            console.warn(
+              `No se pudo cargar el progreso granular de la clase ${lessonId}:`,
+              progressError,
+            )
+
+            return [
+              lessonId,
+              {
+                percentage: isLessonLegacyCompleted(lessonId) ? 100 : 0,
+              },
+            ]
+          }
+        }),
+      )
+
+      lessonLearningProgress.value =
+        Object.fromEntries(progressEntries)
+    } else {
+      studentProgress.value = []
+      lessonLearningProgress.value = {}
+    }
+
   } catch (error) {
 
     console.error(error)
@@ -305,6 +654,7 @@ const loadCourse = async () => {
   } finally {
 
     loading.value = false
+    courseLoaded = true
 
   }
 
@@ -312,7 +662,42 @@ const loadCourse = async () => {
 
 
 
-onMounted(loadCourse)
+const handleCourseWindowFocus = () => {
+  if (courseLoaded) {
+    refreshCourseProgress()
+  }
+}
+
+
+
+const handleCourseVisibilityChange = () => {
+  if (document.visibilityState === 'visible' && courseLoaded) {
+    refreshCourseProgress()
+  }
+}
+
+
+
+onMounted(() => {
+  window.addEventListener('focus', handleCourseWindowFocus)
+  document.addEventListener('visibilitychange', handleCourseVisibilityChange)
+  loadCourse()
+})
+
+
+
+onActivated(() => {
+  if (courseLoaded) {
+    refreshCourseProgress()
+  }
+})
+
+
+
+onUnmounted(() => {
+  window.removeEventListener('focus', handleCourseWindowFocus)
+  document.removeEventListener('visibilitychange', handleCourseVisibilityChange)
+})
 
 </script>
 
@@ -841,6 +1226,149 @@ onMounted(loadCourse)
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* =========================================================
+   PROGRESO POR CLASE · LMS CINEMÁTICO
+========================================================= */
+
+.lesson-card--completed {
+  border-color: rgba(45,138,99,.34) !important;
+  box-shadow: 0 20px 54px rgba(3,8,17,.25), 0 0 0 1px rgba(45,138,99,.06), 0 0 36px rgba(45,138,99,.08);
+}
+
+.lesson-card--completed:hover {
+  border-color: rgba(45,138,99,.58) !important;
+  box-shadow: 0 28px 76px rgba(3,8,17,.34), 0 0 44px rgba(45,138,99,.14);
+}
+
+.lesson-card__progress-mini {
+  position: relative;
+  z-index: 2;
+  width: min(420px, 78vw);
+  margin-top: 14px;
+  padding-top: 2px;
+}
+
+.lesson-card__progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.lesson-card__progress-head span {
+  color: #f0ca5d;
+  font-size: .52rem;
+  font-weight: 950;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.lesson-card__progress-head strong {
+  color: #ffffff;
+  font-size: .75rem;
+  font-weight: 950;
+  letter-spacing: -.02em;
+  text-shadow: 0 2px 12px rgba(0,0,0,.35);
+}
+
+.lesson-card__progress-track {
+  position: relative;
+  height: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.17);
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.2);
+}
+
+.lesson-card__progress-fill {
+  display: block;
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #e6b934 0%, #f3d46e 52%, #ffffff 100%);
+  box-shadow: 0 0 18px rgba(243,212,110,.42);
+  transition: width .85s cubic-bezier(.18,.82,.25,1);
+}
+
+.lesson-card__progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -80px;
+  width: 100px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+  filter: blur(2px);
+  animation: lessonProgressShine 2.4s ease-in-out infinite;
+}
+
+.lesson-card__progress-particle {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 50%;
+  background: #f5d66d;
+  box-shadow: 0 0 9px rgba(245,214,109,.86);
+  opacity: .8;
+  animation: lessonProgressParticle 1.8s ease-in-out infinite;
+}
+
+.lesson-card__progress-mini.is-active .lesson-card__progress-head span {
+  color: #f3d46e;
+}
+
+.lesson-card__progress-mini.is-active .lesson-card__progress-fill {
+  background: linear-gradient(90deg, #a7194b 0%, #e3b83e 100%);
+  box-shadow: 0 0 18px rgba(167,25,75,.35), 0 0 12px rgba(227,184,62,.3);
+}
+
+.lesson-card__progress-mini.is-complete .lesson-card__progress-head span {
+  color: #74d2a5;
+}
+
+.lesson-card__progress-mini.is-complete .lesson-card__progress-fill {
+  background: linear-gradient(90deg, #38a76f 0%, #9be0bd 100%);
+  box-shadow: 0 0 20px rgba(69,169,118,.45);
+}
+
+.lesson-card__progress-mini > small {
+  display: block;
+  margin-top: 6px;
+  color: rgba(255,255,255,.62);
+  font-size: .49rem;
+  line-height: 1.35;
+}
+
+@keyframes lessonProgressShine {
+  0%, 100% { transform: translateX(0); opacity: .08; }
+  45% { transform: translateX(360px); opacity: .72; }
+  55% { transform: translateX(420px); opacity: .12; }
+}
+
+@keyframes lessonProgressParticle {
+  0%, 100% { transform: translateY(1px) scale(.65); opacity: .26; }
+  50% { transform: translateY(-4px) scale(1.35); opacity: .95; }
+}
+
+@media (max-width: 650px) {
+  .lesson-card__progress-mini {
+    width: min(320px, 86vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson-card__progress-fill,
+  .lesson-card__progress-fill::after,
+  .lesson-card__progress-particle {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* =========================================================
