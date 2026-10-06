@@ -182,15 +182,29 @@
           </button>
         </div>
 
-        <!-- WORKSPACE -->
-        <div class="workspace-card">
-          <div class="workspace-card__icon">A</div>
-          <div class="workspace-card__copy">
-            <small>ESPACIO ACADÉMICO</small>
-            <strong>Academia Amo Mi Voz</strong>
-            <span><i></i> Plataforma activa</span>
-          </div>
-        </div>
+        <!-- IDENTIDAD PRINCIPAL -->
+        <RouterLink
+          to="/aula/cuenta"
+          class="workspace-profile"
+          aria-label="Abrir mi perfil"
+          @click="mobileOpen = false"
+        >
+          <span class="workspace-profile__avatar avatar avatar--workspace avatar--photo">
+            <img
+              v-if="profileAvatarUrl"
+              :src="profileAvatarUrl"
+              :alt="`Foto de ${currentUser?.name || 'usuario'}`"
+            />
+            <b v-else>{{ initials }}</b>
+          </span>
+
+          <span class="workspace-profile__copy">
+            <strong>{{ currentUser?.name || 'Usuario' }}</strong>
+            <small>{{ roleLabel }}</small>
+          </span>
+
+          <span class="workspace-profile__chevron" aria-hidden="true">›</span>
+        </RouterLink>
 
         <!-- NAV -->
         <nav class="sidebar-nav" aria-label="Navegación del aula">
@@ -228,31 +242,8 @@
           </section>
         </nav>
 
-        <!-- FOOTER -->
+        <!-- FOOTER · SOLO SESIÓN -->
         <div class="sidebar-footer">
-          <RouterLink to="/" class="sidebar-site-link">
-            <span class="sidebar-site-link__icon">
-              <AulaIcon name="external" />
-            </span>
-            <span>Ver sitio web</span>
-          </RouterLink>
-
-          <RouterLink to="/aula/cuenta" class="sidebar-profile">
-            <div class="avatar avatar--sidebar">{{ initials }}</div>
-
-            <div class="sidebar-profile__copy">
-              <strong>{{ currentUser?.name }}</strong>
-              <span>
-                {{ roleLabel }}
-                <template v-if="isStudent && currentUser?.voice">
-                  · {{ currentUser.voice }}
-                </template>
-              </span>
-            </div>
-
-            <span class="sidebar-profile__chevron">›</span>
-          </RouterLink>
-
           <button
             type="button"
             class="sidebar-logout"
@@ -285,20 +276,6 @@
             </div>
           </div>
 
-          <div class="topbar-right">
-            <div class="topbar-status">
-              <span></span>
-              Plataforma activa
-            </div>
-
-            <RouterLink to="/aula/cuenta" class="topbar-profile">
-              <div class="avatar avatar--small">{{ initials }}</div>
-              <div>
-                <strong>{{ firstName }}</strong>
-                <span>{{ roleLabel }}</span>
-              </div>
-            </RouterLink>
-          </div>
         </header>
 
         <main class="aula-content">
@@ -315,7 +292,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import AulaIcon from '@/components/aula/AulaIcon.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -346,6 +323,31 @@ const authReady = ref(false)
 const resetMessage = ref('')
 const isSendingReset = ref(false)
 const mobileOpen = ref(false)
+const profileAvatarUrl = ref('')
+
+const loadProfileAvatar = async () => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+    const userId = userData?.user?.id
+    if (!userId) { profileAvatarUrl.value = ''; return }
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('avatar_url, display_name')
+      .eq('id', userId)
+      .maybeSingle()
+    if (error) throw error
+    profileAvatarUrl.value = data?.avatar_url || ''
+    if (currentUser.value && data?.display_name) {
+      currentUser.value.name = data.display_name
+    }
+  } catch (error) {
+    console.warn('No se pudo cargar la foto de perfil:', error)
+  }
+}
+
+const handleProfileUpdated = () => {
+  loadProfileAvatar()
+}
 
 const loginError = computed(
   () => localError.value || authError.value || '',
@@ -375,7 +377,6 @@ const teacherNav = [
   { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
   { label: 'Centro del curso', to: '/aula/curso', icon: 'course' },
   { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
-  { label: 'Contenido', to: '/aula/programa-formativo', icon: 'program' },
   { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
   { label: 'Alumnos', to: '/aula/alumnos', icon: 'users' },
   { label: 'Inscripciones', to: '/aula/inscripciones', icon: 'inbox' },
@@ -387,9 +388,10 @@ const studentNav = computed(() => [
   { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
   { label: 'Mi curso', to: '/aula/curso', icon: 'course' },
   { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
+  { label: 'Contenido', to: '/aula/programa-formativo', icon: 'program' },
   { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
   { label: 'Mis actividades', to: '/aula/mis-tareas', icon: 'tasks' },
-  { label: 'Evaluación vocal', to: '/aula/evaluaciones', icon: 'grades' },
+  { label: 'Mis evaluaciones', to: '/aula/evaluaciones', icon: 'grades' },
   ...(currentUser.value?.studentId
     ? [
         {
@@ -443,7 +445,7 @@ const sectionNames = {
   'aula-account': 'Mi cuenta',
   'aula-crear-evaluacion': 'Nueva evaluación',
   'aula-evaluacion': 'Evaluación',
-  'aula-mis-evaluaciones': 'Evaluación vocal',
+  'aula-mis-evaluaciones': 'Mis evaluaciones',
   'aula-evaluacion-revision': 'Resultado de evaluación',
 }
 
@@ -541,9 +543,15 @@ const handleLogout = async () => {
 onMounted(async () => {
   try {
     await initializeAuth()
+    await loadProfileAvatar()
+    window.addEventListener('amv:profile-updated', handleProfileUpdated)
   } finally {
     authReady.value = true
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('amv:profile-updated', handleProfileUpdated)
 })
 </script>
 
@@ -1294,6 +1302,123 @@ onMounted(async () => {
 .sidebar-logout:disabled { opacity: 0.55; cursor: wait; }
 
 /* =========================================================
+   PERFIL EN CABECERA LATERAL
+========================================================= */
+.workspace-profile {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 18px;
+  gap: 10px;
+  align-items: center;
+  margin: 14px 12px 8px;
+  padding: 10px 10px 10px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(159, 25, 69, 0.14), rgba(255, 255, 255, 0.035));
+  color: #fff;
+  text-decoration: none;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.018),
+    0 10px 28px rgba(4, 10, 24, 0.10);
+  transition:
+    transform .22s cubic-bezier(.2,.75,.25,1),
+    border-color .22s ease,
+    background .22s ease,
+    box-shadow .22s ease;
+}
+
+.workspace-profile::before {
+  content: '';
+  position: absolute;
+  inset: -35% auto -35% -30%;
+  width: 34%;
+  transform: rotate(14deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+  pointer-events: none;
+  transition: transform .55s ease;
+}
+
+.workspace-profile:hover {
+  transform: translateY(-1px);
+  border-color: rgba(217, 169, 29, 0.22);
+  background:
+    linear-gradient(135deg, rgba(159, 25, 69, 0.20), rgba(255, 255, 255, 0.045));
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.03),
+    0 12px 30px rgba(4, 10, 24, .16),
+    0 0 28px rgba(159,25,69,.08);
+}
+
+.workspace-profile:hover::before {
+  transform: translateX(360%) rotate(14deg);
+}
+
+.workspace-profile__avatar {
+  position: relative;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #b22558, #7f1238);
+  box-shadow:
+    0 8px 20px rgba(159,25,69,.22),
+    inset 0 0 0 1px rgba(255,255,255,.05);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 850;
+}
+
+.workspace-profile__avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.workspace-profile__copy {
+  min-width: 0;
+}
+
+.workspace-profile__copy strong,
+.workspace-profile__copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-profile__copy strong {
+  color: #f6f8fb;
+  font-size: .78rem;
+  font-weight: 760;
+  letter-spacing: -.01em;
+}
+
+.workspace-profile__copy small {
+  margin-top: 3px;
+  color: #8b98ab;
+  font-size: .60rem;
+  font-weight: 650;
+}
+
+.workspace-profile__chevron {
+  color: #6f7c91;
+  font-size: 1.05rem;
+  transition: transform .22s ease, color .22s ease;
+}
+
+.workspace-profile:hover .workspace-profile__chevron {
+  color: #f0cf63;
+  transform: translateX(2px);
+}
+
+/* =========================================================
    WORKSPACE + TOPBAR
 ========================================================= */
 .aula-workspace {
@@ -1310,7 +1435,7 @@ onMounted(async () => {
   height: 72px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0 clamp(20px, 3vw, 42px);
   border-bottom: 1px solid #e1e5ea;
   background: rgba(255, 255, 255, 0.92);
@@ -1318,13 +1443,6 @@ onMounted(async () => {
   box-shadow: 0 4px 18px rgba(24, 39, 65, 0.025);
 }
 
-.topbar-left,
-.topbar-right,
-.breadcrumb,
-.topbar-profile {
-  display: flex;
-  align-items: center;
-}
 
 .breadcrumb {
   gap: 8px;
@@ -1336,51 +1454,6 @@ onMounted(async () => {
 .breadcrumb strong { color: #27364a; font-weight: 750; }
 .breadcrumb__root { color: #8a97a8; }
 
-.topbar-right { gap: 15px; }
-
-.topbar-status {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  color: #667085;
-  font-size: 0.66rem;
-  font-weight: 650;
-}
-
-.topbar-status > span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #34b56f;
-  box-shadow: 0 0 0 4px rgba(52, 181, 111, 0.08);
-}
-
-.topbar-profile {
-  gap: 9px;
-  padding: 5px 7px 5px 5px;
-  border-radius: 11px;
-  color: var(--ink);
-  text-decoration: none;
-  transition: 0.18s ease;
-}
-
-.topbar-profile:hover { background: #f3f5f8; }
-
-.avatar--small {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  font-size: 0.65rem;
-}
-
-.topbar-profile strong,
-.topbar-profile span { display: block; }
-.topbar-profile strong { font-size: 0.72rem; }
-.topbar-profile span {
-  margin-top: 1px;
-  color: #98a2b3;
-  font-size: 0.6rem;
-}
 
 .mobile-menu { display: none; }
 
@@ -1464,7 +1537,6 @@ onMounted(async () => {
     color: #344054;
   }
 
-  .topbar-status { display: none; }
 }
 
 @media (max-width: 640px) {
@@ -1488,8 +1560,7 @@ onMounted(async () => {
   }
 
   .breadcrumb__root,
-  .breadcrumb svg,
-  .topbar-profile > div:last-child {
+  .breadcrumb svg {
     display: none;
   }
 
@@ -1502,24 +1573,25 @@ onMounted(async () => {
 }
 
 /* =========================================================
-   AMO MI VOZ · AULA MAX VISUAL
-   Capa visual segura: no altera el layout.
+   AMO MI VOZ · SIDEBAR MAX EFFECTS
+   Capa visual segura: no modifica lógica ni navegación.
 ========================================================= */
+
+.aula-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  isolation: isolate;
+}
 
 .aula-sidebar::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
   background:
-    radial-gradient(circle at 8% 10%, rgba(177, 25, 78, .12), transparent 29%),
-    radial-gradient(circle at 92% 54%, rgba(214, 165, 31, .065), transparent 30%);
-}
-
-.aula-sidebar > * {
-  position: relative;
-  z-index: 1;
+    radial-gradient(circle at 10% 12%, rgba(177, 25, 78, .12), transparent 30%),
+    radial-gradient(circle at 90% 55%, rgba(214, 165, 31, .07), transparent 30%);
 }
 
 .sidebar-link {
@@ -1596,4 +1668,197 @@ onMounted(async () => {
   }
 }
 
+</style>
+
+
+<style lang="scss">
+/* AMV · perfil compacto en cabecera */
+.aula-layout .avatar--photo{overflow:hidden;padding:0;}
+.aula-layout .avatar--photo img{width:100%;height:100%;object-fit:cover;}
+.aula-layout .avatar--photo b{font-size:.67rem;color:#fff;}
+@media (max-width:760px){.aula-layout .topbar-profile--identity{min-width:0}.aula-layout .topbar-profile__copy{display:none}.aula-layout .topbar-profile__chevron{display:none}.aula-layout .topbar-profile__avatar{width:36px;height:36px}.aula-layout .topbar-right{gap:0}}
+</style>
+<style lang="scss" scoped>
+/* =========================================================
+   AMV · IDENTIDAD ARRIBA + FOOTER LIMPIO v2
+========================================================= */
+.aula-layout .workspace-card--identity {
+  position: relative;
+  overflow: hidden;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 17px 14px 8px;
+  padding: 11px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(217,169,29,.13), transparent 30%),
+    linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 12px 30px rgba(3,8,19,.13);
+}
+
+.aula-layout .workspace-card--identity::after {
+  position: absolute;
+  top: -34px;
+  right: -22px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(159,25,69,.18), transparent 67%);
+  content: '';
+  pointer-events: none;
+}
+
+.aula-layout .workspace-card__academy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.aula-layout .workspace-identity {
+  position: relative;
+  z-index: 1;
+  min-height: 49px;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) 14px;
+  gap: 9px;
+  align-items: center;
+  padding: 7px 7px 7px 6px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 11px;
+  background: linear-gradient(90deg, rgba(159,25,69,.18), rgba(255,255,255,.035));
+  color: #fff;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  transition: transform .22s cubic-bezier(.2,.75,.25,1), border-color .22s ease, background .22s ease, box-shadow .22s ease;
+}
+
+.aula-layout .workspace-identity::before {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 2px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, #d9a91d, #9f1945);
+  content: '';
+}
+
+.aula-layout .workspace-identity:hover {
+  transform: translateY(-1px);
+  border-color: rgba(217,169,29,.22);
+  background: linear-gradient(90deg, rgba(159,25,69,.25), rgba(255,255,255,.05));
+  box-shadow: 0 10px 22px rgba(3,8,19,.16), 0 0 22px rgba(159,25,69,.08);
+}
+
+.aula-layout .avatar--workspace {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #b8285c, #81143a);
+  color: #fff;
+  font-size: .61rem;
+  box-shadow: 0 7px 15px rgba(159,25,69,.2);
+}
+
+.aula-layout .avatar--workspace img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aula-layout .workspace-identity__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.aula-layout .workspace-identity__copy strong,
+.aula-layout .workspace-identity__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aula-layout .workspace-identity__copy strong {
+  color: #f8fafc;
+  font-size: .70rem;
+  font-weight: 780;
+  letter-spacing: -.01em;
+}
+
+.aula-layout .workspace-identity__copy small {
+  margin-top: 2px;
+  color: #9da8ba;
+  font-size: .57rem;
+  font-weight: 650;
+}
+
+.aula-layout .workspace-identity__chevron {
+  color: #7f8ca0;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform .22s ease, color .22s ease;
+}
+
+.aula-layout .workspace-identity:hover .workspace-identity__chevron {
+  color: #f4cf63;
+  transform: translateX(2px);
+}
+
+.aula-layout .sidebar-footer {
+  margin-top: auto;
+  padding: 10px 11px 13px;
+}
+
+.aula-layout .sidebar-logout {
+  min-height: 42px;
+  margin-top: 0;
+  justify-content: flex-start;
+  padding-inline: 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.aula-layout .sidebar-logout:hover {
+  transform: translateY(-1px);
+  border-color: rgba(190,72,86,.12);
+}
+
+@media (max-width: 760px) {
+  .aula-layout .workspace-card--identity {
+    margin-inline: 12px;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   V3 · FIX DE ESTRUCTURA DEL AULA
+========================================================= */
+.aula-sidebar {
+  position: fixed !important;
+  inset: 0 auto 0 0 !important;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-profile {
+    transition: none !important;
+  }
+
+  .workspace-profile::before {
+    transition: none !important;
+  }
+}
 </style>
