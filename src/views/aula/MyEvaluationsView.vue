@@ -1,934 +1,193 @@
 <template>
+  <section class="vocal-evaluation-page">
+    <section class="vocal-hero">
+      <div class="vocal-hero__glow vocal-hero__glow--wine"></div>
+      <div class="vocal-hero__glow vocal-hero__glow--gold"></div>
+      <div class="vocal-hero__wave vocal-hero__wave--one"></div>
+      <div class="vocal-hero__wave vocal-hero__wave--two"></div>
+      <div class="vocal-hero__particles" aria-hidden="true">
+        <i v-for="n in 10" :key="n" :style="{ '--i': n }"></i>
+      </div>
 
-  <section class="evaluations-page">
-
-    <!-- =====================================================*
-
-*         HERO*
-
-*    ====================================================== -->
-
-    <header class="evaluations-hero">
-
-      <div class="evaluations-hero__copy">
-
-        <span class="eyebrow">
-
-          MI APRENDIZAJE
-
+      <div class="vocal-hero__copy">
+        <span class="vocal-kicker">
+          <i></i>
+          AMV VOCAL ENGINE · EVALUACIÓN VOCAL
         </span>
 
         <h1>
-
-          Mis
-
-          <span>evaluaciones</span>
-
+          Tu voz.
+          <span>Tu evolución.</span>
         </h1>
 
         <p>
-
-          Revisa tus quiz, pruebas, intentos y resultados.
-
-          Los quiz te ayudan a practicar; las pruebas registran
-
-          una evaluación formal.
-
+          Un espacio dedicado exclusivamente a comprender tu desarrollo vocal
+          a partir de los análisis realizados por AMV.
         </p>
 
+        <div class="vocal-hero__chips">
+          <span>8 dimensiones</span>
+          <span>Evidencia acústica</span>
+          <span>Progreso pedagógico</span>
+        </div>
       </div>
 
-      <div class="evaluations-hero__badge">
-
-        <small>
-
-          HISTORIAL
-
-        </small>
-
-        <strong>
-
-          {{ finishedAttempts.length }}
-
-        </strong>
-
-        <span>
-
-          intentos registrados
-
-        </span>
-
+      <div class="vocal-hero__score">
+        <div class="vocal-score-ring" :class="{ 'is-ready': amvHasResult }">
+          <div>
+            <strong>{{ amvOverall ?? '—' }}</strong>
+            <small>{{ amvOverall !== null ? 'Índice AMV' : 'Pendiente' }}</small>
+          </div>
+        </div>
+        <span>{{ amvHasResult ? 'ÚLTIMO ANÁLISIS' : 'SIN ANÁLISIS CONECTADO' }}</span>
       </div>
-
-    </header>
-
-    <!-- =====================================================*
-
-*         LOADING*
-
-*    ====================================================== -->
-
-    <section
-
-      v-if="isLoading"
-
-      class="state-card"
-
-    >
-
-      <div class="spinner"></div>
-
-      <strong>
-
-        Preparando tus resultados
-
-      </strong>
-
-      <p>
-
-        Estamos obteniendo tu historial desde Supabase.
-
-      </p>
-
     </section>
 
-    <!-- =====================================================*
-
-*         ERROR*
-
-*    ====================================================== -->
-
-    <section
-
-      v-else-if="loadError"
-
-      class="state-card state-card--error"
-
-    >
-
-      <div class="state-card__icon">
-
-        !
-
+    <section class="vocal-intro">
+      <div>
+        <span class="vocal-section-label">EVALUACIÓN VOCAL</span>
+        <h2>Tu perfil vocal</h2>
+        <p>
+          Aquí aparecerán tus resultados AMV, fortalezas y prioridades de
+          práctica. No reemplaza la evaluación docente: la complementa con
+          evidencia acústica.
+        </p>
       </div>
 
-      <h2>
-
-        No pudimos cargar tus evaluaciones
-
-      </h2>
-
-      <p>
-
-        {{ loadError }}
-
-      </p>
-
-      <button
-
-        type="button"
-
-        @click="loadEvaluations"
-
-      >
-
-        Reintentar
-
-      </button>
-
+      <div class="vocal-engine-status" :class="{ 'is-ready': amvHasResult }">
+        <span></span>
+        {{ amvHasResult ? 'ANÁLISIS DISPONIBLE' : 'MOTOR LISTO PARA CONECTAR' }}
+      </div>
     </section>
 
-    <template v-else>
-
-      <!-- ===================================================*
-
-*           RESUMEN*
-
-*      ==================================================== -->
-
-      <section class="summary-grid" v-show="isEvaluationTab('resumen')">
-
+    <template v-if="amvHasResult">
+      <section class="vocal-metrics">
         <article>
-
-          <span>
-
-            Evaluaciones
-
-          </span>
-
-          <strong>
-
-            {{ groupedEvaluations.length }}
-
-          </strong>
-
-          <small>
-
-            diferentes
-
-          </small>
-
+          <span>RANGO OBSERVADO</span>
+          <strong>{{ amvMeta.range }}</strong>
+          <small>registro detectado por AMV</small>
         </article>
 
         <article>
-
-          <span>
-
-            Intentos
-
-          </span>
-
-          <strong>
-
-            {{ finishedAttempts.length }}
-
-          </strong>
-
-          <small>
-
-            completados
-
-          </small>
-
+          <span>ESTABILIDAD</span>
+          <strong>{{ amvMeta.stability }}</strong>
+          <small>comportamiento de la voz</small>
         </article>
 
         <article>
-
-          <span>
-
-            Promedio
-
-          </span>
-
-          <strong>
-
-            {{ averagePercentageLabel }}
-
-          </strong>
-
-          <small>
-
-            resultados disponibles
-
-          </small>
-
+          <span>CONFIANZA</span>
+          <strong>{{ amvMeta.confidence }}</strong>
+          <small>calidad de la evidencia</small>
         </article>
-
-        <article>
-
-          <span>
-
-            Mejor resultado
-
-          </span>
-
-          <strong>
-
-            {{ bestPercentageLabel }}
-
-          </strong>
-
-          <small>
-
-            mejor intento
-
-          </small>
-
-        </article>
-
       </section>
 
-      <!-- =====================================================
-           NAVEGACIÓN CONTEXTUAL · V10
-      ====================================================== -->
-      <nav
-        class="evaluations-context-nav"
-        aria-label="Secciones de mis evaluaciones"
-      >
-        <button type="button"
-          :class="{ 'is-active': isEvaluationTab('resumen') }"
-          @click="setEvaluationTab('resumen')">
-          <span>01</span> Resumen
-        </button>
+      <section class="vocal-panel vocal-panel--analysis">
+        <div class="vocal-signal" aria-hidden="true">
+          <span v-for="n in 28" :key="n" :style="{ '--i': n }"></span>
+        </div>
 
-        <button type="button"
-          :class="{ 'is-active': isEvaluationTab('historial') }"
-          @click="setEvaluationTab('historial')">
-          <span>02</span> Historial
-          <small>{{ groupedEvaluations.length }}</small>
-        </button>
-
-        <button type="button"
-          :class="{ 'is-active': isEvaluationTab('quiz') }"
-          @click="setEvaluationTab('quiz')">
-          <span>03</span> Quiz
-          <small>{{ countByFilter('quiz') }}</small>
-        </button>
-
-        <button type="button"
-          :class="{ 'is-active': isEvaluationTab('pruebas') }"
-          @click="setEvaluationTab('pruebas')">
-          <span>04</span> Pruebas
-          <small>{{ countByFilter('test') }}</small>
-        </button>
-      </nav>
-
-      <section
-        v-show="isEvaluationTab('resumen')"
-        class="evaluations-overview"
-      >
-        <header class="evaluations-overview__header">
-          <span>PROGRESO ACADÉMICO</span>
-          <h2>Resumen de evaluaciones</h2>
-          <p>
-            Revisa tu rendimiento general y entra directamente
-            al tipo de evaluación que quieras consultar.
-          </p>
+        <header class="vocal-panel__header">
+          <div>
+            <span class="vocal-section-label">AMV ANALYSIS</span>
+            <h2>Las 8 dimensiones de tu voz</h2>
+          </div>
+          <span class="vocal-panel__count">
+            {{ amvAvailableDimensions.length }}/8 disponibles
+          </span>
         </header>
 
-        <div class="evaluations-overview__grid">
-          <button type="button" @click="setEvaluationTab('historial')">
-            <span>HISTORIAL</span>
-            <strong>{{ groupedEvaluations.length }}</strong>
-            <small>evaluaciones registradas</small>
-            <b>Ver historial →</b>
-          </button>
-
-          <button type="button" @click="setEvaluationTab('quiz')">
-            <span>QUIZ</span>
-            <strong>{{ countByFilter('quiz') }}</strong>
-            <small>instancias formativas</small>
-            <b>Ver quiz →</b>
-          </button>
-
-          <button type="button" @click="setEvaluationTab('pruebas')">
-            <span>PRUEBAS</span>
-            <strong>{{ countByFilter('test') }}</strong>
-            <small>evaluaciones formales</small>
-            <b>Ver pruebas →</b>
-          </button>
-        </div>
-
-        <article class="evaluations-overview__result">
-          <div>
-            <span>RENDIMIENTO REGISTRADO</span>
-            <h3>{{ averagePercentageLabel }} de promedio</h3>
-            <p>
-              Mejor resultado:
-              <strong>{{ bestPercentageLabel }}</strong>.
-              Abre cada intento corregido para revisar respuestas
-              y retroalimentación.
-            </p>
-          </div>
-          <RouterLink to="/aula/programa-formativo">
-            Volver al programa →
-          </RouterLink>
-        </article>
-      </section>
-
-
-      <!-- ===================================================*
-
-*           FILTROS*
-
-*      ==================================================== -->
-
-
-
-      <!-- ===================================================*
-
-*           VACÍO*
-
-*      ==================================================== -->
-
-      <div
-        v-show="!isEvaluationTab('resumen')"
-        class="evaluations-history-panel"
-      >
-        <section
-
-        v-if="!filteredGroups.length"
-
-        class="empty-state"
-
-      >
-
-        <div>
-
-          ♪
-
-        </div>
-
-        <span>
-
-          SIN RESULTADOS
-
-        </span>
-
-        <h2>
-
-          Todavía no hay evaluaciones aquí
-
-        </h2>
-
-        <p>
-
-          Cuando completes un quiz o una prueba,
-
-          aparecerá en este historial.
-
-        </p>
-
-        <RouterLink
-
-          to="/aula/programa-formativo"
-
-        >
-
-          Ir al programa
-
-          <span>→</span>
-
-        </RouterLink>
-
-      </section>
-
-      <!-- ===================================================*
-
-*           HISTORIAL*
-
-*      ==================================================== -->
-
-      <section
-
-        v-else
-
-        class="evaluation-list"
-
-      >
-
-        <article
-
-          v-for="group in filteredGroups"
-
-          :key="group.quizId"
-
-          class="evaluation-card"
-
-          :class="{
-
-            'evaluation-card--test':
-
-              group.assessmentType === 'test'
-
-          }"
-
-        >
-
-          <!-- CABECERA -->
-
-          <header class="evaluation-card__header">
-
-            <div class="evaluation-card__identity">
-
-              <div class="evaluation-card__icon">
-
-                {{
-
-                  group.assessmentType === 'test'
-
-                    ? 'PR'
-
-                    : 'QZ'
-
-                }}
-
-              </div>
-
-              <div>
-
-                <div class="evaluation-card__badges">
-
-                  <span>
-
-                    {{
-
-                      group.assessmentType === 'test'
-
-                        ? 'Prueba evaluada'
-
-                        : 'Quiz formativo'
-
-                    }}
-
-                  </span>
-
-                  <span>
-
-                    {{ group.attempts.length }}
-
-                    {{
-
-                      group.attempts.length === 1
-
-                        ? 'intento'
-
-                        : 'intentos'
-
-                    }}
-
-                  </span>
-
-                </div>
-
-                <h2>
-
-                  {{ group.quizTitle }}
-
-                </h2>
-
-                <p>
-
-                  {{ group.lessonTitle }}
-
-                </p>
-
-              </div>
-
-            </div>
-
-            <div class="evaluation-card__best">
-
-              <small>
-
-                MEJOR RESULTADO
-
-              </small>
-
-              <strong>
-
-                {{ formatPercentage(group.bestPercentage) }}
-
-              </strong>
-
-              <span
-
-                v-if="group.latestPassed !== null"
-
-                :class="{
-
-                  'is-passed':
-
-                    group.latestPassed,
-
-                  'is-failed':
-
-                    !group.latestPassed
-
-                }"
-
-              >
-
-                {{
-
-                  group.latestPassed
-
-                    ? 'Aprobada'
-
-                    : 'Por reforzar'
-
-                }}
-
-              </span>
-
-            </div>
-
-          </header>
-
-          <!-- PROGRESO QUIZ -->
-
-          <section
-
-            v-if="
-
-              group.assessmentType === 'quiz' &&
-
-              group.attempts.length > 1
-
-            "
-
-            class="progress-insight"
-
+        <div class="vocal-dimensions">
+          <article
+            v-for="dimension in amvDimensions"
+            :key="dimension.key"
+            class="vocal-dimension"
+            :class="{ 'is-pending': !Number.isFinite(amvValue(dimension.key)) }"
           >
+            <div class="vocal-dimension__icon">{{ dimension.icon }}</div>
 
-            <div>
-
-              <span>
-
-                EVOLUCIÓN
-
-              </span>
-
-              <strong>
-
-                {{ getTrendLabel(group) }}
-
-              </strong>
-
-            </div>
-
-            <div class="progress-insight__bar">
-
-              <span
-
-                :style="{
-
-                  width:
-
-                    `${Math.max(0, Math.min(100, group.bestPercentage || 0))}%`
-
-                }"
-
-              ></span>
-
-            </div>
-
-            <p>
-
-              {{
-
-                getTrendDescription(
-
-                  group,
-
-                )
-
-              }}
-
-            </p>
-
-          </section>
-
-          <!-- INTENTOS -->
-
-          <div class="attempts">
-
-            <article
-
-              v-for="attempt in group.attempts"
-
-              :key="attempt.attemptId"
-
-              class="attempt-row"
-
-            >
-
-              <div class="attempt-row__number">
-
-                <span>
-
-                  INTENTO
-
-                </span>
-
-                <strong>
-
-                  {{ attempt.attemptNumber }}
-
-                </strong>
-
-              </div>
-
-              <div class="attempt-row__date">
-
-                <span>
-
+            <div class="vocal-dimension__body">
+              <div class="vocal-dimension__title">
+                <strong>{{ dimension.label }}</strong>
+                <b>
                   {{
-
-                    formatDate(
-
-                      getAttemptDate(
-
-                        attempt,
-
-                      ),
-
-                    )
-
-                  }}
-
-                </span>
-
-                <small>
-
-                  {{ getStatusLabel(attempt.status) }}
-
-                </small>
-
-              </div>
-
-              <div class="attempt-row__score">
-
-                <span>
-
-                  {{
-
-                    attempt.score !== null &&
-
-                    attempt.maxScore !== null
-
-                      ? `${formatScore(attempt.score)} / ${formatScore(attempt.maxScore)}`
-
-                      : 'Puntaje pendiente'
-
-                  }}
-
-                </span>
-
-                <strong>
-
-                  {{
-
-                    formatPercentage(
-
-                      attempt.percentage,
-
-                    )
-
-                  }}
-
-                </strong>
-
-              </div>
-
-              <div
-
-                class="attempt-row__result"
-
-                :class="{
-
-                  'attempt-row__result--passed':
-
-                    attempt.passed === true,
-
-                  'attempt-row__result--failed':
-
-                    attempt.passed === false,
-
-                  'attempt-row__result--pending':
-
-                    attempt.passed === null
-
-                }"
-
-              >
-
-                {{
-
-                  attempt.passed === true
-
-                    ? '✓ Aprobada'
-
-                    : attempt.passed === false
-
-                      ? 'Por reforzar'
-
+                    Number.isFinite(amvValue(dimension.key))
+                      ? `${amvValue(dimension.key)}%`
                       : 'Pendiente'
-
-                }}
-
+                  }}
+                </b>
               </div>
 
-              <RouterLink
-
-                v-if="
-
-                  attempt.status === 'graded' ||
-
-                  attempt.passed !== null ||
-
-                  attempt.score !== null
-
-                "
-
-                :to="
-
-                  `/aula/evaluaciones/intento/${attempt.attemptId}`
-
-                "
-
-                class="attempt-row__review"
-
-              >
-
-                Ver revisión
-
-                <span>→</span>
-
-              </RouterLink>
-
-              <span
-
-                v-else
-
-                class="attempt-row__review-pending"
-
-              >
-
-                En revisión
-
-              </span>
-
-            </article>
-
-          </div>
-
-          <!-- ACCIONES -->
-
-          <footer class="evaluation-card__footer">
-
-            <div class="learning-note">
-
-              <span>
-
-                {{
-
-                  group.assessmentType === 'quiz'
-
-                    ? 'PRÁCTICA'
-
-                    : 'EVALUACIÓN'
-
-                }}
-
-              </span>
-
-              <p>
-
-                {{
-
-                  group.assessmentType === 'quiz'
-
-                    ? 'Puedes volver a practicar si aún tienes intentos disponibles.'
-
-                    : 'Las pruebas respetan el límite de intentos definido por el profesor.'
-
-                }}
-
-              </p>
-
+              <div class="vocal-dimension__track">
+                <span
+                  :style="{
+                    width: Number.isFinite(amvValue(dimension.key))
+                      ? `${amvValue(dimension.key)}%`
+                      : '0%'
+                  }"
+                ></span>
+              </div>
             </div>
+          </article>
+        </div>
+      </section>
 
-            <RouterLink
-
-              v-if="
-
-                group.assessmentType === 'quiz'
-
-              "
-
-              :to="
-
-                `/aula/clase/${group.lessonId}/evaluacion/${group.quizId}`
-
-              "
-
-              class="evaluation-action"
-
-            >
-
-              Practicar nuevamente
-
-              <span>→</span>
-
-            </RouterLink>
-
-            <RouterLink
-
-              v-else
-
-              :to="
-
-                `/aula/clase/${group.lessonId}`
-
-              "
-
-              class="evaluation-action evaluation-action--secondary"
-
-            >
-
-              Volver a la clase
-
-              <span>→</span>
-
-            </RouterLink>
-
-          </footer>
-
+      <section class="vocal-bottom-grid">
+        <article class="vocal-insight vocal-insight--strength">
+          <span>FORTALEZAS</span>
+          <h3>Lo que estás construyendo</h3>
+          <p>
+            Cuando AMV entregue suficientes dimensiones, aquí se destacarán
+            automáticamente tus áreas más sólidas.
+          </p>
         </article>
 
-      </section>
-
-      <!-- ===================================================*
-
-*           APRENDIZAJE*
-
-*      ==================================================== -->
-
-      <section
-
-        v-if="groupedEvaluations.length"
-
-        class="learning-panel"
-
-      >
-
-        <div class="learning-panel__icon">
-
-          ♪
-
-        </div>
-
-        <div>
-
-          <span>
-
-            PRÓXIMO NIVEL
-
-          </span>
-
-          <h2>
-
-            Revisa cómo te fue
-
-          </h2>
-
+        <article class="vocal-insight vocal-insight--focus">
+          <span>PRÓXIMO FOCO</span>
+          <h3>Lo que conviene trabajar</h3>
           <p>
-
-            Cuando una evaluación ya fue corregida, puedes abrir
-
-            cada intento y revisar pregunta por pregunta tus respuestas,
-
-            el puntaje obtenido, las respuestas correctas y la
-
-            retroalimentación disponible del profesor.
-
+            AMV podrá convertir tus resultados en prioridades concretas para
+            tus próximas clases y ejercicios.
           </p>
-
-        </div>
-
+        </article>
       </section>
-      </div>
-
     </template>
 
-  </section>
+    <section v-else class="vocal-empty">
+      <div class="vocal-empty__visual">
+        <span class="vocal-empty__pulse"></span>
+        <div class="vocal-empty__note">♪</div>
+        <div class="vocal-empty__orbit vocal-empty__orbit--one"></div>
+        <div class="vocal-empty__orbit vocal-empty__orbit--two"></div>
+      </div>
 
+      <div class="vocal-empty__copy">
+        <span class="vocal-section-label">AMV VOCAL ENGINE</span>
+        <h2>Tu evaluación vocal está esperando tu primera conexión.</h2>
+        <p>
+          Esta pantalla ya está preparada para recibir los resultados reales
+          del motor: afinación, ritmo, fraseo, fonación, registro, resonancia,
+          dicción y expresión.
+        </p>
+
+        <div class="vocal-empty__dimensions">
+          <span v-for="dimension in amvDimensions" :key="dimension.key">
+            <i>{{ dimension.icon }}</i>
+            {{ dimension.label }}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="vocal-footer">
+      <div class="vocal-footer__line"></div>
+      <span>AMO MI VOZ</span>
+      <i></i>
+      <span>AMV VOCAL INTELLIGENCE</span>
+    </footer>
+  </section>
 </template>
 
-<script setup>
-
-import {
+<script setup>import {
 
   computed,
 
@@ -959,6 +218,63 @@ import {
 *   ESTADO*
 
 *========================================================= */
+
+// AMV: resultado persistido del Vocal Engine (se conectará al backend posteriormente).
+const amvResult = ref(null)
+
+const amvDimensions = [
+  { key: 'intonation', label: 'Afinación', icon: '♪' },
+  { key: 'rhythm', label: 'Ritmo y precisión', icon: '◷' },
+  { key: 'air', label: 'Aire y fraseo', icon: '≈' },
+  { key: 'phonation', label: 'Fonación y emisión', icon: '◉' },
+  { key: 'register', label: 'Registro y transiciones', icon: '↕' },
+  { key: 'resonance', label: 'Resonancia y timbre', icon: '◌' },
+  { key: 'diction', label: 'Dicción y articulación', icon: 'A' },
+  { key: 'expression', label: 'Expresión y musicalidad', icon: '✦' },
+]
+
+const amvHasResult = computed(() => Boolean(amvResult.value))
+
+const amvScoreMap = {
+  intonation: ['intonation', 'pitch', 'afinacion'],
+  rhythm: ['rhythm', 'timing', 'ritmo'],
+  air: ['air', 'phrasing', 'fraseo'],
+  phonation: ['phonation', 'emission', 'fonacion'],
+  register: ['register', 'transitions', 'registro'],
+  resonance: ['resonance', 'timbre', 'resonancia'],
+  diction: ['diction', 'articulation', 'diccion'],
+  expression: ['expression', 'musicality', 'expresion'],
+}
+
+const amvValue = key => {
+  const candidates = amvScoreMap[key] || [key]
+  const containers = [
+    amvResult.value?.dimensions,
+    amvResult.value?.scoring,
+    amvResult.value?.scores,
+  ]
+
+  for (const container of containers) {
+    if (!container) continue
+
+    for (const candidate of candidates) {
+      const raw = container?.[candidate]?.score ?? container?.[candidate]
+      if (Number.isFinite(Number(raw))) {
+        return Math.round(Number(raw))
+      }
+    }
+  }
+
+  return null
+}
+
+const amvMeta = computed(() => ({
+  range: amvResult.value?.features?.pitch?.rangeLabel || '—',
+  stability: amvResult.value?.features?.pitch?.stabilityLabel || '—',
+  confidence: amvResult.value?.confidence != null
+    ? `${Math.round(Number(amvResult.value.confidence) * 100)}%`
+    : '—',
+}))
 
 const attempts = ref([])
 
@@ -1767,3667 +1083,969 @@ onMounted(
 
   loadEvaluations,
 
-)
-
-</script>
+)</script>
 
 <style lang="scss" scoped>
-
-@use '@/assets/styles/abstracts/variables' as variables;
-
-/* =========================================================*
-
-*   PAGE*
-
-*========================================================= */
-
-.evaluations-page {
-
-  width:
-
-    min(
-
-      1400px,
-
-      100%
-
-    );
-
-  margin:
-
-    0 auto;
-
-  padding:
-
-    clamp(
-
-      1rem,
-
-      3vw,
-
-      2.4rem
-
-    )
-
-    clamp(
-
-      1rem,
-
-      3vw,
-
-      2.5rem
-
-    )
-
-    5rem;
-
-}
-
-/* =========================================================*
-
-*   HERO*
-
-*========================================================= */
-
-.evaluations-hero {
-
-  display: grid;
-
-  gap: 2rem;
-
-  grid-template-columns:
-
-    minmax(
-
-      0,
-
-      1fr
-
-    )
-
-    auto;
-
-  align-items: end;
-
-  margin-bottom: 1.2rem;
-
-  padding:
-
-    clamp(
-
-      1.4rem,
-
-      4vw,
-
-      3rem
-
-    );
-
-  overflow: hidden;
-
-  border:
-
-    1px solid
-
-    rgba(
-
-      255,
-
-      196,
-
-      0,
-
-      0.22
-
-    );
-
-  border-radius: 24px;
-
-  background:
-
-    radial-gradient(
-
-      circle at 90% 0%,
-
-      rgba(
-
-        255,
-
-        196,
-
-        0,
-
-        0.1
-
-      ),
-
-      transparent 32%
-
-    ),
-
-    variables.$color-surface;
-
-}
-
-.eyebrow {
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 0.72rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.16em;
-
-}
-
-.evaluations-hero h1 {
-
-  margin:
-
-    0.45rem
-
-    0
-
-    0;
-
-  font-size:
-
-    clamp(
-
-      2.8rem,
-
-      7vw,
-
-      6rem
-
-    );
-
-  line-height: 0.95;
-
-}
-
-.evaluations-hero h1 span {
-
-  color:
-
-    variables.$color-primary;
-
-}
-
-.evaluations-hero p {
-
-  max-width: 760px;
-
-  margin:
-
-    1rem
-
-    0
-
-    0;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.6
-
-    );
-
-  font-size: 0.98rem;
-
-  line-height: 1.7;
-
-}
-
-.evaluations-hero__badge {
-
-  display: grid;
-
-  width: 150px;
-
-  min-height: 150px;
-
-  place-items: center;
-
-  align-content: center;
-
-  border:
-
-    1px solid
-
-    variables.$color-primary;
-
-  border-radius: 50%;
-
-  text-align: center;
-
-}
-
-.evaluations-hero__badge small,
-
-.evaluations-hero__badge span {
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.48
-
-    );
-
-  font-size: 0.66rem;
-
-}
-
-.evaluations-hero__badge strong {
-
-  margin:
-
-    0.2rem
-
-    0;
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 2.5rem;
-
-}
-
-/* =========================================================*
-
-*   STATES*
-
-*========================================================= */
-
-.state-card,
-
-.empty-state {
-
-  display: grid;
-
-  min-height: 360px;
-
-  gap: 0.75rem;
-
-  place-items: center;
-
-  align-content: center;
-
-  padding: 2rem;
-
-  border:
-
-    1px solid
-
-    variables.$color-border;
-
-  border-radius: 18px;
-
-  background:
-
-    variables.$color-surface;
-
-  text-align: center;
-
-}
-
-.spinner {
-
-  width: 42px;
-
-  height: 42px;
-
-  border:
-
-    3px solid
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.08
-
-    );
-
-  border-top-color:
-
-    variables.$color-primary;
-
-  border-radius: 50%;
-
-  animation:
-
-    spin 0.8s
-
-    linear
-
-    infinite;
-
-}
-
-@keyframes spin {
-
-  to {
-
-    transform:
-
-      rotate(360deg);
-
-  }
-
-}
-
-.state-card p,
-
-.empty-state p {
-
-  max-width: 600px;
-
-  margin: 0;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.5
-
-    );
-
-  line-height: 1.65;
-
-}
-
-.state-card button,
-
-.empty-state a {
-
-  display: inline-flex;
-
-  min-height: 46px;
-
-  align-items: center;
-
-  justify-content: center;
-
-  margin-top: 0.6rem;
-
-  padding:
-
-    0.7rem
-
-    1rem;
-
-  border:
-
-    1px solid
-
-    variables.$color-primary;
-
-  border-radius: 10px;
-
-  background:
-
-    transparent;
-
-  color:
-
-    variables.$color-primary;
-
-  font: inherit;
-
-  font-weight: 900;
-
-  text-decoration: none;
-
-  cursor: pointer;
-
-}
-
-.state-card--error {
-
-  border-color:
-
-    rgba(
-
-      239,
-
-      103,
-
-      103,
-
-      0.4
-
-    );
-
-}
-
-.state-card__icon {
-
-  display: grid;
-
-  width: 52px;
-
-  height: 52px;
-
-  place-items: center;
-
-  border:
-
-    1px solid
-
-    #ef6767;
-
-  border-radius: 50%;
-
-  color:
-
-    #ff8585;
-
-  font-size: 1.2rem;
-
-  font-weight: 900;
-
-}
-
-/* =========================================================*
-
-*   SUMMARY*
-
-*========================================================= */
-
-.summary-grid {
-
-  display: grid;
-
-  gap: 0.8rem;
-
-  grid-template-columns:
-
-    repeat(
-
-      4,
-
-      minmax(
-
-        0,
-
-        1fr
-
-      )
-
-    );
-
-  margin-bottom: 1rem;
-
-}
-
-.summary-grid article {
-
-  padding: 1rem;
-
-  border:
-
-    1px solid
-
-    variables.$color-border;
-
-  border-radius: 14px;
-
-  background:
-
-    variables.$color-surface;
-
-}
-
-.summary-grid span,
-
-.summary-grid strong,
-
-.summary-grid small {
-
-  display: block;
-
-}
-
-.summary-grid span {
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.48
-
-    );
-
-  font-size: 0.74rem;
-
-  font-weight: 800;
-
-}
-
-.summary-grid strong {
-
-  margin:
-
-    0.3rem
-
-    0
-
-    0.1rem;
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 2rem;
-
-}
-
-.summary-grid small {
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.34
-
-    );
-
-  font-size: 0.68rem;
-
-}
-
-/* =========================================================*
-
-*   FILTER*
-
-*========================================================= */
-
-.filter-bar {
-
-  margin-bottom: 1rem;
-
-}
-
-.filter-tabs {
-
-  display: flex;
-
-  gap: 0.5rem;
-
-  flex-wrap: wrap;
-
-}
-
-.filter-tabs button {
-
-  display: inline-flex;
-
-  min-height: 44px;
-
-  gap: 0.55rem;
-
-  align-items: center;
-
-  padding:
-
-    0.65rem
-
-    0.85rem;
-
-  border:
-
-    1px solid
-
-    variables.$color-border;
-
-  border-radius: 999px;
-
-  background:
-
-    transparent;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.58
-
-    );
-
-  font: inherit;
-
-  font-size: 0.8rem;
-
-  font-weight: 900;
-
-  cursor: pointer;
-
-}
-
-.filter-tabs button span {
-
-  display: grid;
-
-  min-width: 23px;
-
-  height: 23px;
-
-  place-items: center;
-
-  border-radius: 999px;
-
-  background:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.06
-
-    );
-
-  font-size: 0.68rem;
-
-}
-
-.filter-tabs
-
-button.filter-tab--active {
-
-  border-color:
-
-    variables.$color-primary;
-
-  background:
-
-    rgba(
-
-      255,
-
-      196,
-
-      0,
-
-      0.08
-
-    );
-
-  color:
-
-    variables.$color-primary;
-
-}
-
-/* =========================================================*
-
-*   CARDS*
-
-*========================================================= */
-
-.evaluation-list {
-
-  display: grid;
-
-  gap: 1rem;
-
-}
-
-.evaluation-card {
-
-  overflow: hidden;
-
-  border:
-
-    1px solid
-
-    rgba(
-
-      103,
-
-      217,
-
-      139,
-
-      0.26
-
-    );
-
-  border-radius: 18px;
-
-  background:
-
-    variables.$color-surface;
-
-}
-
-.evaluation-card--test {
-
-  border-color:
-
-    rgba(
-
-      255,
-
-      196,
-
-      0,
-
-      0.28
-
-    );
-
-}
-
-.evaluation-card__header {
-
-  display: flex;
-
-  gap: 1.5rem;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  padding: 1.2rem;
-
-  border-bottom:
-
-    1px solid
-
-    variables.$color-border;
-
-}
-
-.evaluation-card__identity {
-
-  display: flex;
-
-  min-width: 0;
-
-  gap: 1rem;
-
-  align-items: center;
-
-}
-
-.evaluation-card__icon {
-
-  display: grid;
-
-  width: 58px;
-
-  height: 58px;
-
-  flex-shrink: 0;
-
-  place-items: center;
-
-  border:
-
-    1px solid
-
-    variables.$color-primary;
-
-  border-radius: 15px;
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 0.8rem;
-
-  font-weight: 900;
-
-}
-
-.evaluation-card__badges {
-
-  display: flex;
-
-  gap: 0.4rem;
-
-  flex-wrap: wrap;
-
-  margin-bottom: 0.4rem;
-
-}
-
-.evaluation-card__badges span {
-
-  padding:
-
-    0.28rem
-
-    0.5rem;
-
-  border:
-
-    1px solid
-
-    variables.$color-border;
-
-  border-radius: 999px;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.48
-
-    );
-
-  font-size: 0.68rem;
-
-  font-weight: 800;
-
-}
-
-.evaluation-card h2 {
-
-  margin: 0;
-
-  overflow-wrap: anywhere;
-
-  font-size:
-
-    clamp(
-
-      1.2rem,
-
-      3vw,
-
-      1.6rem
-
-    );
-
-}
-
-.evaluation-card__identity p {
-
-  margin:
-
-    0.3rem
-
-    0
-
-    0;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.45
-
-    );
-
-  font-size: 0.82rem;
-
-}
-
-.evaluation-card__best {
-
-  min-width: 120px;
-
-  text-align: right;
-
-}
-
-.evaluation-card__best small,
-
-.evaluation-card__best strong,
-
-.evaluation-card__best span {
-
-  display: block;
-
-}
-
-.evaluation-card__best small {
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.38
-
-    );
-
-  font-size: 0.62rem;
-
-  font-weight: 900;
-
-}
-
-.evaluation-card__best strong {
-
-  margin:
-
-    0.25rem
-
-    0;
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 1.8rem;
-
-}
-
-.evaluation-card__best span {
-
-  font-size: 0.72rem;
-
-  font-weight: 900;
-
-}
-
-.is-passed {
-
-  color: #79df98;
-
-}
-
-.is-failed {
-
-  color: #ef8585;
-
-}
-
-/* =========================================================*
-
-*   INSIGHT*
-
-*========================================================= */
-
-.progress-insight {
-
-  display: grid;
-
-  gap: 0.45rem;
-
-  padding:
-
-    0.9rem
-
-    1.2rem;
-
-  border-bottom:
-
-    1px solid
-
-    variables.$color-border;
-
-  background:
-
-    rgba(
-
-      103,
-
-      217,
-
-      139,
-
-      0.035
-
-    );
-
-}
-
-.progress-insight > div:first-child {
-
-  display: flex;
-
-  gap: 1rem;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-}
-
-.progress-insight span {
-
-  color: #8ee3a7;
-
-  font-size: 0.66rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.1em;
-
-}
-
-.progress-insight strong {
-
-  color: #8ee3a7;
-
-  font-size: 0.82rem;
-
-}
-
-.progress-insight__bar {
-
-  height: 5px;
-
-  overflow: hidden;
-
-  border-radius: 999px;
-
-  background:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.06
-
-    );
-
-}
-
-.progress-insight__bar span {
-
-  display: block;
-
-  height: 100%;
-
-  border-radius: inherit;
-
-  background: #79df98;
-
-}
-
-.progress-insight p {
-
-  margin: 0;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.46
-
-    );
-
-  font-size: 0.75rem;
-
-}
-
-/* =========================================================*
-
-*   ATTEMPTS*
-
-*========================================================= */
-
-.attempts {
-
-  display: grid;
-
-}
-
-.attempt-row {
-
-  display: grid;
-
-  gap: 1rem;
-
-  grid-template-columns:
-
-    90px
-
-    minmax(
-
-      150px,
-
-      1fr
-
-    )
-
-    minmax(
-
-      140px,
-
-      auto
-
-    )
-
-    auto;
-
-  align-items: center;
-
-  padding:
-
-    0.9rem
-
-    1.2rem;
-
-  border-bottom:
-
-    1px solid
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.05
-
-    );
-
-}
-
-.attempt-row:last-child {
-
-  border-bottom: 0;
-
-}
-
-.attempt-row__number span,
-
-.attempt-row__number strong {
-
-  display: block;
-
-}
-
-.attempt-row__number span {
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.36
-
-    );
-
-  font-size: 0.6rem;
-
-  font-weight: 900;
-
-}
-
-.attempt-row__number strong {
-
-  margin-top: 0.15rem;
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 1.2rem;
-
-}
-
-.attempt-row__date span,
-
-.attempt-row__date small,
-
-.attempt-row__score span,
-
-.attempt-row__score strong {
-
-  display: block;
-
-}
-
-.attempt-row__date span {
-
-  font-size: 0.78rem;
-
-}
-
-.attempt-row__date small {
-
-  margin-top: 0.2rem;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.4
-
-    );
-
-  font-size: 0.68rem;
-
-}
-
-.attempt-row__score {
-
-  text-align: right;
-
-}
-
-.attempt-row__score span {
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.42
-
-    );
-
-  font-size: 0.7rem;
-
-}
-
-.attempt-row__score strong {
-
-  margin-top: 0.1rem;
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 1.1rem;
-
-}
-
-.attempt-row__result {
-
-  min-width: 100px;
-
-  padding:
-
-    0.45rem
-
-    0.6rem;
-
-  border:
-
-    1px solid
-
-    variables.$color-border;
-
-  border-radius: 999px;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.5
-
-    );
-
-  font-size: 0.68rem;
-
-  font-weight: 900;
-
-  text-align: center;
-
-}
-
-.attempt-row__result--passed {
-
-  border-color:
-
-    rgba(
-
-      103,
-
-      217,
-
-      139,
-
-      0.42
-
-    );
-
-  color: #8ee3a7;
-
-}
-
-.attempt-row__result--failed {
-
-  border-color:
-
-    rgba(
-
-      239,
-
-      103,
-
-      103,
-
-      0.42
-
-    );
-
-  color: #ef8585;
-
-}
-
-/* =========================================================*
-
-*   FOOTER*
-
-*========================================================= */
-
-.evaluation-card__footer {
-
-  display: flex;
-
-  gap: 1.5rem;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  padding: 1rem 1.2rem;
-
-  border-top:
-
-    1px solid
-
-    variables.$color-border;
-
-  background:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.015
-
-    );
-
-}
-
-.learning-note span {
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 0.62rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.1em;
-
-}
-
-.learning-note p {
-
-  max-width: 650px;
-
-  margin:
-
-    0.3rem
-
-    0
-
-    0;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.45
-
-    );
-
-  font-size: 0.75rem;
-
-  line-height: 1.5;
-
-}
-
-.evaluation-action {
-
-  display: inline-flex;
-
-  min-height: 46px;
-
-  gap: 0.55rem;
-
-  align-items: center;
-
-  justify-content: center;
-
-  padding:
-
-    0.7rem
-
-    0.9rem;
-
-  border:
-
-    1px solid
-
-    variables.$color-primary;
-
-  border-radius: 10px;
-
-  background:
-
-    variables.$color-primary;
-
-  color: #080808;
-
-  font-size: 0.78rem;
-
-  font-weight: 900;
-
-  text-decoration: none;
-
-  white-space: nowrap;
-
-}
-
-.evaluation-action--secondary {
-
-  background:
-
-    transparent;
-
-  color:
-
-    variables.$color-primary;
-
-}
-
-/* =========================================================*
-
-*   LEARNING PANEL*
-
-*========================================================= */
-
-.learning-panel {
-
-  display: grid;
-
-  gap: 1rem;
-
-  grid-template-columns:
-
-    auto
-
-    minmax(
-
-      0,
-
-      1fr
-
-    );
-
-  align-items: start;
-
-  margin-top: 1rem;
-
-  padding: 1.2rem;
-
-  border:
-
-    1px dashed
-
-    rgba(
-
-      255,
-
-      196,
-
-      0,
-
-      0.3
-
-    );
-
-  border-radius: 16px;
-
-  background:
-
-    rgba(
-
-      255,
-
-      196,
-
-      0,
-
-      0.025
-
-    );
-
-}
-
-.learning-panel__icon {
-
-  display: grid;
-
-  width: 48px;
-
-  height: 48px;
-
-  place-items: center;
-
-  border:
-
-    1px solid
-
-    variables.$color-primary;
-
-  border-radius: 50%;
-
-  color:
-
-    variables.$color-primary;
-
-}
-
-.learning-panel span {
-
-  color:
-
-    variables.$color-primary;
-
-  font-size: 0.66rem;
-
-  font-weight: 900;
-
-  letter-spacing: 0.12em;
-
-}
-
-.learning-panel h2 {
-
-  margin:
-
-    0.25rem
-
-    0
-
-    0;
-
-}
-
-.learning-panel p {
-
-  max-width: 820px;
-
-  margin:
-
-    0.4rem
-
-    0
-
-    0;
-
-  color:
-
-    rgba(
-
-      255,
-
-      255,
-
-      255,
-
-      0.48
-
-    );
-
-  font-size: 0.82rem;
-
-  line-height: 1.65;
-
-}
-
-/* =========================================================*
-
-*   ACCESSIBILITY*
-
-*========================================================= */
-
-.evaluations-page button,
-
-.evaluations-page a {
-
-  min-height: 44px;
-
-}
-
-.evaluations-page button:focus-visible,
-
-.evaluations-page a:focus-visible {
-
-  outline:
-
-    3px solid
-
-    rgba(
-
-      255,
-
-      196,
-
-      0,
-
-      0.58
-
-    );
-
-  outline-offset: 3px;
-
-}
-
-/* =========================================================*
-
-*   RESPONSIVE*
-
-*========================================================= */
-
-@media (
-
-  max-width: 900px
-
-) {
-
-  .summary-grid {
-
-    grid-template-columns:
-
-      repeat(
-
-        2,
-
-        minmax(
-
-          0,
-
-          1fr
-
-        )
-
-      );
-
-  }
-
-  .attempt-row {
-
-    grid-template-columns:
-
-      80px
-
-      1fr
-
-      auto;
-
-  }
-
-  .attempt-row__result {
-
-    grid-column:
-
-      2 / -1;
-
-    justify-self: start;
-
-  }
-
-}
-
-@media (
-
-  max-width: 680px
-
-) {
-
-  .evaluations-page {
-
-    padding:
-
-      0.85rem
-
-      0.75rem
-
-      4rem;
-
-  }
-
-  .evaluations-hero {
-
-    grid-template-columns:
-
-      1fr;
-
-  }
-
-  .evaluations-hero__badge {
-
-    width: 120px;
-
-    min-height: 120px;
-
-  }
-
-  .evaluation-card__header,
-
-  .evaluation-card__footer {
-
-    align-items:
-
-      flex-start;
-
-    flex-direction:
-
-      column;
-
-  }
-
-  .evaluation-card__best {
-
-    text-align: left;
-
-  }
-
-  .attempt-row {
-
-    grid-template-columns:
-
-      70px
-
-      1fr;
-
-  }
-
-  .attempt-row__score,
-
-  .attempt-row__result {
-
-    grid-column:
-
-      2;
-
-    justify-self:
-
-      start;
-
-    text-align: left;
-
-  }
-
-  .evaluation-action {
-
-    width: 100%;
-
-  }
-
-}
-
-@media (
-
-  max-width: 460px
-
-) {
-
-  .summary-grid {
-
-    grid-template-columns:
-
-      1fr;
-
-  }
-
-  .evaluation-card__identity {
-
-    align-items:
-
-      flex-start;
-
-  }
-
-  .evaluation-card__icon {
-
-    width: 48px;
-
-    height: 48px;
-
-  }
-
-}
-
-
-
-/* =========================================================*
-
-*   V7.8 · MY EVALUATIONS · PREMIUM LIGHT LMS*
-
-*   Rediseño completo del historial del estudiante.*
-
-*========================================================= */
-
-.evaluations-page {
-
-  --me-ink: #152033;
-
-  --me-ink-soft: #344359;
-
-  --me-muted: #6f7c8f;
-
-  --me-muted-2: #8b98aa;
-
-  --me-line: #dbe3ec;
-
-  --me-line-strong: #cbd6e2;
-
-  --me-surface: #ffffff;
-
-  --me-surface-soft: #f7f9fc;
-
-  --me-wine: #9f1945;
-
-  --me-wine-dark: #7f1237;
-
-  --me-gold: #d9a91d;
-
-  --me-gold-dark: #987000;
-
-  --me-gold-soft: #fff8e7;
-
-  --me-green: #2d8a63;
-
-  --me-green-soft: #edf8f3;
-
-  --me-blue: #3f6fa8;
-
-  --me-blue-soft: #eef5fc;
-
-  --me-red: #be4856;
-
-  --me-red-soft: #fff3f5;
-
-  width: min(1240px, calc(100% - 40px)) !important;
-
-  margin-inline: auto !important;
-
-  padding: 38px 0 72px !important;
-
-  color: var(--me-ink) !important;
-
-}
-
-/* =========================================================*
-
-*   HERO*
-
-*========================================================= */
-
-.evaluations-page .evaluations-hero {
-
+.vocal-evaluation-page {
+  --ink: #121b2e;
+  --muted: #6f7c91;
+  --line: #dfe5ed;
+  --wine: #a81549;
+  --wine-dark: #721132;
+  --gold: #d5a51d;
+  --green: #2c936b;
+  width: min(1240px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 24px 0 56px;
+  color: var(--ink);
+}
+
+.vocal-evaluation-page * { box-sizing: border-box; }
+
+.vocal-hero {
   position: relative;
-
-  display: grid !important;
-
-  gap: 28px !important;
-
-  grid-template-columns: minmax(0, 1fr) auto !important;
-
-  align-items: center !important;
-
-  margin-bottom: 16px !important;
-
-  padding: 30px 32px !important;
-
-  overflow: hidden !important;
-
-  border: 1px solid var(--me-line) !important;
-
-  border-radius: 22px !important;
-
+  min-height: 330px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+  padding: 48px 54px;
+  overflow: hidden;
+  border: 1px solid #e1e5ec;
+  border-radius: 30px;
   background:
-
-    radial-gradient(circle at 92% 8%, rgba(217,169,29,.12), transparent 30%),
-
-    linear-gradient(135deg,#fff 0%,#fbfcfe 68%,#fffaf0 100%) !important;
-
-  box-shadow: 0 14px 36px rgba(31,48,73,.055) !important;
-
+    radial-gradient(circle at 84% 30%, rgba(213,165,29,.18), transparent 26%),
+    radial-gradient(circle at 62% 110%, rgba(168,21,73,.13), transparent 38%),
+    linear-gradient(120deg, #fff 0%, #fbfcfe 58%, #fff9eb 100%);
+  box-shadow: 0 24px 65px rgba(20,30,48,.08);
 }
 
-.evaluations-page .evaluations-hero::before {
-
+.vocal-hero:before {
+  content: "";
   position: absolute;
-
-  top: 0;
-
-  left: 0;
-
-  width: 132px;
-
-  height: 3px;
-
-  content: '';
-
-  background: linear-gradient(90deg,var(--me-wine),var(--me-gold));
-
+  inset: 0 auto auto 0;
+  width: 190px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--wine), var(--gold));
 }
 
-.evaluations-page .eyebrow {
+.vocal-hero__copy,
+.vocal-hero__score { position: relative; z-index: 2; }
 
-  color: var(--me-gold-dark) !important;
+.vocal-hero__copy { max-width: 760px; }
 
-  font-size: .6rem !important;
-
-  font-weight: 900 !important;
-
-  letter-spacing: .14em !important;
-
+.vocal-kicker,
+.vocal-section-label {
+  display: inline-flex;
+  color: var(--wine);
+  font-size: .69rem;
+  font-weight: 900;
+  letter-spacing: .14em;
 }
 
-.evaluations-page .evaluations-hero h1 {
-
-  margin: 8px 0 10px !important;
-
-  color: var(--me-ink) !important;
-
-  font-size: clamp(2.7rem,5.6vw,4.8rem) !important;
-
-  line-height: .98 !important;
-
-  letter-spacing: -.045em !important;
-
+.vocal-kicker {
+  align-items: center;
+  gap: 8px;
 }
 
-.evaluations-page .evaluations-hero h1 span {
-
-  color: var(--me-gold-dark) !important;
-
+.vocal-kicker i,
+.vocal-engine-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px rgba(213,165,29,.12);
 }
 
-.evaluations-page .evaluations-hero p {
-
-  max-width: 760px !important;
-
-  margin: 0 !important;
-
-  color: var(--me-muted) !important;
-
-  font-size: .82rem !important;
-
-  line-height: 1.65 !important;
-
+.vocal-hero h1 {
+  margin: 13px 0 13px;
+  font-size: clamp(3.2rem, 6.4vw, 5.8rem);
+  line-height: .88;
+  letter-spacing: -.07em;
 }
 
-.evaluations-page .evaluations-hero__badge {
-
-  display: grid !important;
-
-  width: 145px !important;
-
-  min-height: 145px !important;
-
-  place-items: center !important;
-
-  align-content: center !important;
-
-  border: 1px solid #e4cf86 !important;
-
-  border-radius: 50% !important;
-
-  background: #fffaf0 !important;
-
-  box-shadow: inset 0 0 0 6px rgba(217,169,29,.04) !important;
-
+.vocal-hero h1 span {
+  display: block;
+  color: var(--gold);
 }
 
-.evaluations-page .evaluations-hero__badge small,
-
-.evaluations-page .evaluations-hero__badge span {
-
-  color: #8b7d52 !important;
-
-  font-size: .52rem !important;
-
-  font-weight: 800 !important;
-
+.vocal-hero p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
-.evaluations-page .evaluations-hero__badge strong {
-
-  margin: 4px 0 !important;
-
-  color: var(--me-gold-dark) !important;
-
-  font-size: 2.4rem !important;
-
+.vocal-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
 }
 
-/* =========================================================*
-
-*   STATES*
-
-*========================================================= */
-
-.evaluations-page .state-card,
-
-.evaluations-page .empty-state {
-
-  border: 1px solid var(--me-line) !important;
-
-  border-radius: 18px !important;
-
-  background: #fff !important;
-
-  box-shadow: 0 9px 26px rgba(31,48,73,.04) !important;
-
+.vocal-hero__chips span {
+  padding: 8px 11px;
+  border: 1px solid #e0e5eb;
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  color: #68758a;
+  font-size: .68rem;
+  font-weight: 800;
 }
 
-.evaluations-page .state-card strong,
-
-.evaluations-page .empty-state h2,
-
-.evaluations-page .empty-state span {
-
-  color: var(--me-ink) !important;
-
+.vocal-hero__score {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  min-width: 190px;
 }
 
-.evaluations-page .state-card p,
-
-.evaluations-page .empty-state p {
-
-  color: var(--me-muted) !important;
-
+.vocal-score-ring {
+  width: 170px;
+  height: 170px;
+  padding: 9px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--wine) 0 20%, var(--gold) 20% 40%, #e8edf2 40% 100%);
+  box-shadow: 0 18px 42px rgba(168,21,73,.12);
 }
 
-.evaluations-page .state-card button,
-
-.evaluations-page .empty-state a {
-
-  border-color: var(--me-wine) !important;
-
-  color: var(--me-wine) !important;
-
-  background: #fff !important;
-
+.vocal-score-ring > div {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  border-radius: 50%;
+  background: #fff;
 }
 
-.evaluations-page .spinner {
-
-  border-color: #e3e8ee !important;
-
-  border-top-color: var(--me-wine) !important;
-
+.vocal-score-ring strong {
+  font-size: 2.5rem;
+  letter-spacing: -.06em;
 }
 
-/* =========================================================*
-
-*   SUMMARY*
-
-*========================================================= */
-
-.evaluations-page .summary-grid {
-
-  gap: 12px !important;
-
-  margin-bottom: 16px !important;
-
+.vocal-score-ring small {
+  margin-top: 2px;
+  color: #8a96a8;
+  font-size: .62rem;
+  font-weight: 800;
 }
 
-.evaluations-page .summary-grid article {
-
-  min-height: 110px !important;
-
-  padding: 17px !important;
-
-  border: 1px solid var(--me-line) !important;
-
-  border-radius: 16px !important;
-
-  background: #fff !important;
-
-  box-shadow: 0 7px 20px rgba(31,48,73,.035) !important;
-
+.vocal-hero__score > span {
+  color: #8d6f12;
+  font-size: .63rem;
+  font-weight: 900;
+  letter-spacing: .1em;
 }
 
-.evaluations-page .summary-grid article:nth-child(1) {
-
-  background: linear-gradient(145deg,#fff,#f8fafc) !important;
-
+.vocal-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 28px 0 16px;
+  padding: 0 6px;
 }
 
-.evaluations-page .summary-grid article:nth-child(2) {
-
-  background: linear-gradient(145deg,#fff,#f6f9fd) !important;
-
+.vocal-intro h2 {
+  margin: 7px 0 5px;
+  font-size: 2rem;
+  letter-spacing: -.045em;
 }
 
-.evaluations-page .summary-grid article:nth-child(3),
-
-.evaluations-page .summary-grid article:nth-child(4) {
-
-  background: linear-gradient(145deg,#fff,#fffaf0) !important;
-
+.vocal-intro p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
-.evaluations-page .summary-grid span {
-
-  color: var(--me-muted-2) !important;
-
-  font-size: .48rem !important;
-
-  font-weight: 900 !important;
-
-  letter-spacing: .08em !important;
-
+.vocal-engine-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  border: 1px solid rgba(213,165,29,.25);
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #957516;
+  font-size: .63rem;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
-.evaluations-page .summary-grid strong {
-
-  margin: 5px 0 2px !important;
-
-  color: var(--me-ink) !important;
-
-  font-size: 1.45rem !important;
-
+.vocal-engine-status.is-ready {
+  border-color: rgba(44,147,107,.2);
+  background: #f1faf6;
+  color: #287a5b;
 }
 
-.evaluations-page .summary-grid article:nth-child(3) strong,
-
-.evaluations-page .summary-grid article:nth-child(4) strong {
-
-  color: var(--me-gold-dark) !important;
-
+.vocal-engine-status.is-ready span {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(44,147,107,.1);
 }
 
-.evaluations-page .summary-grid small {
-
-  color: var(--me-muted) !important;
-
-  font-size: .57rem !important;
-
+.vocal-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
-/* =========================================================*
-
-*   FILTERS*
-
-*========================================================= */
-
-.evaluations-page .filter-bar {
-
-  margin-bottom: 18px !important;
-
+.vocal-metrics article,
+.vocal-panel,
+.vocal-insight,
+.vocal-empty {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 15px 38px rgba(20,30,48,.055);
 }
 
-.evaluations-page .filter-tabs {
-
-  display: flex !important;
-
-  gap: 6px !important;
-
-  flex-wrap: wrap !important;
-
+.vocal-metrics article {
+  padding: 20px;
 }
 
-.evaluations-page .filter-tabs button {
-
-  display: inline-flex !important;
-
-  min-height: 38px !important;
-
-  gap: 7px !important;
-
-  align-items: center !important;
-
-  padding: 8px 11px !important;
-
-  border: 1px solid #dfe5ec !important;
-
-  border-radius: 999px !important;
-
-  color: #617084 !important;
-
-  background: #fff !important;
-
-  font-size: .64rem !important;
-
-  font-weight: 850 !important;
-
+.vocal-metrics span {
+  display: block;
+  color: #8a96a8;
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .11em;
 }
 
-.evaluations-page .filter-tabs button span {
-
-  color: #718095 !important;
-
+.vocal-metrics strong {
+  display: block;
+  margin: 10px 0 3px;
+  font-size: 1.55rem;
 }
 
-.evaluations-page .filter-tabs button.filter-tab--active {
+.vocal-metrics small { color: #8994a6; }
 
-  border-color: #e2ca78 !important;
+.vocal-panel { padding: 28px; }
 
-  color: #765800 !important;
-
-  background: var(--me-gold-soft) !important;
-
+.vocal-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e7ebf0;
 }
 
-.evaluations-page .filter-tabs button.filter-tab--active span {
-
-  color: #765800 !important;
-
+.vocal-panel__header h2 {
+  margin: 7px 0 0;
+  font-size: 1.8rem;
+  letter-spacing: -.04em;
 }
 
-/* =========================================================*
-
-*   EVALUATION CARD*
-
-*========================================================= */
-
-.evaluations-page .evaluation-list {
-
-  display: grid !important;
-
-  gap: 14px !important;
-
+.vocal-panel__count {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #f6f7f9;
+  color: #758196;
+  font-size: .65rem;
+  font-weight: 850;
 }
 
-.evaluations-page .evaluation-card {
-
-  overflow: hidden !important;
-
-  border: 1px solid var(--me-line) !important;
-
-  border-radius: 18px !important;
-
-  background: #fff !important;
-
-  box-shadow: 0 9px 26px rgba(31,48,73,.04) !important;
-
+.vocal-dimensions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 18px;
 }
 
-.evaluations-page .evaluation-card--test {
-
-  border-color: #d6e1ed !important;
-
+.vocal-dimension {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 13px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #e3e8ee;
+  border-radius: 16px;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
-.evaluations-page .evaluation-card__header {
+.vocal-dimension:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(20,30,48,.07);
+}
 
-  display: flex !important;
+.vocal-dimension.is-pending { opacity: .58; }
 
-  gap: 18px !important;
+.vocal-dimension__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #f7edf1;
+  color: var(--wine);
+  font-weight: 900;
+}
 
-  align-items: center !important;
+.vocal-dimension__title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
 
-  justify-content: space-between !important;
+.vocal-dimension__title strong { font-size: .84rem; }
+.vocal-dimension__title b {
+  color: var(--wine);
+  font-size: .75rem;
+}
 
-  padding: 20px !important;
+.vocal-dimension__track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #edf0f4;
+}
 
-  border-bottom: 1px solid #e7ecf1 !important;
+.vocal-dimension__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--wine), var(--gold));
+}
 
+.vocal-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.vocal-insight {
+  padding: 24px;
+}
+
+.vocal-insight span {
+  color: var(--wine);
+  font-size: .63rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.vocal-insight h3 {
+  margin: 8px 0 7px;
+  font-size: 1.2rem;
+}
+
+.vocal-insight p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.vocal-insight--focus { background: linear-gradient(135deg, #fff, #fffaf0); }
+
+.vocal-empty {
+  position: relative;
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 42px;
+  align-items: center;
+  min-height: 390px;
+  padding: 50px;
+  overflow: hidden;
   background:
-
-    radial-gradient(circle at 96% 6%, rgba(217,169,29,.06), transparent 26%),
-
-    #fff !important;
-
+    radial-gradient(circle at 13% 50%, rgba(168,21,73,.08), transparent 23%),
+    radial-gradient(circle at 85% 20%, rgba(213,165,29,.10), transparent 25%),
+    #fff;
 }
 
-.evaluations-page .evaluation-card__identity {
-
-  display: flex !important;
-
-  min-width: 0 !important;
-
-  gap: 14px !important;
-
-  align-items: center !important;
-
+.vocal-empty__visual {
+  position: relative;
+  width: 210px;
+  height: 210px;
+  display: grid;
+  place-items: center;
 }
 
-.evaluations-page .evaluation-card__icon {
-
-  display: grid !important;
-
-  width: 54px !important;
-
-  height: 54px !important;
-
-  flex: 0 0 auto !important;
-
-  place-items: center !important;
-
-  border: 1px solid #e5cf82 !important;
-
-  border-radius: 14px !important;
-
-  color: var(--me-gold-dark) !important;
-
-  background: var(--me-gold-soft) !important;
-
-  font-size: .7rem !important;
-
-  font-weight: 900 !important;
-
+.vocal-empty__note {
+  position: relative;
+  z-index: 2;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  background: linear-gradient(145deg, var(--wine), #c14270);
+  color: #fff;
+  font-size: 2.4rem;
+  box-shadow: 0 20px 45px rgba(168,21,73,.22);
 }
 
-.evaluations-page .evaluation-card__badges {
-
-  display: flex !important;
-
-  gap: 6px !important;
-
-  flex-wrap: wrap !important;
-
-  margin-bottom: 6px !important;
-
+.vocal-empty__orbit {
+  position: absolute;
+  border: 1px solid rgba(168,21,73,.16);
+  border-radius: 50%;
 }
 
-.evaluations-page .evaluation-card__badges span {
-
-  padding: 5px 7px !important;
-
-  border: 1px solid #dfe5ec !important;
-
-  border-radius: 999px !important;
-
-  color: #6b788b !important;
-
-  background: #f8fafc !important;
-
-  font-size: .49rem !important;
-
-  font-weight: 850 !important;
-
+.vocal-empty__orbit--one {
+  width: 150px;
+  height: 150px;
 }
 
-.evaluations-page .evaluation-card__badges span:first-child {
-
-  border-color: #e5d18b !important;
-
-  color: var(--me-gold-dark) !important;
-
-  background: var(--me-gold-soft) !important;
-
+.vocal-empty__orbit--two {
+  width: 210px;
+  height: 210px;
+  border-color: rgba(213,165,29,.18);
 }
 
-.evaluations-page .evaluation-card__identity h2 {
-
-  margin: 0 !important;
-
-  color: var(--me-ink) !important;
-
-  font-size: 1.05rem !important;
-
-  letter-spacing: -.015em !important;
-
+.vocal-empty__copy h2 {
+  max-width: 700px;
+  margin: 9px 0 10px;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: .98;
+  letter-spacing: -.055em;
 }
 
-.evaluations-page .evaluation-card__identity p {
-
-  margin: 4px 0 0 !important;
-
-  color: var(--me-muted) !important;
-
-  font-size: .66rem !important;
-
+.vocal-empty__copy > p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
 }
 
-.evaluations-page .evaluation-card__best {
-
-  min-width: 110px !important;
-
-  padding: 11px 12px !important;
-
-  border: 1px solid #ead79c !important;
-
-  border-radius: 12px !important;
-
-  background: var(--me-gold-soft) !important;
-
-  text-align: center !important;
-
+.vocal-empty__dimensions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 22px;
+  margin-top: 25px;
 }
 
-.evaluations-page .evaluation-card__best span {
-
-  color: #8b7d52 !important;
-
-  font-size: .46rem !important;
-
-  font-weight: 900 !important;
-
-  letter-spacing: .08em !important;
-
+.vocal-empty__dimensions span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #67748a;
+  font-size: .73rem;
+  font-weight: 750;
 }
 
-.evaluations-page .evaluation-card__best strong {
-
-  display: block !important;
-
-  margin-top: 3px !important;
-
-  color: var(--me-gold-dark) !important;
-
-  font-size: 1.15rem !important;
-
+.vocal-empty__dimensions i {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #f7edf1;
+  color: var(--wine);
+  font-style: normal;
 }
 
-/* =========================================================*
-
-*   PROGRESS INSIGHT*
-
-*========================================================= */
-
-.evaluations-page .progress-insight {
-
-  padding: 14px 20px !important;
-
-  border-bottom: 1px solid #e7ecf1 !important;
-
-  background: #f8fafc !important;
-
+.vocal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 25px;
+  color: #98a2b1;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .12em;
 }
 
-.evaluations-page .progress-insight span,
-
-.evaluations-page .progress-insight small {
-
-  color: var(--me-muted) !important;
-
+.vocal-footer i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
 }
-
-.evaluations-page .progress-insight strong {
-
-  color: var(--me-ink) !important;
-
-}
-
-.evaluations-page .progress-insight__bar {
-
-  height: 7px !important;
-
-  border-radius: 999px !important;
-
-  background: #e6ebf0 !important;
-
-}
-
-.evaluations-page .progress-insight__bar span {
-
-  background: linear-gradient(90deg,#b98a00,#d9a91d) !important;
-
-}
-
-/* =========================================================*
-
-*   ATTEMPTS*
-
-*========================================================= */
-
-.evaluations-page .attempts {
-
-  background: #fff !important;
-
-}
-
-.evaluations-page .attempt-row {
-
-  display: grid !important;
-
-  gap: 14px !important;
-
-  grid-template-columns: 120px minmax(0,1fr) auto auto !important;
-
-  align-items: center !important;
-
-  padding: 15px 20px !important;
-
-  border-bottom: 1px solid #edf1f4 !important;
-
-  background: #fff !important;
-
-}
-
-.evaluations-page .attempt-row:last-child {
-
-  border-bottom: 0 !important;
-
-}
-
-.evaluations-page .attempt-row:hover {
-
-  background: #fafbfd !important;
-
-}
-
-.evaluations-page .attempt-row__number span,
-
-.evaluations-page .attempt-row__date span {
-
-  color: var(--me-muted-2) !important;
-
-  font-size: .46rem !important;
-
-  font-weight: 900 !important;
-
-  letter-spacing: .08em !important;
-
-}
-
-.evaluations-page .attempt-row__number strong {
-
-  color: var(--me-gold-dark) !important;
-
-  font-size: 1rem !important;
-
-}
-
-.evaluations-page .attempt-row__date strong,
-
-.evaluations-page .attempt-row__date small {
-
-  color: var(--me-ink-soft) !important;
-
-}
-
-.evaluations-page .attempt-row__date small {
-
-  color: var(--me-muted) !important;
-
-}
-
-.evaluations-page .attempt-row__score span {
-
-  color: var(--me-muted-2) !important;
-
-}
-
-.evaluations-page .attempt-row__score strong {
-
-  color: var(--me-ink) !important;
-
-}
-
-.evaluations-page .attempt-row__score b {
-
-  color: var(--me-gold-dark) !important;
-
-}
-
-.evaluations-page .attempt-row__result {
-
-  min-width: 96px !important;
-
-  padding: 7px 10px !important;
-
-  border: 1px solid #dfe5ec !important;
-
-  border-radius: 999px !important;
-
-  color: #718095 !important;
-
-  background: #f8fafc !important;
-
-  text-align: center !important;
-
-  font-size: .56rem !important;
-
-  font-weight: 900 !important;
-
-}
-
-.evaluations-page .attempt-row__result--passed {
-
-  border-color: #bfe0cd !important;
-
-  color: var(--me-green) !important;
-
-  background: var(--me-green-soft) !important;
-
-}
-
-.evaluations-page .attempt-row__result--failed {
-
-  border-color: #efcbd1 !important;
-
-  color: var(--me-red) !important;
-
-  background: var(--me-red-soft) !important;
-
-}
-
-.evaluations-page .attempt-row__result--pending {
-
-  border-color: #ead79c !important;
-
-  color: var(--me-gold-dark) !important;
-
-  background: var(--me-gold-soft) !important;
-
-}
-
-/* =========================================================*
-
-*   FOOTER / ACTIONS*
-
-*========================================================= */
-
-.evaluations-page .evaluation-card__footer {
-
-  display: flex !important;
-
-  gap: 18px !important;
-
-  align-items: center !important;
-
-  justify-content: space-between !important;
-
-  padding: 16px 20px !important;
-
-  border-top: 1px solid #e7ecf1 !important;
-
-  background: #f8fafc !important;
-
-}
-
-.evaluations-page .learning-note span {
-
-  color: var(--me-gold-dark) !important;
-
-  font-size: .48rem !important;
-
-  font-weight: 900 !important;
-
-  letter-spacing: .08em !important;
-
-}
-
-.evaluations-page .learning-note p {
-
-  margin: 4px 0 0 !important;
-
-  color: var(--me-muted) !important;
-
-  font-size: .62rem !important;
-
-}
-
-.evaluations-page .evaluation-action {
-
-  min-height: 44px !important;
-
-  padding: 0 14px !important;
-
-  border: 1px solid var(--me-wine) !important;
-
-  border-radius: 10px !important;
-
-  color: #fff !important;
-
-  background: var(--me-wine) !important;
-
-  font-size: .65rem !important;
-
-  font-weight: 900 !important;
-
-}
-
-.evaluations-page .evaluation-action:hover {
-
-  background: var(--me-wine-dark) !important;
-
-}
-
-.evaluations-page .evaluation-action--secondary {
-
-  border-color: var(--me-line-strong) !important;
-
-  color: var(--me-ink-soft) !important;
-
-  background: #fff !important;
-
-}
-
-.evaluations-page .evaluation-action--secondary:hover {
-
-  background: #f8fafc !important;
-
-}
-
-/* =========================================================*
-
-*   LEARNING PANEL*
-
-*========================================================= */
-
-.evaluations-page .learning-panel {
-
-  display: grid !important;
-
-  gap: 16px !important;
-
-  grid-template-columns: auto minmax(0,1fr) !important;
-
-  align-items: start !important;
-
-  margin-top: 16px !important;
-
-  padding: 20px !important;
-
-  border: 1px solid #ead79c !important;
-
-  border-radius: 18px !important;
-
-  background:
-
-    radial-gradient(circle at 95% 5%, rgba(217,169,29,.08), transparent 32%),
-
-    #fff !important;
-
-}
-
-.evaluations-page .learning-panel__icon {
-
-  display: grid !important;
-
-  width: 46px !important;
-
-  height: 46px !important;
-
-  place-items: center !important;
-
-  border: 1px solid #e5cf82 !important;
-
-  border-radius: 14px !important;
-
-  color: var(--me-gold-dark) !important;
-
-  background: var(--me-gold-soft) !important;
-
-}
-
-.evaluations-page .learning-panel span {
-
-  color: var(--me-gold-dark) !important;
-
-  font-size: .52rem !important;
-
-  font-weight: 900 !important;
-
-  letter-spacing: .09em !important;
-
-}
-
-.evaluations-page .learning-panel h2 {
-
-  margin: 5px 0 6px !important;
-
-  color: var(--me-ink) !important;
-
-  font-size: 1.45rem !important;
-
-  letter-spacing: -.025em !important;
-
-}
-
-.evaluations-page .learning-panel p {
-
-  margin: 0 !important;
-
-  color: var(--me-muted) !important;
-
-  font-size: .68rem !important;
-
-  line-height: 1.6 !important;
-
-}
-
-/* =========================================================*
-
-*   RESPONSIVE*
-
-*========================================================= */
 
 @media (max-width: 900px) {
-
-  .evaluations-page .evaluations-hero {
-
-    grid-template-columns: 1fr !important;
-
-    align-items: start !important;
-
-  }
-
-  .evaluations-page .summary-grid {
-
-    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
-
-  }
-
-  .evaluations-page .attempt-row {
-
-    grid-template-columns: 90px minmax(0,1fr) auto !important;
-
-  }
-
-  .evaluations-page .attempt-row__result {
-
-    grid-column: 2 / -1 !important;
-
-    justify-self: start !important;
-
-  }
-
+  .vocal-hero { padding: 38px; }
+  .vocal-hero__score { min-width: 145px; }
+  .vocal-score-ring { width: 135px; height: 135px; }
+  .vocal-empty { grid-template-columns: 1fr; }
+  .vocal-empty__visual { margin: 0 auto; }
 }
 
-@media (max-width: 650px) {
-
-  .evaluations-page {
-
-    width: min(100% - 28px,1240px) !important;
-
-    padding: 28px 0 54px !important;
-
-  }
-
-  .evaluations-page .evaluations-hero {
-
-    padding: 22px !important;
-
-  }
-
-  .evaluations-page .summary-grid {
-
-    grid-template-columns: 1fr !important;
-
-  }
-
-  .evaluations-page .evaluation-card__header,
-
-  .evaluations-page .evaluation-card__footer {
-
-    align-items: flex-start !important;
-
-    flex-direction: column !important;
-
-  }
-
-  .evaluations-page .evaluation-card__best {
-
-    width: 100% !important;
-
-    text-align: left !important;
-
-  }
-
-  .evaluations-page .attempt-row {
-
-    grid-template-columns: 1fr !important;
-
-  }
-
-  .evaluations-page .attempt-row__result {
-
-    grid-column: auto !important;
-
-  }
-
-  .evaluations-page .learning-panel {
-
-    grid-template-columns: 1fr !important;
-
-  }
-
+@media (max-width: 700px) {
+  .vocal-evaluation-page { width: min(100% - 24px, 1240px); }
+  .vocal-hero { flex-direction: column; align-items: flex-start; }
+  .vocal-hero__score { align-self: center; }
+  .vocal-intro { flex-direction: column; align-items: flex-start; }
+  .vocal-metrics,
+  .vocal-dimensions,
+  .vocal-bottom-grid { grid-template-columns: 1fr; }
+  .vocal-empty { padding: 30px 24px; }
+  .vocal-empty__dimensions { grid-template-columns: 1fr; }
 }
-
-
-
-/* =========================================================*
-
-*   V7.9 · REVISIÓN DE INTENTOS · ALUMNO*
-
-*========================================================= */
-
-.evaluations-page .attempt-row {
-
-  grid-template-columns:
-
-    90px
-
-    minmax(150px, 1fr)
-
-    minmax(140px, auto)
-
-    auto
-
-    auto !important;
-
-}
-
-.evaluations-page .attempt-row__review {
-
-  display: inline-flex !important;
-
-  min-height: 40px !important;
-
-  gap: 7px !important;
-
-  align-items: center !important;
-
-  justify-content: center !important;
-
-  padding: 0 12px !important;
-
-  border: 1px solid var(--me-wine) !important;
-
-  border-radius: 10px !important;
-
-  color: #fff !important;
-
-  background: var(--me-wine) !important;
-
-  font-size: .62rem !important;
-
-  font-weight: 900 !important;
-
-  text-decoration: none !important;
-
-  white-space: nowrap !important;
-
-  transition:
-
-    background .18s ease,
-
-    border-color .18s ease,
-
-    transform .18s ease !important;
-
-}
-
-.evaluations-page .attempt-row__review:hover {
-
-  border-color: var(--me-wine-dark) !important;
-
-  background: var(--me-wine-dark) !important;
-
-  transform: translateY(-1px);
-
-}
-
-.evaluations-page .attempt-row__review:focus-visible {
-
-  outline: 3px solid rgba(159, 25, 69, .16) !important;
-
-  outline-offset: 3px !important;
-
-}
-
-.evaluations-page .attempt-row__review-pending {
-
-  display: inline-flex !important;
-
-  min-height: 40px !important;
-
-  align-items: center !important;
-
-  justify-content: center !important;
-
-  padding: 0 12px !important;
-
-  border: 1px solid #ead79c !important;
-
-  border-radius: 10px !important;
-
-  color: var(--me-gold-dark) !important;
-
-  background: var(--me-gold-soft) !important;
-
-  font-size: .58rem !important;
-
-  font-weight: 900 !important;
-
-  white-space: nowrap !important;
-
-}
-
-@media (max-width: 1050px) {
-
-  .evaluations-page .attempt-row {
-
-    grid-template-columns:
-
-      80px
-
-      minmax(0, 1fr)
-
-      auto
-
-      auto !important;
-
-  }
-
-  .evaluations-page .attempt-row__result {
-
-    grid-column: 2 !important;
-
-    justify-self: start !important;
-
-  }
-
-  .evaluations-page .attempt-row__review,
-
-  .evaluations-page .attempt-row__review-pending {
-
-    grid-column: 3 / -1 !important;
-
-    justify-self: end !important;
-
-  }
-
-}
-
-@media (max-width: 650px) {
-
-  .evaluations-page .attempt-row {
-
-    grid-template-columns: 68px minmax(0, 1fr) !important;
-
-  }
-
-  .evaluations-page .attempt-row__score {
-
-    grid-column: 2 !important;
-
-    text-align: left !important;
-
-  }
-
-  .evaluations-page .attempt-row__result {
-
-    grid-column: 2 !important;
-
-  }
-
-  .evaluations-page .attempt-row__review,
-
-  .evaluations-page .attempt-row__review-pending {
-
-    grid-column: 1 / -1 !important;
-
-    width: 100% !important;
-
-    justify-self: stretch !important;
-
-  }
-
-}
-
-
-
-
-
-/* =========================================================*
-
-*   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0*
-
-*   Sistema visual común para el SaaS*
-
-*========================================================= */
-
-.evaluations-page {
-
-  --amv-canvas: #f5f7fb;
-
-  --amv-card: #ffffff;
-
-  --amv-ink: #172033;
-
-  --amv-body: #344359;
-
-  --amv-muted: #667085;
-
-  --amv-line: #dbe3ec;
-
-  --amv-wine: #9f1945;
-
-  --amv-wine-dark: #7f1237;
-
-  --amv-gold: #d9a91d;
-
-  --amv-gold-soft: #fff8e7;
-
-  --amv-green: #2d8a63;
-
-  --amv-red: #be4856;
-
-  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
-
-  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
-
-  --amv-radius-sm: 12px;
-
-  --amv-radius-md: 18px;
-
-  --amv-radius-lg: 24px;
-
-  text-rendering: optimizeLegibility;
-
-  -webkit-font-smoothing: antialiased;
-
-}
-
-.evaluations-page :where(a, button, input, textarea, select, [role="button"]) {
-
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
-
-}
-
-.evaluations-page :where(a, button, input, textarea, select, [role="button"]):focus-visible {
-
-  outline: 3px solid rgba(159, 25, 69, .22) !important;
-
-  outline-offset: 3px;
-
-}
-
-.evaluations-page :where(button, [role="button"], .button, .btn):not(:disabled):active {
-
-  transform: translateY(1px) scale(.99);
-
-}
-
-.evaluations-page :where(input, textarea, select) {
-
-  font-size: max(16px, 1em);
-
-}
-
-.evaluations-page :where(table tbody tr) {
-
-  transition: background-color .18s ease;
-
-}
-
-.evaluations-page :where(table tbody tr):hover {
-
-  background-color: rgba(159, 25, 69, .025);
-
-}
-
-.evaluations-page :where(.card, [class\*="-card"], [class\*="__card"]) {
-
-  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
-
-}
-
-.evaluations-page :where(.card, [class\*="-card"], [class\*="__card"]):hover {
-
-  border-color: rgba(159, 25, 69, .16);
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  .evaluations-page \*, .evaluations-page \*::before, .evaluations-page \*::after {
-
-    scroll-behavior: auto !important;
-
-    animation-duration: .01ms !important;
-
-    animation-iteration-count: 1 !important;
-
-    transition-duration: .01ms !important;
-
-  }
-
-}
-
-
-
-/* =========================================================*
-
-*   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0*
-
-*   Capa visual segura: no modifica lógica, datos ni estructura.*
-
-*========================================================= */
-
-.evaluations-page {
-
-  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
-
-}
-
-.evaluations-page :where(
-
-  article,
-
-  [class$="__card"],
-
-  [class\*="-card"],
-
-  [class\*="_card"]
-
-) {
-
-  transition:
-
-    transform .24s cubic-bezier(.2,.75,.25,1),
-
-    box-shadow .24s ease,
-
-    border-color .24s ease,
-
-    background-color .24s ease;
-
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-  .evaluations-page :where(
-
-    article,
-
-    [class$="__card"],
-
-    [class\*="-card"],
-
-    [class\*="_card"]
-
-  ):hover {
-
-    transform: translateY(-2px);
-
-  }
-
-  .evaluations-page :where(
-
-    button,
-
-    .button,
-
-    .btn,
-
-    a[class\*="button"],
-
-    a[class\*="cta"]
-
-  ):not(:disabled):hover {
-
-    transform: translateY(-2px);
-
-    filter: saturate(1.04);
-
-  }
-
-  .evaluations-page :where(img) {
-
-    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
-
-  }
-
-  .evaluations-page :where(
-
-    [class\*="cover"],
-
-    [class\*="hero"],
-
-    [class\*="visual"],
-
-    [class\*="gallery"]
-
-  ):hover img {
-
-    transform: scale(1.018);
-
-  }
-
-}
-
-.evaluations-page :where(
-
-  button,
-
-  .button,
-
-  .btn,
-
-  a[class\*="button"],
-
-  a[class\*="cta"]
-
-) {
-
-  will-change: transform;
-
-}
-
-.evaluations-page :where(input, textarea, select):focus {
-
-  transform: translateY(-1px);
-
-}
-
-.evaluations-page :where(
-
-  [class\*="progress"] > \*,
-
-  [class\*="bar"] > \*,
-
-  progress
-
-) {
-
-  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
-
-}
-
-.evaluations-page ::selection {
-
-  color: #ffffff;
-
-  background: #9f1945;
-
-}
-
-@keyframes amvViewEnter {
-
-  from {
-
-    opacity: 0;
-
-    transform: translateY(8px);
-
-  }
-
-  to {
-
-    opacity: 1;
-
-    transform: translateY(0);
-
-  }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  .evaluations-page,
-
-  .evaluations-page \*,
-
-  .evaluations-page \*::before,
-
-  .evaluations-page \*::after {
-
-    animation-duration: .01ms !important;
-
-    animation-iteration-count: 1 !important;
-
-    transition-duration: .01ms !important;
-
-    scroll-behavior: auto !important;
-
-  }
-
-}
-
 
 /* =========================================================
-   MY EVALUATIONS · CONTEXT NAVIGATION V10
+   AMV VISUAL LAYER · MAX
+   Animaciones decorativas, profundidad y microinteracciones.
+   No altera la lógica académica ni los datos.
 ========================================================= */
-.evaluations-context-nav {
-  position: sticky; top: 14px; z-index: 30;
-  display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
-  gap: 7px; margin: 0 0 26px; padding: 7px;
-  border: 1px solid #dbe3ec; border-radius: 18px;
-  background: rgba(255,255,255,.94);
-  box-shadow: 0 14px 36px rgba(20,32,51,.08);
-  backdrop-filter: blur(16px);
-}
-.evaluations-context-nav button {
-  min-height: 58px; display:flex; align-items:center; justify-content:center;
-  gap:9px; padding:10px 14px; border:0; border-radius:13px;
-  background:transparent; color:#536176; font:inherit; font-weight:800;
-  cursor:pointer; transition:.2s ease;
-}
-.evaluations-context-nav button > span {
-  display:grid; width:26px; height:26px; place-items:center;
-  border-radius:8px; background:#f2f5f8; color:#7a8798; font-size:10px;
-}
-.evaluations-context-nav button > small {
-  padding:3px 7px; border-radius:999px; background:#f2f5f8;
-  color:#667085; font-size:11px;
-}
-.evaluations-context-nav button:hover {
-  transform:translateY(-1px); background:#faf7f8; color:#9f1945;
-}
-.evaluations-context-nav button.is-active {
-  background:#9f1945; color:#fff;
-  box-shadow:0 9px 22px rgba(159,25,69,.20);
-}
-.evaluations-context-nav button.is-active > span,
-.evaluations-context-nav button.is-active > small {
-  background:rgba(255,255,255,.16); color:#fff;
+
+.vocal-hero {
+  isolation: isolate;
+  animation: amvHeroIn .65s cubic-bezier(.2,.8,.2,1) both;
 }
 
-.evaluations-overview {
-  margin-bottom:28px; padding:clamp(22px,3vw,32px);
-  border:1px solid #dbe3ec; border-radius:24px; background:#fff;
-  box-shadow:0 16px 44px rgba(20,32,51,.07);
-  animation:evaluationsPanelIn .35s cubic-bezier(.2,.75,.25,1);
-}
-.evaluations-overview__header {
-  padding-bottom:20px; border-bottom:1px solid #e5eaf0;
-}
-.evaluations-overview__header > span,
-.evaluations-overview__result > div > span {
-  color:#9f1945; font-size:11px; font-weight:900; letter-spacing:.12em;
-}
-.evaluations-overview__header h2 {
-  margin:6px 0; color:#172033; font-size:clamp(24px,3vw,34px);
-}
-.evaluations-overview__header p {
-  max-width:700px; margin:0; color:#667085; line-height:1.6;
-}
-.evaluations-overview__grid {
-  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:15px; margin-top:22px;
-}
-.evaluations-overview__grid button {
-  min-height:174px; display:flex; flex-direction:column; align-items:flex-start;
-  padding:21px; border:1px solid #dbe3ec; border-radius:18px;
-  background:#f8fafc; color:#172033; text-align:left; cursor:pointer;
-  transition:.22s ease;
-}
-.evaluations-overview__grid button:hover {
-  transform:translateY(-3px); border-color:rgba(159,25,69,.28);
-  background:#fff; box-shadow:0 13px 28px rgba(20,32,51,.08);
-}
-.evaluations-overview__grid button > span {
-  color:#9f1945; font-size:11px; font-weight:900; letter-spacing:.1em;
-}
-.evaluations-overview__grid button > strong { margin:10px 0 4px; font-size:36px; }
-.evaluations-overview__grid button > small { color:#667085; }
-.evaluations-overview__grid button > b {
-  margin-top:auto; padding-top:18px; color:#9f1945; font-size:13px;
-}
-.evaluations-overview__result {
-  display:flex; align-items:center; justify-content:space-between; gap:22px;
-  margin-top:18px; padding:20px; border:1px solid #eadfbd;
-  border-radius:18px; background:#fffaf0;
-}
-.evaluations-overview__result h3 { margin:5px 0; color:#172033; }
-.evaluations-overview__result p { margin:0; color:#667085; line-height:1.55; }
-.evaluations-overview__result p strong { color:#172033; }
-.evaluations-overview__result > a {
-  flex:0 0 auto; color:#9f1945 !important; font-weight:900; text-decoration:none;
-}
-.evaluations-history-panel {
-  animation:evaluationsPanelIn .35s cubic-bezier(.2,.75,.25,1);
+.vocal-hero__glow {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: amvGlowFloat 8s ease-in-out infinite;
 }
 
-/* Light-first overrides */
-.evaluations-page .evaluation-card,
-.evaluations-page .empty-state,
-.evaluations-page .learning-panel,
-.evaluations-page .state-card {
-  background:#fff !important; border-color:#dbe3ec !important; color:#172033 !important;
-}
-.evaluations-page .evaluation-card__header,
-.evaluations-page .evaluation-card__footer,
-.evaluations-page .attempt-row { border-color:#e5eaf0 !important; }
-.evaluations-page .evaluation-card__identity p,
-.evaluations-page .attempt-row__date small,
-.evaluations-page .attempt-row__score span,
-.evaluations-page .learning-note p,
-.evaluations-page .learning-panel p,
-.evaluations-page .empty-state p,
-.evaluations-page .state-card p { color:#667085 !important; }
-.evaluations-page .evaluation-card h2,
-.evaluations-page .attempt-row__date span { color:#172033 !important; }
-.evaluations-page .evaluation-card__badges span {
-  color:#536176 !important; border-color:#dbe3ec !important; background:#f8fafc !important;
-}
-.evaluations-page .evaluation-card__best strong,
-.evaluations-page .attempt-row__number strong,
-.evaluations-page .attempt-row__score strong { color:#9f1945 !important; }
-.evaluations-page .progress-insight {
-  background:#edf8f3 !important; border-color:#d7ece2 !important;
-}
-.evaluations-page .progress-insight p { color:#52675d !important; }
-.evaluations-page .learning-panel {
-  background:#fffaf0 !important; border-color:#eadfbd !important;
+.vocal-hero__glow--wine {
+  width: 260px;
+  height: 260px;
+  left: -100px;
+  bottom: -150px;
+  background: radial-gradient(circle, rgba(168,21,73,.16), transparent 68%);
 }
 
-@keyframes evaluationsPanelIn {
-  from { opacity:0; transform:translateY(8px); }
-  to { opacity:1; transform:translateY(0); }
+.vocal-hero__glow--gold {
+  width: 330px;
+  height: 330px;
+  right: 5%;
+  top: -190px;
+  background: radial-gradient(circle, rgba(213,165,29,.16), transparent 68%);
+  animation-delay: -3s;
 }
-@media (max-width:900px) {
-  .evaluations-context-nav {
-    grid-template-columns:none; grid-auto-flow:column;
-    grid-auto-columns:minmax(150px,1fr); overflow-x:auto;
-  }
-  .evaluations-overview__grid { grid-template-columns:1fr; }
-  .evaluations-overview__result { align-items:flex-start; flex-direction:column; }
+
+.vocal-hero__wave {
+  position: absolute;
+  z-index: 1;
+  right: 17%;
+  bottom: -80px;
+  width: 430px;
+  height: 170px;
+  border: 1px solid rgba(168,21,73,.08);
+  border-radius: 50%;
+  transform: rotate(-8deg);
+  pointer-events: none;
 }
-@media (prefers-reduced-motion:reduce) {
-  .evaluations-context-nav button,
-  .evaluations-overview,
-  .evaluations-history-panel {
-    animation:none !important; transition:none !important;
+
+.vocal-hero__wave--two {
+  right: 9%;
+  bottom: -105px;
+  width: 500px;
+  height: 210px;
+  border-color: rgba(213,165,29,.08);
+  transform: rotate(-12deg);
+}
+
+.vocal-hero__particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.vocal-hero__particles i {
+  position: absolute;
+  left: calc((var(--i) * 9%) - 2%);
+  top: calc(12% + (var(--i) * 6%));
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(168,21,73,.2);
+  animation: amvParticle 5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.42s);
+}
+
+.vocal-hero__particles i:nth-child(3n) {
+  width: 5px;
+  height: 5px;
+  background: rgba(213,165,29,.23);
+}
+
+.vocal-score-ring {
+  position: relative;
+  transition: transform .35s ease, box-shadow .35s ease;
+  animation: amvScoreFloat 5s ease-in-out infinite;
+}
+
+.vocal-score-ring:hover {
+  transform: translateY(-5px) scale(1.025);
+  box-shadow: 0 24px 55px rgba(168,21,73,.18);
+}
+
+.vocal-score-ring.is-ready {
+  background: conic-gradient(
+    var(--green) 0 72%,
+    var(--gold) 72% 86%,
+    #e8edf2 86% 100%
+  );
+}
+
+.vocal-score-ring.is-ready:after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(44,147,107,.15);
+  border-radius: 50%;
+  animation: amvRingPulse 2.8s ease-in-out infinite;
+}
+
+.vocal-hero__chips span {
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+.vocal-hero__chips span:hover {
+  transform: translateY(-3px);
+  border-color: rgba(168,21,73,.2);
+  box-shadow: 0 9px 22px rgba(20,30,48,.07);
+}
+
+.vocal-intro {
+  animation: amvFadeUp .7s .08s both;
+}
+
+.vocal-engine-status {
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.vocal-engine-status:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(213,165,29,.1);
+}
+
+.vocal-metrics {
+  perspective: 900px;
+}
+
+.vocal-metrics article {
+  position: relative;
+  overflow: hidden;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1),
+              box-shadow .28s ease,
+              border-color .28s ease;
+  animation: amvFadeUp .65s both;
+}
+
+.vocal-metrics article:nth-child(2) { animation-delay: .08s; }
+.vocal-metrics article:nth-child(3) { animation-delay: .16s; }
+
+.vocal-metrics article:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 42%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--wine), var(--gold));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s ease;
+}
+
+.vocal-metrics article:hover {
+  transform: translateY(-5px) rotateX(1deg);
+  border-color: rgba(168,21,73,.16);
+  box-shadow: 0 20px 42px rgba(20,30,48,.09);
+}
+
+.vocal-metrics article:hover:before {
+  transform: scaleX(1);
+}
+
+.vocal-metrics strong {
+  transition: color .25s ease, transform .25s ease;
+}
+
+.vocal-metrics article:hover strong {
+  color: var(--wine);
+  transform: translateX(2px);
+}
+
+.vocal-panel {
+  position: relative;
+  overflow: hidden;
+  animation: amvFadeUp .75s .2s both;
+}
+
+.vocal-panel--analysis:after {
+  content: "";
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  right: -150px;
+  top: -160px;
+  border: 1px solid rgba(213,165,29,.08);
+  border-radius: 50%;
+  box-shadow: 0 0 0 35px rgba(168,21,73,.025);
+  pointer-events: none;
+}
+
+.vocal-signal {
+  position: absolute;
+  right: 28px;
+  top: 24px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: .5;
+  pointer-events: none;
+}
+
+.vocal-signal span {
+  width: 2px;
+  height: 14px;
+  border-radius: 5px;
+  background: linear-gradient(to top, var(--wine), var(--gold));
+  animation: amvSignal 1.6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.055s);
+}
+
+.vocal-dimension {
+  position: relative;
+  overflow: hidden;
+  animation: amvDimensionIn .55s both;
+}
+
+.vocal-dimension:nth-child(1) { animation-delay: .03s; }
+.vocal-dimension:nth-child(2) { animation-delay: .07s; }
+.vocal-dimension:nth-child(3) { animation-delay: .11s; }
+.vocal-dimension:nth-child(4) { animation-delay: .15s; }
+.vocal-dimension:nth-child(5) { animation-delay: .19s; }
+.vocal-dimension:nth-child(6) { animation-delay: .23s; }
+.vocal-dimension:nth-child(7) { animation-delay: .27s; }
+.vocal-dimension:nth-child(8) { animation-delay: .31s; }
+
+.vocal-dimension:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255,255,255,.55),
+    transparent
+  );
+  transform: skewX(-18deg);
+  transition: left .65s ease;
+  pointer-events: none;
+}
+
+.vocal-dimension:hover:after {
+  left: 140%;
+}
+
+.vocal-dimension__icon {
+  transition: transform .25s ease, background .25s ease, box-shadow .25s ease;
+}
+
+.vocal-dimension:hover .vocal-dimension__icon {
+  transform: rotate(-4deg) scale(1.07);
+  background: linear-gradient(145deg, #f7edf1, #fff7e5);
+  box-shadow: 0 7px 17px rgba(168,21,73,.1);
+}
+
+.vocal-dimension__track span {
+  position: relative;
+  overflow: hidden;
+  animation: amvBarIn .9s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.vocal-dimension__track span:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.55),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: amvBarShine 2.8s 1s ease-in-out infinite;
+}
+
+.vocal-bottom-grid {
+  animation: amvFadeUp .7s .35s both;
+}
+
+.vocal-insight {
+  position: relative;
+  overflow: hidden;
+  transition: transform .28s ease, box-shadow .28s ease;
+}
+
+.vocal-insight:after {
+  content: "✦";
+  position: absolute;
+  right: 22px;
+  top: 17px;
+  color: rgba(168,21,73,.09);
+  font-size: 2.5rem;
+  transform: rotate(15deg);
+}
+
+.vocal-insight:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 38px rgba(20,30,48,.08);
+}
+
+.vocal-empty {
+  animation: amvEmptyIn .8s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.vocal-empty__visual {
+  animation: amvVisualFloat 5s ease-in-out infinite;
+}
+
+.vocal-empty__note {
+  position: relative;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.vocal-empty__note:hover {
+  transform: scale(1.06) rotate(-3deg);
+  box-shadow: 0 24px 55px rgba(168,21,73,.28);
+}
+
+.vocal-empty__pulse {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  border: 1px solid rgba(168,21,73,.16);
+  border-radius: 28px;
+  animation: amvEmptyPulse 2.8s ease-out infinite;
+}
+
+.vocal-empty__orbit--one {
+  animation: amvOrbit 9s linear infinite;
+}
+
+.vocal-empty__orbit--two {
+  animation: amvOrbitReverse 13s linear infinite;
+}
+
+.vocal-empty__dimensions span {
+  transition: transform .2s ease, color .2s ease;
+}
+
+.vocal-empty__dimensions span:hover {
+  transform: translateX(4px);
+  color: var(--wine);
+}
+
+.vocal-empty__dimensions i {
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.vocal-empty__dimensions span:hover i {
+  transform: scale(1.08);
+  box-shadow: 0 5px 14px rgba(168,21,73,.1);
+}
+
+.vocal-footer {
+  position: relative;
+  animation: amvFadeUp .7s .45s both;
+}
+
+.vocal-footer__line {
+  position: absolute;
+  left: 50%;
+  top: -13px;
+  width: 70px;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+@keyframes amvHeroIn {
+  from { opacity: 0; transform: translateY(12px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes amvFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes amvDimensionIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes amvEmptyIn {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes amvGlowFloat {
+  0%, 100% { transform: translate3d(0,0,0); }
+  50% { transform: translate3d(14px,10px,0); }
+}
+
+@keyframes amvScoreFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes amvRingPulse {
+  0%, 100% { opacity: .25; transform: scale(1); }
+  50% { opacity: .7; transform: scale(1.035); }
+}
+
+@keyframes amvParticle {
+  0%, 100% { opacity: .1; transform: translateY(10px) scale(.8); }
+  50% { opacity: .8; transform: translateY(-14px) scale(1.2); }
+}
+
+@keyframes amvSignal {
+  0%, 100% { transform: scaleY(.65); opacity: .35; }
+  50% { transform: scaleY(1.35); opacity: .85; }
+}
+
+@keyframes amvBarIn {
+  from { transform: scaleX(0); transform-origin: left; }
+  to { transform: scaleX(1); transform-origin: left; }
+}
+
+@keyframes amvBarShine {
+  0%, 55% { transform: translateX(-100%); }
+  75%, 100% { transform: translateX(140%); }
+}
+
+@keyframes amvVisualFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes amvEmptyPulse {
+  0% { opacity: .65; transform: scale(.95); }
+  70%, 100% { opacity: 0; transform: scale(1.65); }
+}
+
+@keyframes amvOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes amvOrbitReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vocal-evaluation-page *,
+  .vocal-evaluation-page *:before,
+  .vocal-evaluation-page *:after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
   }
 }
 
