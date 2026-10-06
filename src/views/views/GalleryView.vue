@@ -276,7 +276,7 @@
 
               :alt="item.alt"
 
-            decoding="async">
+            / decoding="async">
 
             <div class="gallery-card__overlay"></div>
 
@@ -344,7 +344,7 @@
 
             alt="Logo Academia de Talentos Amo Mi Voz"
 
-          decoding="async">
+          / decoding="async">
 
           <div>
 
@@ -510,7 +510,7 @@
 
               :alt="currentItem.alt"
 
-            decoding="async">
+            / decoding="async">
 
             <figcaption>
 

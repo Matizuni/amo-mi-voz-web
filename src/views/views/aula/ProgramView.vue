@@ -498,7 +498,7 @@
                   :src="getUnitCover(unit)"
                   alt=""
                   loading="lazy"
-                decoding="async">
+                / decoding="async">
                 <div class="unit-cover__veil"></div>
               </div>
 
@@ -712,7 +712,7 @@
                           :src="getLessonCover(lessonItem)"
                           :alt="`Portada de ${lessonItem.title}`"
                           loading="lazy"
-                        decoding="async">
+                        / decoding="async">
 
                         <div class="lesson-card__visual-overlay"></div>
                         <div class="lesson-card__visual-fade"></div>
@@ -1191,7 +1191,7 @@
                     v-if="unitCoverPreviewUrl"
                     :src="unitCoverPreviewUrl"
                     alt="Vista previa de la portada de la unidad"
-                  decoding="async">
+                  / decoding="async">
 
                   <div
                     v-else

@@ -8,7 +8,7 @@
               src="@/assets/images/logo.png"
               alt="Academia de Talentos Amo Mi Voz"
               class="activate-account__logo"
-            decoding="async">
+            / decoding="async">
           </div>
 
           <div>

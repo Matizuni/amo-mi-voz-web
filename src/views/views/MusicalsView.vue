@@ -390,7 +390,7 @@
 
                 alt="Flyer de Jesucristo Superstar de Amo Mi Voz"
 
-              decoding="async">
+              / decoding="async">
 
               <div class="poster-frame__shine"></div>
 
@@ -496,7 +496,7 @@
 
                 alt="Flyer de la producción COCO de Amo Mi Voz"
 
-              decoding="async">
+              / decoding="async">
 
               <div class="poster-frame__shine"></div>
 
@@ -598,7 +598,7 @@
 
                 alt="Flyer de El Extraño Mundo de Jack de Amo Mi Voz"
 
-              decoding="async">
+              / decoding="async">
 
               <div class="poster-frame__shine"></div>
 

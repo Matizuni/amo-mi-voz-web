@@ -148,7 +148,7 @@
                 :src="item.image"
                 :alt="`Vista previa de ${item.title}`"
                 loading="lazy"
-              decoding="async">
+              / decoding="async">
 
               <div v-else class="task-placeholder">
                 <div class="task-placeholder__glow"></div>

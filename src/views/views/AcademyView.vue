@@ -113,7 +113,7 @@
 
             alt="Estudiante de la Academia de Talentos Amo Mi Voz"
 
-          decoding="async">
+          / decoding="async">
 
           <div class="academy-hero__overlay"></div>
 
@@ -350,7 +350,7 @@
 
             loading="lazy"
 
-          decoding="async">
+          / decoding="async">
 
           <div class="academy-stage__overlay"></div>
 
@@ -544,7 +544,7 @@
 
             loading="lazy"
 
-          decoding="async">
+          / decoding="async">
 
           <div class="academy-people__overlay"></div>
 

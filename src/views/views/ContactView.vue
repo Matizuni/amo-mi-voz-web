@@ -69,7 +69,7 @@
 
                 aria-hidden="true"
 
-              decoding="async">
+              / decoding="async">
 
               Hablar por WhatsApp
 
@@ -169,7 +169,7 @@
 
                 alt="Academia de Talentos Amo Mi Voz"
 
-              decoding="async">
+              / decoding="async">
 
             </div>
 
@@ -219,7 +219,7 @@
 
               aria-hidden="true"
 
-            decoding="async">
+            / decoding="async">
 
             <div>
 
@@ -261,7 +261,7 @@
 
               aria-hidden="true"
 
-            decoding="async">
+            / decoding="async">
 
             <div>
 
@@ -365,7 +365,7 @@
 
                   alt="WhatsApp"
 
-                decoding="async">
+                / decoding="async">
 
               </div>
 
@@ -441,7 +441,7 @@
 
                   alt="Gmail"
 
-                decoding="async">
+                / decoding="async">
 
               </div>
 
@@ -521,7 +521,7 @@
 
                   alt="Instagram"
 
-                decoding="async">
+                / decoding="async">
 
               </div>
 
@@ -601,7 +601,7 @@
 
                   alt="Facebook"
 
-                decoding="async">
+                / decoding="async">
 
               </div>
 

@@ -331,7 +331,7 @@
         >
           <div class="amv-material-preview amv-material-preview--primary">
             <template v-if="getMaterialPreviewKind(primaryMaterial) === 'image'">
-              <img :src="primaryMaterial.url" :alt="getMaterialDisplayName(primaryMaterial)" loading="lazy" decoding="async">
+              <img :src="primaryMaterial.url" :alt="getMaterialDisplayName(primaryMaterial)" loading="lazy" / decoding="async">
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'pdf'">
               <iframe :src="`${primaryMaterial.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(primaryMaterial)}`" loading="lazy"></iframe>
@@ -388,7 +388,7 @@
           >
             <div class="amv-material-preview">
               <template v-if="getMaterialPreviewKind(material) === 'image'">
-                <img :src="material.url" :alt="getMaterialDisplayName(material)" loading="lazy" decoding="async">
+                <img :src="material.url" :alt="getMaterialDisplayName(material)" loading="lazy" / decoding="async">
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'pdf'">
                 <iframe :src="`${material.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(material)}`" loading="lazy"></iframe>

@@ -14,7 +14,7 @@
           title="Cambiar foto de perfil"
           @click="chooseAvatar"
         >
-          <img v-if="avatarPreview" :src="avatarPreview" alt="Foto de perfil" decoding="async">
+          <img v-if="avatarPreview" :src="avatarPreview" alt="Foto de perfil" / decoding="async">
           <span v-else>{{ initials }}</span>
           <small>✎</small>
         </button>
@@ -65,7 +65,7 @@
         <article class="profile-editor-card profile-editor-card--photo">
           <div class="profile-editor-card__photo-wrap">
             <button type="button" class="profile-avatar profile-avatar--large" @click="chooseAvatar">
-              <img v-if="avatarPreview" :src="avatarPreview" alt="Foto de perfil" decoding="async">
+              <img v-if="avatarPreview" :src="avatarPreview" alt="Foto de perfil" / decoding="async">
               <span v-else>{{ initials }}</span>
               <b>✎</b>
             </button>

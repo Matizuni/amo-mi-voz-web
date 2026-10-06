@@ -125,7 +125,7 @@
 
               alt="Estudiante de la Academia de Talentos Amo Mi Voz"
 
-            decoding="async">
+            / decoding="async">
 
             <div class="photo-shade"></div>
 
@@ -324,7 +324,7 @@
 
               alt="Estudiante durante su proceso vocal"
 
-            decoding="async">
+            / decoding="async">
 
             <div class="story-card__overlay"></div>
 
@@ -362,7 +362,7 @@
 
               alt="Actividad formativa en Amo Mi Voz"
 
-            decoding="async">
+            / decoding="async">
 
             <div class="story-card__overlay"></div>
 
@@ -542,7 +542,7 @@
 
               alt="Estudiante participando del proceso de aprendizaje"
 
-            decoding="async">
+            / decoding="async">
 
             <div class="photo-shade photo-shade--strong"></div>
 
@@ -1032,7 +1032,7 @@
 
               alt="Estudiante durante una experiencia escénica"
 
-            decoding="async">
+            / decoding="async">
 
             <div class="photo-shade photo-shade--strong"></div>
 
@@ -1160,7 +1160,7 @@
 
             alt="Estudiante formando parte de la comunidad Amo Mi Voz"
 
-          decoding="async">
+          / decoding="async">
 
           <div class="photo-shade"></div>
 
@@ -1316,7 +1316,7 @@
 
         alt="Experiencia artística de la Academia Amo Mi Voz"
 
-      decoding="async">
+      / decoding="async">
 
       <div class="closing-photo__overlay"></div>
 
