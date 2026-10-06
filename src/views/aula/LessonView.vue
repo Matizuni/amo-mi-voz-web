@@ -851,7 +851,7 @@
                 </label>
 
                 <label class="amv-material-file">
-                  <span>Archivo · máximo 50 MB</span>
+                  <span>Archivo · máximo 100 MB</span>
                   <input
                     ref="materialCreateInput"
                     type="file"
@@ -1142,7 +1142,7 @@ const materialCreateInput = ref(null)
 const materialEditError = ref('')
 const materialCreateError = ref('')
 
-const MAX_MATERIAL_FILE_SIZE = 50 * 1024 * 1024
+const MAX_MATERIAL_FILE_SIZE = 100 * 1024 * 1024
 
 const editMaterialForm = reactive({
   title: '',
@@ -1322,7 +1322,7 @@ const handleReplacementMaterial = event => {
   }
 
   if (file.size > MAX_MATERIAL_FILE_SIZE) {
-    materialEditError.value = 'El archivo supera el máximo permitido de 50 MB.'
+    materialEditError.value = 'El archivo supera el máximo permitido de 100 MB.'
     event.target.value = ''
     replacementMaterialFile.value = null
     return
@@ -1529,7 +1529,7 @@ const handleCreateMaterialFile = event => {
   }
 
   if (file.size > MAX_MATERIAL_FILE_SIZE) {
-    materialCreateError.value = 'El archivo supera el máximo permitido de 50 MB.'
+    materialCreateError.value = 'El archivo supera el máximo permitido de 100 MB.'
     event.target.value = ''
     createMaterialForm.file = null
     return
