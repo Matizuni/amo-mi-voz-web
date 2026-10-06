@@ -1,0 +1,293 @@
+/* =========================================================
+   AMV · SIGNATURE SCROLLBAR V2
+   Aula Virtual — Light / Premium / Interactive
+   Identidad: vino → violeta → turquesa
+========================================================= */
+
+:root {
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: #a95a86 transparent;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #a95a86 transparent;
+  scrollbar-gutter: stable;
+}
+
+body {
+  min-height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #a95a86 transparent;
+}
+
+/* =========================================================
+   CONTENEDORES AMV
+========================================================= */
+
+.aula-workspace,
+.aula-content,
+.aula-main,
+.quiz-page,
+.lesson-page,
+.amv-classroom,
+.amv-page {
+  scrollbar-width: thin;
+  scrollbar-color: #a95a86 transparent;
+  scrollbar-gutter: stable;
+}
+
+/* =========================================================
+   WEBKIT · CANAL
+========================================================= */
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.aula-workspace::-webkit-scrollbar,
+.aula-content::-webkit-scrollbar,
+.aula-main::-webkit-scrollbar,
+.quiz-page::-webkit-scrollbar,
+.lesson-page::-webkit-scrollbar,
+.amv-classroom::-webkit-scrollbar,
+.amv-page::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+.aula-workspace::-webkit-scrollbar-track,
+.aula-content::-webkit-scrollbar-track,
+.aula-main::-webkit-scrollbar-track,
+.quiz-page::-webkit-scrollbar-track,
+.lesson-page::-webkit-scrollbar-track,
+.amv-classroom::-webkit-scrollbar-track,
+.amv-page::-webkit-scrollbar-track {
+  margin: 5px 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(31, 48, 73, 0.025),
+    rgba(31, 48, 73, 0.045)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.78);
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+.aula-workspace::-webkit-scrollbar-thumb,
+.aula-content::-webkit-scrollbar-thumb,
+.aula-main::-webkit-scrollbar-thumb,
+.quiz-page::-webkit-scrollbar-thumb,
+.lesson-page::-webkit-scrollbar-thumb,
+.amv-classroom::-webkit-scrollbar-thumb,
+.amv-page::-webkit-scrollbar-thumb {
+  min-height: 54px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #a9154f 0%,
+      #8357d8 50%,
+      #2da6a2 100%
+    )
+    padding-box;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 2px 8px rgba(25, 39, 63, 0.10),
+    0 0 0 1px rgba(159, 25, 69, 0.035);
+
+  transition:
+    filter 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+/* Pequeno brilho visual no thumb */
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+.aula-workspace::-webkit-scrollbar-thumb:hover,
+.aula-content::-webkit-scrollbar-thumb:hover,
+.aula-main::-webkit-scrollbar-thumb:hover,
+.quiz-page::-webkit-scrollbar-thumb:hover,
+.lesson-page::-webkit-scrollbar-thumb:hover,
+.amv-classroom::-webkit-scrollbar-thumb:hover,
+.amv-page::-webkit-scrollbar-thumb:hover {
+  filter: saturate(1.08) brightness(1.05);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 3px 12px rgba(25, 39, 63, 0.13),
+    0 0 14px rgba(159, 25, 69, 0.11),
+    0 0 18px rgba(131, 87, 216, 0.08);
+}
+
+html::-webkit-scrollbar-thumb:active,
+body::-webkit-scrollbar-thumb:active,
+.aula-workspace::-webkit-scrollbar-thumb:active,
+.aula-content::-webkit-scrollbar-thumb:active,
+.aula-main::-webkit-scrollbar-thumb:active,
+.quiz-page::-webkit-scrollbar-thumb:active,
+.lesson-page::-webkit-scrollbar-thumb:active,
+.amv-classroom::-webkit-scrollbar-thumb:active,
+.amv-page::-webkit-scrollbar-thumb:active {
+  filter: saturate(1.12) brightness(1.10);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.32),
+    0 4px 14px rgba(25, 39, 63, 0.16),
+    0 0 20px rgba(131, 87, 216, 0.14);
+}
+
+/* =========================================================
+   ELIMINAR BOTONES/FLECHAS DEL SCROLLBAR
+========================================================= */
+
+html::-webkit-scrollbar-button,
+body::-webkit-scrollbar-button,
+.aula-workspace::-webkit-scrollbar-button,
+.aula-content::-webkit-scrollbar-button,
+.aula-main::-webkit-scrollbar-button,
+.quiz-page::-webkit-scrollbar-button,
+.lesson-page::-webkit-scrollbar-button,
+.amv-classroom::-webkit-scrollbar-button,
+.amv-page::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* =========================================================
+   ESQUINA
+========================================================= */
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner,
+.aula-workspace::-webkit-scrollbar-corner,
+.aula-content::-webkit-scrollbar-corner,
+.aula-main::-webkit-scrollbar-corner,
+.quiz-page::-webkit-scrollbar-corner,
+.lesson-page::-webkit-scrollbar-corner,
+.amv-classroom::-webkit-scrollbar-corner,
+.amv-page::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* =========================================================
+   HORIZONTAL · CÁPSULA ELEGANTE
+========================================================= */
+
+.aula-workspace::-webkit-scrollbar-thumb:horizontal,
+.aula-content::-webkit-scrollbar-thumb:horizontal,
+.aula-main::-webkit-scrollbar-thumb:horizontal,
+.quiz-page::-webkit-scrollbar-thumb:horizontal,
+.lesson-page::-webkit-scrollbar-thumb:horizontal,
+.amv-classroom::-webkit-scrollbar-thumb:horizontal,
+.amv-page::-webkit-scrollbar-thumb:horizontal {
+  min-width: 60px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #a9154f 0%,
+      #8357d8 50%,
+      #2da6a2 100%
+    )
+    padding-box;
+}
+
+.aula-workspace::-webkit-scrollbar-track:horizontal,
+.aula-content::-webkit-scrollbar-track:horizontal,
+.aula-main::-webkit-scrollbar-track:horizontal,
+.quiz-page::-webkit-scrollbar-track:horizontal,
+.lesson-page::-webkit-scrollbar-track:horizontal,
+.amv-classroom::-webkit-scrollbar-track:horizontal,
+.amv-page::-webkit-scrollbar-track:horizontal {
+  margin: 2px 7px;
+}
+
+/* =========================================================
+   QUIZ · MÁS SUTIL
+========================================================= */
+
+.amv-quiz-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #8f6bc5 transparent;
+}
+
+.amv-quiz-scroll::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.amv-quiz-scroll::-webkit-scrollbar-track {
+  background: rgba(31, 48, 73, 0.025);
+}
+
+.amv-quiz-scroll::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  background:
+    linear-gradient(
+      180deg,
+      #9f1945 0%,
+      #8d66d6 52%,
+      #39a6a8 100%
+    )
+    padding-box;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.24),
+    0 2px 8px rgba(31, 48, 73, 0.10);
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  html,
+  body,
+  .aula-workspace,
+  .aula-content,
+  .aula-main,
+  .quiz-page,
+  .lesson-page,
+  .amv-classroom,
+  .amv-page {
+    scrollbar-width: thin;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  .aula-workspace::-webkit-scrollbar,
+  .aula-content::-webkit-scrollbar,
+  .aula-main::-webkit-scrollbar,
+  .quiz-page::-webkit-scrollbar,
+  .lesson-page::-webkit-scrollbar,
+  .amv-classroom::-webkit-scrollbar,
+  .amv-page::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+}
+
+/* =========================================================
+   ACCESIBILIDAD · MENOS MOVIMIENTO
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb,
+  .aula-workspace::-webkit-scrollbar-thumb,
+  .aula-content::-webkit-scrollbar-thumb,
+  .aula-main::-webkit-scrollbar-thumb,
+  .quiz-page::-webkit-scrollbar-thumb,
+  .lesson-page::-webkit-scrollbar-thumb,
+  .amv-classroom::-webkit-scrollbar-thumb,
+  .amv-page::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}
