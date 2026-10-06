@@ -122,13 +122,14 @@
       </nav>
 
       <!-- TEACHER NAV / ACTIONS -->
-      <div v-if="isTeacher" class="amv-teacher-bar">
+      <div v-if="isTeacher" class="amv-teacher-bar amv-teacher-bar--direct">
         <span>👨🏫 Vista profesor</span>
         <RouterLink :to="`/aula/clase/${lesson.id}/editar`">✎ Editar clase</RouterLink>
-        <RouterLink :to="`/aula/clase/${lesson.id}/trabajo`">▣ Contenidos y evaluaciones</RouterLink>
+        <RouterLink :to="`/aula/clase/${lesson.id}/crear-tarea`">＋ Nueva tarea</RouterLink>
+        <RouterLink :to="`/aula/clase/${lesson.id}/evaluacion/nueva`">＋ Nueva evaluación</RouterLink>
       </div>
 
-      <!-- SUMMARY -->
+<!-- SUMMARY -->
       <main id="amv-summary-section" v-show="activeClassTab === 'summary' || isTeacher" class="amv-content">
         <section v-if="!isTeacher" class="amv-welcome">
           <div>
@@ -203,25 +204,25 @@
         </section>
 
         <div class="amv-action-grid">
-          <button type="button" class="amv-action-card amv-action-card--material" @click="setClassTab('materials')">
+          <button type="button" class="amv-action-card amv-action-card--material" @click="handleActionCard('materials')">
             <span class="amv-action-card__icon">📚</span>
             <span><small>1 · ESTUDIAR</small><strong>Material de clase</strong><em>{{ lessonMaterials.length }} recurso{{ lessonMaterials.length === 1 ? '' : 's' }}</em></span>
             <b>→</b>
           </button>
 
-          <button type="button" class="amv-action-card amv-action-card--activity" @click="setClassTab('activities')">
+          <button type="button" class="amv-action-card amv-action-card--activity" @click="handleActionCard('activities')">
             <span class="amv-action-card__icon">✏️</span>
             <span><small>2 · PRACTICAR</small><strong>Actividades</strong><em>{{ publishedAssignments.length }} disponible{{ publishedAssignments.length === 1 ? '' : 's' }}</em></span>
             <b>→</b>
           </button>
 
-          <button type="button" class="amv-action-card amv-action-card--quiz" @click="setClassTab('evaluations')">
+          <button type="button" class="amv-action-card amv-action-card--quiz" @click="handleActionCard('evaluations')">
             <span class="amv-action-card__icon">📝</span>
             <span><small>3 · COMPROBAR</small><strong>Evaluación</strong><em>{{ visibleQuizzes.length }} disponible{{ visibleQuizzes.length === 1 ? '' : 's' }}</em></span>
             <b>→</b>
           </button>
 
-          <button v-if="hasAcademicContent" type="button" class="amv-action-card amv-action-card--content" @click="setClassTab('content')">
+          <button v-if="hasAcademicContent" type="button" class="amv-action-card amv-action-card--content" @click="handleActionCard('content')">
             <span class="amv-action-card__icon">🎯</span>
             <span><small>4 · APRENDER</small><strong>Objetivos y contenido</strong><em>{{ objectives.length + contents.length }} elementos</em></span>
             <b>→</b>
@@ -261,7 +262,7 @@
               <iframe :src="`${primaryMaterial.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(primaryMaterial)}`" loading="lazy"></iframe>
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'audio'">
-              <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 26" :key="`primary-audio-${n}`" :style="{ '--h': `${20 + ((n * 29) % 68)}%`, '--d': `${(n % 9) * 0.07}s` }"></i></div><span>🎧 AUDIO · ESCUCHA AQUÍ</span><audio class="amv-inline-audio" :src="primaryMaterial.url" controls preload="metadata" @play="handleTrackedMaterialOpen(primaryMaterial)"></audio></div>
+              <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 26" :key="`primary-audio-${n}`" :style="{ '--h': `${20 + ((n * 29) % 68)}%`, '--d': `${(n % 9) * 0.07}s` }"></i></div><span>🎧 AUDIO</span></div>
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'video'">
               <video :src="primaryMaterial.url" controls preload="metadata"></video>
@@ -278,7 +279,7 @@
             <p>{{ getMaterialSubtitle(primaryMaterial) || 'Documento principal preparado para esta clase.' }}</p>
             <div class="amv-meta-row"><span>📄 {{ getMaterialType(primaryMaterial) }}</span><span v-if="primaryMaterial.size || primaryMaterial.fileSize">💾 {{ formatFileSize(primaryMaterial.size || primaryMaterial.fileSize) }}</span><span class="amv-status">✓ Disponible</span></div>
             <div class="amv-material-actions">
-              <a v-if="primaryMaterial.url && getMaterialPreviewKind(primaryMaterial) !== 'audio'" class="amv-open-btn" :href="primaryMaterial.url" target="_blank" rel="noopener" @click="handleMaterialClick($event, primaryMaterial)">Abrir completo <span>↗</span></a>
+              <a v-if="primaryMaterial.url" class="amv-open-btn" :href="primaryMaterial.url" target="_blank" rel="noopener" @click="handleMaterialClick($event, primaryMaterial)">Abrir completo <span>↗</span></a>
               <a v-if="primaryMaterial.url" class="amv-download-btn" :href="primaryMaterial.url" download @click="handleTrackedMaterialOpen(primaryMaterial)">↓ Descargar</a>
             </div>
           </div>
@@ -294,7 +295,7 @@
                 <iframe :src="`${material.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(material)}`" loading="lazy"></iframe>
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'audio'">
-                <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 20" :key="`${material.id}-audio-${n}`" :style="{ '--h': `${22 + ((n * 37) % 65)}%`, '--d': `${(n % 8) * 0.08}s` }"></i></div><span>🎧 AUDIO · ESCUCHA AQUÍ</span><audio class="amv-inline-audio" :src="material.url" controls preload="metadata" @play="handleTrackedMaterialOpen(material)"></audio></div>
+                <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 20" :key="`${material.id}-audio-${n}`" :style="{ '--h': `${22 + ((n * 37) % 65)}%`, '--d': `${(n % 8) * 0.08}s` }"></i></div><span>🎧 AUDIO</span></div>
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'video'">
                 <video :src="material.url" controls preload="metadata"></video>
@@ -310,7 +311,7 @@
               <h3>{{ getMaterialDisplayName(material) }}</h3>
               <p>{{ getMaterialSubtitle(material) || 'Recurso disponible para esta clase.' }}</p>
               <div class="amv-resource-card__actions">
-                <a v-if="material.url && getMaterialPreviewKind(material) !== 'audio'" class="amv-card-action amv-card-action--open" :href="material.url" target="_blank" rel="noopener" @click="handleMaterialClick($event, material)">Abrir ↗</a>
+                <a v-if="material.url" class="amv-card-action amv-card-action--open" :href="material.url" target="_blank" rel="noopener" @click="handleMaterialClick($event, material)">Abrir ↗</a>
                 <a v-if="material.url" class="amv-card-action" :href="material.url" download @click="handleTrackedMaterialOpen(material)">Descargar ↓</a>
               </div>
             </div>
@@ -327,68 +328,26 @@
           <span class="amv-count">{{ publishedAssignments.length }}</span>
         </section>
 
-        <div v-if="publishedAssignments.length === 1" class="amv-single-activity">
-          <article class="amv-single-activity__card">
-            <div class="amv-single-activity__glow" aria-hidden="true"></div>
-            <div class="amv-single-activity__top">
-              <span class="amv-single-activity__number">01</span>
-              <span class="amv-single-activity__type">{{ getAssignmentType(publishedAssignments[0].type) }}</span>
-              <span v-if="isAssignmentCompleted(publishedAssignments[0])" class="amv-single-activity__done">✓ ENTREGADA</span>
-            </div>
-            <div class="amv-single-activity__main">
-              <div class="amv-single-activity__icon">{{ getAssignmentIcon(publishedAssignments[0].type) }}</div>
-              <div class="amv-single-activity__body">
-                <h3>{{ publishedAssignments[0].title }}</h3>
-                <p v-if="publishedAssignments[0].description || publishedAssignments[0].instructions || publishedAssignments[0].content || publishedAssignments[0].details">
-                  {{ publishedAssignments[0].description || publishedAssignments[0].instructions || publishedAssignments[0].content || publishedAssignments[0].details }}
-                </p>
-                <div class="amv-single-activity__meta">
-                  <span>🏆 {{ publishedAssignments[0].points ?? 100 }} pts</span>
-                  <span>{{ publishedAssignments[0].dueDate ? `📅 Entrega ${formatDate(publishedAssignments[0].dueDate)}` : '∞ Sin fecha límite' }}</span>
-                  <span>{{ isAssignmentCompleted(publishedAssignments[0]) ? 'Completada' : isAssignmentViewed(publishedAssignments[0]) ? 'Ya la viste' : 'Pendiente' }}</span>
-                </div>
-              </div>
-              <RouterLink
-                :to="`/aula/clase/${lesson.id}/tarea/${publishedAssignments[0].id}`"
-                class="amv-single-activity__cta"
-                @click="handleAssignmentOpen(publishedAssignments[0])"
-              >
-                <span>{{ isAssignmentCompleted(publishedAssignments[0]) ? 'Ver entrega' : 'Ir a la actividad' }}</span>
-                <b>→</b>
-              </RouterLink>
-            </div>
-            <div class="amv-single-activity__hint">
-              <span>✦</span> Esta es la única actividad de esta clase. Puedes comenzar directamente desde aquí.
-            </div>
-          </article>
-        </div>
-
-        <div v-else-if="publishedAssignments.length > 1" class="amv-activity-chooser">
-          <div class="amv-activity-chooser__head">
-            <div><small>ELIGE TU PRÓXIMO PASO</small><strong>{{ publishedAssignments.length }} actividades disponibles</strong></div>
-            <span>↓</span>
-          </div>
-          <div class="amv-list">
-            <RouterLink
-              v-for="(task, index) in publishedAssignments"
-              :key="task.id"
-              :to="`/aula/clase/${lesson.id}/tarea/${task.id}`"
-              class="amv-task"
-              @click="handleAssignmentOpen(task)"
-            >
-              <span class="amv-task__number">{{ String(index + 1).padStart(2, '0') }}</span>
-              <span class="amv-task__icon">{{ getAssignmentIcon(task.type) }}</span>
-              <span class="amv-task__body">
-                <small>{{ getAssignmentType(task.type) }}</small>
-                <strong>{{ task.title }}</strong>
-                <em>{{ task.points ?? 100 }} pts · {{ task.dueDate ? `Entrega ${formatDate(task.dueDate)}` : 'Sin fecha límite' }}</em>
-              </span>
-              <span class="amv-task__state">
-                {{ isAssignmentCompleted(task) ? '✓ Entregada' : isAssignmentViewed(task) ? '◐ Vista' : 'Comenzar' }}
-                <b>→</b>
-              </span>
-            </RouterLink>
-          </div>
+        <div v-if="publishedAssignments.length" class="amv-list">
+          <RouterLink
+            v-for="(task, index) in publishedAssignments"
+            :key="task.id"
+            :to="`/aula/clase/${lesson.id}/tarea/${task.id}`"
+            class="amv-task"
+            @click="handleAssignmentOpen(task)"
+          >
+            <span class="amv-task__number">{{ String(index + 1).padStart(2, '0') }}</span>
+            <span class="amv-task__icon">{{ getAssignmentIcon(task.type) }}</span>
+            <span class="amv-task__body">
+              <small>{{ getAssignmentType(task.type) }}</small>
+              <strong>{{ task.title }}</strong>
+              <em>{{ task.points ?? 100 }} pts · {{ task.dueDate ? `Entrega ${formatDate(task.dueDate)}` : 'Sin fecha límite' }}</em>
+            </span>
+            <span class="amv-task__state">
+              {{ isAssignmentCompleted(task) ? '✓ Entregada' : isAssignmentViewed(task) ? '◐ Vista' : 'Comenzar' }}
+              <b>→</b>
+            </span>
+          </RouterLink>
         </div>
 
         <div v-else class="amv-empty"><span>✏️</span><strong>No hay actividades publicadas</strong><p>Por ahora puedes concentrarte en estudiar el material de esta sesión.</p></div>
@@ -401,40 +360,29 @@
           <span class="amv-count">{{ visibleQuizzes.length }}</span>
         </section>
 
-        <div v-if="visibleQuizzes.length" class="amv-evaluation-arena">
-          <div class="amv-evaluation-legend">
-            <div class="amv-evaluation-legend__intro"><span>⚡</span><div><small>ARENA DE EVALUACIÓN</small><strong>Cada color representa un nivel distinto</strong></div></div>
-            <div class="amv-evaluation-legend__items"><span class="is-quiz"><i>🧠</i> Quiz formativo</span><span class="is-test"><i>🏆</i> Prueba evaluada</span></div>
-          </div>
-
-          <div class="amv-list amv-evaluation-list">
-            <article
-              v-for="quiz in visibleQuizzes"
-              :key="quiz.id"
-              class="amv-quiz"
-              :class="[
-                quiz.assessmentType === 'test' ? 'amv-quiz--summative' : 'amv-quiz--formative',
-                { 'amv-quiz--completed': isQuizCompleted(quiz), 'amv-quiz--closed': quiz.status === 'closed' }
-              ]"
+        <div v-if="visibleQuizzes.length" class="amv-list">
+          <article
+            v-for="quiz in visibleQuizzes"
+            :key="quiz.id"
+            class="amv-quiz"
+            :class="{ 'amv-quiz--completed': isQuizCompleted(quiz), 'amv-quiz--closed': quiz.status === 'closed' }"
+          >
+            <span class="amv-quiz__icon">{{ quiz.assessmentType === 'test' ? '📝' : '🧠' }}</span>
+            <div class="amv-quiz__body">
+              <div class="amv-badges"><span>{{ getQuizTypeLabel(quiz.assessmentType) }}</span><span>{{ getQuizStatusLabel(quiz.status) }}</span><span v-if="isQuizCompleted(quiz)">✓ Completada</span></div>
+              <h3>{{ quiz.title }}</h3>
+              <p v-if="quiz.description">{{ quiz.description }}</p>
+              <div class="amv-meta-row"><span>{{ quiz.totalPoints || 0 }} pts</span><span v-if="quiz.attemptsAllowed">{{ quiz.attemptsAllowed }} intento{{ quiz.attemptsAllowed === 1 ? '' : 's' }}</span><span v-if="quiz.timeLimitMinutes">⏱ {{ quiz.timeLimitMinutes }} min</span><span>{{ getQuizAvailabilityLabel(quiz) }}</span></div>
+            </div>
+            <RouterLink
+              :to="isQuizCompleted(quiz) ? '/aula/evaluaciones' : `/aula/clase/${lesson.id}/evaluacion/${quiz.id}`"
+              class="amv-quiz__action"
+              @click="!isQuizCompleted(quiz) && handleQuizOpen(quiz)"
             >
-              <div class="amv-quiz__shine" aria-hidden="true"></div>
-              <span class="amv-quiz__icon">{{ quiz.assessmentType === 'test' ? '🏆' : '🧠' }}</span>
-              <div class="amv-quiz__body">
-                <div class="amv-quiz__eyebrow"><span>{{ quiz.assessmentType === 'test' ? 'PRUEBA EVALUADA' : 'QUIZ FORMATIVO' }}</span><b>{{ getQuizStatusLabel(quiz.status) }}</b><b v-if="isQuizCompleted(quiz)" class="is-completed">✓ Completada</b></div>
-                <h3>{{ quiz.title }}</h3>
-                <p v-if="quiz.description">{{ quiz.description }}</p>
-                <div class="amv-meta-row"><span>✦ {{ quiz.totalPoints || 0 }} pts</span><span v-if="quiz.attemptsAllowed">◉ {{ quiz.attemptsAllowed }} intento{{ quiz.attemptsAllowed === 1 ? '' : 's' }}</span><span v-if="quiz.timeLimitMinutes">⏱ {{ quiz.timeLimitMinutes }} min</span><span>◆ {{ getQuizAvailabilityLabel(quiz) }}</span></div>
-              </div>
-              <RouterLink
-                :to="isQuizCompleted(quiz) ? '/aula/evaluaciones' : `/aula/clase/${lesson.id}/evaluacion/${quiz.id}`"
-                class="amv-quiz__action"
-                @click="!isQuizCompleted(quiz) && handleQuizOpen(quiz)"
-              >
-                <span>{{ isQuizCompleted(quiz) ? 'Ver resultados' : quiz.status === 'published' ? 'Comenzar' : 'Ver estado' }}</span>
-                <b>→</b>
-              </RouterLink>
-            </article>
-          </div>
+              {{ isQuizCompleted(quiz) ? 'Resultados' : quiz.status === 'published' ? 'Comenzar' : 'Ver estado' }}
+              <span>→</span>
+            </RouterLink>
+          </article>
         </div>
 
         <div v-else class="amv-empty"><span>📝</span><strong>No hay evaluaciones disponibles</strong><p>Cuando exista una evaluación publicada, aparecerá aquí.</p></div>
@@ -471,16 +419,460 @@
         </div>
       </main>
 
-      <!-- TEACHER: preserve access to full existing work area -->
+      <!-- TEACHER DIRECT ADMIN -->
       <main v-if="isTeacher" class="amv-content amv-teacher-content">
-        <section class="amv-teacher-command">
-          <div><span class="amv-kicker">CENTRO DOCENTE</span><h2>Gestiona esta clase</h2><p>Elige una acción para administrar contenidos, actividades y evaluaciones.</p></div>
-          <div class="amv-teacher-actions">
-            <RouterLink :to="`/aula/clase/${lesson.id}/editar`">✎ Editar clase</RouterLink>
-            <RouterLink :to="`/aula/clase/${lesson.id}/trabajo`">▣ Trabajo de clase</RouterLink>
+        <section id="amv-direct-admin-shortcuts" class="amv-direct-admin__hero">
+          <div>
+            <span class="amv-kicker">CENTRO DOCENTE</span>
+            <h2>Administra esta clase desde aquí.</h2>
+            <p>
+              Materiales, actividades y evaluaciones quedan a mano.
+              Ya no necesitas entrar a una sección intermedia para encontrar las acciones principales.
+            </p>
+          </div>
+
+          <div class="amv-direct-admin__quick">
+            <RouterLink :to="`/aula/clase/${lesson.id}/editar`" class="amv-admin-action amv-admin-action--neutral">
+              <span>✎</span><strong>Editar clase</strong>
+            </RouterLink>
+            <RouterLink :to="`/aula/clase/${lesson.id}/crear-tarea`" class="amv-admin-action amv-admin-action--wine">
+              <span>＋</span><strong>Nueva tarea</strong>
+            </RouterLink>
+            <RouterLink :to="`/aula/clase/${lesson.id}/evaluacion/nueva`" class="amv-admin-action amv-admin-action--gold">
+              <span>＋</span><strong>Nueva evaluación</strong>
+            </RouterLink>
+          </div>
+        </section>
+
+        <section class="amv-direct-admin__stats">
+          <article><span>📚</span><div><strong>{{ lessonMaterials.length }}</strong><small>Materiales</small></div></article>
+          <article><span>✏️</span><div><strong>{{ publishedAssignments.length }}</strong><small>Actividades</small></div></article>
+          <article><span>📝</span><div><strong>{{ visibleQuizzes.length }}</strong><small>Evaluaciones</small></div></article>
+        </section>
+
+        <section id="amv-direct-admin-materials" class="amv-direct-panel amv-direct-panel--materials">
+          <header class="amv-direct-panel__head">
+            <div>
+              <span class="amv-kicker">MATERIALES</span>
+              <h3>Materiales de esta clase</h3>
+              <p class="amv-direct-panel__sub">Visualiza, agrega, modifica o elimina recursos sin salir de LessonView.</p>
+            </div>
+            <button type="button" class="amv-direct-panel__add" @click="openCreateMaterial">
+              ＋ Nuevo material
+            </button>
+          </header>
+
+          <div v-if="teacherMaterials.length" class="amv-material-admin-grid">
+            <article
+              v-for="(material, index) in teacherMaterials"
+              :key="`teacher-material-${material.id}`"
+              class="amv-material-admin-card"
+              :class="getAdminMaterialGradient(material)"
+            >
+              <div class="amv-material-admin-card__preview">
+                <template v-if="getAdminMaterialPreviewKind(material) === 'image' && material.url">
+                  <img
+                    :src="material.url"
+                    :alt="getMaterialDisplayName(material)"
+                    loading="lazy"
+                  >
+                </template>
+
+                <template v-else-if="getAdminMaterialPreviewKind(material) === 'pdf' && material.url">
+                  <iframe
+                    :src="`${material.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`"
+                    :title="`Vista previa de ${getMaterialDisplayName(material)}`"
+                    loading="lazy"
+                  ></iframe>
+                </template>
+
+                <template v-else-if="getAdminMaterialPreviewKind(material) === 'video' && material.url">
+                  <video
+                    :src="material.url"
+                    muted
+                    preload="metadata"
+                  ></video>
+                  <span class="amv-admin-thumb__play">▶</span>
+                </template>
+
+                <template v-else-if="getAdminMaterialPreviewKind(material) === 'audio'">
+                  <div class="amv-admin-audio-art">
+                    <i
+                      v-for="n in 18"
+                      :key="`material-wave-${material.id}-${n}`"
+                      :style="{ '--wave': `${25 + ((n * 31) % 70)}%` }"
+                    ></i>
+                    <span>♪</span>
+                  </div>
+                </template>
+
+                <template v-else>
+                  <div class="amv-admin-file-art">
+                    <span>{{ getMaterialIcon(material) }}</span>
+                    <small>{{ materialTypeLabel(material.type) }}</small>
+                  </div>
+                </template>
+
+                <span class="amv-admin-thumb__index">
+                  {{ String(index + 1).padStart(2, '0') }}
+                </span>
+                <span class="amv-admin-thumb__badge">
+                  {{ materialTypeLabel(material.type) }}
+                </span>
+              </div>
+
+              <div class="amv-material-admin-card__body">
+                <div class="amv-material-admin-card__eyebrow">
+                  <span>{{ materialVoiceLabel(material.voice) }}</span>
+                  <b>DISPONIBLE</b>
+                </div>
+
+                <h4>{{ material.title }}</h4>
+
+                <p>
+                  {{ material.description || 'Recurso disponible para esta clase.' }}
+                </p>
+
+                <small v-if="material.fileName">
+                  {{ material.fileName }}
+                </small>
+
+                <div class="amv-material-admin-card__actions">
+                  <a
+                    v-if="material.url"
+                    :href="material.url"
+                    target="_blank"
+                    rel="noopener"
+                    class="is-view"
+                  >
+                    Ver ↗
+                  </a>
+                  <button type="button" class="is-edit" @click="openEditMaterial(material)">
+                    Modificar
+                  </button>
+                  <button type="button" class="is-danger" @click="askDeleteMaterial(material)">
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="amv-direct-empty">
+            <span>📚</span>
+            <strong>Aún no hay materiales</strong>
+            <p>Agrega el primer recurso directamente a esta clase.</p>
+          </div>
+        </section>
+
+        <section id="amv-direct-admin-activities" class="amv-direct-panel">
+          <header class="amv-direct-panel__head">
+            <div><span class="amv-kicker">ACTIVIDADES</span><h3>Tareas de esta clase</h3></div>
+            <RouterLink :to="`/aula/clase/${lesson.id}/crear-tarea`">＋ Nueva tarea</RouterLink>
+          </header>
+
+          <div v-if="publishedAssignments.length" class="amv-direct-card-grid">
+            <article
+              v-for="(task, index) in publishedAssignments"
+              :key="`teacher-task-${task.id}`"
+              class="amv-direct-visual-card"
+              :class="`amv-task-visual--${getAssignmentVisualTone(task)}`"
+            >
+              <div class="amv-direct-visual-card__cover">
+                <div class="amv-task-art__glow"></div>
+                <span class="amv-task-art__glyph">{{ getAssignmentVisualGlyph(task) }}</span>
+                <small>{{ getAssignmentType(task.type || task.assignmentType) }}</small>
+                <b>{{ String(index + 1).padStart(2, '0') }}</b>
+              </div>
+
+              <div class="amv-direct-visual-card__body">
+                <div class="amv-direct-visual-card__eyebrow">
+                  <span>ACTIVIDAD</span>
+                  <em>{{ task.points ?? 100 }} pts</em>
+                </div>
+
+                <h4>{{ task.title }}</h4>
+                <p>{{ task.description || 'Actividad publicada para esta clase.' }}</p>
+
+                <div class="amv-direct-visual-card__meta">
+                  <span>◷ {{ task.dueDate ? formatDate(task.dueDate) : 'Sin fecha límite' }}</span>
+                  <span>✓ Publicada</span>
+                </div>
+
+                <div class="amv-direct-visual-card__actions">
+                  <RouterLink :to="`/aula/clase/${lesson.id}/tarea/${task.id}`">Abrir</RouterLink>
+                  <RouterLink :to="`/aula/clase/${lesson.id}/tarea/${task.id}/editar`">Modificar</RouterLink>
+                  <RouterLink :to="`/aula/clase/${lesson.id}/tarea/${task.id}/entregas`">Entregas</RouterLink>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="amv-direct-empty">
+            <span>✏️</span><strong>Aún no hay actividades</strong>
+            <p>Crea la primera tarea directamente desde esta vista.</p>
+          </div>
+        </section>
+
+        <section id="amv-direct-admin-evaluations" class="amv-direct-panel amv-direct-panel--evaluations">
+          <header class="amv-direct-panel__head">
+            <div><span class="amv-kicker">EVALUACIONES</span><h3>Evaluaciones de esta clase</h3></div>
+            <RouterLink :to="`/aula/clase/${lesson.id}/evaluacion/nueva`">＋ Nueva evaluación</RouterLink>
+          </header>
+
+          <div v-if="visibleQuizzes.length" class="amv-direct-card-grid">
+            <article
+              v-for="(quiz, index) in visibleQuizzes"
+              :key="`teacher-quiz-${quiz.id}`"
+              class="amv-direct-visual-card amv-quiz-visual-card"
+              :class="`amv-quiz-visual--${getQuizVisualTone(quiz)}`"
+            >
+              <div class="amv-direct-visual-card__cover">
+                <div class="amv-quiz-art__ring"></div>
+                <span class="amv-quiz-art__glyph">{{ getQuizVisualGlyph(quiz) }}</span>
+                <small>{{ quiz.assessmentType === 'test' ? 'PRUEBA EVALUADA' : 'QUIZ FORMATIVO' }}</small>
+                <b>{{ String(index + 1).padStart(2, '0') }}</b>
+              </div>
+
+              <div class="amv-direct-visual-card__body">
+                <div class="amv-direct-visual-card__eyebrow">
+                  <span>{{ getQuizStatusLabel(quiz.status) }}</span>
+                  <em>{{ quiz.totalPoints || 0 }} pts</em>
+                </div>
+
+                <h4>{{ quiz.title }}</h4>
+                <p>{{ quiz.description || 'Evaluación asociada a esta clase.' }}</p>
+
+                <div class="amv-direct-visual-card__meta">
+                  <span v-if="quiz.attemptsAllowed">↻ {{ quiz.attemptsAllowed }} intento{{ quiz.attemptsAllowed === 1 ? '' : 's' }}</span>
+                  <span>◷ {{ getQuizAvailabilityLabel(quiz) }}</span>
+                </div>
+
+                <div class="amv-direct-visual-card__actions">
+                  <RouterLink :to="`/aula/clase/${lesson.id}/trabajo`" class="is-primary">Modificar</RouterLink>
+                  <RouterLink :to="`/aula/clase/${lesson.id}/evaluacion/${quiz.id}`">Vista</RouterLink>
+                  <button type="button" class="is-danger" :disabled="deletingQuizId === quiz.id" @click="deleteQuizDirect(quiz)">
+                    {{ deletingQuizId === quiz.id ? 'Eliminando…' : 'Eliminar' }}
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="amv-direct-empty">
+            <span>📝</span><strong>Aún no hay evaluaciones</strong>
+            <p>Crea una evaluación para esta clase sin salir de aquí.</p>
           </div>
         </section>
       </main>
+
+      <!-- MATERIAL · CREAR -->
+      <Teleport to="body">
+        <Transition name="amv-admin-modal">
+          <div
+            v-if="isTeacher && createMaterialForm.file !== null || (isTeacher && materialCreateError)"
+            v-show="false"
+          ></div>
+        </Transition>
+      </Teleport>
+
+      <Teleport to="body">
+        <Transition name="amv-admin-modal">
+          <div
+            v-if="isTeacher && materialCreateModalOpen"
+            class="amv-material-modal"
+            role="dialog"
+            aria-modal="true"
+            @click.self="closeCreateMaterial"
+          >
+            <section class="amv-material-modal__window">
+              <header class="amv-material-modal__header">
+                <div>
+                  <span>GESTIÓN DE RECURSO</span>
+                  <h2>Agregar material</h2>
+                  <p>Publica un recurso directamente dentro de esta clase.</p>
+                </div>
+                <button type="button" @click="closeCreateMaterial">×</button>
+              </header>
+
+              <form @submit.prevent="createMaterialDirect" class="amv-material-form">
+                <label>
+                  <span>Título</span>
+                  <input v-model="createMaterialForm.title" type="text" maxlength="140" required>
+                </label>
+
+                <div class="amv-material-form__grid">
+                  <label>
+                    <span>Tipo</span>
+                    <select v-model="createMaterialForm.type">
+                      <option value="pdf">PDF</option>
+                      <option value="score">Partitura</option>
+                      <option value="audio">Audio</option>
+                      <option value="video">Video</option>
+                      <option value="image">Imagen</option>
+                      <option value="other">Otro</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Dirigido a</span>
+                    <select v-model="createMaterialForm.voice">
+                      <option value="general">General</option>
+                      <option value="Soprano">Soprano</option>
+                      <option value="Alto">Alto</option>
+                      <option value="Tenor">Tenor</option>
+                      <option value="Bajo">Bajo</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label>
+                  <span>Descripción</span>
+                  <textarea v-model="createMaterialForm.description" rows="3" maxlength="600"></textarea>
+                </label>
+
+                <label class="amv-material-file">
+                  <span>Archivo · máximo 50 MB</span>
+                  <input
+                    ref="materialCreateInput"
+                    type="file"
+                    :accept="createMaterialAccept"
+                    @change="handleCreateMaterialFile"
+                    required
+                  >
+                  <strong v-if="createMaterialForm.file">{{ createMaterialForm.file.name }}</strong>
+                  <small v-else>Selecciona el archivo del recurso.</small>
+                </label>
+
+                <p v-if="materialCreateError" class="amv-material-form__error">{{ materialCreateError }}</p>
+
+                <footer>
+                  <button type="button" class="amv-material-button amv-material-button--secondary" :disabled="isCreatingMaterial" @click="closeCreateMaterial">Cancelar</button>
+                  <button type="submit" class="amv-material-button amv-material-button--primary" :disabled="isCreatingMaterial || !createMaterialForm.title.trim() || !createMaterialForm.file">
+                    {{ isCreatingMaterial ? 'Publicando...' : 'Agregar material' }}
+                  </button>
+                </footer>
+              </form>
+            </section>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- MATERIAL · EDITAR -->
+      <Teleport to="body">
+        <Transition name="amv-admin-modal">
+          <div
+            v-if="editingMaterial"
+            class="amv-material-modal"
+            role="dialog"
+            aria-modal="true"
+            @click.self="closeEditMaterial"
+          >
+            <section class="amv-material-modal__window">
+              <header class="amv-material-modal__header">
+                <div>
+                  <span>GESTIÓN DE RECURSO</span>
+                  <h2>Modificar material</h2>
+                  <p>Actualiza datos o reemplaza el archivo publicado.</p>
+                </div>
+                <button type="button" :disabled="isSavingMaterial" @click="closeEditMaterial">×</button>
+              </header>
+
+              <form @submit.prevent="saveEditedMaterial" class="amv-material-form">
+                <label>
+                  <span>Título</span>
+                  <input v-model="editMaterialForm.title" type="text" maxlength="140" required>
+                </label>
+
+                <div class="amv-material-form__grid">
+                  <label>
+                    <span>Tipo</span>
+                    <select v-model="editMaterialForm.type">
+                      <option value="pdf">PDF</option>
+                      <option value="score">Partitura</option>
+                      <option value="audio">Audio</option>
+                      <option value="video">Video</option>
+                      <option value="image">Imagen</option>
+                      <option value="other">Otro</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Dirigido a</span>
+                    <select v-model="editMaterialForm.voice">
+                      <option value="general">General</option>
+                      <option value="Soprano">Soprano</option>
+                      <option value="Alto">Alto</option>
+                      <option value="Tenor">Tenor</option>
+                      <option value="Bajo">Bajo</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label>
+                  <span>Descripción</span>
+                  <textarea v-model="editMaterialForm.description" rows="3" maxlength="600"></textarea>
+                </label>
+
+                <div class="amv-material-current-file">
+                  <span>ARCHIVO ACTUAL</span>
+                  <strong>{{ editingMaterial.fileName || 'Archivo publicado' }}</strong>
+                  <small v-if="editingMaterial.fileSize">{{ Math.max(1, Math.round(editingMaterial.fileSize / 1024)) }} KB</small>
+                </div>
+
+                <label class="amv-material-file">
+                  <span>Reemplazar archivo · opcional</span>
+                  <input
+                    ref="replacementMaterialInput"
+                    type="file"
+                    :accept="replacementMaterialAccept"
+                    @change="handleReplacementMaterial"
+                  >
+                  <strong v-if="replacementMaterialFile">{{ replacementMaterialFile.name }}</strong>
+                  <small v-else>Déjalo vacío para conservar el archivo actual.</small>
+                </label>
+
+                <p v-if="materialEditError" class="amv-material-form__error">{{ materialEditError }}</p>
+
+                <footer>
+                  <button type="button" class="amv-material-button amv-material-button--secondary" :disabled="isSavingMaterial" @click="closeEditMaterial">Cancelar</button>
+                  <button type="submit" class="amv-material-button amv-material-button--primary" :disabled="isSavingMaterial || !editMaterialForm.title.trim()">
+                    {{ isSavingMaterial ? 'Guardando...' : 'Guardar cambios' }}
+                  </button>
+                </footer>
+              </form>
+            </section>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- MATERIAL · ELIMINAR -->
+      <Teleport to="body">
+        <Transition name="amv-admin-modal">
+          <div
+            v-if="materialToDelete"
+            class="amv-material-modal"
+            role="dialog"
+            aria-modal="true"
+            @click.self="closeDeleteMaterial"
+          >
+            <section class="amv-material-delete">
+              <div class="amv-material-delete__icon">!</div>
+              <span>ELIMINAR RECURSO</span>
+              <h2>¿Eliminar este material?</h2>
+              <strong>{{ materialToDelete.title }}</strong>
+              <p>El recurso dejará de estar disponible para los alumnos. Esta acción no se puede deshacer.</p>
+
+              <footer>
+                <button type="button" class="amv-material-button amv-material-button--secondary" :disabled="isDeletingMaterial" @click="closeDeleteMaterial">Cancelar</button>
+                <button type="button" class="amv-material-button amv-material-button--danger" :disabled="isDeletingMaterial" @click="deleteSelectedMaterial">
+                  {{ isDeletingMaterial ? 'Eliminando...' : 'Eliminar definitivamente' }}
+                </button>
+              </footer>
+            </section>
+          </div>
+        </Transition>
+      </Teleport>
 
       <!-- FOOTER NAV -->
       <footer class="amv-footer-nav">
@@ -500,6 +892,7 @@
 import {
   computed,
   nextTick,
+  reactive,
   onMounted,
   onUnmounted,
   ref,
@@ -522,6 +915,11 @@ import {
 
 import {
   fetchMaterialsByLesson,
+  insertMaterial,
+  removeMaterial,
+  removeMaterialFile,
+  updateMaterial,
+  uploadMaterialFile,
 } from '@/services/materialService'
 
 import {
@@ -530,6 +928,7 @@ import {
 
 import {
   fetchQuizzesByLesson,
+  removeQuiz,
 } from '@/services/quizService'
 
 import {
@@ -605,6 +1004,513 @@ const showAcademicContent =
 
 const toastMessage = ref('')
 const toastType = ref('success')
+
+/* =========================================================
+   ADMINISTRACIÓN DE MATERIALES · PROFESOR
+========================================================= */
+
+const editingMaterial = ref(null)
+const materialToDelete = ref(null)
+
+const isSavingMaterial = ref(false)
+const isDeletingMaterial = ref(false)
+const isCreatingMaterial = ref(false)
+
+const replacementMaterialFile = ref(null)
+const replacementMaterialInput = ref(null)
+const materialCreateInput = ref(null)
+
+const materialEditError = ref('')
+const materialCreateError = ref('')
+
+const MAX_MATERIAL_FILE_SIZE = 50 * 1024 * 1024
+
+const editMaterialForm = reactive({
+  title: '',
+  type: 'pdf',
+  voice: 'general',
+  description: '',
+})
+
+const createMaterialForm = reactive({
+  title: '',
+  type: 'pdf',
+  voice: 'general',
+  description: '',
+  file: null,
+})
+
+const materialCreateModalOpen = ref(false)
+
+const replacementMaterialAccept = computed(() => {
+  const accepts = {
+    pdf: '.pdf,application/pdf',
+    score: '.pdf,application/pdf,image/png,image/jpeg,.png,.jpg,.jpeg',
+    audio: 'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac',
+    video: 'video/*,.mp4,.webm,.mov,.m4v',
+    image: 'image/*,.png,.jpg,.jpeg,.webp',
+    other: '*/*',
+  }
+
+  return accepts[editMaterialForm.type] || '*/*'
+})
+
+const createMaterialAccept = computed(() => {
+  const accepts = {
+    pdf: '.pdf,application/pdf',
+    score: '.pdf,application/pdf,image/png,image/jpeg,.png,.jpg,.jpeg',
+    audio: 'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac',
+    video: 'video/*,.mp4,.webm,.mov,.m4v',
+    image: 'image/*,.png,.jpg,.jpeg,.webp',
+    other: '*/*',
+  }
+
+  return accepts[createMaterialForm.type] || '*/*'
+})
+
+const teacherMaterials = computed(() => {
+  if (!isTeacher.value) return []
+  return lessonMaterials.value
+})
+
+const materialTypeLabel = type => {
+  const labels = {
+    pdf: 'PDF',
+    score: 'Partitura',
+    audio: 'Audio',
+    video: 'Video',
+    image: 'Imagen',
+    other: 'Otro',
+  }
+
+  return labels[type] || 'Material'
+}
+
+const materialVoiceLabel = voice => {
+  if (!voice || voice === 'general') return 'General'
+  return voice
+}
+
+const getAdminMaterialPreviewKind = material => {
+  return getMaterialPreviewKind(material)
+}
+
+const getAdminMaterialGradient = material => {
+  const type = normalizeMaterialType(material)
+
+  const gradients = {
+    pdf: 'amv-thumb--pdf',
+    score: 'amv-thumb--score',
+    audio: 'amv-thumb--audio',
+    video: 'amv-thumb--video',
+    image: 'amv-thumb--image',
+    other: 'amv-thumb--other',
+  }
+
+  return gradients[type] || gradients.other
+}
+
+const getAssignmentVisualTone = task => {
+  const type = String(
+    task?.type ||
+    task?.assignmentType ||
+    task?.acceptedFile ||
+    ''
+  ).toLowerCase()
+
+  if (type.includes('audio')) return 'audio'
+  if (type.includes('video')) return 'video'
+  if (type.includes('score') || type.includes('partitura')) return 'score'
+  if (type.includes('performance') || type.includes('interpret')) return 'voice'
+  return 'task'
+}
+
+const getAssignmentVisualGlyph = task => {
+  const tone = getAssignmentVisualTone(task)
+
+  return {
+    audio: '♪',
+    video: '▶',
+    score: '♫',
+    voice: '◉',
+    task: '✓',
+  }[tone]
+}
+
+const getQuizVisualTone = quiz => {
+  const type = String(
+    quiz?.assessmentType ||
+    quiz?.type ||
+    ''
+  ).toLowerCase()
+
+  if (type === 'test' || type.includes('exam')) return 'exam'
+  if (type.includes('ear') || type.includes('audit')) return 'ear'
+  if (type.includes('pitch') || type.includes('afin')) return 'pitch'
+  return 'quiz'
+}
+
+const getQuizVisualGlyph = quiz => {
+  const tone = getQuizVisualTone(quiz)
+
+  return {
+    exam: '★',
+    ear: '◖◗',
+    pitch: '⌁',
+    quiz: '?',
+  }[tone]
+}
+
+const resetMaterialEditor = () => {
+  replacementMaterialFile.value = null
+  materialEditError.value = ''
+
+  if (replacementMaterialInput.value) {
+    replacementMaterialInput.value.value = ''
+  }
+}
+
+const openEditMaterial = material => {
+  if (!isTeacher.value || !material) return
+
+  editingMaterial.value = material
+
+  editMaterialForm.title = material.title || ''
+  editMaterialForm.type = material.type || 'pdf'
+  editMaterialForm.voice = material.voice || 'general'
+  editMaterialForm.description = material.description || ''
+
+  resetMaterialEditor()
+
+  document.body.style.overflow = 'hidden'
+}
+
+const closeEditMaterial = () => {
+  if (isSavingMaterial.value) return
+
+  editingMaterial.value = null
+  resetMaterialEditor()
+  document.body.style.overflow = ''
+}
+
+const handleReplacementMaterial = event => {
+  const file = event.target.files?.[0]
+  materialEditError.value = ''
+
+  if (!file) {
+    replacementMaterialFile.value = null
+    return
+  }
+
+  if (file.size > MAX_MATERIAL_FILE_SIZE) {
+    materialEditError.value = 'El archivo supera el máximo permitido de 50 MB.'
+    event.target.value = ''
+    replacementMaterialFile.value = null
+    return
+  }
+
+  replacementMaterialFile.value = file
+}
+
+const clearReplacementMaterial = () => {
+  replacementMaterialFile.value = null
+  materialEditError.value = ''
+
+  if (replacementMaterialInput.value) {
+    replacementMaterialInput.value.value = ''
+  }
+}
+
+const saveEditedMaterial = async () => {
+  if (
+    !isTeacher.value ||
+    !editingMaterial.value ||
+    !editMaterialForm.title.trim() ||
+    isSavingMaterial.value
+  ) {
+    return
+  }
+
+  isSavingMaterial.value = true
+  materialEditError.value = ''
+
+  const original = editingMaterial.value
+  let uploadedReplacement = null
+
+  try {
+    if (replacementMaterialFile.value) {
+      uploadedReplacement = await uploadMaterialFile({
+        file: replacementMaterialFile.value,
+        lessonId: Number(lesson.value.id),
+        folder: String(editMaterialForm.voice || 'general')
+          .toLowerCase()
+          .replace(/\s+/g, '-'),
+      })
+    }
+
+    const payload = {
+      lessonId: Number(lesson.value.id),
+      title: editMaterialForm.title.trim(),
+      type: editMaterialForm.type,
+      voice: editMaterialForm.voice,
+      description: editMaterialForm.description.trim(),
+    }
+
+    if (uploadedReplacement) {
+      payload.url = uploadedReplacement.url
+      payload.storagePath = uploadedReplacement.storagePath
+      payload.fileName = uploadedReplacement.fileName
+      payload.fileSize = uploadedReplacement.fileSize
+      payload.mimeType = uploadedReplacement.mimeType
+    }
+
+    const updated = await updateMaterial(original.id, payload)
+
+    if (
+      uploadedReplacement &&
+      original.storagePath &&
+      original.storagePath !== uploadedReplacement.storagePath
+    ) {
+      try {
+        await removeMaterialFile(original.storagePath)
+      } catch (cleanupError) {
+        console.warn('No se pudo limpiar el archivo anterior:', cleanupError)
+      }
+    }
+
+    const index = lessonMaterials.value.findIndex(
+      item => Number(item.id) === Number(updated.id),
+    )
+
+    if (index !== -1) {
+      lessonMaterials.value.splice(index, 1, updated)
+    } else {
+      lessonMaterials.value = await fetchMaterialsByLesson(Number(lesson.value.id))
+    }
+
+    editingMaterial.value = null
+    resetMaterialEditor()
+    document.body.style.overflow = ''
+
+    toastMessage.value = uploadedReplacement
+      ? 'Material y archivo actualizados correctamente.'
+      : 'Material actualizado correctamente.'
+    toastType.value = 'success'
+  } catch (error) {
+    console.error('Error actualizando material:', error)
+
+    if (uploadedReplacement?.storagePath) {
+      try {
+        await removeMaterialFile(uploadedReplacement.storagePath)
+      } catch {
+        // Evitamos dejar archivos huérfanos cuando sea posible.
+      }
+    }
+
+    materialEditError.value =
+      error?.message || 'No se pudo actualizar el material.'
+    toastMessage.value = materialEditError.value
+    toastType.value = 'error'
+  } finally {
+    isSavingMaterial.value = false
+  }
+}
+
+const askDeleteMaterial = material => {
+  if (!isTeacher.value || !material) return
+
+  materialToDelete.value = material
+  document.body.style.overflow = 'hidden'
+}
+
+const closeDeleteMaterial = () => {
+  if (isDeletingMaterial.value) return
+
+  materialToDelete.value = null
+  document.body.style.overflow = ''
+}
+
+const deleteSelectedMaterial = async () => {
+  const material = materialToDelete.value
+
+  if (
+    !isTeacher.value ||
+    !material?.id ||
+    isDeletingMaterial.value
+  ) {
+    return
+  }
+
+  isDeletingMaterial.value = true
+
+  try {
+    await removeMaterial(material.id)
+
+    if (material.storagePath) {
+      try {
+        await removeMaterialFile(material.storagePath)
+      } catch (storageError) {
+        console.warn('El registro fue eliminado, pero Storage no pudo limpiarse:', storageError)
+      }
+    }
+
+    lessonMaterials.value = lessonMaterials.value.filter(
+      item => Number(item.id) !== Number(material.id),
+    )
+
+    materialToDelete.value = null
+    document.body.style.overflow = ''
+
+    toastMessage.value = 'Material eliminado correctamente.'
+    toastType.value = 'success'
+  } catch (error) {
+    console.error('Error eliminando material:', error)
+
+    toastMessage.value =
+      error?.message || 'No se pudo eliminar el material.'
+    toastType.value = 'error'
+  } finally {
+    isDeletingMaterial.value = false
+  }
+}
+
+const openCreateMaterial = () => {
+  if (!isTeacher.value) return
+
+  createMaterialForm.title = ''
+  createMaterialForm.type = 'pdf'
+  createMaterialForm.voice = 'general'
+  createMaterialForm.description = ''
+  createMaterialForm.file = null
+  materialCreateError.value = ''
+
+  if (materialCreateInput.value) {
+    materialCreateInput.value.value = ''
+  }
+
+  materialCreateModalOpen.value = true
+  document.body.style.overflow = 'hidden'
+}
+
+const closeCreateMaterial = () => {
+  if (isCreatingMaterial.value) return
+
+  materialCreateError.value = ''
+  materialCreateModalOpen.value = false
+  document.body.style.overflow = ''
+}
+
+const handleCreateMaterialFile = event => {
+  const file = event.target.files?.[0]
+  materialCreateError.value = ''
+
+  if (!file) {
+    createMaterialForm.file = null
+    return
+  }
+
+  if (file.size > MAX_MATERIAL_FILE_SIZE) {
+    materialCreateError.value = 'El archivo supera el máximo permitido de 50 MB.'
+    event.target.value = ''
+    createMaterialForm.file = null
+    return
+  }
+
+  createMaterialForm.file = file
+
+  if (file.type === 'application/pdf' && createMaterialForm.type !== 'score') {
+    createMaterialForm.type = 'pdf'
+  } else if (file.type.startsWith('audio/')) {
+    createMaterialForm.type = 'audio'
+  } else if (file.type.startsWith('video/')) {
+    createMaterialForm.type = 'video'
+  } else if (file.type.startsWith('image/')) {
+    createMaterialForm.type = 'image'
+  }
+}
+
+const clearCreateMaterialFile = () => {
+  createMaterialForm.file = null
+  materialCreateError.value = ''
+
+  if (materialCreateInput.value) {
+    materialCreateInput.value.value = ''
+  }
+}
+
+const createMaterialDirect = async () => {
+  if (
+    !isTeacher.value ||
+    !lesson.value?.id ||
+    !createMaterialForm.title.trim() ||
+    !createMaterialForm.file ||
+    isCreatingMaterial.value
+  ) {
+    materialCreateError.value =
+      'Completa el título y selecciona un archivo.'
+    return
+  }
+
+  isCreatingMaterial.value = true
+  materialCreateError.value = ''
+
+  let uploaded = null
+
+  try {
+    uploaded = await uploadMaterialFile({
+      file: createMaterialForm.file,
+      lessonId: Number(lesson.value.id),
+      folder: String(createMaterialForm.voice || 'general')
+        .toLowerCase()
+        .replace(/\s+/g, '-'),
+    })
+
+    const created = await insertMaterial({
+      lessonId: Number(lesson.value.id),
+      type: createMaterialForm.type,
+      voice: createMaterialForm.voice,
+      title: createMaterialForm.title.trim(),
+      description: createMaterialForm.description.trim(),
+      url: uploaded.url,
+      storagePath: uploaded.storagePath,
+      fileName: uploaded.fileName,
+      fileSize: uploaded.fileSize,
+      mimeType: uploaded.mimeType,
+    })
+
+    lessonMaterials.value.push(created)
+
+    materialCreateModalOpen.value = false
+    document.body.style.overflow = ''
+    toastMessage.value = 'Material agregado correctamente a esta clase.'
+    toastType.value = 'success'
+
+    createMaterialForm.title = ''
+    createMaterialForm.description = ''
+    createMaterialForm.file = null
+
+    if (materialCreateInput.value) {
+      materialCreateInput.value.value = ''
+    }
+  } catch (error) {
+    console.error('Error agregando material:', error)
+
+    if (uploaded?.storagePath) {
+      try {
+        await removeMaterialFile(uploaded.storagePath)
+      } catch {
+        // Evitar archivo huérfano si la BD falla.
+      }
+    }
+
+    materialCreateError.value =
+      error?.message || 'No se pudo agregar el material.'
+    toastMessage.value = materialCreateError.value
+    toastType.value = 'error'
+  } finally {
+    isCreatingMaterial.value = false
+  }
+}
 
 /*
  * Navegación interna robusta.
@@ -823,24 +1729,85 @@ const classTabTargets = {
   content: 'amv-content-section',
 }
 
-const setClassTab = tab => {
-  activeClassTab.value = tab
+const teacherShortcutTargets = {
+  materials: 'amv-direct-admin-shortcuts',
+  activities: 'amv-direct-admin-activities',
+  evaluations: 'amv-direct-admin-evaluations',
+  content: 'amv-direct-admin-shortcuts',
+}
 
+const scrollToClassTarget = targetId => {
   nextTick(() => {
-    const targetId = classTabTargets[tab]
-    const target = targetId
-      ? document.getElementById(targetId)
-      : null
+    requestAnimationFrame(() => {
+      const target = targetId
+        ? document.getElementById(targetId)
+        : null
 
-    if (!target) return
+      if (!target) return
 
-    const top = target.getBoundingClientRect().top + window.scrollY - 112
+      const offset = 112
+      const targetRect = target.getBoundingClientRect()
 
-    window.scrollTo({
-      top: Math.max(0, top),
-      behavior: 'smooth',
+      // AMV vive normalmente en el scroll de la ventana, pero si el
+      // layout está dentro de un contenedor con overflow, encontramos
+      // automáticamente ese contenedor.
+      let scroller = null
+      let parent = target.parentElement
+
+      while (parent && parent !== document.body) {
+        const style = window.getComputedStyle(parent)
+        const canScroll =
+          /(auto|scroll|overlay)/.test(style.overflowY) &&
+          parent.scrollHeight > parent.clientHeight
+
+        if (canScroll) {
+          scroller = parent
+          break
+        }
+
+        parent = parent.parentElement
+      }
+
+      if (scroller) {
+        const scrollerRect = scroller.getBoundingClientRect()
+        const top =
+          targetRect.top -
+          scrollerRect.top +
+          scroller.scrollTop -
+          offset
+
+        scroller.scrollTo({
+          top: Math.max(0, top),
+          behavior: 'smooth',
+        })
+        return
+      }
+
+      const top =
+        targetRect.top +
+        window.scrollY -
+        offset
+
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: 'smooth',
+      })
     })
   })
+}
+
+const handleActionCard = tab => {
+  if (isTeacher.value) {
+    scrollToClassTarget(teacherShortcutTargets[tab])
+    return
+  }
+
+  setClassTab(tab)
+}
+
+const setClassTab = tab => {
+  activeClassTab.value = tab
+  scrollToClassTarget(classTabTargets[tab])
 }
 
 
@@ -2002,8 +2969,55 @@ const toggleProgress =
   }
 
 /* =========================================================
+   ADMINISTRACIÓN DIRECTA · EVALUACIONES
+========================================================= */
+
+const deletingQuizId = ref(null)
+
+const deleteQuizDirect = async quiz => {
+  if (!isTeacher.value || !quiz?.id || deletingQuizId.value) {
+    return
+  }
+
+  const confirmed = window.confirm(
+    `¿Eliminar "${quiz.title}"? Esta acción eliminará la evaluación y sus datos asociados.`,
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  deletingQuizId.value = quiz.id
+
+  try {
+    await removeQuiz(quiz.id)
+
+    lessonQuizzes.value =
+      lessonQuizzes.value.filter(
+        item => item.id !== quiz.id,
+      )
+
+    showToast('Evaluación eliminada correctamente.')
+  } catch (error) {
+    console.error(
+      'Error eliminando evaluación desde LessonView:',
+      error,
+    )
+
+    showToast(
+      error?.message ||
+      'No fue posible eliminar la evaluación.',
+      'error',
+    )
+  } finally {
+    deletingQuizId.value = null
+  }
+}
+
+/* =================================================
    PLANIFICACIÓN
 ========================================================= */
+
 
 const normalizeArray =
   value => {
@@ -9378,101 +10392,6 @@ a.lesson-navigation__item:hover,
 }
 
 
-
-/* =========================================================
-   V17 · AMV CLASSROOM — ACTIVIDADES DIRECTAS + AUDIO INLINE + ARENA
-========================================================= */
-.amv-single-activity { margin-top: 2px; }
-.amv-single-activity__card {
-  position:relative; overflow:hidden; padding:28px 30px 22px; border:1px solid #ead8df;
-  border-radius:24px; background:linear-gradient(135deg,#fff 0%,#fffafd 52%,#f8f0f4 100%);
-  box-shadow:0 18px 45px rgba(95,25,55,.09); isolation:isolate;
-}
-.amv-single-activity__glow { position:absolute; width:250px; height:250px; right:-100px; top:-120px; border-radius:50%; background:radial-gradient(circle,rgba(183,35,82,.16),transparent 65%); pointer-events:none; }
-.amv-single-activity__top { position:relative; z-index:1; display:flex; align-items:center; gap:9px; }
-.amv-single-activity__number { display:grid; width:34px; height:34px; place-items:center; border-radius:10px; background:#17243b; color:#fff; font-size:.58rem; font-weight:950; }
-.amv-single-activity__type { color:#a01f4b; font-size:.53rem; font-weight:950; letter-spacing:.12em; }
-.amv-single-activity__done { margin-left:auto; padding:7px 10px; border-radius:999px; background:#e8f6ee; color:#22714a; font-size:.49rem; font-weight:950; letter-spacing:.08em; }
-.amv-single-activity__main { position:relative; z-index:1; display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:20px; align-items:center; margin-top:20px; }
-.amv-single-activity__icon { display:grid; width:64px; height:64px; place-items:center; border:1px solid #edd6df; border-radius:18px; background:linear-gradient(145deg,#fff4f8,#f5e7ed); color:#a11e4b; font-size:1.55rem; box-shadow:0 10px 22px rgba(143,23,63,.08); }
-.amv-single-activity__body h3 { margin:0; color:#142038; font-size:clamp(1.35rem,2.3vw,2rem); letter-spacing:-.025em; }
-.amv-single-activity__body p { max-width:760px; margin:8px 0 0; color:#6d788a; font-size:.72rem; line-height:1.65; }
-.amv-single-activity__meta { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
-.amv-single-activity__meta span { padding:6px 8px; border:1px solid #e8ebef; border-radius:8px; background:#fff; color:#68758a; font-size:.52rem; font-weight:850; }
-.amv-single-activity__cta { display:inline-flex; min-height:48px; align-items:center; gap:15px; padding:0 16px 0 18px; border-radius:13px; background:linear-gradient(135deg,#971c48,#b72a5d); color:#fff !important; font-size:.62rem; font-weight:950; text-decoration:none !important; box-shadow:0 12px 24px rgba(143,23,63,.22); transition:transform .2s ease,box-shadow .2s ease; white-space:nowrap; }
-.amv-single-activity__cta:hover { transform:translateY(-2px); box-shadow:0 17px 30px rgba(143,23,63,.28); }
-.amv-single-activity__cta b { font-size:1rem; }
-.amv-single-activity__hint { position:relative; z-index:1; display:flex; gap:7px; align-items:center; margin-top:20px; padding-top:14px; border-top:1px solid #eadfe4; color:#8b6575; font-size:.56rem; }
-.amv-single-activity__hint span { color:#b68b2f; }
-.amv-activity-chooser { padding:5px; border-radius:24px; background:linear-gradient(145deg,#f7f0f4,#fff); }
-.amv-activity-chooser__head { display:flex; align-items:center; justify-content:space-between; padding:10px 13px 13px; }
-.amv-activity-chooser__head small { display:block; color:#ad8131; font-size:.48rem; font-weight:950; letter-spacing:.13em; }
-.amv-activity-chooser__head strong { display:block; margin-top:3px; color:#26324a; font-size:.7rem; }
-.amv-activity-chooser__head > span { display:grid; width:30px; height:30px; place-items:center; border-radius:50%; background:#fff; color:#9d234b; box-shadow:0 4px 14px rgba(17,31,52,.06); }
-
-/* AUDIO INLINE — no obliga a abrir otra ventana */
-.amv-inline-audio { width:min(460px,100%); height:40px; margin-top:2px; accent-color:#704b98; filter:drop-shadow(0 5px 12px rgba(112,75,152,.12)); }
-.amv-audio-preview { padding-bottom:16px !important; }
-.amv-audio-preview > span { margin-bottom:0; }
-.amv-audio-preview:has(.amv-inline-audio) { gap:11px; }
-.amv-audio-preview .amv-inline-audio::-webkit-media-controls-panel { background:#f3edf8; }
-
-/* EVALUACIONES — lenguaje visual de videojuego, sin perder sobriedad académica */
-.amv-evaluation-arena { position:relative; }
-.amv-evaluation-legend { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:16px; padding:14px 17px; border:1px solid #e4e7ec; border-radius:18px; background:linear-gradient(135deg,#fff,#f8f9fc); box-shadow:0 8px 22px rgba(17,31,52,.045); }
-.amv-evaluation-legend__intro { display:flex; gap:10px; align-items:center; }
-.amv-evaluation-legend__intro > span { display:grid; width:38px; height:38px; place-items:center; border-radius:11px; background:#17243b; color:#ffd15a; box-shadow:0 0 0 5px rgba(23,36,59,.06); }
-.amv-evaluation-legend__intro small { display:block; color:#9b7330; font-size:.47rem; font-weight:950; letter-spacing:.13em; }
-.amv-evaluation-legend__intro strong { display:block; margin-top:3px; color:#28334a; font-size:.63rem; }
-.amv-evaluation-legend__items { display:flex; flex-wrap:wrap; gap:7px; }
-.amv-evaluation-legend__items span { display:inline-flex; align-items:center; gap:6px; padding:7px 9px; border-radius:999px; font-size:.5rem; font-weight:900; }
-.amv-evaluation-legend__items .is-quiz { border:1px solid #dfcef0; background:#faf5ff; color:#704b98; }
-.amv-evaluation-legend__items .is-test { border:1px solid #ead6a3; background:#fffaf0; color:#956c1f; }
-.amv-evaluation-legend__items i { font-style:normal; }
-.amv-evaluation-list { gap:16px; }
-.amv-evaluation-list .amv-quiz { min-height:164px; grid-template-columns:66px minmax(0,1fr) auto; padding:23px 23px 23px 20px; border-radius:22px; overflow:hidden; isolation:isolate; box-shadow:0 12px 30px rgba(17,31,52,.06); }
-.amv-evaluation-list .amv-quiz::before { position:absolute; inset:0 auto 0 0; width:5px; content:''; background:#7c50a4; }
-.amv-evaluation-list .amv-quiz--summative::before { background:linear-gradient(180deg,#b98928,#f0cb67,#9a6b1b); }
-.amv-quiz__shine { position:absolute; z-index:-1; width:330px; height:330px; right:-170px; top:-180px; border-radius:50%; background:radial-gradient(circle,rgba(124,80,164,.16),transparent 68%); pointer-events:none; transition:transform .45s ease; }
-.amv-quiz--summative .amv-quiz__shine { background:radial-gradient(circle,rgba(211,163,58,.21),transparent 68%); }
-.amv-evaluation-list .amv-quiz:hover .amv-quiz__shine { transform:scale(1.16); }
-.amv-evaluation-list .amv-quiz__icon { width:60px; height:60px; border-radius:18px; font-size:1.35rem; box-shadow:0 10px 22px rgba(112,75,152,.12); }
-.amv-quiz--formative .amv-quiz__icon { border:1px solid #decbed; background:linear-gradient(145deg,#fbf6ff,#eadcf7); color:#704b98; }
-.amv-quiz--summative .amv-quiz__icon { border:1px solid #ead6a2; background:linear-gradient(145deg,#fffaf0,#f4e3b7); color:#9a6c1d; box-shadow:0 10px 22px rgba(177,131,37,.15); }
-.amv-quiz__eyebrow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-.amv-quiz__eyebrow > span { font-size:.48rem; font-weight:950; letter-spacing:.13em; }
-.amv-quiz--formative .amv-quiz__eyebrow > span { color:#704b98; }
-.amv-quiz--summative .amv-quiz__eyebrow > span { color:#9a6c1d; }
-.amv-quiz__eyebrow b { padding:5px 7px; border-radius:999px; background:#f1f3f6; color:#778295; font-size:.45rem; font-weight:900; }
-.amv-quiz__eyebrow b.is-completed { background:#e7f5ed; color:#25734c; }
-.amv-evaluation-list .amv-quiz__body h3 { margin:8px 0 0; color:#142038; font-size:clamp(1.1rem,2.1vw,1.75rem); letter-spacing:-.025em; }
-.amv-evaluation-list .amv-quiz__body p { max-width:820px; margin:7px 0 0; color:#6f7b8d; font-size:.68rem; line-height:1.6; }
-.amv-evaluation-list .amv-quiz .amv-meta-row { margin-top:12px; }
-.amv-evaluation-list .amv-quiz .amv-meta-row span { border:1px solid #e8ebef; background:rgba(255,255,255,.76); }
-.amv-quiz--formative .amv-quiz__action { border:1px solid #d9c6e9; background:#fbf7ff; color:#704b98 !important; box-shadow:0 10px 20px rgba(112,75,152,.10); }
-.amv-quiz--summative .amv-quiz__action { border:1px solid #e5ce93; background:linear-gradient(135deg,#fffaf0,#fff5dc); color:#8c6318 !important; box-shadow:0 10px 20px rgba(177,131,37,.12); }
-.amv-evaluation-list .amv-quiz__action { display:inline-flex; align-items:center; gap:12px; min-height:44px; padding:0 13px; border-radius:12px; font-size:.56rem; font-weight:950; text-decoration:none !important; transition:transform .2s ease,box-shadow .2s ease,background .2s ease; white-space:nowrap; }
-.amv-evaluation-list .amv-quiz__action b { font-size:1rem; }
-.amv-evaluation-list .amv-quiz__action:hover { transform:translateY(-2px); }
-.amv-quiz--formative:hover { border-color:#cbb1df; box-shadow:0 18px 38px rgba(112,75,152,.13); }
-.amv-quiz--summative:hover { border-color:#d8bb70; box-shadow:0 18px 38px rgba(177,131,37,.15); }
-.amv-quiz--closed { filter:grayscale(.18); }
-
-@media (max-width: 760px) {
-  .amv-single-activity__main { grid-template-columns:52px minmax(0,1fr); gap:13px; }
-  .amv-single-activity__icon { width:52px; height:52px; }
-  .amv-single-activity__cta { grid-column:1 / -1; justify-content:center; width:100%; }
-  .amv-single-activity__done { margin-left:auto; }
-  .amv-evaluation-legend { align-items:flex-start; flex-direction:column; }
-  .amv-evaluation-list .amv-quiz { grid-template-columns:50px minmax(0,1fr); }
-  .amv-evaluation-list .amv-quiz__icon { width:50px; height:50px; }
-  .amv-evaluation-list .amv-quiz__action { grid-column:2; justify-self:start; margin-top:7px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .amv-single-activity *, .amv-evaluation-arena * { animation:none !important; transition:none !important; }
-}
-
 /* =========================================================
    V16 · AMV VISUAL MATERIALS + COMPACT HERO
    Objetivo: ver contenido al entrar, no esconderlo detrás de una portada enorme.
@@ -9672,6 +10591,1086 @@ a.lesson-navigation__item:hover,
   .amv-classroom .amv-scroll-cue { left:20px !important; }
   .amv-material-preview--primary { min-height:190px; }
   .amv-resource-card .amv-material-preview { min-height:150px; }
+}
+
+
+/* =========================================================
+   AMV DIRECT ADMIN · V18
+========================================================= */
+.amv-teacher-bar--direct { flex-wrap: wrap; }
+
+#amv-direct-admin-shortcuts,
+#amv-direct-admin-activities,
+#amv-direct-admin-evaluations {
+  scroll-margin-top: 128px;
+}
+
+.amv-direct-admin__hero {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:center;
+  padding:26px; border:1px solid #e6eaf0; border-radius:22px;
+  background:radial-gradient(circle at 95% 5%,rgba(217,169,29,.12),transparent 28%),linear-gradient(135deg,#fff 0%,#fbfcfe 100%);
+  box-shadow:0 14px 35px rgba(24,39,61,.06);
+}
+.amv-direct-admin__hero h2 { margin:5px 0 0; color:#142038; font-size:clamp(1.35rem,2.7vw,2rem); letter-spacing:-.03em; }
+.amv-direct-admin__hero p { max-width:760px; margin:8px 0 0; color:#6d7a8e; font-size:.72rem; line-height:1.65; }
+
+.amv-direct-admin__quick { display:grid; grid-template-columns:repeat(3,minmax(118px,1fr)); gap:9px; }
+.amv-admin-action {
+  display:grid; min-width:118px; gap:5px; padding:13px 12px; border:1px solid #dfe5ec; border-radius:15px;
+  text-decoration:none; transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.amv-admin-action:hover { transform:translateY(-2px); box-shadow:0 9px 20px rgba(27,42,64,.08); }
+.amv-admin-action > span { font-size:1rem; }
+.amv-admin-action strong { font-size:.62rem; }
+.amv-admin-action--neutral { color:#26364d; background:#fff; }
+.amv-admin-action--wine { border-color:#e4c4d0; color:#9f1945; background:#fff5f8; }
+.amv-admin-action--gold { border-color:#e7d49e; color:#8b6500; background:#fffaf0; }
+
+.amv-direct-admin__stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+.amv-direct-admin__stats article {
+  display:flex; gap:11px; align-items:center; padding:13px 15px; border:1px solid #e6eaf0; border-radius:16px; background:#fff;
+}
+.amv-direct-admin__stats article > span { font-size:1.1rem; }
+.amv-direct-admin__stats strong,.amv-direct-admin__stats small { display:block; }
+.amv-direct-admin__stats strong { color:#17243a; font-size:1rem; }
+.amv-direct-admin__stats small { margin-top:2px; color:#7a8798; font-size:.55rem; font-weight:800; }
+
+.amv-direct-panel {
+  margin-top:16px; padding:20px; border:1px solid #e5e9ef; border-radius:20px; background:#fff; box-shadow:0 10px 28px rgba(24,39,61,.045);
+}
+.amv-direct-panel__head { display:flex; gap:15px; align-items:center; justify-content:space-between; margin-bottom:13px; }
+.amv-direct-panel__head h3 { margin:4px 0 0; color:#17243a; font-size:1rem; letter-spacing:-.015em; }
+.amv-direct-panel__head > a {
+  display:inline-flex; min-height:35px; align-items:center; padding:0 11px; border:1px solid #d8bd67; border-radius:10px;
+  color:#7c5a00; background:#fffaf0; font-size:.58rem; font-weight:900; text-decoration:none;
+}
+.amv-direct-list { display:grid; gap:9px; }
+.amv-direct-item {
+  display:grid; grid-template-columns:48px minmax(0,1fr) auto; gap:13px; align-items:center;
+  padding:13px; border:1px solid #e7ebf0; border-radius:15px; background:#fbfcfe;
+}
+.amv-direct-item__icon {
+  display:grid; width:48px; height:48px; place-items:center; border:1px solid #e1e6ed; border-radius:13px; background:#fff; font-size:1.1rem;
+}
+.amv-direct-item__body { min-width:0; }
+.amv-direct-item__body > strong { display:block; overflow:hidden; color:#18253b; font-size:.78rem; text-overflow:ellipsis; white-space:nowrap; }
+.amv-direct-item__body > p { margin:4px 0 0; overflow:hidden; color:#778497; font-size:.59rem; line-height:1.5; text-overflow:ellipsis; white-space:nowrap; }
+.amv-direct-meta { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+.amv-direct-meta span { padding:4px 7px; border:1px solid #e4e8ed; border-radius:999px; color:#6d7b8e; background:#fff; font-size:.48rem; font-weight:850; }
+
+.amv-direct-item__actions { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+.amv-direct-item__actions a,.amv-direct-item__actions button {
+  min-height:31px; padding:0 9px; border:1px solid #d9e0e8; border-radius:9px; color:#506076; background:#fff;
+  font:inherit; font-size:.52rem; font-weight:900; text-decoration:none; cursor:pointer;
+}
+.amv-direct-item__actions a:hover,.amv-direct-item__actions button:hover:not(:disabled) { border-color:#b8c5d4; color:#9f1945; }
+.amv-direct-item__actions a.is-primary { border-color:#d9bd66; color:#7c5a00; background:#fffaf0; }
+.amv-direct-item__actions button.is-danger { border-color:#eccbd3; color:#a32850; background:#fff5f7; }
+.amv-direct-item__actions button:disabled { opacity:.58; cursor:wait; }
+
+.amv-direct-item__eyebrow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px; }
+.amv-direct-item__eyebrow span { color:#704b98; font-size:.48rem; font-weight:950; letter-spacing:.12em; }
+.amv-direct-item__eyebrow b { padding:4px 6px; border-radius:999px; color:#778295; background:#eef1f5; font-size:.45rem; font-weight:900; }
+.amv-direct-item--quiz { border-color:#e4e0ec; background:linear-gradient(135deg,#fff 0%,#fcfbfe 100%); }
+.amv-direct-item--quiz .amv-direct-item__icon { border-color:#decbed; background:#fbf6ff; }
+
+.amv-direct-empty {
+  display:grid; min-height:130px; place-items:center; align-content:center; padding:20px;
+  border:1px dashed #dce2ea; border-radius:15px; background:#fbfcfe; text-align:center;
+}
+.amv-direct-empty > span { font-size:1.2rem; }
+.amv-direct-empty strong { margin-top:6px; color:#34445b; font-size:.7rem; }
+.amv-direct-empty p { margin:4px 0 0; color:#8290a1; font-size:.57rem; }
+
+@media (max-width:900px) {
+  .amv-direct-admin__hero { grid-template-columns:1fr; }
+  .amv-direct-admin__quick { grid-template-columns:repeat(3,1fr); }
+}
+@media (max-width:700px) {
+  .amv-direct-admin__quick,.amv-direct-admin__stats { grid-template-columns:1fr; }
+  .amv-direct-item { grid-template-columns:42px minmax(0,1fr); }
+  .amv-direct-item__icon { width:42px; height:42px; }
+  .amv-direct-item__actions { grid-column:1 / -1; justify-content:stretch; }
+  .amv-direct-item__actions > * { flex:1; text-align:center; }
+  .amv-direct-panel__head { align-items:flex-start; flex-direction:column; }
+}
+
+
+/* =========================================================
+   V21 · ADMINISTRACIÓN DIRECTA DE MATERIALES
+========================================================= */
+.amv-direct-panel--materials {
+  border-color: rgba(159, 25, 69, 0.16);
+}
+
+.amv-direct-panel__sub {
+  margin: 5px 0 0;
+  color: #7d899a;
+  font-size: .72rem;
+}
+
+.amv-direct-panel__add {
+  border: 1px solid rgba(159, 25, 69, .20);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #fff7fa;
+  color: #8f183f;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.amv-direct-panel__add:hover {
+  background: #8f183f;
+  color: #fff;
+}
+
+.amv-material-admin-list {
+  display: grid;
+  gap: 10px;
+}
+
+.amv-material-admin-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0,1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #e5eaf0;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.amv-material-admin-item__icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #fff5df;
+  border: 1px solid #ecd79a;
+  font-size: 1.15rem;
+}
+
+.amv-material-admin-item__body { min-width: 0; }
+
+.amv-material-admin-item__eyebrow {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.amv-material-admin-item__eyebrow span,
+.amv-material-admin-item__eyebrow b {
+  font-size: .55rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.amv-material-admin-item__eyebrow span { color: #b18a22; }
+.amv-material-admin-item__eyebrow b {
+  color: #8f183f;
+  background: #fff1f5;
+  border-radius: 999px;
+  padding: 3px 7px;
+}
+
+.amv-material-admin-item__body strong {
+  display: block;
+  color: #172033;
+  font-size: .88rem;
+}
+
+.amv-material-admin-item__body p {
+  margin: 4px 0;
+  color: #778398;
+  font-size: .68rem;
+}
+
+.amv-material-admin-item__body small {
+  color: #9aa5b5;
+  font-size: .58rem;
+}
+
+.amv-material-admin-item__actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.amv-material-admin-item__actions a,
+.amv-material-admin-item__actions button {
+  border: 1px solid #dfe5ec;
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #5c687a;
+  font: inherit;
+  font-size: .64rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.amv-material-admin-item__actions .is-view:hover {
+  border-color: #b8c5d4;
+  color: #26354b;
+}
+
+.amv-material-admin-item__actions .is-edit:hover {
+  border-color: #d7b94f;
+  color: #8b6b12;
+  background: #fffaf0;
+}
+
+.amv-material-admin-item__actions .is-danger:hover {
+  border-color: #e2b6c5;
+  color: #a01d47;
+  background: #fff5f8;
+}
+
+.amv-material-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(8, 15, 27, .64);
+  backdrop-filter: blur(8px);
+}
+
+.amv-material-modal__window,
+.amv-material-delete {
+  width: min(620px, 100%);
+  max-height: min(90vh, 820px);
+  overflow: auto;
+  border: 1px solid #e1e6ed;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(10, 18, 35, .25);
+}
+
+.amv-material-modal__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.amv-material-modal__header span,
+.amv-material-delete > span {
+  color: #ad8720;
+  font-size: .57rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.amv-material-modal__header h2,
+.amv-material-delete h2 {
+  margin: 5px 0;
+  color: #172033;
+  font-size: 1.35rem;
+}
+
+.amv-material-modal__header p {
+  margin: 0;
+  color: #7b8798;
+  font-size: .72rem;
+}
+
+.amv-material-modal__header button {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 10px;
+  background: #f3f5f8;
+  color: #647083;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.amv-material-form {
+  display: grid;
+  gap: 15px;
+  padding: 22px 24px 24px;
+}
+
+.amv-material-form label,
+.amv-material-file {
+  display: grid;
+  gap: 7px;
+}
+
+.amv-material-form label > span,
+.amv-material-file > span {
+  color: #4d596c;
+  font-size: .66rem;
+  font-weight: 850;
+}
+
+.amv-material-form input,
+.amv-material-form select,
+.amv-material-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dce2e9;
+  border-radius: 10px;
+  padding: 10px 11px;
+  background: #fff;
+  color: #202b3d;
+  font: inherit;
+  font-size: .72rem;
+  outline: none;
+}
+
+.amv-material-form input:focus,
+.amv-material-form select:focus,
+.amv-material-form textarea:focus {
+  border-color: #b99325;
+  box-shadow: 0 0 0 3px rgba(185,147,37,.10);
+}
+
+.amv-material-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.amv-material-file {
+  padding: 13px;
+  border: 1px dashed #cfd7e1;
+  border-radius: 12px;
+  background: #f9fafc;
+}
+
+.amv-material-file input {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.amv-material-file strong {
+  color: #303b4e;
+  font-size: .68rem;
+  word-break: break-word;
+}
+
+.amv-material-file small {
+  color: #8a96a7;
+  font-size: .61rem;
+}
+
+.amv-material-current-file {
+  display: grid;
+  gap: 3px;
+  padding: 12px 13px;
+  border-radius: 11px;
+  background: #f7f8fa;
+}
+
+.amv-material-current-file span {
+  color: #9b7b20;
+  font-size: .53rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.amv-material-current-file strong {
+  color: #3a4658;
+  font-size: .68rem;
+  word-break: break-word;
+}
+
+.amv-material-current-file small {
+  color: #8995a5;
+  font-size: .59rem;
+}
+
+.amv-material-form__error {
+  margin: 0;
+  color: #a11d46;
+  font-size: .68rem;
+  font-weight: 700;
+}
+
+.amv-material-form footer,
+.amv-material-delete footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding-top: 4px;
+}
+
+.amv-material-button {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: .67rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.amv-material-button--secondary {
+  border-color: #dce2e9;
+  background: #fff;
+  color: #667286;
+}
+
+.amv-material-button--primary {
+  background: #8f183f;
+  color: #fff;
+}
+
+.amv-material-button--primary:hover { background: #761333; }
+
+.amv-material-button--danger {
+  background: #a11d46;
+  color: #fff;
+}
+
+.amv-material-delete {
+  padding: 28px;
+}
+
+.amv-material-delete__icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: #fff1f4;
+  color: #a11d46;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.amv-material-delete strong {
+  display: block;
+  margin: 10px 0;
+  color: #253044;
+  font-size: .85rem;
+}
+
+.amv-material-delete p {
+  margin: 0 0 20px;
+  color: #7b8798;
+  font-size: .7rem;
+  line-height: 1.55;
+}
+
+.amv-admin-modal-enter-active,
+.amv-admin-modal-leave-active {
+  transition: opacity .18s ease;
+}
+
+.amv-admin-modal-enter-from,
+.amv-admin-modal-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 720px) {
+  .amv-material-admin-item {
+    grid-template-columns: 42px minmax(0,1fr);
+  }
+
+  .amv-material-admin-item__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .amv-material-admin-item__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .amv-material-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   V22 · AMO MI VOZ · VISUAL EFFECTS / THUMBNAILS
+   Capa visual: conserva la lógica V21.
+========================================================= */
+
+.amv-teacher-content {
+  position: relative;
+  isolation: isolate;
+}
+
+.amv-teacher-content::before,
+.amv-teacher-content::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(2px);
+  opacity: .58;
+}
+
+.amv-teacher-content::before {
+  width: 280px;
+  height: 280px;
+  top: 30px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(177,25,78,.11), transparent 68%);
+  animation: amv-float-orb 8s ease-in-out infinite;
+}
+
+.amv-teacher-content::after {
+  width: 240px;
+  height: 240px;
+  left: -120px;
+  top: 420px;
+  background: radial-gradient(circle, rgba(214,165,31,.10), transparent 68%);
+  animation: amv-float-orb 10s ease-in-out infinite reverse;
+}
+
+.amv-direct-admin__hero,
+.amv-direct-admin__stats article,
+.amv-direct-panel {
+  transition:
+    transform .28s ease,
+    box-shadow .28s ease,
+    border-color .28s ease;
+}
+
+.amv-direct-admin__hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 55px rgba(20,28,45,.10);
+}
+
+/* MATERIALS */
+.amv-material-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.amv-material-admin-card,
+.amv-direct-visual-card {
+  overflow: hidden;
+  border: 1px solid #e4e8ee;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(20,28,45,.045);
+  transition:
+    transform .28s cubic-bezier(.2,.8,.2,1),
+    box-shadow .28s ease,
+    border-color .28s ease;
+}
+
+.amv-material-admin-card:hover,
+.amv-direct-visual-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 38px rgba(20,28,45,.11);
+  border-color: rgba(177,25,78,.20);
+}
+
+.amv-material-admin-card__preview,
+.amv-direct-visual-card__cover {
+  position: relative;
+  height: 154px;
+  overflow: hidden;
+  background: #f2f4f7;
+}
+
+.amv-material-admin-card__preview::after,
+.amv-direct-visual-card__cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,.14), transparent 42%),
+    linear-gradient(180deg, transparent 55%, rgba(8,14,28,.28));
+}
+
+.amv-material-admin-card__preview img,
+.amv-material-admin-card__preview iframe,
+.amv-material-admin-card__preview video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  object-fit: cover;
+  transform: scale(1.01);
+  transition: transform .55s ease, filter .35s ease;
+}
+
+.amv-material-admin-card:hover .amv-material-admin-card__preview img,
+.amv-material-admin-card:hover .amv-material-admin-card__preview iframe,
+.amv-material-admin-card:hover .amv-material-admin-card__preview video {
+  transform: scale(1.055);
+}
+
+.amv-material-admin-card__preview iframe {
+  pointer-events: none;
+  background: #f5f6f8;
+}
+
+.amv-admin-thumb__index {
+  position: absolute;
+  left: 12px;
+  top: 11px;
+  z-index: 3;
+  color: rgba(255,255,255,.92);
+  font-size: .58rem;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-shadow: 0 1px 6px rgba(0,0,0,.35);
+}
+
+.amv-admin-thumb__badge {
+  position: absolute;
+  right: 11px;
+  top: 10px;
+  z-index: 3;
+  padding: 5px 8px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 999px;
+  background: rgba(8,14,28,.42);
+  color: #fff;
+  font-size: .48rem;
+  font-weight: 950;
+  letter-spacing: .09em;
+  backdrop-filter: blur(8px);
+}
+
+.amv-admin-thumb__play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%,-50%);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 50%;
+  background: rgba(20,15,28,.52);
+  color: #fff;
+  box-shadow: 0 8px 25px rgba(0,0,0,.25);
+}
+
+.amv-admin-file-art,
+.amv-admin-audio-art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  color: #fff;
+}
+
+.amv-admin-file-art span {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.32);
+  border-radius: 18px;
+  background: rgba(255,255,255,.15);
+  box-shadow: 0 14px 35px rgba(0,0,0,.16);
+  font-size: .86rem;
+  font-weight: 950;
+  letter-spacing: .06em;
+  backdrop-filter: blur(10px);
+}
+
+.amv-admin-file-art small {
+  font-size: .56rem;
+  font-weight: 850;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.amv-admin-audio-art {
+  grid-template-columns: repeat(18, 4px);
+  grid-template-rows: 64px;
+  align-content: center;
+  gap: 4px;
+  padding: 0 28px;
+}
+
+.amv-admin-audio-art i {
+  width: 4px;
+  height: var(--wave);
+  align-self: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,.78);
+  box-shadow: 0 0 12px rgba(255,255,255,.16);
+  animation: amv-wave-pulse 1.7s ease-in-out infinite alternate;
+}
+
+.amv-admin-audio-art i:nth-child(3n) { animation-delay: -.35s; }
+.amv-admin-audio-art i:nth-child(4n) { animation-delay: -.72s; }
+
+.amv-admin-audio-art span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%,-50%);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 50%;
+  background: rgba(20,12,31,.26);
+  font-size: 1.25rem;
+}
+
+.amv-thumb--pdf .amv-material-admin-card__preview {
+  background: linear-gradient(135deg, #7f183e, #c04b71);
+}
+.amv-thumb--score .amv-material-admin-card__preview {
+  background: linear-gradient(135deg, #92711a, #e0bd54);
+}
+.amv-thumb--audio .amv-material-admin-card__preview {
+  background: linear-gradient(135deg, #56317b, #b66ee0);
+}
+.amv-thumb--video .amv-material-admin-card__preview {
+  background: linear-gradient(135deg, #1b4760, #5d9ebc);
+}
+.amv-thumb--image .amv-material-admin-card__preview {
+  background: linear-gradient(135deg, #8d4d35, #d89b6c);
+}
+.amv-thumb--other .amv-material-admin-card__preview {
+  background: linear-gradient(135deg, #3e4d60, #7b8ca2);
+}
+
+.amv-material-admin-card__body {
+  padding: 14px 15px 15px;
+}
+
+.amv-material-admin-card__eyebrow,
+.amv-direct-visual-card__eyebrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.amv-material-admin-card__eyebrow span,
+.amv-direct-visual-card__eyebrow span {
+  color: #9b7b20;
+  font-size: .51rem;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+
+.amv-material-admin-card__eyebrow b {
+  color: #23815c;
+  font-size: .47rem;
+  letter-spacing: .08em;
+}
+
+.amv-material-admin-card__body h4,
+.amv-direct-visual-card__body h4 {
+  margin: 7px 0 5px;
+  color: #172033;
+  font-size: .92rem;
+  line-height: 1.18;
+}
+
+.amv-material-admin-card__body p,
+.amv-direct-visual-card__body p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #778398;
+  font-size: .65rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.amv-material-admin-card__body > small {
+  display: block;
+  margin-top: 7px;
+  overflow: hidden;
+  color: #a0a9b6;
+  font-size: .55rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amv-material-admin-card__actions,
+.amv-direct-visual-card__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 13px;
+}
+
+.amv-material-admin-card__actions a,
+.amv-material-admin-card__actions button,
+.amv-direct-visual-card__actions a,
+.amv-direct-visual-card__actions button {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #dfe5ec;
+  border-radius: 9px;
+  padding: 8px 7px;
+  background: #fff;
+  color: #5d687a;
+  font: inherit;
+  font-size: .58rem;
+  font-weight: 850;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.amv-material-admin-card__actions .is-view:hover {
+  color: #26354b;
+  border-color: #b8c5d4;
+  background: #f8fafc;
+}
+
+.amv-material-admin-card__actions .is-edit:hover {
+  color: #8a6910;
+  border-color: #d9bd60;
+  background: #fffaf0;
+}
+
+.amv-material-admin-card__actions .is-danger:hover,
+.amv-direct-visual-card__actions .is-danger:hover {
+  color: #a01d47;
+  border-color: #e3b8c7;
+  background: #fff5f8;
+}
+
+/* TASK / QUIZ VISUAL CARDS */
+.amv-direct-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.amv-direct-visual-card {
+  display: grid;
+  grid-template-columns: 145px minmax(0, 1fr);
+  min-height: 175px;
+}
+
+.amv-direct-visual-card__cover {
+  height: 100%;
+  min-height: 175px;
+}
+
+.amv-direct-visual-card__body {
+  min-width: 0;
+  padding: 15px 16px 14px;
+}
+
+.amv-direct-visual-card__eyebrow em {
+  color: #8b96a6;
+  font-size: .54rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.amv-direct-visual-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.amv-direct-visual-card__meta span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #f3f5f8;
+  color: #768295;
+  font-size: .52rem;
+  font-weight: 750;
+}
+
+.amv-task-art__glow,
+.amv-quiz-art__ring {
+  position: absolute;
+  width: 105px;
+  height: 105px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.30), transparent 67%);
+  filter: blur(1px);
+}
+
+.amv-task-art__glow::before,
+.amv-task-art__glow::after {
+  content: "";
+  position: absolute;
+  inset: -25px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 50%;
+  animation: amv-ring-spin 9s linear infinite;
+}
+
+.amv-task-art__glow::after {
+  inset: 8px;
+  border-style: dashed;
+  animation-duration: 6s;
+  animation-direction: reverse;
+}
+
+.amv-task-art__glyph,
+.amv-quiz-art__glyph {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  transform: translate(-50%,-55%);
+  color: #fff;
+  font-size: 2.45rem;
+  font-weight: 300;
+  text-shadow: 0 7px 25px rgba(0,0,0,.24);
+}
+
+.amv-direct-visual-card__cover small {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 3;
+  color: rgba(255,255,255,.90);
+  font-size: .48rem;
+  font-weight: 950;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.amv-direct-visual-card__cover > b {
+  position: absolute;
+  right: 12px;
+  top: 11px;
+  z-index: 3;
+  color: rgba(255,255,255,.80);
+  font-size: .58rem;
+  letter-spacing: .14em;
+}
+
+.amv-task-visual--task .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #8f183f, #d05279);
+}
+.amv-task-visual--audio .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #5a347e, #b870df);
+}
+.amv-task-visual--video .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #244c62, #62a2c0);
+}
+.amv-task-visual--score .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #91731d, #ddbd5b);
+}
+.amv-task-visual--voice .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #8b4b35, #d4946e);
+}
+
+.amv-quiz-visual--quiz .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #53366f, #9b66bd);
+}
+.amv-quiz-visual--exam .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #82681a, #c9a83c);
+}
+.amv-quiz-visual--ear .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #254e61, #55a4b5);
+}
+.amv-quiz-visual--pitch .amv-direct-visual-card__cover {
+  background: linear-gradient(135deg, #7c284f, #cf557c);
+}
+
+.amv-quiz-art__ring {
+  border: 1px solid rgba(255,255,255,.24);
+  box-shadow:
+    0 0 0 18px rgba(255,255,255,.05),
+    0 0 0 42px rgba(255,255,255,.035);
+  animation: amv-quiz-breathe 3.4s ease-in-out infinite;
+}
+
+.amv-quiz-art__glyph {
+  font-size: 2.7rem;
+}
+
+@keyframes amv-float-orb {
+  0%, 100% { transform: translate3d(0,0,0); }
+  50% { transform: translate3d(0,14px,0); }
+}
+
+@keyframes amv-wave-pulse {
+  from { transform: scaleY(.68); opacity: .60; }
+  to { transform: scaleY(1.12); opacity: 1; }
+}
+
+@keyframes amv-ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes amv-quiz-breathe {
+  0%, 100% { transform: translate(-50%,-50%) scale(.92); opacity: .72; }
+  50% { transform: translate(-50%,-50%) scale(1.06); opacity: 1; }
+}
+
+@media (max-width: 1050px) {
+  .amv-material-admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .amv-direct-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .amv-direct-visual-card {
+    grid-template-columns: 125px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .amv-material-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .amv-direct-visual-card {
+    grid-template-columns: 1fr;
+  }
+
+  .amv-direct-visual-card__cover {
+    min-height: 145px;
+    height: 145px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .amv-teacher-content::before,
+  .amv-teacher-content::after,
+  .amv-admin-audio-art i,
+  .amv-task-art__glow::before,
+  .amv-task-art__glow::after,
+  .amv-quiz-art__ring {
+    animation: none !important;
+  }
+
+  .amv-material-admin-card,
+  .amv-direct-visual-card,
+  .amv-direct-admin__hero {
+    transition: none !important;
+  }
 }
 
 </style>
