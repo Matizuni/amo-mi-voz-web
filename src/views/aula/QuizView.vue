@@ -10272,6 +10272,95 @@ textarea:focus {
   }
 }
 
+
+/* =========================================================
+   AMV · FINAL PATCH
+   BASE V20 ESTABLE — SOLO CSS
+   NO SE ELIMINA EL PROGRESO SUPERIOR.
+========================================================= */
+
+/* El navegador inferior/lateral de "PREGUNTAS" se elimina
+   porque YA tenemos el navegador completo arriba.
+   El resumen lateral permanece intacto. */
+.question-sidebar .navigator-card {
+  display: none !important;
+}
+
+/* El contador superior, los números 1–10 y la barra de
+   progreso se conservan exactamente como estaban. */
+.quiz-progress,
+.quiz-progress__heading,
+.quiz-progress__bar,
+.quiz-progress__question-map {
+  display: block;
+}
+
+.quiz-progress__question-map {
+  visibility: visible;
+}
+
+/* =========================================================
+   MATCHING — menú abierto
+========================================================= */
+
+.matching-question__row:has(.matching-select[open]) {
+  position: relative !important;
+  z-index: 1000 !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.matching-question__list:has(.matching-select[open]),
+.matching-question:has(.matching-select[open]),
+.question-panel:has(.matching-select[open]) {
+  overflow: visible !important;
+}
+
+.matching-select[open] {
+  position: relative !important;
+  z-index: 1001 !important;
+}
+
+/* =========================================================
+   MOBILE — opciones inmediatamente junto al selector
+========================================================= */
+
+@media (max-width: 760px) {
+  .matching-select[open] .matching-select__menu {
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
+    width: auto !important;
+    max-height: min(42dvh, 300px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    z-index: 1002 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Últimas tarjetas: abrir hacia arriba para no quedar
+     detrás de Anterior/Siguiente. */
+  .matching-question__row:nth-last-child(-n + 2)
+    .matching-select[open]
+    .matching-select__menu {
+    top: auto !important;
+    bottom: calc(100% + 8px) !important;
+    max-height: min(42dvh, 300px) !important;
+  }
+
+  .matching-question__row:nth-last-child(-n + 2):has(.matching-select[open]) {
+    z-index: 1100 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .matching-select[open] .matching-select__menu {
+    max-height: min(40dvh, 280px) !important;
+  }
+}
+
 </style>
 
 <style lang="scss">
