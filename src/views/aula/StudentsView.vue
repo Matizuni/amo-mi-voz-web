@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="students">
     <!-- =====================================================
          HEADER
@@ -6,7 +6,7 @@
     <header class="students__header">
       <div class="students__header-copy">
         <p class="students__eyebrow">
-          Profesor Â· Aula Virtual
+          Profesor · Aula Virtual
         </p>
 
         <h1>
@@ -14,7 +14,7 @@
         </h1>
 
         <p class="students__description">
-          Gestiona la matrÃ­cula, clasificaciÃ³n vocal
+          Gestiona la matrícula, clasificación vocal
           y acceso de tus estudiantes.
         </p>
       </div>
@@ -25,7 +25,7 @@
         @click="goToInscriptions"
       >
         <span aria-hidden="true">+</span>
-        Nueva matrÃ­cula
+        Nueva matrícula
       </button>
     </header>
 
@@ -46,7 +46,7 @@
         </strong>
 
         <p>
-          Estamos sincronizando la matrÃ­cula.
+          Estamos sincronizando la matrícula.
         </p>
       </div>
     </section>
@@ -87,16 +87,16 @@
         v-if="students.length === 0"
         class="students-empty"
       >
-        <div class="students-empty__symbol">â™ª</div>
+        <div class="students-empty__symbol">♪</div>
         <p class="students-empty__eyebrow">Aula preparada</p>
-        <h2>TodavÃ­a no hay alumnos</h2>
-        <p>Matricula al primer estudiante desde el mÃ³dulo de inscripciones.</p>
+        <h2>Todavía no hay alumnos</h2>
+        <p>Matricula al primer estudiante desde el módulo de inscripciones.</p>
         <button
           type="button"
           class="students__primary-action"
           @click="goToInscriptions"
         >
-          Nueva matrÃ­cula
+          Nueva matrícula
         </button>
       </section>
 
@@ -112,7 +112,7 @@
 
             <div class="students-search">
               <span aria-hidden="true">
-                âŒ•
+                ⌕
               </span>
 
               <input
@@ -120,16 +120,16 @@
                 v-model.trim="searchTerm"
                 type="search"
                 autocomplete="off"
-                placeholder="Nombre o clasificaciÃ³n vocal..."
+                placeholder="Nombre o clasificación vocal..."
               />
 
               <button
                 v-if="searchTerm"
                 type="button"
-                aria-label="Limpiar bÃºsqueda"
+                aria-label="Limpiar búsqueda"
                 @click="searchTerm = ''"
               >
-                Ã—
+                ×
               </button>
             </div>
           </div>
@@ -142,16 +142,25 @@
             <div
               class="voice-filters"
               role="group"
-              aria-label="Filtrar por clasificaciÃ³n vocal"
+              aria-label="Filtrar por clasificación vocal"
             >
               <button
                 v-for="filter in voiceFilters"
                 :key="filter.value"
                 type="button"
-                :class="{
-                  active:
-                    selectedVoice === filter.value
-                }"
+                :class="[
+
+                  {
+
+                    active:
+
+                      selectedVoice === filter.value
+
+                  },
+
+                  `voice-filter--${filter.value.toLowerCase()}`
+
+                ]"
                 :aria-pressed="selectedVoice === filter.value"
                 @click="selectedVoice = filter.value"
               >
@@ -178,39 +187,12 @@
         </section>
 
         <!-- =====================================================
-             INFO MATRICULACIÃ“N
+             INFO MATRICULACIÓN
         ====================================================== -->
-        <section class="students__info">
-          <div class="students__info-icon">
-            â™ª
-          </div>
-
-          <div>
-            <strong>
-              MatrÃ­culas desde Inscripciones
-            </strong>
-
-            <p>
-              Las cuentas nuevas se crean desde el
-              flujo de matrÃ­cula para mantener
-              estudiantes y accesos sincronizados.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            @click="goToInscriptions"
-          >
-            Ver inscripciones
-
-            <span aria-hidden="true">
-              â†’
-            </span>
-          </button>
-        </section>
+        
 
         <!-- =====================================================
-             RESULTADOS VACÃOS
+             RESULTADOS VACÍOS
         ====================================================== -->
         <section
           v-if="filteredStudents.length === 0"
@@ -227,7 +209,7 @@
 
             <p>
               Prueba otro nombre o cambia
-              la clasificaciÃ³n vocal seleccionada.
+              la clasificación vocal seleccionada.
             </p>
 
             <button
@@ -271,7 +253,10 @@
             <article
               v-for="student in filteredStudents"
               :key="student.id"
-              class="student-card"
+              :class="[
+  'student-card',
+  getVoiceClass(student.voice)
+]"
               role="link"
               tabindex="0"
               @click="goToStudentProfile(student)"
@@ -285,7 +270,7 @@
 
                 <div class="student-card__identity">
                   <span class="student-card__voice">
-                    {{ student.voice || 'Sin clasificaciÃ³n' }}
+                    {{ student.voice || 'Sin clasificación' }}
                   </span>
 
                   <h3>
@@ -302,44 +287,38 @@
                   class="student-card__profile-arrow"
                   aria-hidden="true"
                 >
-                  â†’
+                  →
                 </span>
               </div>
 
-              <!-- INFORMACIÃ“N -->
-              <div class="student-card__details">
-                <div>
-                  <span>
-                    ClasificaciÃ³n
-                  </span>
+              <!-- META COMPACTA -->
+              <div class="student-card__meta">
+                <span class="student-card__meta-item">
+                  <span class="student-card__meta-dot"></span>
+                  {{ student.voice || 'Sin clasificar' }}
+                </span>
 
-                  <strong>
-                    {{ student.voice || 'Pendiente' }}
-                  </strong>
-                </div>
+                <span class="student-card__meta-item student-card__meta-item--active">
+                  <span class="student-card__meta-status"></span>
+                  Activo
+                </span>
 
-                <div>
-                  <span>
-                    Estado
-                  </span>
-
-                  <strong class="status-active">
-                    Activo
-                  </strong>
-                </div>
+                <span class="student-card__meta-hint">
+                  Abrir perfil
+                </span>
               </div>
 
-              <!-- ACCIÃ“N PRINCIPAL -->
+              <!-- ACCIÓN PRINCIPAL -->
 
               <!-- ADMIN -->
-              <div class="student-card__admin">
+              <div class="student-card__admin"><span class="student-card__admin-label">Gestión</span>
                 <button
                   type="button"
                   class="student-card__edit"
                   :disabled="isStudentBusy(student.id)"
                   @click.stop="openEditStudent(student)"
                 >
-                  âœŽ Editar datos
+                  ✎ Editar datos
                 </button>
 
                 <button
@@ -374,6 +353,13 @@
     </template>
 
     <!-- =====================================================
+         MODALES · TELEPORT AL BODY
+         Así el overlay se centra respecto a toda la ventana,
+         no respecto al contenedor del Aula.
+    ====================================================== -->
+    <Teleport to="body">
+
+    <!-- =====================================================
          MODAL EDITAR
     ====================================================== -->
     <Transition name="modal">
@@ -383,11 +369,11 @@
         @click.self="cancelEditStudent"
       >
         <section class="students-modal__card students-edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-student-title">
-          <button type="button" class="students-modal__close" :disabled="isSavingStudentEdit" aria-label="Cerrar" @click="cancelEditStudent">Ã—</button>
-          <div class="students-modal__icon students-modal__icon--edit">âœŽ</div>
-          <p class="students-modal__eyebrow">GestiÃ³n acadÃ©mica</p>
+          <button type="button" class="students-modal__close" :disabled="isSavingStudentEdit" aria-label="Cerrar" @click="cancelEditStudent">×</button>
+          <div class="students-modal__icon students-modal__icon--edit">✎</div>
+          <p class="students-modal__eyebrow">Gestión académica</p>
           <h2 id="edit-student-title">Editar estudiante</h2>
-          <p class="students-modal__lead">Corrige los datos acadÃ©micos visibles de <strong>{{ studentToEdit.name }}</strong> sin tocar sus credenciales de acceso.</p>
+          <p class="students-modal__lead">Corrige los datos académicos visibles de <strong>{{ studentToEdit.name }}</strong> sin tocar sus credenciales de acceso.</p>
 
           <form class="student-edit-form" @submit.prevent="saveStudentEdit">
             <label>
@@ -396,7 +382,7 @@
             </label>
 
             <label>
-              <span>ClasificaciÃ³n vocal</span>
+              <span>Clasificación vocal</span>
               <select v-model="editStudentForm.voice">
                 <option value="">Sin clasificar</option>
                 <option value="Soprano">Soprano</option>
@@ -409,15 +395,15 @@
             <label class="student-edit-switch">
               <input v-model="editStudentForm.active" type="checkbox" />
               <span>
-                <strong>Cuenta acadÃ©mica activa</strong>
-                <small>Desactivar desde aquÃ­ mantiene los datos almacenados.</small>
+                <strong>Cuenta académica activa</strong>
+                <small>Desactivar desde aquí mantiene los datos almacenados.</small>
               </span>
             </label>
 
             <div class="students-modal__actions">
               <button type="button" class="modal-button modal-button--secondary" :disabled="isSavingStudentEdit" @click="cancelEditStudent">Cancelar</button>
               <button type="submit" class="modal-button modal-button--edit" :disabled="isSavingStudentEdit">
-                {{ isSavingStudentEdit ? 'Guardandoâ€¦' : 'Guardar cambios' }}
+                {{ isSavingStudentEdit ? 'Guardando…' : 'Guardar cambios' }}
               </button>
             </div>
           </form>
@@ -447,7 +433,7 @@
             aria-label="Cerrar"
             @click="cancelDeactivateStudent"
           >
-            Ã—
+            ×
           </button>
 
           <div
@@ -456,15 +442,15 @@
               students-modal__icon--warning
             "
           >
-            â€–
+            ‖
           </div>
 
           <p class="students-modal__eyebrow">
-            GestiÃ³n de acceso
+            Gestión de acceso
           </p>
 
           <h2 id="deactivate-title">
-            Â¿Desactivar alumno?
+            ¿Desactivar alumno?
           </h2>
 
           <p class="students-modal__lead">
@@ -472,18 +458,18 @@
               {{ studentToDeactivate.name }}
             </strong>
 
-            dejarÃ¡ de aparecer entre los alumnos activos
-            y no podrÃ¡ ingresar normalmente al Aula Virtual.
+            dejará de aparecer entre los alumnos activos
+            y no podrá ingresar normalmente al Aula Virtual.
           </p>
 
           <div class="students-modal__notice">
             <strong>
-              Sus datos se conservarÃ¡n
+              Sus datos se conservarán
             </strong>
 
             <p>
               Asistencia, evaluaciones, tareas,
-              progreso y ficha vocal permanecerÃ¡n almacenados.
+              progreso y ficha vocal permanecerán almacenados.
             </p>
           </div>
 
@@ -506,7 +492,7 @@
               {{
                 isDeactivating
                   ? 'Desactivando...'
-                  : 'SÃ­, desactivar'
+                  : 'Sí, desactivar'
               }}
             </button>
           </div>
@@ -539,7 +525,7 @@
             aria-label="Cerrar"
             @click="cancelDeleteStudent"
           >
-            Ã—
+            ×
           </button>
 
           <div
@@ -557,7 +543,7 @@
               students-modal__eyebrow--danger
             "
           >
-            AcciÃ³n irreversible
+            Acción irreversible
           </p>
 
           <h2 id="delete-title">
@@ -565,7 +551,7 @@
           </h2>
 
           <p class="students-modal__lead">
-            EstÃ¡s a punto de eliminar a
+            Estás a punto de eliminar a
 
             <strong>
               {{ studentToDelete.name }}
@@ -581,7 +567,7 @@
             "
           >
             <strong>
-              Se eliminarÃ¡n sus datos acadÃ©micos
+              Se eliminarán sus datos académicos
             </strong>
 
             <p>
@@ -654,15 +640,15 @@
         aria-live="polite"
       >
         <div class="students-toast__icon">
-          {{ toastType === 'error' ? '!' : 'âœ“' }}
+          {{ toastType === 'error' ? '!' : '✓' }}
         </div>
 
         <div>
           <strong>
             {{
               toastType === 'error'
-                ? 'No pudimos completar la operaciÃ³n'
-                : 'OperaciÃ³n completada'
+                ? 'No pudimos completar la operación'
+                : 'Operación completada'
             }}
           </strong>
 
@@ -672,6 +658,8 @@
         </div>
       </div>
     </Transition>
+
+    </Teleport>
   </section>
 </template>
 
@@ -720,7 +708,7 @@ const searchTerm = ref('')
 const selectedVoice = ref('all')
 
 /* =========================================================
-   DIRECTORIO ACADÃ‰MICO Â· V10
+   DIRECTORIO ACADÉMICO · V10
 ========================================================= */
 const activeStudentsTab = ref('directorio')
 
@@ -749,7 +737,7 @@ const toastType = ref('success')
 let toastTimer = null
 
 /* =========================================================
-   EDITAR DATOS ACADÃ‰MICOS
+   EDITAR DATOS ACADÉMICOS
 ========================================================= */
 
 const openEditStudent = student => {
@@ -804,7 +792,7 @@ const deletingStudentId = ref(null)
 const deleteConfirmation = ref('')
 
 /* =========================================================
-   EDITAR DATOS ACADÃ‰MICOS
+   EDITAR DATOS ACADÉMICOS
 ========================================================= */
 const studentToEdit = ref(null)
 const editStudentForm = ref({ name: '', voice: '', active: true })
@@ -1204,6 +1192,21 @@ const showToast = (
       },
       4500
     )
+}
+
+/* =========================================================
+   COLOR VISUAL · GRUPO VOCAL
+========================================================= */
+
+const getVoiceClass = voice => {
+  const classes = {
+    Soprano: 'student-card--soprano',
+    Alto: 'student-card--alto',
+    Tenor: 'student-card--tenor',
+    Bajo: 'student-card--bajo'
+  }
+
+  return classes[voice] || 'student-card--unclassified'
 }
 
 /* =========================================================
@@ -3451,7 +3454,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 /* =========================================================
-   V5.1 Â· LIGHT LMS PATCH
+   V5.1 · LIGHT LMS PATCH
    Scoped visual refinement: no backend or template logic touched.
 ========================================================= */
 .students {
@@ -3583,8 +3586,8 @@ onBeforeUnmount(() => {
 
 
 /* =========================================================
-   AMV LMS UI SYSTEM Â· ACADEMIC EXPERIENCE v1.0
-   Sistema visual comÃºn para el SaaS
+   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
+   Sistema visual común para el SaaS
 ========================================================= */
 .students {
   --amv-canvas: #f5f7fb;
@@ -3652,8 +3655,8 @@ onBeforeUnmount(() => {
 
 
 /* =========================================================
-   AMV LMS Â· FLUID MOTION & PREMIUM INTERACTION v2.0
-   Capa visual segura: no modifica lÃ³gica, datos ni estructura.
+   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
+   Capa visual segura: no modifica lógica, datos ni estructura.
 ========================================================= */
 .students {
   animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
@@ -3759,7 +3762,7 @@ onBeforeUnmount(() => {
 
 
 /* =========================================================
-   STUDENTS Â· DIRECTORIO ACADÃ‰MICO V10
+   STUDENTS · DIRECTORIO ACADÉMICO V10
 ========================================================= */
 .students-context-nav {
   position: sticky;
@@ -4094,7 +4097,7 @@ onBeforeUnmount(() => {
 
 
 /* =========================================================
-   DIRECTORIO SIMPLE Â· LISTA VERTICAL
+   DIRECTORIO SIMPLE · LISTA VERTICAL
    Sin dependencias de variables.scss.
 ========================================================= */
 .students-directory-panel {
@@ -4247,7 +4250,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 /* =========================================================
-   AMV Â· KAHOOT-INSPIRED MICROINTERACTIONS
+   AMV · KAHOOT-INSPIRED MICROINTERACTIONS
    Visual only: no template/script/backend changes.
 ========================================================= */
 
@@ -4485,3 +4488,2674 @@ onBeforeUnmount(() => {
 }
 </style>
 
+<style lang="scss" scoped>
+/* =========================================================
+   AMV V12 · STUDENT DIRECTORY GAME MODE
+   Inspirado en el lenguaje visual de Test.
+========================================================= */
+
+.students {
+
+  --game-ink: #172033;
+  --game-muted: #6f7c8f;
+  --game-line: #dbe3ec;
+  --game-surface: #ffffff;
+
+  --soprano: #a71952;
+  --soprano-light: #fff1f6;
+
+  --alto: #7657d7;
+  --alto-light: #f5f1ff;
+
+  --tenor: #3d73c7;
+  --tenor-light: #eff6ff;
+
+  --bajo: #2d9c8b;
+  --bajo-light: #edf9f7;
+
+  --pending: #d9a91d;
+  --pending-light: #fff8e7;
+
+  --active: #2d8a63;
+
+  --game-ease: cubic-bezier(.18,.82,.22,1);
+  --game-pop: cubic-bezier(.17,1.35,.35,1);
+}
+
+
+/* =========================================================
+   LISTA
+========================================================= */
+
+.students .student-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+
+/* =========================================================
+   TARJETA BASE
+========================================================= */
+
+.students .student-card {
+  --card-color: var(--pending);
+  --card-soft: var(--pending-light);
+
+  position: relative;
+  isolation: isolate;
+
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+
+  border: 2px solid color-mix(
+    in srgb,
+    var(--card-color) 20%,
+    #dbe3ec
+  ) !important;
+
+  border-radius: 21px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      color-mix(
+        in srgb,
+        var(--card-soft) 35%,
+        #ffffff
+      ) 100%
+    ) !important;
+
+  box-shadow:
+    0 8px 22px rgba(31, 48, 73, .045),
+    inset 0 1px 0 rgba(255,255,255,.95);
+
+  cursor: pointer;
+
+  transform: translateY(0);
+
+  transition:
+    transform .28s var(--game-ease),
+    border-color .28s ease,
+    box-shadow .28s ease,
+    background .28s ease;
+
+  animation:
+    amvStudentIn .52s var(--game-ease) both;
+}
+
+
+/* =========================================================
+   COLORES POR VOZ
+========================================================= */
+
+.students .student-card--soprano {
+  --card-color: var(--soprano);
+  --card-soft: var(--soprano-light);
+}
+
+.students .student-card--alto {
+  --card-color: var(--alto);
+  --card-soft: var(--alto-light);
+}
+
+.students .student-card--tenor {
+  --card-color: var(--tenor);
+  --card-soft: var(--tenor-light);
+}
+
+.students .student-card--bajo {
+  --card-color: var(--bajo);
+  --card-soft: var(--bajo-light);
+}
+
+.students .student-card--unclassified {
+  --card-color: var(--pending);
+  --card-soft: var(--pending-light);
+}
+
+
+/* =========================================================
+   LÍNEA DE COLOR SUPERIOR
+========================================================= */
+
+.students .student-card::before {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 5px;
+
+  content: "";
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--card-color),
+      color-mix(
+        in srgb,
+        var(--card-color) 55%,
+        #ffffff
+      )
+    );
+
+  transform: scaleX(.25);
+  transform-origin: left;
+
+  transition:
+    transform .38s var(--game-ease);
+}
+
+
+/* =========================================================
+   BRILLO TIPO KAHOOT
+========================================================= */
+
+.students .student-card::after {
+  position: absolute;
+
+  top: -40%;
+  left: -35%;
+
+  width: 32%;
+  height: 180%;
+
+  content: "";
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.58),
+      transparent
+    );
+
+  opacity: 0;
+
+  transform: rotate(18deg) translateX(-180%);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   HOVER
+========================================================= */
+
+.students .student-card:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--card-color) 58%,
+      #dbe3ec
+    ) !important;
+
+  box-shadow:
+    0 16px 34px
+      color-mix(
+        in srgb,
+        var(--card-color) 13%,
+        rgba(31,48,73,.08)
+      ),
+    0 0 0 4px
+      color-mix(
+        in srgb,
+        var(--card-color) 6%,
+        transparent
+      );
+
+  transform: translateY(-5px);
+}
+
+.students .student-card:hover::before {
+  transform: scaleX(1);
+}
+
+.students .student-card:hover::after {
+  opacity: 1;
+
+  animation:
+    amvStudentShine .72s ease-out forwards;
+}
+
+
+/* =========================================================
+   PRESS
+========================================================= */
+
+.students .student-card:active {
+  transform:
+    translateY(-1px)
+    scale(.988);
+
+  transition-duration: .08s;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.students .student-card__header {
+  position: relative;
+  z-index: 2;
+
+  display: flex !important;
+
+  min-width: 0;
+
+  gap: 15px !important;
+
+  align-items: center;
+
+  padding: 18px 20px !important;
+}
+
+
+/* =========================================================
+   AVATAR
+========================================================= */
+
+.students .student-card__avatar {
+  position: relative;
+
+  display: grid;
+
+  width: 58px !important;
+  height: 58px !important;
+
+  flex: 0 0 58px;
+
+  place-items: center;
+
+  border: 2px solid
+    color-mix(
+      in srgb,
+      var(--card-color) 30%,
+      #ffffff
+    ) !important;
+
+  border-radius: 17px !important;
+
+  color: var(--card-color) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      var(--card-soft) 100%
+    ) !important;
+
+  font-size: .82rem !important;
+  font-weight: 900 !important;
+
+  box-shadow:
+    0 7px 16px
+      color-mix(
+        in srgb,
+        var(--card-color) 12%,
+        transparent
+      ),
+    inset 0 1px 0 #ffffff;
+
+  transition:
+    transform .32s var(--game-pop),
+    box-shadow .32s ease;
+}
+
+.students .student-card:hover .student-card__avatar {
+  transform:
+    scale(1.08)
+    rotate(-2deg);
+
+  box-shadow:
+    0 10px 22px
+      color-mix(
+        in srgb,
+        var(--card-color) 19%,
+        transparent
+      );
+}
+
+
+/* =========================================================
+   IDENTIDAD
+========================================================= */
+
+.students .student-card__identity {
+  min-width: 0;
+  flex: 1;
+}
+
+.students .student-card__voice {
+  display: inline-flex !important;
+
+  align-items: center;
+
+  margin-bottom: 5px !important;
+  padding: 4px 8px !important;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--card-color) 25%,
+      #ffffff
+    );
+
+  border-radius: 999px;
+
+  color: var(--card-color) !important;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--card-soft) 78%,
+      #ffffff
+    ) !important;
+
+  font-size: .55rem !important;
+  font-weight: 900 !important;
+
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.students .student-card__identity h3 {
+  color: var(--game-ink) !important;
+
+  font-size: clamp(
+    1rem,
+    1.5vw,
+    1.18rem
+  ) !important;
+
+  font-weight: 800 !important;
+
+  letter-spacing: -.025em;
+
+  line-height: 1.2;
+}
+
+
+/* =========================================================
+   ESTADO
+========================================================= */
+
+.students .student-card__status {
+  gap: 7px !important;
+
+  margin-top: 5px !important;
+
+  color: var(--game-muted) !important;
+
+  font-size: .68rem !important;
+}
+
+.students .student-card__status > span {
+  width: 8px !important;
+  height: 8px !important;
+
+  background: var(--active) !important;
+
+  box-shadow:
+    0 0 0 4px rgba(45,138,99,.08);
+
+  animation:
+    amvStatusPulse 2.4s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   FLECHA
+========================================================= */
+
+.students .student-card__profile-arrow {
+  position: relative;
+  z-index: 4;
+
+  display: grid !important;
+
+  width: 42px !important;
+  height: 42px !important;
+
+  flex: 0 0 42px;
+
+  place-items: center;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--card-color) 25%,
+      #dbe3ec
+    ) !important;
+
+  border-radius: 13px !important;
+
+  color: var(--card-color) !important;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--card-soft) 55%,
+      #ffffff
+    ) !important;
+
+  font-size: 1.15rem;
+
+  text-decoration: none;
+
+  transition:
+    transform .28s var(--game-pop),
+    background .28s ease,
+    box-shadow .28s ease;
+}
+
+.students .student-card:hover .student-card__profile-arrow {
+  transform: translateX(5px);
+
+  box-shadow:
+    0 7px 16px
+      color-mix(
+        in srgb,
+        var(--card-color) 13%,
+        transparent
+      );
+}
+
+
+/* =========================================================
+   DETALLES
+========================================================= */
+
+.students .student-card__details {
+  position: relative;
+  z-index: 2;
+
+  display: flex !important;
+
+  gap: 10px !important;
+
+  padding:
+    0 20px 15px !important;
+}
+
+.students .student-card__details > div {
+  padding: 7px 10px;
+
+  border: 1px solid #e6ebf0;
+
+  border-radius: 10px;
+
+  background: rgba(248,250,252,.82);
+}
+
+.students .student-card__details span {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color: #8b98aa !important;
+
+  font-size: .52rem !important;
+  font-weight: 800;
+
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.students .student-card__details strong {
+  color: var(--card-color) !important;
+
+  font-size: .67rem !important;
+}
+
+
+/* =========================================================
+   ACCIÓN PRINCIPAL
+========================================================= */
+
+.students .student-card__main-action {
+  position: relative;
+  z-index: 4;
+
+  display: inline-flex !important;
+
+  gap: 8px;
+
+  align-items: center;
+
+  margin:
+    0 20px 15px !important;
+
+  padding: 8px 12px !important;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--card-color) 20%,
+      #dbe3ec
+    ) !important;
+
+  border-radius: 10px !important;
+
+  color: var(--card-color) !important;
+
+  background: #ffffff !important;
+
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+
+  text-decoration: none;
+
+  transition:
+    transform .24s var(--game-pop),
+    background .24s ease;
+}
+
+.students .student-card__main-action:hover {
+  background: var(--card-soft) !important;
+
+  transform: translateX(3px);
+}
+
+
+/* =========================================================
+   ADMIN
+========================================================= */
+
+.students .student-card__admin {
+  position: relative;
+  z-index: 5;
+
+  display: flex !important;
+
+  gap: 7px !important;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  padding:
+    10px 14px !important;
+
+  border-top: 1px solid #edf0f4 !important;
+
+  background:
+    rgba(248,250,252,.68) !important;
+}
+
+.students .student-card__admin button {
+  border-radius: 9px !important;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease;
+}
+
+.students .student-card__admin button:hover {
+  transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   ENTRADA ESCALONADA
+========================================================= */
+
+.students .student-card:nth-child(1) {
+  animation-delay: .03s;
+}
+
+.students .student-card:nth-child(2) {
+  animation-delay: .07s;
+}
+
+.students .student-card:nth-child(3) {
+  animation-delay: .11s;
+}
+
+.students .student-card:nth-child(4) {
+  animation-delay: .15s;
+}
+
+.students .student-card:nth-child(5) {
+  animation-delay: .19s;
+}
+
+.students .student-card:nth-child(6) {
+  animation-delay: .23s;
+}
+
+.students .student-card:nth-child(7) {
+  animation-delay: .27s;
+}
+
+.students .student-card:nth-child(8) {
+  animation-delay: .31s;
+}
+
+
+/* =========================================================
+   KEYFRAMES
+========================================================= */
+
+@keyframes amvStudentIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(12px)
+      scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes amvStudentShine {
+  from {
+    transform:
+      rotate(18deg)
+      translateX(-180%);
+  }
+
+  to {
+    transform:
+      rotate(18deg)
+      translateX(560%);
+  }
+}
+
+@keyframes amvStatusPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px rgba(45,138,99,.07);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 7px rgba(45,138,99,.025);
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 720px) {
+
+  .students .student-card {
+    border-radius: 18px !important;
+  }
+
+  .students .student-card__header {
+    gap: 11px !important;
+
+    padding:
+      15px !important;
+  }
+
+  .students .student-card__avatar {
+    width: 50px !important;
+    height: 50px !important;
+
+    flex-basis: 50px;
+  }
+
+  .students .student-card__profile-arrow {
+    width: 38px !important;
+    height: 38px !important;
+
+    flex-basis: 38px;
+  }
+
+  .students .student-card__details {
+    flex-wrap: wrap;
+
+    padding:
+      0 15px 12px !important;
+  }
+
+  .students .student-card__main-action {
+    margin:
+      0 15px 12px !important;
+  }
+
+  .students .student-card__admin {
+    flex-wrap: wrap;
+
+    justify-content: flex-start;
+
+    padding: 9px 12px !important;
+  }
+}
+
+
+/* =========================================================
+   REDUCIR MOVIMIENTO
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .students .student-card,
+  .students .student-card::after,
+  .students .student-card__avatar,
+  .students .student-card__profile-arrow,
+  .students .student-card__status > span {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   AMV V12 · DIRECTORIO FINAL
+   Limpio · profesional · color por grupo vocal
+========================================================= */
+
+.students {
+  --voice-soprano: #a71952;
+  --voice-soprano-soft: #fff1f6;
+  --voice-alto: #7657d7;
+  --voice-alto-soft: #f5f1ff;
+  --voice-tenor: #3d73c7;
+  --voice-tenor-soft: #eff6ff;
+  --voice-bajo: #2d9c8b;
+  --voice-bajo-soft: #edf9f7;
+  --voice-pending: #c99424;
+  --voice-pending-soft: #fff8e7;
+}
+
+/* "Nueva matrícula" ya es la acción principal del header. */
+.students .students__info {
+  display: none !important;
+}
+
+/* Filtros con identidad cromática por grupo. */
+.students .voice-filters button {
+  transition:
+    transform .22s cubic-bezier(.18,.82,.22,1),
+    border-color .22s ease,
+    background-color .22s ease,
+    color .22s ease,
+    box-shadow .22s ease;
+}
+
+.students .voice-filters button:hover {
+  transform: translateY(-2px);
+}
+
+.students .voice-filters button.active {
+  font-weight: 800;
+}
+
+.students .voice-filters button.voice-filter--all.active {
+  color: #77580f !important;
+  border-color: #e2bd55 !important;
+  background: #fff3cf !important;
+  box-shadow: 0 5px 14px rgba(201,148,36,.12);
+}
+
+.students .voice-filters button.voice-filter--soprano.active {
+  color: var(--voice-soprano) !important;
+  border-color: rgba(167,25,82,.35) !important;
+  background: var(--voice-soprano-soft) !important;
+  box-shadow: 0 5px 14px rgba(167,25,82,.10);
+}
+
+.students .voice-filters button.voice-filter--alto.active {
+  color: var(--voice-alto) !important;
+  border-color: rgba(118,87,215,.35) !important;
+  background: var(--voice-alto-soft) !important;
+  box-shadow: 0 5px 14px rgba(118,87,215,.10);
+}
+
+.students .voice-filters button.voice-filter--tenor.active {
+  color: var(--voice-tenor) !important;
+  border-color: rgba(61,115,199,.35) !important;
+  background: var(--voice-tenor-soft) !important;
+  box-shadow: 0 5px 14px rgba(61,115,199,.10);
+}
+
+.students .voice-filters button.voice-filter--bajo.active {
+  color: var(--voice-bajo) !important;
+  border-color: rgba(45,156,139,.35) !important;
+  background: var(--voice-bajo-soft) !important;
+  box-shadow: 0 5px 14px rgba(45,156,139,.10);
+}
+
+.students .voice-filters button.voice-filter--unclassified.active {
+  color: #8a6912 !important;
+  border-color: #e4ca82 !important;
+  background: var(--voice-pending-soft) !important;
+  box-shadow: 0 5px 14px rgba(201,148,36,.10);
+}
+
+.students .voice-filters button.active span {
+  color: #fff !important;
+  background: currentColor !important;
+}
+
+/* Directorio más limpio. */
+.students .students-directory__header {
+  margin-top: 4px;
+  margin-bottom: 16px;
+  padding-bottom: 13px;
+}
+
+.students .students-directory__header > span {
+  padding: 7px 11px;
+  border: 1px solid #dbe3ec;
+  border-radius: 999px;
+  background: #fff;
+  color: #667085;
+  font-size: .72rem;
+  font-weight: 750;
+}
+
+/* Una línea lateral identifica el grupo sin saturar. */
+.students .student-card {
+  position: relative;
+  border-left: 4px solid var(--card-color, #c99424) !important;
+}
+
+.students .student-card--soprano {
+  --card-color: var(--voice-soprano);
+  --card-soft: var(--voice-soprano-soft);
+}
+
+.students .student-card--alto {
+  --card-color: var(--voice-alto);
+  --card-soft: var(--voice-alto-soft);
+}
+
+.students .student-card--tenor {
+  --card-color: var(--voice-tenor);
+  --card-soft: var(--voice-tenor-soft);
+}
+
+.students .student-card--bajo {
+  --card-color: var(--voice-bajo);
+  --card-soft: var(--voice-bajo-soft);
+}
+
+.students .student-card--unclassified {
+  --card-color: var(--voice-pending);
+  --card-soft: var(--voice-pending-soft);
+}
+
+.students .student-card__voice {
+  color: var(--card-color) !important;
+}
+
+.students .student-card__avatar {
+  color: var(--card-color) !important;
+  border-color: color-mix(in srgb, var(--card-color) 28%, #fff) !important;
+  background: var(--card-soft) !important;
+}
+
+.students .student-card__profile-arrow {
+  color: var(--card-color) !important;
+  border-color: color-mix(in srgb, var(--card-color) 24%, #dbe3ec) !important;
+  background: var(--card-soft) !important;
+}
+
+.students .student-card:hover {
+  border-left-color: var(--card-color) !important;
+}
+
+.students .student-card__admin {
+  background: #fbfcfe !important;
+}
+
+.students .student-card__admin button {
+  min-height: 36px !important;
+  border-radius: 9px !important;
+}
+
+@media (max-width: 720px) {
+  .students .students-directory__header {
+    gap: 9px;
+  }
+
+  .students .student-card {
+    border-left-width: 3px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .students .voice-filters button,
+  .students .student-card {
+    transition: none !important;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   AMV V13 · KAHOOT COLOR CARDS
+   Más color · menos altura · más interacción
+========================================================= */
+
+.students {
+  --voice-soprano: #b51f5b;
+  --voice-soprano-soft: #ffe3ee;
+  --voice-soprano-bg: #fff3f7;
+
+  --voice-alto: #7651d7;
+  --voice-alto-soft: #e8e0ff;
+  --voice-alto-bg: #f7f3ff;
+
+  --voice-tenor: #3675d3;
+  --voice-tenor-soft: #dceaff;
+  --voice-tenor-bg: #f1f7ff;
+
+  --voice-bajo: #229b88;
+  --voice-bajo-soft: #d8f2ed;
+  --voice-bajo-bg: #effaf8;
+
+  --voice-pending: #c99119;
+  --voice-pending-soft: #ffedb7;
+  --voice-pending-bg: #fff9e9;
+}
+
+/* ---------------------------------------------------------
+   FILTROS
+--------------------------------------------------------- */
+
+.students .voice-filters button {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform .22s cubic-bezier(.18,.82,.22,1),
+    border-color .22s ease,
+    background .22s ease,
+    color .22s ease,
+    box-shadow .22s ease;
+}
+
+.students .voice-filters button::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,.72) 50%, transparent 75%);
+  transform: translateX(-120%);
+  transition: transform .55s ease;
+  pointer-events: none;
+}
+
+.students .voice-filters button:hover::after {
+  transform: translateX(120%);
+}
+
+.students .voice-filters button:hover {
+  transform: translateY(-2px);
+}
+
+/* ---------------------------------------------------------
+   DIRECTORIO
+--------------------------------------------------------- */
+
+.students .students-directory__header {
+  margin-top: 5px;
+  margin-bottom: 15px;
+  padding: 0 0 12px;
+}
+
+.students .students-directory__header > span {
+  border-color: #d4ddea;
+  background: #fff;
+  box-shadow: 0 5px 14px rgba(23,32,51,.04);
+}
+
+/* ---------------------------------------------------------
+   TARJETA BASE — AHORA SÍ MÁS PINTADA
+--------------------------------------------------------- */
+
+.students .student-card {
+  --card-color: var(--voice-pending);
+  --card-soft: var(--voice-pending-soft);
+  --card-bg: var(--voice-pending-bg);
+
+  position: relative;
+  overflow: hidden;
+
+  border: 1.5px solid color-mix(in srgb, var(--card-color) 34%, #dbe3ec) !important;
+  border-left: 6px solid var(--card-color) !important;
+  border-radius: 20px !important;
+
+  background:
+    radial-gradient(
+      circle at 92% 12%,
+      color-mix(in srgb, var(--card-soft) 72%, transparent),
+      transparent 30%
+    ),
+    linear-gradient(
+      125deg,
+      var(--card-bg) 0%,
+      #ffffff 64%,
+      color-mix(in srgb, var(--card-bg) 48%, #ffffff) 100%
+    ) !important;
+
+  box-shadow:
+    0 9px 24px color-mix(in srgb, var(--card-color) 8%, rgba(23,32,51,.06)),
+    inset 0 1px 0 rgba(255,255,255,.96);
+
+  transform: translateY(0);
+
+  transition:
+    transform .28s cubic-bezier(.18,.82,.22,1),
+    border-color .25s ease,
+    box-shadow .28s ease,
+    background .28s ease;
+}
+
+/* Franja superior colorida. */
+.students .student-card::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34%;
+  height: 5px;
+  content: "";
+  border-radius: 0 0 8px 0;
+  background: linear-gradient(
+    90deg,
+    var(--card-color),
+    color-mix(in srgb, var(--card-color) 48%, #fff)
+  );
+  opacity: .92;
+  transform: scaleX(1);
+  transform-origin: left;
+  transition: width .35s cubic-bezier(.18,.82,.22,1);
+}
+
+/* Brillo */
+.students .student-card::after {
+  position: absolute;
+  top: -55%;
+  left: -25%;
+  width: 22%;
+  height: 210%;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.62),
+    transparent
+  );
+  transform: rotate(18deg) translateX(-220%);
+  pointer-events: none;
+}
+
+.students .student-card:hover {
+  border-color: color-mix(in srgb, var(--card-color) 62%, #dbe3ec) !important;
+  box-shadow:
+    0 18px 34px color-mix(in srgb, var(--card-color) 15%, rgba(23,32,51,.08)),
+    0 0 0 4px color-mix(in srgb, var(--card-color) 7%, transparent),
+    inset 0 1px 0 rgba(255,255,255,1);
+
+  transform: translateY(-4px);
+}
+
+.students .student-card:hover::before {
+  width: 100%;
+}
+
+.students .student-card:hover::after {
+  animation: amvCardShine .75s ease-out forwards;
+}
+
+.students .student-card:active {
+  transform: translateY(-1px) scale(.992);
+}
+
+/* ---------------------------------------------------------
+   COLORES POR GRUPO
+--------------------------------------------------------- */
+
+.students .student-card--soprano {
+  --card-color: var(--voice-soprano);
+  --card-soft: var(--voice-soprano-soft);
+  --card-bg: var(--voice-soprano-bg);
+}
+
+.students .student-card--alto {
+  --card-color: var(--voice-alto);
+  --card-soft: var(--voice-alto-soft);
+  --card-bg: var(--voice-alto-bg);
+}
+
+.students .student-card--tenor {
+  --card-color: var(--voice-tenor);
+  --card-soft: var(--voice-tenor-soft);
+  --card-bg: var(--voice-tenor-bg);
+}
+
+.students .student-card--bajo {
+  --card-color: var(--voice-bajo);
+  --card-soft: var(--voice-bajo-soft);
+  --card-bg: var(--voice-bajo-bg);
+}
+
+.students .student-card--unclassified {
+  --card-color: var(--voice-pending);
+  --card-soft: var(--voice-pending-soft);
+  --card-bg: var(--voice-pending-bg);
+}
+
+/* ---------------------------------------------------------
+   HEADER / IDENTIDAD
+--------------------------------------------------------- */
+
+.students .student-card__header {
+  position: relative;
+  z-index: 2;
+  min-height: 92px;
+  padding: 17px 18px 13px !important;
+}
+
+.students .student-card__avatar {
+  width: 56px !important;
+  height: 56px !important;
+  flex: 0 0 56px;
+
+  border: 2px solid color-mix(in srgb, var(--card-color) 34%, #fff) !important;
+  border-radius: 17px !important;
+
+  color: #fff !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--card-color) 92%, #fff),
+      color-mix(in srgb, var(--card-color) 62%, #fff)
+    ) !important;
+
+  box-shadow:
+    0 8px 18px color-mix(in srgb, var(--card-color) 18%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.6);
+
+  transition:
+    transform .3s cubic-bezier(.17,1.3,.35,1),
+    box-shadow .3s ease;
+}
+
+.students .student-card:hover .student-card__avatar {
+  transform: scale(1.08) rotate(-2deg);
+  box-shadow:
+    0 12px 24px color-mix(in srgb, var(--card-color) 25%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+.students .student-card__voice {
+  display: inline-flex !important;
+  width: fit-content;
+
+  margin-bottom: 4px !important;
+  padding: 4px 8px !important;
+
+  border: 1px solid color-mix(in srgb, var(--card-color) 25%, #fff) !important;
+  border-radius: 999px !important;
+
+  color: var(--card-color) !important;
+  background: color-mix(in srgb, var(--card-soft) 82%, #fff) !important;
+
+  font-size: .54rem !important;
+  font-weight: 950 !important;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.students .student-card__identity h3 {
+  margin: 0 !important;
+  color: #172033 !important;
+  font-size: clamp(1rem, 1.5vw, 1.16rem) !important;
+  font-weight: 850 !important;
+  letter-spacing: -.025em;
+}
+
+/* ---------------------------------------------------------
+   META COMPACTA
+--------------------------------------------------------- */
+
+.students .student-card__meta {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  min-height: 42px;
+
+  padding: 9px 18px !important;
+
+  border-top: 1px solid color-mix(in srgb, var(--card-color) 12%, #e5eaf0);
+  border-bottom: 1px solid color-mix(in srgb, var(--card-color) 10%, #e5eaf0);
+
+  background: color-mix(in srgb, var(--card-soft) 42%, #f8fafc) !important;
+}
+
+.students .student-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 5px 9px;
+
+  border: 1px solid color-mix(in srgb, var(--card-color) 16%, #dbe3ec);
+  border-radius: 999px;
+
+  color: var(--card-color);
+
+  background: rgba(255,255,255,.62);
+
+  font-size: .63rem;
+  font-weight: 800;
+}
+
+.students .student-card__meta-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--card-color);
+}
+
+.students .student-card__meta-item--active {
+  color: #247b59;
+  border-color: rgba(45,138,99,.18);
+}
+
+.students .student-card__meta-status {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2d8a63;
+  box-shadow: 0 0 0 3px rgba(45,138,99,.08);
+}
+
+.students .student-card__meta-hint {
+  margin-left: auto;
+  color: #8792a3;
+  font-size: .61rem;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------
+   FLECHA
+--------------------------------------------------------- */
+
+.students .student-card__profile-arrow {
+  position: relative;
+  z-index: 4;
+
+  width: 43px !important;
+  height: 43px !important;
+  flex: 0 0 43px;
+
+  border: 1.5px solid color-mix(in srgb, var(--card-color) 30%, #dbe3ec) !important;
+  border-radius: 14px !important;
+
+  color: var(--card-color) !important;
+  background: color-mix(in srgb, var(--card-soft) 72%, #fff) !important;
+
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--card-color) 8%, transparent);
+
+  transition:
+    transform .28s cubic-bezier(.17,1.3,.35,1),
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.students .student-card:hover .student-card__profile-arrow {
+  transform: translateX(5px) scale(1.05);
+  background: #fff !important;
+  box-shadow: 0 8px 17px color-mix(in srgb, var(--card-color) 16%, transparent);
+}
+
+/* ---------------------------------------------------------
+   ADMIN COMPACTO
+--------------------------------------------------------- */
+
+.students .student-card__admin {
+  position: relative;
+  z-index: 5;
+
+  min-height: 44px;
+
+  gap: 7px !important;
+  padding: 7px 12px !important;
+
+  border-top: 0 !important;
+
+  background: rgba(255,255,255,.56) !important;
+  opacity: .78;
+
+  transition: opacity .22s ease, background .22s ease;
+}
+
+.students .student-card:hover .student-card__admin {
+  opacity: 1;
+  background: rgba(255,255,255,.78) !important;
+}
+
+.students .student-card__admin-label {
+  margin-right: auto;
+  color: #a0a9b7;
+  font-size: .56rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.students .student-card__admin button {
+  min-height: 31px !important;
+  padding: 5px 9px !important;
+  border-radius: 8px !important;
+}
+
+/* ---------------------------------------------------------
+   ENTRADA ESCALONADA
+--------------------------------------------------------- */
+
+.students .student-card {
+  animation: amvCardEnter .45s cubic-bezier(.18,.82,.22,1) both;
+}
+
+.students .student-card:nth-child(1) { animation-delay: .02s; }
+.students .student-card:nth-child(2) { animation-delay: .05s; }
+.students .student-card:nth-child(3) { animation-delay: .08s; }
+.students .student-card:nth-child(4) { animation-delay: .11s; }
+.students .student-card:nth-child(5) { animation-delay: .14s; }
+.students .student-card:nth-child(6) { animation-delay: .17s; }
+.students .student-card:nth-child(7) { animation-delay: .20s; }
+.students .student-card:nth-child(8) { animation-delay: .23s; }
+
+/* ---------------------------------------------------------
+   MOBILE
+--------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .students .student-card {
+    border-left-width: 5px !important;
+    border-radius: 17px !important;
+  }
+
+  .students .student-card__header {
+    min-height: 82px;
+    gap: 10px !important;
+    padding: 14px 13px 10px !important;
+  }
+
+  .students .student-card__avatar {
+    width: 50px !important;
+    height: 50px !important;
+    flex-basis: 50px;
+  }
+
+  .students .student-card__profile-arrow {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px;
+  }
+
+  .students .student-card__meta {
+    flex-wrap: wrap;
+    padding: 8px 13px !important;
+  }
+
+  .students .student-card__meta-hint {
+    display: none;
+  }
+
+  .students .student-card__admin-label {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------
+   MOTION ACCESSIBILITY
+--------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .students .student-card,
+  .students .student-card::after,
+  .students .student-card__avatar,
+  .students .student-card__profile-arrow,
+  .students .voice-filters button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes amvCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes amvCardShine {
+  from {
+    transform: rotate(18deg) translateX(-220%);
+  }
+  to {
+    transform: rotate(18deg) translateX(680%);
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   AMV V14 · FILTROS COLOR + GLOW
+   Sin badges negros · selección por resplandor dorado
+========================================================= */
+
+/* ---------------------------------------------------------
+   CONTADORES: dejan de ser negros.
+   Cada grupo usa su propio color.
+--------------------------------------------------------- */
+
+.students .voice-filters button {
+  --filter-color: #64748b;
+  --filter-soft: #f8fafc;
+}
+
+.students .voice-filters button.voice-filter--all {
+  --filter-color: #c99119;
+  --filter-soft: #fff4d3;
+}
+
+.students .voice-filters button.voice-filter--soprano {
+  --filter-color: #b51f5b;
+  --filter-soft: #ffe3ee;
+}
+
+.students .voice-filters button.voice-filter--alto {
+  --filter-color: #7651d7;
+  --filter-soft: #e8e0ff;
+}
+
+.students .voice-filters button.voice-filter--tenor {
+  --filter-color: #3675d3;
+  --filter-soft: #dceaff;
+}
+
+.students .voice-filters button.voice-filter--bajo {
+  --filter-color: #229b88;
+  --filter-soft: #d8f2ed;
+}
+
+.students .voice-filters button.voice-filter--unclassified {
+  --filter-color: #c99119;
+  --filter-soft: #ffedb7;
+}
+
+/* El círculo del contador hereda el color del grupo. */
+.students .voice-filters button span {
+  color: var(--filter-color) !important;
+  background: var(--filter-soft) !important;
+
+  border: 1px solid
+    color-mix(in srgb, var(--filter-color) 28%, #fff) !important;
+
+  box-shadow:
+    0 2px 6px
+      color-mix(
+        in srgb,
+        var(--filter-color) 10%,
+        transparent
+      );
+
+  transition:
+    transform .22s cubic-bezier(.17,1.3,.35,1),
+    color .22s ease,
+    background .22s ease,
+    box-shadow .22s ease;
+}
+
+/* Al pasar por encima, el contador cobra vida. */
+.students .voice-filters button:hover span {
+  transform: scale(1.08);
+}
+
+/* ---------------------------------------------------------
+   BOTÓN SELECCIONADO:
+   NO se pinta amarillo sólido.
+   Queda limpio + borde dorado + glow.
+--------------------------------------------------------- */
+
+.students .voice-filters button.active {
+  position: relative;
+
+  color: #6e5313 !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fffdf7 100%
+    ) !important;
+
+  border-color: #e2b93f !important;
+
+  box-shadow:
+    0 0 0 3px rgba(226,185,63,.12),
+    0 0 22px rgba(226,185,63,.20),
+    0 7px 16px rgba(201,145,25,.10);
+
+  transform: translateY(-1px);
+}
+
+/* Pequeño halo animado alrededor del seleccionado. */
+.students .voice-filters button.active::before {
+  position: absolute;
+  inset: -2px;
+
+  content: "";
+
+  border-radius: inherit;
+
+  border: 1px solid rgba(226,185,63,.35);
+
+  opacity: .75;
+
+  animation: amvFilterGlow 2.1s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+/* El contador seleccionado también deja de verse negro. */
+.students .voice-filters button.active span {
+  color: #8a6610 !important;
+
+  background: #fff1bd !important;
+
+  border-color: #e4bd55 !important;
+
+  box-shadow:
+    0 0 0 3px rgba(226,185,63,.10),
+    0 0 10px rgba(226,185,63,.16);
+}
+
+/* ---------------------------------------------------------
+   HOVER DE CADA GRUPO
+--------------------------------------------------------- */
+
+.students .voice-filters button.voice-filter--soprano:hover,
+.students .voice-filters button.voice-filter--soprano.active {
+  border-color: #c23b70 !important;
+  box-shadow:
+    0 0 0 3px rgba(181,31,91,.08),
+    0 0 20px rgba(181,31,91,.14);
+}
+
+.students .voice-filters button.voice-filter--alto:hover,
+.students .voice-filters button.voice-filter--alto.active {
+  border-color: #8768e0 !important;
+  box-shadow:
+    0 0 0 3px rgba(118,81,215,.08),
+    0 0 20px rgba(118,81,215,.14);
+}
+
+.students .voice-filters button.voice-filter--tenor:hover,
+.students .voice-filters button.voice-filter--tenor.active {
+  border-color: #4e89df !important;
+  box-shadow:
+    0 0 0 3px rgba(54,117,211,.08),
+    0 0 20px rgba(54,117,211,.14);
+}
+
+.students .voice-filters button.voice-filter--bajo:hover,
+.students .voice-filters button.voice-filter--bajo.active {
+  border-color: #37ad9b !important;
+  box-shadow:
+    0 0 0 3px rgba(34,155,136,.08),
+    0 0 20px rgba(34,155,136,.14);
+}
+
+/* Pero la selección principal sigue teniendo un halo dorado:
+   es la acción de selección del directorio. */
+.students .voice-filters button.active {
+  box-shadow:
+    0 0 0 3px rgba(226,185,63,.12),
+    0 0 22px rgba(226,185,63,.20),
+    0 7px 16px rgba(201,145,25,.10) !important;
+}
+
+@keyframes amvFilterGlow {
+  0%,
+  100% {
+    opacity: .35;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: .9;
+    transform: scale(1.018);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .students .voice-filters button.active::before {
+    animation: none !important;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   AMV V15 · GLASS CARDS
+   Vidrio + gloss + color de grupo estable
+========================================================= */
+
+/* ---------------------------------------------------------
+   TARJETAS GLASS
+   El color sigue siendo el del grupo, pero ahora vive
+   dentro de una superficie translúcida.
+--------------------------------------------------------- */
+
+.students .student-card {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.90) 0%,
+      color-mix(in srgb, var(--card-soft) 58%, rgba(255,255,255,.82)) 48%,
+      rgba(255,255,255,.74) 100%
+    ) !important;
+
+  border-color:
+    color-mix(in srgb, var(--card-color) 42%, rgba(255,255,255,.8))
+    !important;
+
+  box-shadow:
+    0 12px 30px rgba(24,32,50,.07),
+    0 2px 7px color-mix(in srgb, var(--card-color) 9%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.96),
+    inset 0 -1px 0 rgba(255,255,255,.30);
+
+  backdrop-filter: blur(16px) saturate(125%);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+}
+
+/* Brillo de vidrio permanente, muy suave. */
+.students .student-card .student-card__header {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.30),
+      rgba(255,255,255,0)
+    ) !important;
+}
+
+/* Reflejo diagonal tipo gloss. */
+.students .student-card::after {
+  top: -85%;
+  left: -35%;
+  width: 28%;
+  height: 270%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,.08) 28%,
+      rgba(255,255,255,.72) 50%,
+      rgba(255,255,255,.08) 72%,
+      transparent 100%
+    );
+
+  filter: blur(.2px);
+  opacity: .55;
+  transform: rotate(20deg) translateX(-260%);
+}
+
+.students .student-card:hover {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.96) 0%,
+      color-mix(in srgb, var(--card-soft) 68%, rgba(255,255,255,.92)) 48%,
+      rgba(255,255,255,.82) 100%
+    ) !important;
+
+  box-shadow:
+    0 20px 42px color-mix(in srgb, var(--card-color) 13%, rgba(24,32,50,.09)),
+    0 0 0 4px color-mix(in srgb, var(--card-color) 6%, transparent),
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -1px 0 rgba(255,255,255,.45);
+}
+
+/* ---------------------------------------------------------
+   AVATAR: color estable.
+   Evita que :active/focus lo transforme a amarillo.
+--------------------------------------------------------- */
+
+.students .student-card__avatar,
+.students .student-card__avatar:hover,
+.students .student-card__avatar:focus,
+.students .student-card__avatar:active {
+  color: #fff !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--card-color) 92%, #fff),
+      color-mix(in srgb, var(--card-color) 60%, #fff)
+    ) !important;
+
+  border-color:
+    color-mix(in srgb, var(--card-color) 38%, #fff)
+    !important;
+
+  box-shadow:
+    0 8px 20px color-mix(in srgb, var(--card-color) 20%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.72),
+    inset 0 -1px 0 rgba(0,0,0,.04) !important;
+}
+
+/* El avatar puede iluminarse, pero NO cambia de grupo/color. */
+.students .student-card:hover .student-card__avatar {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--card-color) 96%, #fff),
+      color-mix(in srgb, var(--card-color) 68%, #fff)
+    ) !important;
+}
+
+/* ---------------------------------------------------------
+   META: también vidrio.
+--------------------------------------------------------- */
+
+.students .student-card__meta {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.48),
+      rgba(255,255,255,.22)
+    ) !important;
+
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+/* ---------------------------------------------------------
+   FLECHA: cristal coloreado.
+--------------------------------------------------------- */
+
+.students .student-card__profile-arrow {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.76),
+      color-mix(in srgb, var(--card-soft) 62%, rgba(255,255,255,.65))
+    ) !important;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  box-shadow:
+    0 7px 16px color-mix(in srgb, var(--card-color) 12%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+/* ---------------------------------------------------------
+   BADGE VOCAL: glass pill.
+--------------------------------------------------------- */
+
+.students .student-card__voice {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.70),
+      color-mix(in srgb, var(--card-soft) 54%, rgba(255,255,255,.62))
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.82);
+}
+
+/* ---------------------------------------------------------
+   ESTADOS DE CLICK / FOCUS
+   Nada amarillo inesperado en la tarjeta.
+--------------------------------------------------------- */
+
+.students .student-card:active,
+.students .student-card:focus,
+.students .student-card:focus-within {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.92),
+      color-mix(in srgb, var(--card-soft) 58%, rgba(255,255,255,.86))
+    ) !important;
+}
+
+/* El dorado queda reservado para la selección de filtros,
+   no para pintar al alumno. */
+.students .student-card:active .student-card__avatar,
+.students .student-card:focus .student-card__avatar,
+.students .student-card:focus-within .student-card__avatar {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--card-color) 94%, #fff),
+      color-mix(in srgb, var(--card-color) 64%, #fff)
+    ) !important;
+}
+
+/* ---------------------------------------------------------
+   FALLBACK si backdrop-filter no está disponible.
+--------------------------------------------------------- */
+
+@supports not ((backdrop-filter: blur(10px))) {
+  .students .student-card {
+    background:
+      linear-gradient(
+        135deg,
+        #fff,
+        var(--card-bg)
+      ) !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   REDUCED MOTION
+--------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .students .student-card::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+</style>
+
+
+<style lang="scss" scoped>
+/* =========================================================
+   AMV V17 · MODAL CENTRADO REAL
+   Teleport al body + centrado respecto al viewport completo.
+========================================================= */
+
+.students-modal {
+  position: fixed !important;
+  inset: 0 !important;
+
+  z-index: 99999 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+
+  box-sizing: border-box !important;
+
+  padding:
+    28px
+    clamp(16px, 3vw, 36px) !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  background:
+    rgba(15, 23, 42, .48) !important;
+
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+
+  overscroll-behavior: contain;
+}
+
+/*
+ * El modal queda siempre en el centro de la ventana.
+ * Si alguna ventana es demasiado pequeña, la tarjeta puede
+ * hacer scroll internamente sin perder el centrado.
+ */
+.students-modal__card {
+  position: relative !important;
+
+  width:
+    min(560px, calc(100vw - 32px)) !important;
+
+  max-height:
+    calc(100dvh - 56px) !important;
+
+  margin: auto !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  box-sizing: border-box !important;
+
+  flex: 0 1 auto !important;
+}
+
+/* El formulario de edición mantiene exactamente el mismo
+   comportamiento que los otros dos modales. */
+.students-edit-modal {
+  margin: auto !important;
+}
+
+/* En pantallas pequeñas conservamos el centro. */
+@media (max-width: 700px) {
+  .students-modal {
+    padding:
+      18px 12px !important;
+  }
+
+  .students-modal__card {
+    width:
+      min(100%, calc(100vw - 24px)) !important;
+
+    max-height:
+      calc(100dvh - 36px) !important;
+
+    border-radius: 22px !important;
+  }
+}
+
+/* Animación: entra desde el centro, no desde abajo. */
+.modal-enter-active .students-modal__card,
+.modal-leave-active .students-modal__card {
+  transition:
+    transform .24s cubic-bezier(.18,.82,.22,1),
+    opacity .2s ease;
+}
+
+.modal-enter-from .students-modal__card,
+.modal-leave-to .students-modal__card {
+  opacity: 0;
+  transform: scale(.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-enter-active .students-modal__card,
+  .modal-leave-active .students-modal__card {
+    transition: none !important;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+/* =========================================================
+   AMV V18 · MODAL KAHOOT + BOTONES PREMIUM
+   Nota: los modales viven en <body> mediante Teleport,
+   por eso estos estilos NO dependen de .students.
+========================================================= */
+
+.students-modal__card {
+  width: min(590px, calc(100vw - 32px)) !important;
+  padding: 34px !important;
+
+  border: 1px solid rgba(255,255,255,.92) !important;
+  border-radius: 28px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.98) 0%,
+      rgba(255,252,246,.96) 48%,
+      rgba(255,255,255,.98) 100%
+    ) !important;
+
+  box-shadow:
+    0 30px 90px rgba(15,23,42,.22),
+    0 8px 28px rgba(159,25,69,.10),
+    inset 0 1px 0 rgba(255,255,255,1) !important;
+
+  overflow: hidden !important;
+}
+
+/* Franja superior AMV. */
+.students-modal__card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #9f1945 0%,
+      #d9a91d 50%,
+      #9f1945 100%
+    );
+
+  opacity: .95;
+}
+
+/* Gloss diagonal */
+.students-modal__card::after {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -150px;
+
+  width: 330px;
+  height: 220px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,255,255,.85) 0%,
+      rgba(255,255,255,0) 68%
+    );
+
+  pointer-events: none;
+}
+
+/* Close */
+.students-modal__close {
+  z-index: 2;
+
+  width: 38px !important;
+  height: 38px !important;
+
+  border: 1px solid #e4e9f0 !important;
+  border-radius: 12px !important;
+
+  color: #7b8798 !important;
+  background: rgba(255,255,255,.82) !important;
+
+  box-shadow:
+    0 5px 14px rgba(23,32,51,.06),
+    inset 0 1px 0 rgba(255,255,255,.9);
+
+  transition:
+    transform .2s ease,
+    color .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease !important;
+}
+
+.students-modal__close:hover {
+  color: #9f1945 !important;
+  border-color: #e3b4c7 !important;
+  background: #fff5f8 !important;
+  transform: rotate(4deg) scale(1.05) !important;
+  box-shadow:
+    0 8px 20px rgba(159,25,69,.12),
+    0 0 0 4px rgba(159,25,69,.06) !important;
+}
+
+/* Icon */
+.students-modal__icon {
+  position: relative;
+  z-index: 1;
+
+  width: 58px !important;
+  height: 58px !important;
+
+  margin-bottom: 18px !important;
+
+  border: 1px solid #efdca0 !important;
+  border-radius: 18px !important;
+
+  color: #a47708 !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff8dc,
+      #ffefbd
+    ) !important;
+
+  box-shadow:
+    0 10px 24px rgba(201,145,25,.15),
+    inset 0 1px 0 rgba(255,255,255,.9) !important;
+
+  transform: rotate(-3deg);
+}
+
+.students-modal__icon::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+
+  border: 1px solid rgba(255,255,255,.75);
+  border-radius: 14px;
+}
+
+/* Titles */
+.students-modal__eyebrow {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 7px !important;
+
+  color: #c08a15 !important;
+  font-size: .72rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .14em !important;
+}
+
+.students-modal__card h2 {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 12px !important;
+
+  color: #172033 !important;
+  font-size: clamp(2rem, 5vw, 2.65rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.045em !important;
+}
+
+.students-modal__lead {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 24px !important;
+
+  color: #667085 !important;
+  font-size: .92rem !important;
+  line-height: 1.65 !important;
+}
+
+.students-modal__lead strong {
+  color: #9f1945 !important;
+  font-weight: 800 !important;
+}
+
+/* =========================================================
+   FORMULARIO DE EDICIÓN
+========================================================= */
+
+.student-edit-form {
+  position: relative;
+  z-index: 1;
+
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.student-edit-form > label:not(.student-edit-switch) {
+  display: grid !important;
+  gap: 7px !important;
+}
+
+.student-edit-form > label > span {
+  color: #344054 !important;
+  font-size: .73rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .01em;
+}
+
+.student-edit-form input[type="text"],
+.student-edit-form select {
+  width: 100% !important;
+  min-height: 50px !important;
+
+  box-sizing: border-box !important;
+
+  padding: 0 14px !important;
+
+  border: 1px solid #dce3eb !important;
+  border-radius: 14px !important;
+
+  outline: none !important;
+
+  color: #172033 !important;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #fbfcfe
+    ) !important;
+
+  font-size: .94rem !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    0 3px 10px rgba(23,32,51,.025) !important;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease,
+    transform .2s ease !important;
+}
+
+.student-edit-form input[type="text"]:hover,
+.student-edit-form select:hover {
+  border-color: #c7d1df !important;
+}
+
+.student-edit-form input[type="text"]:focus,
+.student-edit-form select:focus {
+  border-color: #c99b2b !important;
+
+  box-shadow:
+    0 0 0 4px rgba(201,155,43,.10),
+    0 8px 18px rgba(201,155,43,.06) !important;
+
+  transform: translateY(-1px);
+}
+
+/* Checkbox como control AMV */
+.student-edit-switch {
+  display: grid !important;
+  grid-template-columns: 22px 1fr !important;
+  align-items: center !important;
+  gap: 11px !important;
+
+  padding: 14px 15px !important;
+
+  border: 1px solid #e5ebf1 !important;
+  border-radius: 15px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fafc,
+      #ffffff
+    ) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+.student-edit-switch input {
+  width: 19px !important;
+  height: 19px !important;
+
+  margin: 0 !important;
+
+  accent-color: #9f1945 !important;
+}
+
+.student-edit-switch strong {
+  display: block;
+  color: #263449 !important;
+  font-size: .76rem !important;
+  font-weight: 800 !important;
+}
+
+.student-edit-switch small {
+  display: block;
+  margin-top: 3px;
+  color: #7b8798 !important;
+  font-size: .65rem !important;
+}
+
+/* =========================================================
+   BOTONES DEL MODAL
+========================================================= */
+
+.students-modal__actions {
+  position: relative;
+  z-index: 1;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+
+  gap: 10px !important;
+
+  margin-top: 8px;
+}
+
+.modal-button {
+  position: relative;
+
+  min-height: 46px !important;
+
+  padding: 0 18px !important;
+
+  border-radius: 13px !important;
+
+  font-size: .78rem !important;
+  font-weight: 800 !important;
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  transition:
+    transform .2s cubic-bezier(.2,.8,.2,1),
+    box-shadow .2s ease,
+    border-color .2s ease,
+    background .2s ease !important;
+}
+
+.modal-button::before {
+  content: "";
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+  left: -70%;
+
+  width: 42%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.65),
+      transparent
+    );
+
+  transform: skewX(-18deg);
+  transition: left .45s ease;
+
+  pointer-events: none;
+}
+
+.modal-button:hover::before {
+  left: 130%;
+}
+
+.modal-button:not(:disabled):hover {
+  transform: translateY(-2px) !important;
+}
+
+.modal-button:not(:disabled):active {
+  transform: translateY(0) scale(.98) !important;
+}
+
+.modal-button--secondary {
+  border: 1px solid #dce3eb !important;
+
+  color: #596579 !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #f8fafc
+    ) !important;
+
+  box-shadow:
+    0 5px 14px rgba(23,32,51,.05) !important;
+}
+
+.modal-button--secondary:hover {
+  border-color: #c7d1df !important;
+  color: #344054 !important;
+  box-shadow:
+    0 9px 20px rgba(23,32,51,.08) !important;
+}
+
+.modal-button--edit {
+  border: 1px solid #9f1945 !important;
+
+  color: #fff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #b51f5b,
+      #8f173f
+    ) !important;
+
+  box-shadow:
+    0 10px 24px rgba(159,25,69,.22),
+    inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+.modal-button--edit:hover {
+  box-shadow:
+    0 14px 30px rgba(159,25,69,.30),
+    0 0 0 4px rgba(159,25,69,.08) !important;
+}
+
+.modal-button--warning {
+  border: 1px solid #d5a52b !important;
+
+  color: #76590e !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff7dc,
+      #ffefbd
+    ) !important;
+
+  box-shadow:
+    0 8px 20px rgba(201,145,25,.14) !important;
+}
+
+.modal-button--danger {
+  border: 1px solid #c94a5b !important;
+
+  color: #fff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #c94a5b,
+      #a82f42
+    ) !important;
+
+  box-shadow:
+    0 10px 24px rgba(190,72,86,.20) !important;
+}
+
+/* Notice boxes */
+.students-modal__notice {
+  position: relative;
+  z-index: 1;
+
+  border-radius: 16px !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+
+.students-modal__confirmation {
+  position: relative;
+  z-index: 1;
+}
+
+.students-modal__confirmation > span {
+  color: #667085 !important;
+}
+
+/* Modal danger title */
+.students-modal__eyebrow--danger {
+  color: #be4856 !important;
+}
+
+/* =========================================================
+   TARJETA DE ALUMNO · BOTONES DE GESTIÓN
+========================================================= */
+
+.student-card__admin,
+.student-card__delete {
+  position: relative;
+
+  min-height: 38px !important;
+
+  padding: 0 13px !important;
+
+  border-radius: 11px !important;
+
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+
+  overflow: hidden;
+
+  transition:
+    transform .2s cubic-bezier(.2,.8,.2,1),
+    box-shadow .2s ease,
+    background .2s ease,
+    border-color .2s ease !important;
+}
+
+.student-card__admin {
+  border: 1px solid #e4bf58 !important;
+
+  color: #795c13 !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffaf0,
+      #fff3d2
+    ) !important;
+
+  box-shadow:
+    0 5px 13px rgba(201,145,25,.10) !important;
+}
+
+.student-card__admin:hover {
+  color: #684d0a !important;
+  border-color: #d5a52b !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffdf7,
+      #ffefc1
+    ) !important;
+
+  box-shadow:
+    0 9px 20px rgba(201,145,25,.17),
+    0 0 0 4px rgba(201,145,25,.07) !important;
+
+  transform: translateY(-2px) !important;
+}
+
+.student-card__delete {
+  border: 1px solid #dce3eb !important;
+
+  color: #b42318 !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #fffafa
+    ) !important;
+}
+
+.student-card__delete:hover {
+  border-color: #e6a5ad !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffafa,
+      #fff1f2
+    ) !important;
+
+  box-shadow:
+    0 8px 18px rgba(190,72,86,.10),
+    0 0 0 4px rgba(190,72,86,.05) !important;
+
+  transform: translateY(-2px) !important;
+}
+
+/* Desactivar como acción secundaria elegante */
+.student-card__deactivate {
+  min-height: 38px !important;
+  padding: 0 12px !important;
+
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+
+  color: #7b8798 !important;
+  background: transparent !important;
+
+  font-size: .68rem !important;
+  font-weight: 750 !important;
+
+  transition:
+    color .2s ease,
+    background .2s ease,
+    transform .2s ease !important;
+}
+
+.student-card__deactivate:hover {
+  color: #76590e !important;
+  background: #fff8e7 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* =========================================================
+   FLECHA DE PERFIL
+========================================================= */
+
+.student-card__profile-arrow {
+  width: 42px !important;
+  height: 42px !important;
+
+  border-radius: 13px !important;
+
+  box-shadow:
+    0 7px 18px rgba(159,25,69,.10),
+    inset 0 1px 0 rgba(255,255,255,.9) !important;
+
+  transition:
+    transform .22s cubic-bezier(.2,.8,.2,1),
+    box-shadow .22s ease,
+    filter .22s ease !important;
+}
+
+.student-card:hover .student-card__profile-arrow {
+  transform: translateX(4px) scale(1.04) !important;
+
+  box-shadow:
+    0 11px 24px rgba(159,25,69,.15),
+    0 0 0 4px rgba(159,25,69,.055),
+    inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .students-modal__card {
+    width: min(100%, calc(100vw - 24px)) !important;
+    padding: 26px 20px !important;
+    border-radius: 22px !important;
+  }
+
+  .students-modal__card h2 {
+    font-size: 2rem !important;
+  }
+
+  .students-modal__actions {
+    flex-wrap: wrap !important;
+  }
+
+  .modal-button {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .students-modal__card *,
+  .student-card__admin,
+  .student-card__delete,
+  .student-card__deactivate,
+  .student-card__profile-arrow {
+    transition: none !important;
+  }
+
+  .modal-button::before {
+    display: none !important;
+  }
+}
+</style>
