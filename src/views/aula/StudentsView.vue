@@ -1,12 +1,12 @@
-<template>
-  <section class="students amv-view-shell">
+﻿<template>
+  <section class="students">
     <!-- =====================================================
          HEADER
     ====================================================== -->
     <header class="students__header">
       <div class="students__header-copy">
         <p class="students__eyebrow">
-          Profesor · Aula Virtual
+          Profesor Â· Aula Virtual
         </p>
 
         <h1>
@@ -14,7 +14,7 @@
         </h1>
 
         <p class="students__description">
-          Gestiona la matrícula, clasificación vocal
+          Gestiona la matrÃ­cula, clasificaciÃ³n vocal
           y acceso de tus estudiantes.
         </p>
       </div>
@@ -25,7 +25,7 @@
         @click="goToInscriptions"
       >
         <span aria-hidden="true">+</span>
-        Nueva matrícula
+        Nueva matrÃ­cula
       </button>
     </header>
 
@@ -46,7 +46,7 @@
         </strong>
 
         <p>
-          Estamos sincronizando la matrícula.
+          Estamos sincronizando la matrÃ­cula.
         </p>
       </div>
     </section>
@@ -83,272 +83,24 @@
     </section>
 
     <template v-else>
-      <!-- =====================================================
-           RESUMEN
-      ====================================================== -->
-      <section
-        class="students__summary"
-        aria-label="Resumen de estudiantes"
-       v-show="isStudentsTab('resumen')">
-        <article class="summary-card summary-card--main">
-          <span>
-            Estudiantes
-          </span>
-
-          <strong>
-            {{ students.length }}
-          </strong>
-
-          <small>
-            matrícula activa
-          </small>
-        </article>
-
-        <article>
-          <span>
-            Sopranos
-          </span>
-
-          <strong>
-            {{ sopranoStudents.length }}
-          </strong>
-
-          <small>
-            clasificación S
-          </small>
-        </article>
-
-        <article>
-          <span>
-            Altos
-          </span>
-
-          <strong>
-            {{ altoStudents.length }}
-          </strong>
-
-          <small>
-            clasificación A
-          </small>
-        </article>
-
-        <article>
-          <span>
-            Tenores
-          </span>
-
-          <strong>
-            {{ tenorStudents.length }}
-          </strong>
-
-          <small>
-            clasificación T
-          </small>
-        </article>
-
-        <article>
-          <span>
-            Bajos
-          </span>
-
-          <strong>
-            {{ bassStudents.length }}
-          </strong>
-
-          <small>
-            clasificación B
-          </small>
-        </article>
-      </section>
-
-      <!-- =====================================================
-           NAVEGACIÓN CONTEXTUAL · V10
-      ====================================================== -->
-      <nav
-        v-if="students.length > 0"
-        class="students-context-nav"
-        aria-label="Secciones de estudiantes"
-      >
-        <button
-          type="button"
-          :class="{ 'is-active': isStudentsTab('resumen') }"
-          @click="setStudentsTab('resumen')"
-        >
-          <span>01</span>
-          Resumen
-        </button>
-
-        <button
-          type="button"
-          :class="{ 'is-active': isStudentsTab('directorio') }"
-          @click="setStudentsTab('directorio')"
-        >
-          <span>02</span>
-          Directorio
-          <small>{{ students.length }}</small>
-        </button>
-
-        <button
-          type="button"
-          :class="{ 'is-active': isStudentsTab('voces') }"
-          @click="setStudentsTab('voces')"
-        >
-          <span>03</span>
-          Voces
-        </button>
-      </nav>
-
-      <section
-        v-if="students.length > 0 && isStudentsTab('resumen')"
-        class="students-overview"
-      >
-        <header class="students-overview__header">
-          <div>
-            <span>DIRECTORIO ACADÉMICO</span>
-            <h2>Resumen de estudiantes</h2>
-            <p>
-              Consulta la composición del grupo y entra rápidamente
-              al directorio o a la distribución vocal.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            @click="goToInscriptions"
-          >
-            + Nueva matrícula
-          </button>
-        </header>
-
-        <div class="students-overview__actions">
-          <button
-            type="button"
-            @click="setStudentsTab('directorio')"
-          >
-            <span>DIRECTORIO</span>
-            <strong>{{ students.length }}</strong>
-            <small>estudiantes activos</small>
-            <b>Explorar estudiantes →</b>
-          </button>
-
-          <button
-            type="button"
-            @click="setStudentsTab('voces')"
-          >
-            <span>CLASIFICACIÓN VOCAL</span>
-            <strong>
-              {{ students.length - unclassifiedStudents.length }}
-            </strong>
-            <small>
-              {{
-                unclassifiedStudents.length
-                  ? `${unclassifiedStudents.length} pendientes de clasificar`
-                  : 'todos clasificados'
-              }}
-            </small>
-            <b>Ver distribución →</b>
-          </button>
-
-          <button
-            type="button"
-            @click="goToInscriptions"
-          >
-            <span>MATRÍCULA</span>
-            <strong>+</strong>
-            <small>incorporar un nuevo estudiante</small>
-            <b>Abrir inscripciones →</b>
-          </button>
-        </div>
-      </section>
-
-      <section
-        v-if="students.length > 0 && isStudentsTab('voces')"
-        class="students-voices-panel"
-      >
-        <header>
-          <div>
-            <span>MAPA DEL GRUPO</span>
-            <h2>Distribución vocal</h2>
-            <p>
-              Vista rápida de las clasificaciones registradas
-              actualmente en el aula.
-            </p>
-          </div>
-        </header>
-
-        <div class="students-voices-grid">
-          <button type="button" @click="selectedVoice = 'Soprano'; setStudentsTab('directorio')">
-            <span>S</span>
-            <strong>{{ sopranoStudents.length }}</strong>
-            <small>Sopranos</small>
-          </button>
-
-          <button type="button" @click="selectedVoice = 'Alto'; setStudentsTab('directorio')">
-            <span>A</span>
-            <strong>{{ altoStudents.length }}</strong>
-            <small>Altos</small>
-          </button>
-
-          <button type="button" @click="selectedVoice = 'Tenor'; setStudentsTab('directorio')">
-            <span>T</span>
-            <strong>{{ tenorStudents.length }}</strong>
-            <small>Tenores</small>
-          </button>
-
-          <button type="button" @click="selectedVoice = 'Bajo'; setStudentsTab('directorio')">
-            <span>B</span>
-            <strong>{{ bassStudents.length }}</strong>
-            <small>Bajos</small>
-          </button>
-
-          <button
-            type="button"
-            class="is-pending"
-            @click="selectedVoice = 'unclassified'; setStudentsTab('directorio')"
-          >
-            <span>?</span>
-            <strong>{{ unclassifiedStudents.length }}</strong>
-            <small>Sin clasificar</small>
-          </button>
-        </div>
-      </section>
-
-
-      <!-- =====================================================
-           EMPTY GENERAL
-      ====================================================== -->
       <section
         v-if="students.length === 0"
         class="students-empty"
       >
-        <div class="students-empty__symbol">
-          ♪
-        </div>
-
-        <p class="students-empty__eyebrow">
-          Aula preparada
-        </p>
-
-        <h2>
-          Todavía no hay alumnos
-        </h2>
-
-        <p>
-          Matricula al primer estudiante
-          desde el módulo de inscripciones.
-        </p>
-
+        <div class="students-empty__symbol">â™ª</div>
+        <p class="students-empty__eyebrow">Aula preparada</p>
+        <h2>TodavÃ­a no hay alumnos</h2>
+        <p>Matricula al primer estudiante desde el mÃ³dulo de inscripciones.</p>
         <button
           type="button"
           class="students__primary-action"
           @click="goToInscriptions"
         >
-          Nueva matrícula
+          Nueva matrÃ­cula
         </button>
       </section>
 
-      <template v-else>
-        <div v-show="isStudentsTab('directorio')" class="students-directory-panel">
+      <div v-else class="students-directory-panel">
         <!-- =====================================================
              TOOLBAR
         ====================================================== -->
@@ -360,7 +112,7 @@
 
             <div class="students-search">
               <span aria-hidden="true">
-                ⌕
+                âŒ•
               </span>
 
               <input
@@ -368,16 +120,16 @@
                 v-model.trim="searchTerm"
                 type="search"
                 autocomplete="off"
-                placeholder="Nombre o clasificación vocal..."
+                placeholder="Nombre o clasificaciÃ³n vocal..."
               />
 
               <button
                 v-if="searchTerm"
                 type="button"
-                aria-label="Limpiar búsqueda"
+                aria-label="Limpiar bÃºsqueda"
                 @click="searchTerm = ''"
               >
-                ×
+                Ã—
               </button>
             </div>
           </div>
@@ -390,7 +142,7 @@
             <div
               class="voice-filters"
               role="group"
-              aria-label="Filtrar por clasificación vocal"
+              aria-label="Filtrar por clasificaciÃ³n vocal"
             >
               <button
                 v-for="filter in voiceFilters"
@@ -400,12 +152,8 @@
                   active:
                     selectedVoice === filter.value
                 }"
-                :aria-pressed="
-                  selectedVoice === filter.value
-                "
-                @click="
-                  selectedVoice = filter.value
-                "
+                :aria-pressed="selectedVoice === filter.value"
+                @click="selectedVoice = filter.value"
               >
                 {{ filter.label }}
 
@@ -430,21 +178,21 @@
         </section>
 
         <!-- =====================================================
-             INFO MATRICULACIÓN
+             INFO MATRICULACIÃ“N
         ====================================================== -->
         <section class="students__info">
           <div class="students__info-icon">
-            ♪
+            â™ª
           </div>
 
           <div>
             <strong>
-              Matrículas desde Inscripciones
+              MatrÃ­culas desde Inscripciones
             </strong>
 
             <p>
               Las cuentas nuevas se crean desde el
-              flujo de matrícula para mantener
+              flujo de matrÃ­cula para mantener
               estudiantes y accesos sincronizados.
             </p>
           </div>
@@ -456,13 +204,13 @@
             Ver inscripciones
 
             <span aria-hidden="true">
-              →
+              â†’
             </span>
           </button>
         </section>
 
         <!-- =====================================================
-             RESULTADOS VACÍOS
+             RESULTADOS VACÃOS
         ====================================================== -->
         <section
           v-if="filteredStudents.length === 0"
@@ -479,7 +227,7 @@
 
             <p>
               Prueba otro nombre o cambia
-              la clasificación vocal seleccionada.
+              la clasificaciÃ³n vocal seleccionada.
             </p>
 
             <button
@@ -524,6 +272,10 @@
               v-for="student in filteredStudents"
               :key="student.id"
               class="student-card"
+              role="link"
+              tabindex="0"
+              @click="goToStudentProfile(student)"
+              @keydown.enter="goToStudentProfile(student)"
             >
               <!-- IDENTIDAD -->
               <div class="student-card__header">
@@ -533,7 +285,7 @@
 
                 <div class="student-card__identity">
                   <span class="student-card__voice">
-                    {{ student.voice || 'Sin clasificación' }}
+                    {{ student.voice || 'Sin clasificaciÃ³n' }}
                   </span>
 
                   <h3>
@@ -546,20 +298,19 @@
                   </div>
                 </div>
 
-                <RouterLink
-                  :to="`/aula/estudiante/${student.id}`"
+                <span
                   class="student-card__profile-arrow"
-                  :aria-label="`Abrir perfil de ${student.name}`"
+                  aria-hidden="true"
                 >
-                  →
-                </RouterLink>
+                  â†’
+                </span>
               </div>
 
-              <!-- INFORMACIÓN -->
+              <!-- INFORMACIÃ“N -->
               <div class="student-card__details">
                 <div>
                   <span>
-                    Clasificación
+                    ClasificaciÃ³n
                   </span>
 
                   <strong>
@@ -578,17 +329,7 @@
                 </div>
               </div>
 
-              <!-- ACCIÓN PRINCIPAL -->
-              <RouterLink
-                :to="`/aula/estudiante/${student.id}`"
-                class="student-card__main-action"
-              >
-                Ver ficha del estudiante
-
-                <span aria-hidden="true">
-                  →
-                </span>
-              </RouterLink>
+              <!-- ACCIÃ“N PRINCIPAL -->
 
               <!-- ADMIN -->
               <div class="student-card__admin">
@@ -596,17 +337,15 @@
                   type="button"
                   class="student-card__edit"
                   :disabled="isStudentBusy(student.id)"
-                  @click="openEditStudent(student)"
+                  @click.stop="openEditStudent(student)"
                 >
-                  ✎ Editar datos
+                  âœŽ Editar datos
                 </button>
 
                 <button
                   type="button"
                   :disabled="isStudentBusy(student.id)"
-                  @click="
-                    askDeactivateStudent(student)
-                  "
+                  @click.stop="askDeactivateStudent(student)"
                 >
                   {{
                     deactivatingStudentId === student.id
@@ -619,9 +358,7 @@
                   type="button"
                   class="student-card__delete"
                   :disabled="isStudentBusy(student.id)"
-                  @click="
-                    askDeleteStudent(student)
-                  "
+                  @click.stop="askDeleteStudent(student)"
                 >
                   {{
                     deletingStudentId === student.id
@@ -633,8 +370,7 @@
             </article>
           </div>
         </section>
-        </div>
-      </template>
+      </div>
     </template>
 
     <!-- =====================================================
@@ -647,11 +383,11 @@
         @click.self="cancelEditStudent"
       >
         <section class="students-modal__card students-edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-student-title">
-          <button type="button" class="students-modal__close" :disabled="isSavingStudentEdit" aria-label="Cerrar" @click="cancelEditStudent">×</button>
-          <div class="students-modal__icon students-modal__icon--edit">✎</div>
-          <p class="students-modal__eyebrow">Gestión académica</p>
+          <button type="button" class="students-modal__close" :disabled="isSavingStudentEdit" aria-label="Cerrar" @click="cancelEditStudent">Ã—</button>
+          <div class="students-modal__icon students-modal__icon--edit">âœŽ</div>
+          <p class="students-modal__eyebrow">GestiÃ³n acadÃ©mica</p>
           <h2 id="edit-student-title">Editar estudiante</h2>
-          <p class="students-modal__lead">Corrige los datos académicos visibles de <strong>{{ studentToEdit.name }}</strong> sin tocar sus credenciales de acceso.</p>
+          <p class="students-modal__lead">Corrige los datos acadÃ©micos visibles de <strong>{{ studentToEdit.name }}</strong> sin tocar sus credenciales de acceso.</p>
 
           <form class="student-edit-form" @submit.prevent="saveStudentEdit">
             <label>
@@ -660,7 +396,7 @@
             </label>
 
             <label>
-              <span>Clasificación vocal</span>
+              <span>ClasificaciÃ³n vocal</span>
               <select v-model="editStudentForm.voice">
                 <option value="">Sin clasificar</option>
                 <option value="Soprano">Soprano</option>
@@ -673,15 +409,15 @@
             <label class="student-edit-switch">
               <input v-model="editStudentForm.active" type="checkbox" />
               <span>
-                <strong>Cuenta académica activa</strong>
-                <small>Desactivar desde aquí mantiene los datos almacenados.</small>
+                <strong>Cuenta acadÃ©mica activa</strong>
+                <small>Desactivar desde aquÃ­ mantiene los datos almacenados.</small>
               </span>
             </label>
 
             <div class="students-modal__actions">
               <button type="button" class="modal-button modal-button--secondary" :disabled="isSavingStudentEdit" @click="cancelEditStudent">Cancelar</button>
               <button type="submit" class="modal-button modal-button--edit" :disabled="isSavingStudentEdit">
-                {{ isSavingStudentEdit ? 'Guardando…' : 'Guardar cambios' }}
+                {{ isSavingStudentEdit ? 'Guardandoâ€¦' : 'Guardar cambios' }}
               </button>
             </div>
           </form>
@@ -711,7 +447,7 @@
             aria-label="Cerrar"
             @click="cancelDeactivateStudent"
           >
-            ×
+            Ã—
           </button>
 
           <div
@@ -720,15 +456,15 @@
               students-modal__icon--warning
             "
           >
-            ‖
+            â€–
           </div>
 
           <p class="students-modal__eyebrow">
-            Gestión de acceso
+            GestiÃ³n de acceso
           </p>
 
           <h2 id="deactivate-title">
-            ¿Desactivar alumno?
+            Â¿Desactivar alumno?
           </h2>
 
           <p class="students-modal__lead">
@@ -736,18 +472,18 @@
               {{ studentToDeactivate.name }}
             </strong>
 
-            dejará de aparecer entre los alumnos activos
-            y no podrá ingresar normalmente al Aula Virtual.
+            dejarÃ¡ de aparecer entre los alumnos activos
+            y no podrÃ¡ ingresar normalmente al Aula Virtual.
           </p>
 
           <div class="students-modal__notice">
             <strong>
-              Sus datos se conservarán
+              Sus datos se conservarÃ¡n
             </strong>
 
             <p>
               Asistencia, evaluaciones, tareas,
-              progreso y ficha vocal permanecerán almacenados.
+              progreso y ficha vocal permanecerÃ¡n almacenados.
             </p>
           </div>
 
@@ -770,7 +506,7 @@
               {{
                 isDeactivating
                   ? 'Desactivando...'
-                  : 'Sí, desactivar'
+                  : 'SÃ­, desactivar'
               }}
             </button>
           </div>
@@ -803,7 +539,7 @@
             aria-label="Cerrar"
             @click="cancelDeleteStudent"
           >
-            ×
+            Ã—
           </button>
 
           <div
@@ -821,7 +557,7 @@
               students-modal__eyebrow--danger
             "
           >
-            Acción irreversible
+            AcciÃ³n irreversible
           </p>
 
           <h2 id="delete-title">
@@ -829,7 +565,7 @@
           </h2>
 
           <p class="students-modal__lead">
-            Estás a punto de eliminar a
+            EstÃ¡s a punto de eliminar a
 
             <strong>
               {{ studentToDelete.name }}
@@ -845,7 +581,7 @@
             "
           >
             <strong>
-              Se eliminarán sus datos académicos
+              Se eliminarÃ¡n sus datos acadÃ©micos
             </strong>
 
             <p>
@@ -918,15 +654,15 @@
         aria-live="polite"
       >
         <div class="students-toast__icon">
-          {{ toastType === 'error' ? '!' : '✓' }}
+          {{ toastType === 'error' ? '!' : 'âœ“' }}
         </div>
 
         <div>
           <strong>
             {{
               toastType === 'error'
-                ? 'No pudimos completar la operación'
-                : 'Operación completada'
+                ? 'No pudimos completar la operaciÃ³n'
+                : 'OperaciÃ³n completada'
             }}
           </strong>
 
@@ -948,7 +684,6 @@ import {
 } from 'vue'
 
 import {
-  RouterLink,
   useRouter
 } from 'vue-router'
 
@@ -968,6 +703,11 @@ import {
 
 const router = useRouter()
 
+const goToStudentProfile = student => {
+  if (!student?.id) return
+  router.push(`/aula/estudiante/${student.id}`)
+}
+
 /* =========================================================
    GENERAL
 ========================================================= */
@@ -980,9 +720,9 @@ const searchTerm = ref('')
 const selectedVoice = ref('all')
 
 /* =========================================================
-   DIRECTORIO ACADÉMICO · V10
+   DIRECTORIO ACADÃ‰MICO Â· V10
 ========================================================= */
-const activeStudentsTab = ref('resumen')
+const activeStudentsTab = ref('directorio')
 
 const isStudentsTab = tab =>
   activeStudentsTab.value === tab
@@ -1009,7 +749,7 @@ const toastType = ref('success')
 let toastTimer = null
 
 /* =========================================================
-   EDITAR DATOS ACADÉMICOS
+   EDITAR DATOS ACADÃ‰MICOS
 ========================================================= */
 
 const openEditStudent = student => {
@@ -1064,7 +804,7 @@ const deletingStudentId = ref(null)
 const deleteConfirmation = ref('')
 
 /* =========================================================
-   EDITAR DATOS ACADÉMICOS
+   EDITAR DATOS ACADÃ‰MICOS
 ========================================================= */
 const studentToEdit = ref(null)
 const editStudentForm = ref({ name: '', voice: '', active: true })
@@ -3711,7 +3451,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 /* =========================================================
-   V5.1 · LIGHT LMS PATCH
+   V5.1 Â· LIGHT LMS PATCH
    Scoped visual refinement: no backend or template logic touched.
 ========================================================= */
 .students {
@@ -3843,8 +3583,8 @@ onBeforeUnmount(() => {
 
 
 /* =========================================================
-   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
-   Sistema visual común para el SaaS
+   AMV LMS UI SYSTEM Â· ACADEMIC EXPERIENCE v1.0
+   Sistema visual comÃºn para el SaaS
 ========================================================= */
 .students {
   --amv-canvas: #f5f7fb;
@@ -3912,8 +3652,8 @@ onBeforeUnmount(() => {
 
 
 /* =========================================================
-   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
-   Capa visual segura: no modifica lógica, datos ni estructura.
+   AMV LMS Â· FLUID MOTION & PREMIUM INTERACTION v2.0
+   Capa visual segura: no modifica lÃ³gica, datos ni estructura.
 ========================================================= */
 .students {
   animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
@@ -4019,7 +3759,7 @@ onBeforeUnmount(() => {
 
 
 /* =========================================================
-   STUDENTS · DIRECTORIO ACADÉMICO V10
+   STUDENTS Â· DIRECTORIO ACADÃ‰MICO V10
 ========================================================= */
 .students-context-nav {
   position: sticky;
@@ -4351,265 +4091,397 @@ onBeforeUnmount(() => {
 .students .student-edit-switch strong { color:#263449; font-size:.73rem; }
 .students .student-edit-switch small { margin-top:3px; color:#7b8798; font-size:.62rem; }
 .students .modal-button--edit { border:0; background:#9f1945; color:#fff; box-shadow:0 9px 22px rgba(159,25,69,.16); }
+
+
+/* =========================================================
+   DIRECTORIO SIMPLE Â· LISTA VERTICAL
+   Sin dependencias de variables.scss.
+========================================================= */
+.students-directory-panel {
+  width: 100%;
+}
+
+.students-directory__header {
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+}
+
+.students-directory__header p {
+  margin-bottom: 4px;
+}
+
+.students-directory__header h2 {
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+}
+
+.student-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100%;
+}
+
+.student-card {
+  display: block;
+  width: 100%;
+  min-height: 78px;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 5px 18px rgba(20,32,51,.045) !important;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease !important;
+}
+
+.student-card:hover,
+.student-card:focus-visible {
+  border-color: rgba(159,25,69,.28) !important;
+  box-shadow: 0 9px 24px rgba(20,32,51,.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+.student-card__header {
+  min-height: 76px;
+  padding: 12px 14px !important;
+  gap: 13px !important;
+}
+
+.student-card__avatar {
+  width: 46px !important;
+  height: 46px !important;
+  font-size: .78rem !important;
+}
+
+.student-card__identity {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.student-card__voice {
+  margin: 0 !important;
+  font-size: .66rem !important;
+}
+
+.student-card__identity h3 {
+  font-size: .98rem !important;
+  line-height: 1.25;
+}
+
+.student-card__status {
+  margin-top: 1px !important;
+  font-size: .68rem !important;
+}
+
+.student-card__profile-arrow {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #9f1945 !important;
+  background: #fff0f5 !important;
+}
+
+.student-card__details,
+.student-card__main-action {
+  display: none !important;
+}
+
+.student-card__admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 11px 73px !important;
+  border: 0 !important;
+}
+
+.student-card__admin button {
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: 8px;
+  font-size: .67rem;
+}
+
+@media (max-width: 600px) {
+  .students__header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .students__header h1 {
+    font-size: 2.4rem;
+  }
+
+  .students__primary-action {
+    width: 100%;
+  }
+
+  .students-directory__header {
+    align-items: flex-start;
+  }
+
+  .student-card__header {
+    min-height: 70px;
+    padding: 10px 11px !important;
+  }
+
+  .student-card__avatar {
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .student-card__admin {
+    padding: 0 11px 10px 64px !important;
+  }
+
+  .student-card__admin button {
+    flex: 1 1 auto;
+  }
+}
 </style>
 
 
-<style lang="scss">
-/* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
-.amv-view-shell {
-  --amv-ui-wine: #9f1945;
-  --amv-ui-wine-deep: #7f1237;
-  --amv-ui-gold: #d9a91d;
-  --amv-ui-purple: #7657d9;
-  --amv-ui-cyan: #20b8ae;
-  --amv-ui-ink: #172033;
-  --amv-ui-muted: #6f7c8f;
-  --amv-ui-line: rgba(122, 137, 158, 0.20);
-  --amv-ui-focus: rgba(159, 25, 69, 0.38);
-  --amv-ui-radius-sm: 12px;
-  --amv-ui-radius-md: 18px;
-  --amv-ui-radius-lg: 26px;
-  --amv-ui-shadow: 0 18px 55px rgba(17, 25, 39, 0.09);
-  --amv-ui-shadow-hover: 0 22px 65px rgba(17, 25, 39, 0.14);
+<style lang="scss" scoped>
+/* =========================================================
+   AMV Â· KAHOOT-INSPIRED MICROINTERACTIONS
+   Visual only: no template/script/backend changes.
+========================================================= */
+
+.student-card {
   position: relative;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
+  cursor: pointer;
   isolation: isolate;
-  overflow-x: clip;
-  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+  animation: amv-student-card-in 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-shadow:
+    0 8px 24px rgba(23, 32, 51, 0.055),
+    0 1px 2px rgba(23, 32, 51, 0.04) !important;
 }
 
-.amv-view-shell::before {
-  content: '';
+.student-card::before {
+  content: "";
   position: absolute;
-  inset: -150px -120px auto auto;
-  width: 420px;
-  height: 420px;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  z-index: 2;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, #c99424, #e6c45f, #9f1d4a);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.student-card::after {
+  content: "";
+  position: absolute;
+  top: -80%;
+  left: -45%;
+  width: 28%;
+  height: 260%;
+  z-index: 1;
   pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(159, 25, 69, 0.10), transparent 52%),
-    radial-gradient(circle at 68% 62%, rgba(217, 169, 29, 0.08), transparent 58%);
-  filter: blur(6px);
-  opacity: 0.82;
-  z-index: -1;
+  transform: rotate(18deg) translateX(-180%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.34),
+    transparent
+  );
+  transition: transform 0.7s ease;
 }
 
-.amv-view-shell :where(*, *::before, *::after) {
-  box-sizing: border-box;
+.student-card:hover {
+  transform: translateY(-5px) scale(1.002);
+  border-color: #e2bd55 !important;
+  box-shadow:
+    0 18px 38px rgba(23, 32, 51, 0.11),
+    0 0 0 1px rgba(201, 148, 36, 0.08) !important;
 }
 
-.amv-view-shell :where(img, video, svg, canvas) {
-  max-width: 100%;
+.student-card:hover::before {
+  transform: scaleX(1);
 }
 
-.amv-view-shell :where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
+.student-card:hover::after {
+  transform: rotate(18deg) translateX(560%);
 }
 
-.amv-view-shell :where(p, li, td, th, label, small) {
-  overflow-wrap: anywhere;
+.student-card:active {
+  transform: translateY(-1px) scale(0.998);
+  transition-duration: 0.08s;
 }
 
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']) {
-  touch-action: manipulation;
-}
-
-.amv-view-shell :where(button, input, select, textarea) {
-  font: inherit;
-}
-
-.amv-view-shell :where(button) {
-  min-height: 42px;
-}
-
-.amv-view-shell :where(input, select, textarea) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 3px solid var(--amv-ui-focus);
+.student-card:focus-visible {
+  outline: 3px solid rgba(201, 148, 36, 0.28);
   outline-offset: 3px;
 }
 
-.amv-view-shell :where(button, [role='button']):disabled,
-.amv-view-shell :where(input, select, textarea):disabled {
-  cursor: not-allowed;
-}
-
-.amv-view-shell :where(.button, .btn, .lux-button, .amv-primary-btn, .amv-secondary-action,
-  .primary-action, .secondary-action, .danger-action, .text-link, .action-link,
-  .lightbox__close, .lightbox__nav, .today-button, .quick-action) {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Premium surface language without changing each view's semantic palette. */
-.amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-  .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-  .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-  .production, .sound-console, .state-card, .empty-card, .workspace,
-  .profile-card, .profile-panel, .vocal-card, .weighted-student, .weighted-category) {
-  border-radius: var(--amv-ui-radius-md);
-}
-
-.amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-  .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-  .task-card, .format-card, .production, .state-card, .empty-card) {
+.student-card__avatar {
+  position: relative;
   transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-    .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-    .task-card, .format-card, .production):not(.is-disabled):hover {
-    transform: translateY(-2px);
+.student-card:hover .student-card__avatar {
+  transform: scale(1.08) rotate(-2deg);
+  box-shadow: 0 8px 18px rgba(201, 148, 36, 0.14);
+  background: #fff7df !important;
+}
+
+.student-card__status > span {
+  animation: amv-status-pulse 2.2s ease-in-out infinite;
+}
+
+.student-card__profile-arrow {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.student-card:hover .student-card__profile-arrow {
+  transform: translateX(5px);
+  border-color: #d7ae42;
+  color: #9f1d4a;
+  background: #fff8e6;
+  box-shadow: 0 5px 14px rgba(201, 148, 36, 0.14);
+}
+
+.student-card__admin button {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.student-card__admin button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(23, 32, 51, 0.08);
+}
+
+.student-card__admin button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+.students__primary-action {
+  position: relative;
+  overflow: hidden;
+}
+
+.students__primary-action::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.38),
+    transparent
+  );
+  transition: transform 0.55s ease;
+}
+
+.students__primary-action:hover::after {
+  transform: translateX(110%);
+}
+
+.voice-filters button {
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.voice-filters button:hover {
+  transform: translateY(-2px);
+}
+
+.voice-filters button:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.voice-filters button.active,
+.voice-filters button[aria-pressed="true"] {
+  box-shadow: 0 5px 14px rgba(201, 148, 36, 0.12);
+}
+
+.students-search input {
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.students-search input:focus {
+  transform: translateY(-1px);
+}
+
+@keyframes amv-student-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Toolbars wrap rather than squeezing controls into unreadable rows. */
-.amv-view-shell :where(.toolbar, .students-toolbar, .calendar-toolbar, .resources-controls,
-  .resources-controls__row, .gradebook-legacy-toolbar, .hero-actions, .actions,
-  .action-row, .question-actions, .filters, .public-jump-nav, .classes-header__actions,
-  .result-action-row, .form-actions, .footer-actions) {
-  min-width: 0;
-}
-
-.amv-view-shell :where(.table-shell, .quiz-table-wrap, .table-wrap, .grade-table-wrap,
-  .data-table-wrap, .scroll-region, .horizontal-scroll) {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.amv-view-shell :where(.table-shell table, .quiz-table-wrap table, .table-wrap table,
-  .grade-table-wrap table, .data-table-wrap table) {
-  max-width: none;
-}
-
-/* Prevent long controls and badges from forcing page-level horizontal overflow. */
-.amv-view-shell :where(.badge, .pill, .chip, .status-pill, .source-badge, .event-chip,
-  .lesson-detail, .student-card__voice, .student-card__status, .course-kicker,
-  .hero-stat, .count, .filename, .meta, .eyebrow) {
-  max-width: 100%;
-}
-
-/* Dialogs/lightboxes stay usable on short laptop and phone viewports. */
-.amv-view-shell :where(.modal, .dialog, .drawer, .lightbox, .lightbox__content,
-  .modal__content, .dialog__content, [role='dialog']) {
-  max-width: min(100%, 100vw);
-}
-
-.amv-view-shell :where(.modal__content, .dialog__content, .lightbox__content,
-  [role='dialog']) {
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Public pages: a cleaner editorial frame around content-heavy sections. */
-.amv-view-shell :where(.hero, .hero-panel, .calendar-hero, .resources-hero, .amv-hero,
-  .students__header, .gradebook__hero, .classes-header, .contact-hero, .training-hero,
-  .academy-hero, .inscription-hero) {
-  isolation: isolate;
-}
-
-.amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid) {
-  min-width: 0;
-}
-
-/* Mobile-first resilience. Existing view-specific breakpoints still win where more
-   specific rules exist, while these defaults catch edge cases and tiny screens. */
-@media (max-width: 760px) {
-  .amv-view-shell {
-    overflow-x: clip;
+@keyframes amv-status-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.78;
   }
 
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 22px;
-  }
-
-  .amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid,
-    .calendar-layout, .quiz-layout, .program-layout, .student-profile__grid,
-    .dashboard-grid, .content-grid, .page-grid, .split-layout) {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .amv-view-shell :where(.hero-actions, .actions, .action-row, .form-actions,
-    .footer-actions, .question-actions, .students__header-actions, .hero-stat,
-    .calendar-toolbar, .resources-controls__row) {
-    flex-wrap: wrap;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    min-width: min(100%, 190px);
-  }
-
-  .amv-view-shell :where(.display-title, .page-title, .hero-title, .section-title,
-    .hero-panel__title, .amv-hero h1, .calendar-hero h1, .students__header h1,
-    .gradebook__hero h1) {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .amv-view-shell :where(.students-toolbar, .resources-controls, .calendar-toolbar,
-    .gradebook-legacy-toolbar, .classes-header, .section-heading, .profile-actions) {
-    gap: 10px;
-  }
-
-  .amv-view-shell :where(input, select, textarea, .select, .search-input) {
-    min-height: 44px;
+  50% {
+    transform: scale(1.28);
+    opacity: 1;
   }
 }
 
-@media (max-width: 520px) {
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 18px;
-  }
-
-  .amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-    .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-    .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-    .production, .state-card, .empty-card) {
-    border-radius: 16px;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    width: 100%;
-    min-width: 0;
-  }
-}
+.student-card:nth-child(1) { animation-delay: 0.02s; }
+.student-card:nth-child(2) { animation-delay: 0.05s; }
+.student-card:nth-child(3) { animation-delay: 0.08s; }
+.student-card:nth-child(4) { animation-delay: 0.11s; }
+.student-card:nth-child(5) { animation-delay: 0.14s; }
+.student-card:nth-child(6) { animation-delay: 0.17s; }
+.student-card:nth-child(7) { animation-delay: 0.20s; }
+.student-card:nth-child(8) { animation-delay: 0.23s; }
+.student-card:nth-child(9) { animation-delay: 0.26s; }
+.student-card:nth-child(10) { animation-delay: 0.29s; }
+.student-card:nth-child(11) { animation-delay: 0.32s; }
+.student-card:nth-child(12) { animation-delay: 0.35s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .amv-view-shell,
-  .amv-view-shell :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+  .student-card,
+  .student-card__avatar,
+  .student-card__profile-arrow,
+  .student-card__admin button,
+  .voice-filters button,
+  .students-search input {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .student-card::after,
+  .students__primary-action::after {
+    display: none;
   }
 }
 </style>
+
