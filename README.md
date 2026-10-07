@@ -15,13 +15,14 @@ evaluaciones y seguimiento del aprendizaje.
 ## ✨ Características
 
 - 👨‍🎓 Gestión de estudiantes
-- 📚 Gestión de clases y contenidos
+- 📚 Gestión y organización de clases
 - 📝 Actividades y evaluaciones
-- 📊 Seguimiento del progreso
-- 📁 Gestión de materiales
-- 🔐 Control de acceso y autenticación
-- 🗄️ Persistencia de información
-- 📱 Interfaz web adaptable
+- 📊 Seguimiento del progreso de los estudiantes
+- 📁 Gestión de materiales educativos
+- 🔐 Autenticación y control de acceso
+- 🗄️ Persistencia de información mediante PostgreSQL
+- 🔄 Integración con Supabase
+- 📱 Interfaz web adaptable a distintos dispositivos
 
 ## 🧱 Arquitectura
 
@@ -52,3 +53,38 @@ backend gestionados mediante Supabase.
 │       Base de datos         │
 │         PostgreSQL          │
 └─────────────────────────────┘
+
+## 🛠️ Tecnologías
+
+### Frontend
+
+- Vue 3
+- JavaScript
+- HTML5
+- CSS3
+- Vite
+
+### Backend y datos
+
+- Supabase
+- PostgreSQL
+
+### Herramientas
+
+- Git
+- GitHub
+- Visual Studio Code
+
+## 🔐 Seguridad
+
+El proyecto considera fundamentos de seguridad aplicados al desarrollo
+de aplicaciones web.
+
+- Autenticación de usuarios.
+- Control de acceso según las funcionalidades de la plataforma.
+- Uso de variables de entorno para configuración sensible.
+- Separación de credenciales y código fuente.
+- Protección de información almacenada en la plataforma.
+
+> Las credenciales, claves privadas y demás información sensible no
+> deben almacenarse directamente en el repositorio.
