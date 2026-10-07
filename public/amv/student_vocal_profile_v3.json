@@ -1,0 +1,599 @@
+{
+  "profile_version": "amv-vocal-profile-3.2.1",
+  "profile_purpose": "ficha_vocal_educativa",
+  "clinical_diagnosis": false,
+  "observed_pitch": {
+    "lowest_midi": 57.142,
+    "highest_midi": 73.992,
+    "lowest_note": "A3",
+    "highest_note": "D5",
+    "range_semitones": 16.85,
+    "range_cents": 1685.0,
+    "median_midi": 65.742,
+    "median_f0_hz": 364.52,
+    "p10_midi": 61.404,
+    "p10_note": "C#4",
+    "p90_midi": 68.852,
+    "p90_note": "A4",
+    "observed_tessitura_semitones": 7.448,
+    "observed_tessitura_cents": 744.8
+  },
+  "event_statistics": {
+    "event_count": 155,
+    "voiced_event_time_seconds": 50.493,
+    "event_time_coverage_of_input": 0.2919,
+    "mean_event_duration_seconds": 0.326,
+    "median_event_duration_seconds": 0.186,
+    "p10_event_duration_seconds": 0.104,
+    "p90_event_duration_seconds": 0.808,
+    "mean_voicing_probability": 0.809,
+    "p10_voicing_probability": 0.723,
+    "p90_voicing_probability": 0.881,
+    "f0_coverage": 0.3704
+  },
+  "pitch_stability": {
+    "available": true,
+    "median_within_event_variation_cents": 0.0,
+    "median_p90_within_event_variation_cents": 0.0,
+    "median_abs_pitch_slope_cents_per_second": 156.19,
+    "pitch_slope_std_cents_per_second": 452.85,
+    "measurement_version": "frame_level_v312_core_and_total",
+    "median_mad_cents": 14.83,
+    "median_p90_p10_spread_cents": 38.0,
+    "median_within_event_std_cents": 15.76,
+    "median_drift_cents_per_second": 157.69,
+    "p90_abs_drift_cents_per_second": 617.82
+  },
+  "note_distribution": {
+    "unique_rounded_notes": 15,
+    "most_frequent_notes": [
+      {
+        "midi": 66,
+        "note": "F#4",
+        "count": 24,
+        "percent_events": 15.48
+      },
+      {
+        "midi": 68,
+        "note": "G#4",
+        "count": 22,
+        "percent_events": 14.19
+      },
+      {
+        "midi": 64,
+        "note": "E4",
+        "count": 20,
+        "percent_events": 12.9
+      },
+      {
+        "midi": 63,
+        "note": "D#4",
+        "count": 19,
+        "percent_events": 12.26
+      },
+      {
+        "midi": 62,
+        "note": "D4",
+        "count": 13,
+        "percent_events": 8.39
+      },
+      {
+        "midi": 67,
+        "note": "G4",
+        "count": 13,
+        "percent_events": 8.39
+      },
+      {
+        "midi": 61,
+        "note": "C#4",
+        "count": 12,
+        "percent_events": 7.74
+      },
+      {
+        "midi": 69,
+        "note": "A4",
+        "count": 10,
+        "percent_events": 6.45
+      },
+      {
+        "midi": 65,
+        "note": "F4",
+        "count": 6,
+        "percent_events": 3.87
+      },
+      {
+        "midi": 60,
+        "note": "C4",
+        "count": 5,
+        "percent_events": 3.23
+      },
+      {
+        "midi": 71,
+        "note": "B4",
+        "count": 4,
+        "percent_events": 2.58
+      },
+      {
+        "midi": 70,
+        "note": "A#4",
+        "count": 4,
+        "percent_events": 2.58
+      }
+    ]
+  },
+  "comparison_to_reference": {
+    "available": true,
+    "matched_events": 123,
+    "mean_signed_error_cents": -0.5,
+    "mean_absolute_error_cents": 149.05,
+    "median_absolute_error_cents": 95.0,
+    "p90_absolute_error_cents": 348.0,
+    "within_25_cents_percent": 21.95,
+    "within_50_cents_percent": 38.21,
+    "within_100_cents_percent": 51.22,
+    "intonation_score": 39.84,
+    "rhythm_score": 98.17,
+    "alignment_confidence": 0.673,
+    "alignment_coverage": 0.794,
+    "alignment_mean_cost": 0.57,
+    "mean_time_residual_seconds": 1.569,
+    "max_time_residual_seconds": 5.442,
+    "temporal_quality": 0.579,
+    "time_warp_scale": 1.05,
+    "octave_candidates": 0,
+    "octave_confirmed": 0,
+    "bias_direction": "centered"
+  },
+  "feature_availability": {
+    "pitch_range": true,
+    "tessitura_observed": true,
+    "pitch_center": true,
+    "within_note_stability": true,
+    "voicing_confidence": true,
+    "intonation_vs_reference": true,
+    "rhythm_vs_reference": true,
+    "octave_evidence": true,
+    "dynamics": true,
+    "timbre": true,
+    "formants": true,
+    "vibrato_rate_and_depth": true,
+    "breath_metrics": false,
+    "breath_activity_proxy": true
+  },
+  "limitations": [
+    "El rango y la tesitura son observados en esta interpretación; no equivalen por sí solos a un tipo de voz permanente.",
+    "La estabilidad interna se calcula a partir de la trayectoria F0 resumida por eventos; no es una evaluación clínica.",
+    "Dinámica, timbre, formantes, vibrato y parámetros respiratorios requieren análisis adicional del audio crudo y no se infieren desde los eventos resumidos."
+  ],
+  "acoustic_profile": {
+    "version": "amv-acoustic-profile-1.2",
+    "source": "audio_frame_analysis_voiced_scope",
+    "analysis_scope": "voiced_frames",
+    "voiced_frame_fraction": 0.3712,
+    "dynamics": {
+      "available": true,
+      "rms_dbfs_p10": -18.37,
+      "rms_dbfs_median": -14.25,
+      "rms_dbfs_p90": -12.75,
+      "observed_dynamic_range_db": 5.61,
+      "crest_factor_db": 15.66,
+      "peak_amplitude": 0.86564,
+      "interpretation_note": "Nivel acústico observado principalmente durante frames con F0 válido; depende de captura, distancia y procesamiento."
+    },
+    "timbre": {
+      "available": true,
+      "spectral_centroid_hz_p10": 1640.5,
+      "spectral_centroid_hz_median": 2512.7,
+      "spectral_centroid_hz_p90": 3232.8,
+      "spectral_bandwidth_hz_median": 2518.6,
+      "spectral_rolloff85_hz_median": 4382.0,
+      "zero_crossing_rate_median": 0.1001,
+      "spectral_slope_median": -0.522,
+      "interpretation_note": "Descriptores tímbricos acústicos calculados principalmente sobre frames con F0 válido; no equivalen por sí solos a identificación de timbre o tipo de voz."
+    },
+    "vibrato": {
+      "available": true,
+      "rate_hz": 4.96,
+      "depth_cents_peak_to_peak": 23.0,
+      "confidence": 0.795,
+      "segments_analyzed": 20,
+      "rate_iqr_hz": 1.45,
+      "depth_iqr_cents": 7.2,
+      "method": "event_local_f0_modulation_v312"
+    },
+    "pitch_stability_v31": {
+      "available": true,
+      "events_analyzed": 153,
+      "measurement_version": "frame_level_v312_core_and_total",
+      "median_mad_cents": 14.83,
+      "median_p90_p10_spread_cents": 38.0,
+      "median_within_event_std_cents": 15.76,
+      "median_drift_cents_per_second": 157.69,
+      "p90_abs_drift_cents_per_second": 617.82,
+      "sustained_core_events_analyzed": 34,
+      "sustained_core_median_mad_cents": 14.83,
+      "sustained_core_median_p90_p10_spread_cents": 30.0,
+      "sustained_core_median_std_cents": 13.02,
+      "sustained_core_median_abs_drift_cents_per_second": 38.01,
+      "sustained_core_p90_abs_drift_cents_per_second": 240.16
+    },
+    "formants": {
+      "available": true,
+      "method": "lpc_roots_v312",
+      "frames_analyzed": 302,
+      "confidence": 0.9,
+      "f1_hz": {
+        "p10": 373.5,
+        "median": 686.5,
+        "p90": 1009.4
+      },
+      "f2_hz": {
+        "p10": 1596.4,
+        "median": 2011.2,
+        "p90": 2553.6
+      },
+      "f3_hz": {
+        "p10": 3135.8,
+        "median": 3335.0,
+        "p90": 3618.3
+      },
+      "bandwidth_median_hz": {
+        "f1": 170.8,
+        "f2": 150.1,
+        "f3": 160.6
+      },
+      "interpretation_note": "Estimación acústica educativa de formantes mediante raíces LPC sobre frames con F0 válido; no es una medición clínica o forense."
+    },
+    "breath_activity_proxy": {
+      "available": true,
+      "method": "voiced_pause_proxy_v312",
+      "voiced_segments": 452,
+      "pause_segments_ge_0_20s": 71,
+      "median_pause_seconds": 0.337,
+      "p90_pause_seconds": 1.8,
+      "median_voiced_segment_seconds": 0.058,
+      "interpretation_note": "Proxy de pausas vocales; no detecta inhalaciones ni evalúa soporte respiratorio."
+    },
+    "breath_metrics": {
+      "available": false,
+      "reason": "No se infiere respiración fisiológica; se ofrece un proxy separado de pausas vocales."
+    },
+    "source_audio_file": "prueba2_catalina.mp3",
+    "source_audio_mode": "demucs_vocals",
+    "separation": {
+      "mode": "demucs",
+      "model": "htdemucs",
+      "device": "cpu",
+      "source_file": "prueba2_catalina.mp3",
+      "stems": [
+        "vocals"
+      ],
+      "temporary": true
+    }
+  },
+  "acoustic_source": {
+    "audio_file": "prueba2_catalina.mp3",
+    "mode": "demucs_vocals",
+    "scope": "voiced_frames"
+  },
+  "pedagogical_summary": {
+    "assessment_scope": "educational_observation",
+    "strengths": [
+      "Buena correspondencia rítmica con la referencia."
+    ],
+    "priority_areas": [
+      "Precisión de afinación: reforzar llegada a la nota objetivo y mantenimiento de la altura."
+    ],
+    "practice_suggestions": [
+      "Practicar ataques sobre nota objetivo con apoyo de referencia tonal, empezando lento y aumentando el tempo."
+    ],
+    "observed_range": "A3–D5",
+    "observed_tessitura": "C#4–A4",
+    "vibrato_observed": true,
+    "limitations": [
+      "Las conclusiones describen esta grabación y no establecen un tipo de voz permanente.",
+      "Los niveles acústicos dependen de la toma, micrófono, distancia y procesamiento.",
+      "Los formantes se presentan como estimación acústica educativa cuando hay suficiente evidencia; no constituyen medición clínica. No se infiere respiración fisiológica; solo se ofrece un proxy de pausas vocales."
+    ]
+  },
+  "feature_quality": {
+    "acoustic_scope": "voiced_frames",
+    "acoustic_voiced_frame_fraction": 0.3712,
+    "vibrato_segments": 20,
+    "vibrato_confidence": 0.795,
+    "stability_events_analyzed": 153,
+    "stability_sustained_core_events": 34,
+    "formant_frames_analyzed": 302,
+    "formant_confidence": 0.9,
+    "breath_proxy_available": true
+  },
+  "schema_contract": {
+    "purpose": "ficha_vocal_educativa",
+    "raw_metrics_preserved": true,
+    "interpretations_are_non_clinical": true,
+    "permanent_voice_type_not_inferred": true,
+    "student_facing_metrics_separated_from_raw_metrics": true
+  },
+  "assessment_context": {
+    "student": "Catalina",
+    "title": "Ficha Vocal Catalina 3.2.1",
+    "song_title": "La Bikina",
+    "artist": "Luis Miguel",
+    "reference_source": "json"
+  },
+  "comparison_quality": {
+    "status": "moderate",
+    "score_0_100": 69.0,
+    "alignment_confidence": 0.673,
+    "alignment_coverage": 0.794,
+    "temporal_quality": 0.579,
+    "basis": "0.50*confianza_alineacion + 0.30*cobertura + 0.20*calidad_temporal"
+  },
+  "profile_quality": {
+    "status": "strong",
+    "available_feature_count": 12,
+    "feature_count_considered": 12,
+    "completeness_percent": 100.0,
+    "voiced_frame_fraction": 0.3712,
+    "vibrato_confidence": 0.795,
+    "formant_confidence": 0.9,
+    "vibrato_segments": 20,
+    "stability_events_analyzed": 153,
+    "stability_sustained_core_events": 34,
+    "formant_frames_analyzed": 302,
+    "measurement_quality_status": "strong"
+  },
+  "pedagogical_dimensions": {
+    "intonation": {
+      "score_0_100": 39.84,
+      "status": "reference_based",
+      "basis": "Comparación contra la referencia validada."
+    },
+    "rhythm": {
+      "score_0_100": 98.17,
+      "status": "reference_based",
+      "basis": "Comparación temporal contra la referencia; depende de la calidad del alineamiento."
+    },
+    "stability": {
+      "status": "moderate",
+      "index_0_100": 72.8,
+      "sustained_core_events": 34,
+      "evidence": {
+        "spread_cents": 30.0,
+        "std_cents": 13.02,
+        "drift_cents_per_second": 38.01
+      },
+      "method": "heuristic_v32_sustained_core",
+      "method_note": "Índice descriptivo educativo; no es una escala clínica ni una medida absoluta de habilidad vocal."
+    },
+    "vibrato": {
+      "observed": true,
+      "status": "strong_evidence",
+      "rate_hz": 4.96,
+      "depth_cents_peak_to_peak": 23.0,
+      "confidence": 0.795,
+      "segments": 20,
+      "rate_iqr_hz": 1.45,
+      "depth_iqr_cents": 7.2,
+      "method": "event_local_f0_modulation_v312",
+      "interpretation_note": "Presencia observada en esta interpretación; no se clasifica como correcta o incorrecta por sí sola."
+    },
+    "dynamics": {
+      "available": true,
+      "status": "descriptive_only",
+      "observed_dynamic_range_db": 5.61,
+      "rms_dbfs_median": -14.25,
+      "crest_factor_db": 15.66,
+      "interpretation_note": "Nivel acústico observado principalmente durante frames con F0 válido; depende de captura, distancia y procesamiento."
+    },
+    "resonance_formants": {
+      "available": true,
+      "status": "descriptive_only",
+      "confidence": 0.9,
+      "frames_analyzed": 302,
+      "f1_hz_median": 686.5,
+      "f2_hz_median": 2011.2,
+      "f3_hz_median": 3335.0,
+      "interpretation_note": "Estimación acústica educativa; no equivale a una identificación permanente del timbre o tipo de voz."
+    },
+    "pause_pattern": {
+      "available": true,
+      "status": "descriptive_only",
+      "voiced_segments": 452,
+      "pause_segments_ge_0_20s": 71,
+      "median_pause_seconds": 0.337,
+      "p90_pause_seconds": 1.8,
+      "interpretation_note": "Proxy de pausas vocales; no detecta inhalaciones ni mide soporte respiratorio."
+    }
+  },
+  "ui_indicators": {
+    "intonation": {
+      "value": 39.84,
+      "kind": "score",
+      "unit": "/100",
+      "quality_status": "moderate"
+    },
+    "rhythm": {
+      "value": 98.17,
+      "kind": "score",
+      "unit": "/100",
+      "quality_status": "moderate"
+    },
+    "range": {
+      "value": 16.85,
+      "kind": "observed",
+      "unit": "semitones",
+      "label": "A3–D5"
+    },
+    "tessitura": {
+      "value": 7.448,
+      "kind": "observed",
+      "unit": "semitones",
+      "label": "C#4–A4"
+    },
+    "stability": {
+      "value": 72.8,
+      "kind": "observed_index",
+      "unit": "/100",
+      "status": "moderate",
+      "evidence_events": 34
+    },
+    "vibrato": {
+      "value": 4.96,
+      "kind": "observed",
+      "unit": "Hz",
+      "status": "strong_evidence",
+      "depth_cents_peak_to_peak": 23.0,
+      "segments": 20
+    },
+    "dynamics": {
+      "value": 5.61,
+      "kind": "descriptive",
+      "unit": "dB",
+      "status": null
+    },
+    "formants": {
+      "kind": "descriptive",
+      "status": "descriptive_only",
+      "confidence": 0.9,
+      "f1_hz": 686.5,
+      "f2_hz": 2011.2,
+      "f3_hz": 3335.0
+    },
+    "pause_pattern": {
+      "kind": "descriptive",
+      "status": "descriptive_only",
+      "pause_segments_ge_0_20s": 71,
+      "median_pause_seconds": 0.337,
+      "p90_pause_seconds": 1.8
+    },
+    "comparison_quality": {
+      "value": 69.0,
+      "kind": "quality",
+      "unit": "/100",
+      "status": "moderate"
+    },
+    "profile_quality": {
+      "value": 100.0,
+      "kind": "feature_completeness",
+      "unit": "%",
+      "status": "strong"
+    }
+  },
+  "pedagogical_summary_v32": {
+    "assessment_scope": "educational_observation",
+    "student_facing": {
+      "headline": "Tu ficha vocal resume lo observado en esta interpretación.",
+      "observed_range": "A3–D5",
+      "observed_tessitura": "C#4–A4",
+      "intonation_score": 39.84,
+      "rhythm_score": 98.17,
+      "strengths": [
+        "Buena correspondencia rítmica con la referencia.",
+        "Se observó modulación periódica compatible con vibrato en una parte de las notas analizadas."
+      ],
+      "priority_areas": [
+        "Precisión de afinación: reforzar llegada a la nota objetivo y mantenimiento de la altura.",
+        "Estabilidad de la altura: trabajar sostenimiento y control de la nota en eventos prolongados."
+      ],
+      "practice_suggestions": [
+        "Practicar ataques sobre la nota objetivo con referencia tonal, comenzando lento y aumentando gradualmente el tempo.",
+        "Sostener notas de 2–4 segundos y observar la trayectoria de F0, separando el ataque del tramo estable."
+      ]
+    },
+    "teacher_facing": {
+      "strengths": [
+        "Buena correspondencia rítmica con la referencia.",
+        "Se observó modulación periódica compatible con vibrato en una parte de las notas analizadas."
+      ],
+      "priority_areas": [
+        "Precisión de afinación: reforzar llegada a la nota objetivo y mantenimiento de la altura.",
+        "Estabilidad de la altura: trabajar sostenimiento y control de la nota en eventos prolongados."
+      ],
+      "practice_suggestions": [
+        "Practicar ataques sobre la nota objetivo con referencia tonal, comenzando lento y aumentando gradualmente el tempo.",
+        "Sostener notas de 2–4 segundos y observar la trayectoria de F0, separando el ataque del tramo estable."
+      ],
+      "note": "Las recomendaciones son inferencias pedagógicas basadas en métricas observadas; deben interpretarse junto con el contexto de la clase."
+    }
+  },
+  "progress": {
+    "available": false,
+    "basis": "No se proporcionó un historial de perfiles previos.",
+    "records_compared": 0
+  },
+  "limitations_v32": [
+    "Los índices descriptivos se calibran para esta herramienta y no constituyen diagnósticos ni escalas clínicas.",
+    "La afinación y el ritmo frente a una referencia dependen de la calidad de la alineación y de la referencia validada.",
+    "Dinámica y timbre dependen de captura, distancia, micrófono y procesamiento; sirven para comparar tendencias bajo condiciones similares.",
+    "Los formantes se presentan como estimaciones acústicas educativas y deben interpretarse por grupos de vocales/regiones, no como una etiqueta permanente.",
+    "El proxy de pausas no detecta respiración fisiológica."
+  ],
+  "measurement_quality": {
+    "feature_completeness_percent": 92.9,
+    "available_features": [
+      "pitch_range",
+      "tessitura_observed",
+      "pitch_center",
+      "within_note_stability",
+      "voicing_confidence",
+      "intonation_vs_reference",
+      "rhythm_vs_reference",
+      "octave_evidence",
+      "dynamics",
+      "timbre",
+      "formants",
+      "vibrato_rate_and_depth",
+      "breath_activity_proxy"
+    ],
+    "unavailable_features": [
+      "breath_metrics"
+    ],
+    "acoustic_score_0_100": 90.6,
+    "acoustic_status": "strong",
+    "comparison_score_0_100": 69.0,
+    "comparison_status": "moderate",
+    "note": "La completitud cuenta todas las prestaciones declaradas por el perfil; la respiración fisiológica puede permanecer no disponible mientras el proxy de pausas sí esté disponible."
+  },
+  "pedagogical_summary_v321": {
+    "assessment_scope": "educational_observation",
+    "student_facing": {
+      "headline": "Tu ficha vocal resume lo observado en esta interpretación.",
+      "observed_range": "A3–D5",
+      "observed_tessitura": "C#4–A4",
+      "intonation_score": 39.84,
+      "rhythm_score": 98.17,
+      "strengths": [
+        "Buena correspondencia rítmica con la referencia.",
+        "Se observó modulación periódica compatible con vibrato en una parte de las notas analizadas."
+      ],
+      "priority_areas": [
+        "Precisión de afinación: reforzar llegada a la nota objetivo y mantenimiento de la altura.",
+        "Estabilidad de la altura: trabajar sostenimiento y control de la nota en eventos prolongados."
+      ],
+      "practice_suggestions": [
+        "Practicar ataques sobre la nota objetivo con referencia tonal, comenzando lento y aumentando gradualmente el tempo.",
+        "Sostener notas de 2–4 segundos y observar la trayectoria de F0, separando el ataque del tramo estable."
+      ],
+      "measurement_note": "La comparación con la referencia tiene calidad moderada; interpreta afinación y ritmo como observaciones de esta grabación, no como medidas absolutas."
+    },
+    "teacher_facing": {
+      "strengths": [
+        "Buena correspondencia rítmica con la referencia.",
+        "Se observó modulación periódica compatible con vibrato en una parte de las notas analizadas."
+      ],
+      "priority_areas": [
+        "Precisión de afinación: reforzar llegada a la nota objetivo y mantenimiento de la altura.",
+        "Estabilidad de la altura: trabajar sostenimiento y control de la nota en eventos prolongados."
+      ],
+      "practice_suggestions": [
+        "Practicar ataques sobre la nota objetivo con referencia tonal, comenzando lento y aumentando gradualmente el tempo.",
+        "Sostener notas de 2–4 segundos y observar la trayectoria de F0, separando el ataque del tramo estable."
+      ],
+      "note": "Las recomendaciones son inferencias pedagógicas basadas en métricas observadas; deben interpretarse junto con el contexto de la clase.",
+      "measurement_note": "La comparación con la referencia tiene calidad moderada; interpreta afinación y ritmo como observaciones de esta grabación, no como medidas absolutas.",
+      "acoustic_features_note": "Dinámica, timbre y formantes son descriptores de esta grabación; para comparar evolución deben mantenerse condiciones de captura similares."
+    },
+    "measurement_note": "La comparación con la referencia tiene calidad moderada; interpreta afinación y ritmo como observaciones de esta grabación, no como medidas absolutas."
+  }
+}

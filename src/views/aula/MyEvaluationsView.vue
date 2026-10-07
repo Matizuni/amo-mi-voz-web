@@ -1,5 +1,8 @@
 <template>
   <section class="vocal-evaluation-page amv-view-shell">
+    <!-- =========================================================
+         HERO
+    ========================================================== -->
     <section class="vocal-hero">
       <div class="vocal-hero__glow vocal-hero__glow--wine"></div>
       <div class="vocal-hero__glow vocal-hero__glow--gold"></div>
@@ -29,28 +32,31 @@
           <span>8 dimensiones</span>
           <span>Evidencia acústica</span>
           <span>Progreso pedagógico</span>
+          <span v-if="amvSongTitle">{{ amvSongTitle }} · {{ amvArtist || 'Referencia' }}</span>
         </div>
       </div>
 
       <div class="vocal-hero__score">
         <div class="vocal-score-ring" :class="{ 'is-ready': amvHasResult }">
           <div>
-            <strong>{{ amvOverall ?? '—' }}</strong>
-            <small>{{ amvOverall !== null ? 'Índice AMV' : 'Pendiente' }}</small>
+            <strong>{{ amvComparisonQuality ?? '—' }}</strong>
+            <small>{{ amvHasResult ? 'Calidad de comparación' : 'Pendiente' }}</small>
           </div>
         </div>
         <span>{{ amvHasResult ? 'ÚLTIMO ANÁLISIS' : 'SIN ANÁLISIS CONECTADO' }}</span>
       </div>
     </section>
 
+    <!-- =========================================================
+         INTRO / ESTADO
+    ========================================================== -->
     <section class="vocal-intro">
       <div>
         <span class="vocal-section-label">EVALUACIÓN VOCAL</span>
         <h2>Tu perfil vocal</h2>
         <p>
-          Aquí aparecerán tus resultados AMV, fortalezas y prioridades de
-          práctica. No reemplaza la evaluación docente: la complementa con
-          evidencia acústica.
+          Resultados AMV, fortalezas y prioridades de práctica. No reemplaza
+          la evaluación docente: la complementa con evidencia acústica.
         </p>
       </div>
 
@@ -60,27 +66,122 @@
       </div>
     </section>
 
+    <div v-if="amvLoadError" class="amv-load-error" role="alert">
+      <strong>No se pudo cargar el análisis AMV.</strong>
+      <span>{{ amvLoadError }}</span>
+      <button type="button" @click="loadAmvProfile">Reintentar</button>
+    </div>
+
     <template v-if="amvHasResult">
+      <!-- =======================================================
+           METADATOS PRINCIPALES
+      ======================================================== -->
       <section class="vocal-metrics">
         <article>
           <span>RANGO OBSERVADO</span>
-          <strong>{{ amvMeta.range }}</strong>
+          <strong>{{ amvRange }}</strong>
           <small>registro detectado por AMV</small>
         </article>
 
         <article>
-          <span>ESTABILIDAD</span>
-          <strong>{{ amvMeta.stability }}</strong>
-          <small>comportamiento de la voz</small>
+          <span>TESITURA OBSERVADA</span>
+          <strong>{{ amvTessitura }}</strong>
+          <small>zona central observada</small>
         </article>
 
         <article>
-          <span>CONFIANZA</span>
-          <strong>{{ amvMeta.confidence }}</strong>
-          <small>calidad de la evidencia</small>
+          <span>CALIDAD DE COMPARACIÓN</span>
+          <strong>{{ amvComparisonQuality !== null ? `${amvComparisonQuality}/100` : '—' }}</strong>
+          <small>{{ amvComparisonStatus }}</small>
         </article>
       </section>
 
+      <!-- =======================================================
+           RADAR — SOLO INDICADORES CUANTIFICADOS
+           No mezcla calidad de medición con desempeño.
+      ======================================================== -->
+      <section class="vocal-panel vocal-panel--radar">
+        <header class="vocal-panel__header">
+          <div>
+            <span class="vocal-section-label">AMV PROFILE</span>
+            <h2>Radar de indicadores cuantificados</h2>
+            <p class="amv-panel-subtitle">
+              Lecturas numéricas que AMV puede sostener con evidencia en esta evaluación.
+            </p>
+          </div>
+          <span class="vocal-panel__count">{{ amvScoredIndicatorCount }} indicadores</span>
+        </header>
+
+        <div class="amv-radar-layout amv-radar-layout--clean">
+          <div class="amv-radar" aria-label="Radar AMV de afinación, ritmo y estabilidad">
+            <svg viewBox="0 0 360 360" role="img" aria-labelledby="amv-radar-title amv-radar-desc">
+              <title id="amv-radar-title">Radar de indicadores cuantificados</title>
+              <desc id="amv-radar-desc">
+                Resultado de afinación, ritmo y estabilidad de la interpretación analizada por AMV.
+              </desc>
+
+              <g class="amv-radar-grid amv-radar-grid--triangle">
+                <polygon points="180,42 311,275 49,275"></polygon>
+                <polygon points="180,76 282,258 78,258"></polygon>
+                <polygon points="180,110 253,241 107,241"></polygon>
+                <polygon points="180,144 224,224 136,224"></polygon>
+                <line x1="180" y1="180" x2="180" y2="42"></line>
+                <line x1="180" y1="180" x2="311" y2="275"></line>
+                <line x1="180" y1="180" x2="49" y2="275"></line>
+              </g>
+
+              <polygon
+                class="amv-radar-shape"
+                :points="amvRadarPoints"
+              ></polygon>
+
+              <g class="amv-radar-dot">
+                <circle
+                  v-for="point in amvRadarDots"
+                  :key="point.key"
+                  :cx="point.x"
+                  :cy="point.y"
+                  r="5"
+                ></circle>
+              </g>
+
+              <text x="180" y="25">AFINACIÓN</text>
+              <text x="318" y="284">RITMO</text>
+              <text x="12" y="284">ESTABILIDAD</text>
+            </svg>
+          </div>
+
+          <div class="amv-radar-stats">
+            <article class="amv-score-card amv-score-card--focus">
+              <span>AFINACIÓN</span>
+              <strong>{{ formatScore(amvIntonation) }}</strong>
+              <small>comparación con la referencia</small>
+            </article>
+
+            <article class="amv-score-card amv-score-card--strength">
+              <span>RITMO Y PRECISIÓN</span>
+              <strong>{{ formatScore(amvRhythm) }}</strong>
+              <small>correspondencia temporal</small>
+            </article>
+
+            <article class="amv-score-card">
+              <span>ESTABILIDAD</span>
+              <strong>{{ formatScore(amvStability) }}</strong>
+              <small>índice descriptivo · {{ amvStabilityStatus }}</small>
+            </article>
+
+            <article class="amv-score-card">
+              <span>CALIDAD ACÚSTICA</span>
+              <strong>{{ formatScore(amvAcousticScore) }}</strong>
+              <small>calidad de la medición</small>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- =======================================================
+           OCHO DIMENSIONES
+      ======================================================== -->
       <section class="vocal-panel vocal-panel--analysis">
         <div class="vocal-signal" aria-hidden="true">
           <span v-for="n in 28" :key="n" :style="{ '--i': n }"></span>
@@ -90,65 +191,136 @@
           <div>
             <span class="vocal-section-label">AMV ANALYSIS</span>
             <h2>Las 8 dimensiones de tu voz</h2>
+            <p class="amv-panel-subtitle">
+              Una dimensión puede estar puntuada, observada o todavía en desarrollo. AMV no convierte la falta de medición en un cero.
+            </p>
           </div>
-          <span class="vocal-panel__count">
-            {{ amvAvailableDimensions.length }}/8 disponibles
-          </span>
+
+          <div class="amv-dimension-summary" aria-label="Resumen de cobertura de las 8 dimensiones">
+            <span><b>{{ amvScoredDimensionCount }}</b> puntuadas</span>
+            <span><b>{{ amvObservedDimensionCount }}</b> observadas</span>
+            <span><b>{{ amvPendingDimensionCount }}</b> en desarrollo</span>
+          </div>
         </header>
 
         <div class="vocal-dimensions">
           <article
             v-for="dimension in amvDimensions"
             :key="dimension.key"
-            class="vocal-dimension"
-            :class="{ 'is-pending': !Number.isFinite(amvValue(dimension.key)) }"
+            class="vocal-dimension amv-dimension-card"
+            :class="`is-${amvDimensionState(dimension.key)}`"
           >
             <div class="vocal-dimension__icon">{{ dimension.icon }}</div>
 
             <div class="vocal-dimension__body">
               <div class="vocal-dimension__title">
                 <strong>{{ dimension.label }}</strong>
-                <b>
-                  {{
-                    Number.isFinite(amvValue(dimension.key))
-                      ? `${amvValue(dimension.key)}%`
-                      : 'Pendiente'
-                  }}
-                </b>
+                <b>{{ amvDimensionValueLabel(dimension.key) }}</b>
               </div>
 
-              <div class="vocal-dimension__track">
-                <span
-                  :style="{
-                    width: Number.isFinite(amvValue(dimension.key))
-                      ? `${amvValue(dimension.key)}%`
-                      : '0%'
-                  }"
-                ></span>
+              <div v-if="amvDimensionState(dimension.key) === 'score'" class="vocal-dimension__track">
+                <span :style="{ width: `${amvValue(dimension.key)}%` }"></span>
               </div>
+              <div v-else class="amv-dimension-evidence">
+                <span>{{ amvDimensionEvidence(dimension.key) }}</span>
+              </div>
+
+              <small class="amv-dimension-note">
+                {{ amvDimensionNote(dimension.key) }}
+              </small>
             </div>
           </article>
         </div>
       </section>
 
-      <section class="vocal-bottom-grid">
+      <!-- =======================================================
+           EVIDENCIA ACÚSTICA
+      ======================================================== -->
+      <section class="vocal-panel amv-acoustic-panel">
+        <header class="vocal-panel__header">
+          <div>
+            <span class="vocal-section-label">EVIDENCIA ACÚSTICA</span>
+            <h2>Lo que AMV observó en esta grabación</h2>
+            <p class="amv-panel-subtitle">
+              Descriptores de la toma analizada. No equivalen por sí solos a diagnóstico clínico ni a un tipo de voz permanente.
+            </p>
+          </div>
+          <span class="vocal-panel__count">{{ amvAcousticStatusLabel }}</span>
+        </header>
+
+        <div class="amv-acoustic-grid">
+          <article class="amv-acoustic-card">
+            <span>VIBRATO</span>
+            <strong>{{ amvVibratoRate !== null ? `${amvVibratoRate.toFixed(2)} Hz` : '—' }}</strong>
+            <small>
+              {{ amvVibratoDepth !== null ? `${amvVibratoDepth.toFixed(1)} cents p-p` : 'Sin dato de profundidad' }}
+              · {{ amvVibratoSegments }} segmentos
+            </small>
+          </article>
+
+          <article class="amv-acoustic-card">
+            <span>DINÁMICA OBSERVADA</span>
+            <strong>{{ amvDynamics !== null ? `${amvDynamics.toFixed(2)} dB` : '—' }}</strong>
+            <small>rango dinámico observado en frames con F0 válido</small>
+          </article>
+
+          <article class="amv-acoustic-card">
+            <span>FORMANTES</span>
+            <strong>{{ amvF1 !== null ? `${amvF1.toFixed(0)} / ${amvF2.toFixed(0)}` : '—' }}</strong>
+            <small>F1 / F2 mediana · F3 {{ amvF3 !== null ? amvF3.toFixed(0) : '—' }} Hz</small>
+          </article>
+
+          <article class="amv-acoustic-card">
+            <span>PAUSAS VOCALES</span>
+            <strong>{{ amvPauseCount }}</strong>
+            <small>
+              pausas ≥ 0,20 s · mediana {{ amvPauseMedian !== null ? `${amvPauseMedian.toFixed(3)} s` : '—' }}
+            </small>
+          </article>
+        </div>
+      </section>
+
+      <!-- =======================================================
+           PEDAGOGÍA
+      ======================================================== -->
+      <section class="vocal-bottom-grid amv-pedagogy-grid">
         <article class="vocal-insight vocal-insight--strength">
           <span>FORTALEZAS</span>
           <h3>Lo que estás construyendo</h3>
-          <p>
-            Cuando AMV entregue suficientes dimensiones, aquí se destacarán
-            automáticamente tus áreas más sólidas.
-          </p>
+          <p v-if="amvStrengths.length">{{ amvStrengths[0] }}</p>
+          <p v-else>AMV mostrará aquí tus áreas más sólidas cuando exista evidencia suficiente.</p>
         </article>
 
         <article class="vocal-insight vocal-insight--focus">
           <span>PRÓXIMO FOCO</span>
           <h3>Lo que conviene trabajar</h3>
-          <p>
-            AMV podrá convertir tus resultados en prioridades concretas para
-            tus próximas clases y ejercicios.
-          </p>
+          <p v-if="amvPriorities.length">{{ amvPriorities[0] }}</p>
+          <p v-else>AMV mostrará aquí las prioridades pedagógicas detectadas.</p>
         </article>
+      </section>
+
+      <section class="vocal-panel amv-practice-panel">
+        <header class="vocal-panel__header">
+          <div>
+            <span class="vocal-section-label">PRÁCTICA SUGERIDA</span>
+            <h2>Cómo llevar estos resultados a tu próxima clase</h2>
+          </div>
+        </header>
+
+        <div class="amv-practice-list">
+          <article v-for="(suggestion, index) in amvSuggestions" :key="`${suggestion}-${index}`">
+            <span>{{ String(index + 1).padStart(2, '0') }}</span>
+            <p>{{ suggestion }}</p>
+          </article>
+          <p v-if="!amvSuggestions.length" class="amv-empty-copy">
+            Las sugerencias aparecerán cuando AMV tenga evidencia pedagógica suficiente.
+          </p>
+        </div>
+
+        <div class="amv-measurement-note">
+          <strong>Lectura responsable del resultado</strong>
+          <p>{{ amvMeasurementNote }}</p>
+        </div>
       </section>
     </template>
 
@@ -164,9 +336,8 @@
         <span class="vocal-section-label">AMV VOCAL ENGINE</span>
         <h2>Tu evaluación vocal está esperando tu primera conexión.</h2>
         <p>
-          Esta pantalla ya está preparada para recibir los resultados reales
-          del motor: afinación, ritmo, fraseo, fonación, registro, resonancia,
-          dicción y expresión.
+          Esta pantalla está preparada para recibir los resultados reales del
+          motor y convertirlos en una ficha vocal educativa.
         </p>
 
         <div class="vocal-empty__dimensions">
@@ -187,41 +358,51 @@
   </section>
 </template>
 
-<script setup>import {
-
+<script setup>
+import {
   computed,
-
   onMounted,
-
   ref,
-
 } from 'vue'
 
-import {
-
-  RouterLink,
-
-} from 'vue-router'
-
-import {
-
-  fetchMyEvaluationAttempts,
-
-  getAttemptDate,
-
-  isFinishedAttempt,
-
-} from '@/services/evaluationHistoryService'
-
-/* =========================================================*
-
-*   ESTADO*
-
-*========================================================= */
-
-// AMV: resultado persistido del Vocal Engine (se conectará al backend posteriormente).
+/* =========================================================
+   ESTADO AMV
+========================================================= */
 const amvResult = ref(null)
+const amvLoadError = ref('')
+const AMV_PROFILE_URL = '/amv/student_vocal_profile_v3.json'
 
+const loadAmvProfile = async () => {
+  try {
+    amvLoadError.value = ''
+
+    const response = await fetch(AMV_PROFILE_URL, {
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      throw new Error(`No se pudo cargar el perfil AMV (${response.status}).`)
+    }
+
+    const profile = await response.json()
+
+    if (!profile || typeof profile !== 'object') {
+      throw new Error('El perfil AMV no tiene un formato válido.')
+    }
+
+    amvResult.value = profile
+  } catch (error) {
+    console.error('Error cargando perfil AMV:', error)
+    amvResult.value = null
+    amvLoadError.value =
+      error?.message ||
+      'No fue posible cargar el análisis AMV.'
+  }
+}
+
+/* =========================================================
+   DIMENSIONES PEDAGÓGICAS
+========================================================= */
 const amvDimensions = [
   { key: 'intonation', label: 'Afinación', icon: '♪' },
   { key: 'rhythm', label: 'Ritmo y precisión', icon: '◷' },
@@ -235,855 +416,298 @@ const amvDimensions = [
 
 const amvHasResult = computed(() => Boolean(amvResult.value))
 
-const amvScoreMap = {
-  intonation: ['intonation', 'pitch', 'afinacion'],
-  rhythm: ['rhythm', 'timing', 'ritmo'],
-  air: ['air', 'phrasing', 'fraseo'],
-  phonation: ['phonation', 'emission', 'fonacion'],
-  register: ['register', 'transitions', 'registro'],
-  resonance: ['resonance', 'timbre', 'resonancia'],
-  diction: ['diction', 'articulation', 'diccion'],
-  expression: ['expression', 'musicality', 'expresion'],
+const amvValue = key => {
+  const value = amvResult.value?.pedagogical_dimensions?.[key]?.score_0_100
+  return Number.isFinite(Number(value)) ? Number(value) : null
 }
 
-const amvValue = key => {
-  const candidates = amvScoreMap[key] || [key]
-  const containers = [
-    amvResult.value?.dimensions,
-    amvResult.value?.scoring,
-    amvResult.value?.scores,
-  ]
+const amvIntonation = computed(() => amvValue('intonation'))
+const amvRhythm = computed(() => amvValue('rhythm'))
+const amvStability = computed(() => {
+  const value = amvResult.value?.pedagogical_dimensions?.stability?.index_0_100
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
 
-  for (const container of containers) {
-    if (!container) continue
+const amvStabilityStatus = computed(() =>
+  amvResult.value?.pedagogical_dimensions?.stability?.status || 'observada',
+)
 
-    for (const candidate of candidates) {
-      const raw = container?.[candidate]?.score ?? container?.[candidate]
-      if (Number.isFinite(Number(raw))) {
-        return Math.round(Number(raw))
-      }
-    }
+const amvScoredIndicatorCount = computed(() =>
+  [amvIntonation.value, amvRhythm.value, amvStability.value]
+    .filter(value => Number.isFinite(Number(value))).length,
+)
+
+const amvDimensionState = key => {
+  if (['intonation', 'rhythm'].includes(key)) {
+    return Number.isFinite(amvValue(key)) ? 'score' : 'pending'
   }
 
-  return null
+  if (key === 'air') {
+    return amvResult.value?.acoustic_profile?.breath_activity_proxy?.available
+      ? 'observed'
+      : 'pending'
+  }
+
+  if (key === 'register') {
+    return amvResult.value?.observed_pitch ? 'observed' : 'pending'
+  }
+
+  if (key === 'resonance') {
+    return amvResult.value?.acoustic_profile?.formants?.available
+      ? 'observed'
+      : 'pending'
+  }
+
+  return 'pending'
 }
 
-const amvMeta = computed(() => ({
-  range: amvResult.value?.features?.pitch?.rangeLabel || '—',
-  stability: amvResult.value?.features?.pitch?.stabilityLabel || '—',
-  confidence: amvResult.value?.confidence != null
-    ? `${Math.round(Number(amvResult.value.confidence) * 100)}%`
-    : '—',
-}))
+const amvDimensionValueLabel = key => {
+  const state = amvDimensionState(key)
 
-const attempts = ref([])
+  if (state === 'score') {
+    return `${formatScore(amvValue(key))}%`
+  }
 
-const isLoading = ref(true)
+  if (key === 'air' && state === 'observed') {
+    return 'Evidencia parcial'
+  }
 
-const loadError = ref('')
+  if (key === 'register' && state === 'observed') {
+    return amvRange.value
+  }
 
-const activeFilter =
+  if (key === 'resonance' && state === 'observed') {
+    return 'Descriptivo'
+  }
 
-  ref('all')
+  return 'En desarrollo'
+}
+
+const amvDimensionEvidence = key => {
+  if (!amvResult.value) return 'Sin datos'
+
+  if (key === 'air') {
+    const count = amvPauseCount.value
+    return count !== null ? `${count} pausas vocales` : 'Proxy no disponible'
+  }
+
+  if (key === 'register') {
+    return amvTessitura.value !== '—'
+      ? `Tesitura ${amvTessitura.value}`
+      : 'Rango no disponible'
+  }
+
+  if (key === 'resonance') {
+    return amvF1.value !== null && amvF2.value !== null
+      ? `F1 ${Math.round(amvF1.value)} · F2 ${Math.round(amvF2.value)} Hz`
+      : 'Formantes no disponibles'
+  }
+
+  return 'Sin evidencia directa'
+}
+
+const amvDimensionNote = key => {
+  const notes = {
+    intonation: 'Puntuación basada en la comparación contra la referencia validada.',
+    rhythm: 'Puntuación temporal frente a la referencia; depende de la calidad de alineación.',
+    air: 'Proxy de pausas vocales. No mide respiración fisiológica ni soporte respiratorio.',
+    phonation: 'AMV todavía no emite una puntuación directa de fonación y emisión.',
+    register: 'Rango y tesitura observados en esta interpretación; no definen un tipo de voz permanente.',
+    resonance: 'Formantes y timbre son descriptores acústicos de esta toma, no una etiqueta permanente.',
+    diction: 'No existe todavía una medición directa de dicción/articulación en este perfil.',
+    expression: 'No existe todavía una puntuación directa de expresión/musicalidad en este perfil.',
+  }
+
+  return notes[key] || 'Estado del indicador no disponible.'
+}
+
+const amvScoredDimensionCount = computed(() =>
+  amvDimensions.filter(d => amvDimensionState(d.key) === 'score').length,
+)
+
+const amvObservedDimensionCount = computed(() =>
+  amvDimensions.filter(d => amvDimensionState(d.key) === 'observed').length,
+)
+
+const amvPendingDimensionCount = computed(() =>
+  amvDimensions.filter(d => amvDimensionState(d.key) === 'pending').length,
+)
 
 /* =========================================================
-   NAVEGACIÓN CONTEXTUAL · V10
+   METADATOS REALES
 ========================================================= */
-const activeEvaluationTab = ref('resumen')
+const amvRange = computed(() => {
+  const pitch = amvResult.value?.observed_pitch
+  const low = pitch?.lowest_note
+  const high = pitch?.highest_note
+  return low && high ? `${low}–${high}` : '—'
+})
 
-const isEvaluationTab = tab =>
-  activeEvaluationTab.value === tab
+const amvTessitura = computed(() => {
+  const pitch = amvResult.value?.observed_pitch
+  const low = pitch?.p10_note
+  const high = pitch?.p90_note
+  return low && high ? `${low}–${high}` : '—'
+})
 
-const setEvaluationTab = tab => {
-  activeEvaluationTab.value = tab
+const amvComparisonQuality = computed(() => {
+  const value =
+    amvResult.value?.measurement_quality?.comparison_score_0_100 ??
+    amvResult.value?.comparison_quality?.score_0_100
+  return Number.isFinite(Number(value)) ? Math.round(Number(value)) : null
+})
 
-  if (tab === 'historial') activeFilter.value = 'all'
-  if (tab === 'quiz') activeFilter.value = 'quiz'
-  if (tab === 'pruebas') activeFilter.value = 'test'
+const amvComparisonStatus = computed(() =>
+  amvResult.value?.measurement_quality?.comparison_status ||
+  amvResult.value?.comparison_quality?.status ||
+  '—',
+)
+
+const amvAcousticScore = computed(() => {
+  const value = amvResult.value?.measurement_quality?.acoustic_score_0_100
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvAcousticStatusLabel = computed(() =>
+  amvResult.value?.measurement_quality?.acoustic_status === 'strong'
+    ? 'EVIDENCIA FUERTE'
+    : 'EVIDENCIA DISPONIBLE',
+)
+
+const amvSongTitle = computed(() =>
+  amvResult.value?.assessment_context?.song_title || '',
+)
+
+const amvArtist = computed(() =>
+  amvResult.value?.assessment_context?.artist || '',
+)
+
+const amvConfidence = computed(() => {
+  const value = amvResult.value?.comparison_quality?.alignment_confidence
+  return Number.isFinite(Number(value)) ? Number(value) * 100 : null
+})
+
+/* =========================================================
+   EVIDENCIA ACÚSTICA
+========================================================= */
+const amvVibrato = computed(() =>
+  amvResult.value?.pedagogical_dimensions?.vibrato ||
+  amvResult.value?.acoustic_profile?.vibrato ||
+  null,
+)
+
+const amvVibratoRate = computed(() => {
+  const value = amvVibrato.value?.rate_hz
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvVibratoDepth = computed(() => {
+  const value = amvVibrato.value?.depth_cents_peak_to_peak
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvVibratoSegments = computed(() => {
+  const value = amvVibrato.value?.segments ?? amvVibrato.value?.segments_analyzed
+  return Number.isFinite(Number(value)) ? Number(value) : 0
+})
+
+const amvDynamics = computed(() => {
+  const value = amvResult.value?.acoustic_profile?.dynamics?.observed_dynamic_range_db
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvF1 = computed(() => {
+  const value = amvResult.value?.acoustic_profile?.formants?.f1_hz?.median
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvF2 = computed(() => {
+  const value = amvResult.value?.acoustic_profile?.formants?.f2_hz?.median
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvF3 = computed(() => {
+  const value = amvResult.value?.acoustic_profile?.formants?.f3_hz?.median
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvPauseCount = computed(() => {
+  const value = amvResult.value?.acoustic_profile?.breath_activity_proxy?.pause_segments_ge_0_20s
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvPauseMedian = computed(() => {
+  const value = amvResult.value?.acoustic_profile?.breath_activity_proxy?.median_pause_seconds
+  return Number.isFinite(Number(value)) ? Number(value) : null
+})
+
+const amvMeasurementNote = computed(() =>
+  amvResult.value?.pedagogical_summary_v321?.student_facing?.measurement_note ||
+  amvResult.value?.measurement_quality?.note ||
+  'Interpreta los resultados junto con el contexto de la clase y las condiciones de captura.',
+)
+
+/* =========================================================
+   RADAR TRIANGULAR — AFINACIÓN / RITMO / ESTABILIDAD
+========================================================= */
+const radarPoint = (value, angleDegrees) => {
+  const center = 180
+  const radius = 138
+  const radians = (angleDegrees * Math.PI) / 180
+  const safeValue = Math.max(0, Math.min(100, Number(value) || 0))
+
+  return {
+    x: center + Math.cos(radians) * radius * (safeValue / 100),
+    y: center + Math.sin(radians) * radius * (safeValue / 100),
+  }
 }
 
-
-const filters = [
-
-  {
-
-    value: 'all',
-
-    label: 'Todas',
-
-  },
-
-  {
-
-    value: 'quiz',
-
-    label: 'Quiz',
-
-  },
-
-  {
-
-    value: 'test',
-
-    label: 'Pruebas',
-
-  },
-
-]
-
-/* =========================================================*
-
-*   CARGA*
-
-*========================================================= */
-
-const loadEvaluations =
-
-  async () => {
-
-    isLoading.value = true
-
-    loadError.value = ''
-
-    try {
-
-      attempts.value =
-
-        await fetchMyEvaluationAttempts()
-
-    } catch (error) {
-
-      console.error(
-
-        'Error cargando Mis evaluaciones:',
-
-        error,
-
-      )
-
-      attempts.value = []
-
-      loadError.value =
-
-        error?.message ||
-
-        'No fue posible cargar tus evaluaciones.'
-
-    } finally {
-
-      isLoading.value = false
-
-    }
-
-  }
-
-/* =========================================================*
-
-*   INTENTOS*
-
-*========================================================= */
-
-const finishedAttempts =
-
-  computed(() =>
-
-    attempts.value.filter(
-
-      isFinishedAttempt,
-
-    ),
-
-  )
-
-/* =========================================================*
-
-*   AGRUPAR POR EVALUACIÓN*
-
-*========================================================= */
-
-const groupedEvaluations =
-
-  computed(() => {
-
-    const groups =
-
-      new Map()
-
-    for (
-
-      const attempt of
-
-      finishedAttempts.value
-
-    ) {
-
-      if (
-
-        !groups.has(
-
-          attempt.quizId,
-
-        )
-
-      ) {
-
-        groups.set(
-
-          attempt.quizId,
-
-          {
-
-            quizId:
-
-              attempt.quizId,
-
-            quizTitle:
-
-              attempt.quizTitle,
-
-            assessmentType:
-
-              attempt.assessmentType,
-
-            lessonId:
-
-              attempt.lessonId,
-
-            lessonTitle:
-
-              attempt.lessonTitle,
-
-            attempts: [],
-
-          },
-
-        )
-
-      }
-
-      groups
-
-        .get(
-
-          attempt.quizId,
-
-        )
-
-        .attempts
-
-        .push(attempt)
-
-    }
-
-    return Array
-
-      .from(
-
-        groups.values(),
-
-      )
-
-      .map(group => {
-
-        group.attempts.sort(
-
-          (a, b) =>
-
-            a.attemptNumber -
-
-            b.attemptNumber,
-
-        )
-
-        const percentages =
-
-          group.attempts
-
-            .map(
-
-              attempt =>
-
-                attempt.percentage,
-
-            )
-
-            .filter(
-
-              value =>
-
-                Number.isFinite(
-
-                  Number(value),
-
-                ),
-
-            )
-
-            .map(Number)
-
-        const latest =
-
-          group.attempts[
-
-            group.attempts.length -
-
-            1
-
-          ]
-
-        return {
-
-          ...group,
-
-          bestPercentage:
-
-            percentages.length
-
-              ? Math.max(
-
-                  ...percentages,
-
-                )
-
-              : null,
-
-          firstPercentage:
-
-            percentages.length
-
-              ? percentages[0]
-
-              : null,
-
-          latestPercentage:
-
-            latest?.percentage ??
-
-            null,
-
-          latestPassed:
-
-            latest?.passed ??
-
-            null,
-
-          latestDate:
-
-            getAttemptDate(
-
-              latest,
-
-            ),
-
-        }
-
-      })
-
-      .sort(
-
-        (a, b) =>
-
-          new Date(
-
-            b.latestDate || 0,
-
-          ) -
-
-          new Date(
-
-            a.latestDate || 0,
-
-          ),
-
-      )
-
-  })
-
-const filteredGroups =
-
-  computed(() => {
-
-    if (
-
-      activeFilter.value ===
-
-      'all'
-
-    ) {
-
-      return groupedEvaluations.value
-
-    }
-
-    return groupedEvaluations.value
-
-      .filter(
-
-        group =>
-
-          group.assessmentType ===
-
-          activeFilter.value,
-
-      )
-
-  })
-
-/* =========================================================*
-
-*   RESUMEN*
-
-*========================================================= */
-
-const validPercentages =
-
-  computed(() =>
-
-    finishedAttempts.value
-
-      .map(
-
-        attempt =>
-
-          attempt.percentage,
-
-      )
-
-      .filter(
-
-        value =>
-
-          Number.isFinite(
-
-            Number(value),
-
-          ),
-
-      )
-
-      .map(Number),
-
-  )
-
-const averagePercentage =
-
-  computed(() => {
-
-    if (
-
-      !validPercentages.value
-
-        .length
-
-    ) {
-
-      return null
-
-    }
-
-    const total =
-
-      validPercentages.value
-
-        .reduce(
-
-          (sum, value) =>
-
-            sum + value,
-
-          0,
-
-        )
-
-    return (
-
-      total /
-
-      validPercentages.value.length
-
-    )
-
-  })
-
-const bestPercentage =
-
-  computed(() => {
-
-    if (
-
-      !validPercentages.value
-
-        .length
-
-    ) {
-
-      return null
-
-    }
-
-    return Math.max(
-
-      ...validPercentages.value,
-
-    )
-
-  })
-
-const averagePercentageLabel =
-
-  computed(() =>
-
-    formatPercentage(
-
-      averagePercentage.value,
-
-    ),
-
-  )
-
-const bestPercentageLabel =
-
-  computed(() =>
-
-    formatPercentage(
-
-      bestPercentage.value,
-
-    ),
-
-  )
-
-/* =========================================================*
-
-*   FILTROS*
-
-*========================================================= */
-
-const countByFilter =
-
-  value => {
-
-    if (
-
-      value === 'all'
-
-    ) {
-
-      return groupedEvaluations
-
-        .value.length
-
-    }
-
-    return groupedEvaluations
-
-      .value
-
-      .filter(
-
-        group =>
-
-          group.assessmentType ===
-
-          value,
-
-      )
-
-      .length
-
-  }
-
-/* =========================================================*
-
-*   EVOLUCIÓN*
-
-*========================================================= */
-
-const getTrend =
-
-  group => {
-
-    const first =
-
-      Number(
-
-        group.firstPercentage,
-
-      )
-
-    const latest =
-
-      Number(
-
-        group.latestPercentage,
-
-      )
-
-    if (
-
-      !Number.isFinite(first) ||
-
-      !Number.isFinite(latest)
-
-    ) {
-
-      return null
-
-    }
-
-    return latest - first
-
-  }
-
-const getTrendLabel =
-
-  group => {
-
-    const trend =
-
-      getTrend(group)
-
-    if (
-
-      trend === null
-
-    ) {
-
-      return 'Sin datos suficientes'
-
-    }
-
-    if (
-
-      trend > 0
-
-    ) {
-
-      return `+${Math.round(trend)} puntos`
-
-    }
-
-    if (
-
-      trend < 0
-
-    ) {
-
-      return `${Math.round(trend)} puntos`
-
-    }
-
-    return 'Resultado estable'
-
-  }
-
-const getTrendDescription =
-
-  group => {
-
-    const trend =
-
-      getTrend(group)
-
-    if (
-
-      trend === null
-
-    ) {
-
-      return (
-
-        'Completa más intentos para comparar tu progreso.'
-
-      )
-
-    }
-
-    if (
-
-      trend > 0
-
-    ) {
-
-      return (
-
-        'Tu resultado más reciente mejoró respecto de tu primer intento.'
-
-      )
-
-    }
-
-    if (
-
-      trend < 0
-
-    ) {
-
-      return (
-
-        'Conviene volver a revisar el material antes del próximo intento.'
-
-      )
-
-    }
-
-    return (
-
-      'Mantienes el mismo resultado. Puedes intentar reforzar los contenidos más difíciles.'
-
-    )
-
-  }
-
-/* =========================================================*
-
-*   FORMATO*
-
-*========================================================= */
-
-const formatPercentage =
-
-  value => {
-
-    const number =
-
-      Number(value)
-
-    if (
-
-      !Number.isFinite(number)
-
-    ) {
-
-      return '—'
-
-    }
-
-    return `${Math.round(number)}%`
-
-  }
-
-const formatScore =
-
-  value => {
-
-    const number =
-
-      Number(value)
-
-    if (
-
-      !Number.isFinite(number)
-
-    ) {
-
-      return '—'
-
-    }
-
-    return Number.isInteger(number)
-
-      ? String(number)
-
-      : number.toFixed(1)
-
-  }
-
-const formatDate =
-
-  value => {
-
-    if (!value) {
-
-      return 'Sin fecha'
-
-    }
-
-    const date =
-
-      new Date(value)
-
-    if (
-
-      Number.isNaN(
-
-        date.getTime(),
-
-      )
-
-    ) {
-
-      return 'Sin fecha'
-
-    }
-
-    return new Intl
-
-      .DateTimeFormat(
-
-        'es-CL',
-
-        {
-
-          day: '2-digit',
-
-          month: 'short',
-
-          year: 'numeric',
-
-          hour: '2-digit',
-
-          minute: '2-digit',
-
-        },
-
-      )
-
-      .format(date)
-
-  }
-
-const getStatusLabel =
-
-  status => {
-
-    const labels = {
-
-      in_progress:
-
-        'En progreso',
-
-      submitted:
-
-        'Entregada',
-
-      graded:
-
-        'Corregida',
-
-    }
-
-    return (
-
-      labels[status] ||
-
-      'Registrada'
-
-    )
-
-  }
-
-/* =========================================================*
-
-*   LIFECYCLE*
-
-*========================================================= */
-
-onMounted(
-
-  loadEvaluations,
-
-)</script>
+const amvRadarPoints = computed(() => {
+  const points = [
+    radarPoint(amvIntonation.value, -90),
+    radarPoint(amvRhythm.value, 30),
+    radarPoint(amvStability.value, 150),
+  ]
+
+  return points
+    .map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`)
+    .join(' ')
+})
+
+const amvRadarDots = computed(() => [
+  { key: 'intonation', ...radarPoint(amvIntonation.value, -90) },
+  { key: 'rhythm', ...radarPoint(amvRhythm.value, 30) },
+  { key: 'stability', ...radarPoint(amvStability.value, 150) },
+])
+
+/* =========================================================
+   PEDAGOGÍA
+========================================================= */
+const amvStrengths = computed(() =>
+  amvResult.value?.pedagogical_summary_v321?.student_facing?.strengths || [],
+)
+
+const amvPriorities = computed(() =>
+  amvResult.value?.pedagogical_summary_v321?.student_facing?.priority_areas || [],
+)
+
+const amvSuggestions = computed(() =>
+  amvResult.value?.pedagogical_summary_v321?.student_facing?.practice_suggestions || [],
+)
+
+/* =========================================================
+   FORMATO
+========================================================= */
+const formatScore = value => {
+  const number = Number(value)
+  return Number.isFinite(number) ? number.toFixed(1) : '—'
+}
+
+/* =========================================================
+   CICLO DE VIDA
+========================================================= */
+onMounted(loadAmvProfile)
+</script>
 
 <style lang="scss" scoped>
 .vocal-evaluation-page {
@@ -2049,9 +1673,283 @@ onMounted(
   }
 }
 
+
+
+/* =========================================================
+   AMV RADAR / DIMENSIONS / EVIDENCE · FINAL
+========================================================= */
+.amv-panel-subtitle {
+  margin: 8px 0 0;
+  max-width: 760px;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.amv-load-error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(168,21,73,.16);
+  border-radius: 16px;
+  background: #fff6f8;
+  color: #7b2747;
+  box-shadow: 0 10px 25px rgba(168,21,73,.05);
+}
+
+.amv-load-error strong { font-size: .82rem; }
+.amv-load-error span { color: #7e7d85; font-size: .76rem; }
+.amv-load-error button {
+  margin-left: auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid rgba(168,21,73,.18);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--wine);
+  font-size: .72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.amv-radar-layout--clean {
+  grid-template-columns: minmax(320px, 1.1fr) minmax(290px, .9fr);
+  align-items: center;
+}
+
+.amv-radar-grid--triangle polygon {
+  fill: none;
+}
+
+.amv-radar-grid--triangle line {
+  stroke: rgba(111,124,145,.22);
+}
+
+.amv-radar-stats {
+  align-content: center;
+}
+
+.amv-score-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.amv-score-card--focus {
+  border-color: rgba(168,21,73,.14);
+  background: linear-gradient(145deg, #fff, #fff7fa);
+}
+
+.amv-score-card--strength {
+  border-color: rgba(44,147,107,.15);
+  background: linear-gradient(145deg, #fff, #f6fcf9);
+}
+
+.amv-score-card--focus:before,
+.amv-score-card--strength:before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--wine), var(--gold));
+}
+
+.amv-dimension-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.amv-dimension-summary span {
+  padding: 8px 10px;
+  border: 1px solid #e4e8ee;
+  border-radius: 999px;
+  background: #fafbfc;
+  color: #7c8798;
+  font-size: .62rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.amv-dimension-summary b {
+  color: var(--ink);
+  margin-right: 3px;
+}
+
+.amv-dimension-card.is-observed {
+  border-color: rgba(213,165,29,.22);
+  background: linear-gradient(145deg, #fff, #fffdf6);
+}
+
+.amv-dimension-card.is-pending {
+  opacity: .72;
+}
+
+.amv-dimension-card.is-score .vocal-dimension__title b {
+  color: var(--wine);
+}
+
+.amv-dimension-card.is-observed .vocal-dimension__title b {
+  color: #9a7615;
+}
+
+.amv-dimension-evidence {
+  min-height: 7px;
+  display: flex;
+  align-items: center;
+  margin-top: 3px;
+}
+
+.amv-dimension-evidence span {
+  display: inline-flex;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #fbf7e9;
+  color: #8c711e;
+  font-size: .68rem;
+  font-weight: 850;
+}
+
+.amv-dimension-note {
+  display: block;
+  margin-top: 7px;
+  color: #8792a3;
+  font-size: .67rem;
+  line-height: 1.45;
+}
+
+.amv-acoustic-panel {
+  margin-top: 16px;
+}
+
+.amv-acoustic-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.amv-acoustic-card {
+  min-height: 132px;
+  padding: 18px;
+  border: 1px solid #e4e9ef;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #fff, #fbfcfe);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+
+.amv-acoustic-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(168,21,73,.12);
+  box-shadow: 0 14px 30px rgba(20,30,48,.06);
+}
+
+.amv-acoustic-card > span {
+  display: block;
+  color: #8994a5;
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.amv-acoustic-card strong {
+  display: block;
+  margin: 9px 0 4px;
+  color: var(--ink);
+  font-size: 1.35rem;
+  letter-spacing: -.04em;
+}
+
+.amv-acoustic-card small {
+  color: #7f8a9d;
+  font-size: .67rem;
+  line-height: 1.45;
+}
+
+.amv-pedagogy-grid {
+  margin-top: 16px;
+}
+
+.amv-practice-panel {
+  margin-top: 16px;
+}
+
+.amv-practice-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.amv-practice-list article {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 13px;
+  align-items: start;
+  padding: 14px 15px;
+  border: 1px solid #e6eaf0;
+  border-radius: 15px;
+  background: #fbfcfd;
+}
+
+.amv-practice-list article > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: #f7edf1;
+  color: var(--wine);
+  font-size: .65rem;
+  font-weight: 900;
+}
+
+.amv-practice-list p {
+  margin: 2px 0 0;
+  color: #657287;
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+.amv-empty-copy {
+  margin: 0;
+  color: #7b8798;
+}
+
+.amv-measurement-note {
+  margin-top: 17px;
+  padding: 16px;
+  border: 1px solid rgba(213,165,29,.2);
+  border-radius: 15px;
+  background: #fffaf0;
+}
+
+.amv-measurement-note strong {
+  color: #8e7114;
+  font-size: .72rem;
+  letter-spacing: .04em;
+}
+
+.amv-measurement-note p {
+  margin: 6px 0 0;
+  color: #726f66;
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 980px) {
+  .amv-radar-layout--clean { grid-template-columns: 1fr; }
+  .amv-acoustic-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .amv-dimension-summary { justify-content: flex-start; }
+}
+
+@media (max-width: 700px) {
+  .amv-acoustic-grid { grid-template-columns: 1fr; }
+  .amv-load-error button { width: 100%; margin-left: 0; }
+}
 </style>
-
-
 <style lang="scss">
 /* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
 .amv-view-shell {
@@ -2309,5 +2207,47 @@ onMounted(
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* AMV RADAR 3.2.2 */
+.vocal-panel--radar { margin-bottom: 16px; }
+.amv-radar-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.15fr) minmax(280px, .85fr);
+  gap: 28px;
+  align-items: center;
+  padding-top: 18px;
+}
+.amv-radar {
+  min-height: 380px;
+  display: grid;
+  place-items: center;
+  border-radius: 26px;
+  background: radial-gradient(circle, rgba(168,21,73,.055), transparent 62%), #fbfcfe;
+  border: 1px solid #e7ebf0;
+}
+.amv-radar svg { width: min(100%, 410px); height: auto; overflow: visible; }
+.amv-radar-grid polygon { fill: none; stroke: #dfe5ed; stroke-width: 1; }
+.amv-radar-grid line { stroke: #e7ebf0; stroke-width: 1; }
+.amv-radar-shape { fill: rgba(168,21,73,.14); stroke: var(--wine); stroke-width: 3; stroke-linejoin: round; }
+.amv-radar-dot circle { fill: var(--gold); stroke: #fff; stroke-width: 2; }
+.amv-radar text { fill: #6f7c91; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-anchor: middle; }
+.amv-radar-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.amv-radar-stats article {
+  padding: 16px; border: 1px solid #e3e8ee; border-radius: 16px; background: #fff;
+}
+.amv-radar-stats span { display:block; color:#8a96a8; font-size:.59rem; font-weight:900; letter-spacing:.1em; }
+.amv-radar-stats strong { display:block; margin-top:7px; color:var(--wine); font-size:1.45rem; letter-spacing:-.04em; }
+.amv-radar-stats small { color:#8994a6; line-height:1.45; }
+.amv-load-error {
+  margin: 0 0 16px; padding: 12px 15px; border-radius: 14px; border:1px solid rgba(168,21,73,.18);
+  background:#fff6f8; color:var(--wine); font-size:.78rem; font-weight:800;
+}
+@media (max-width: 900px) {
+  .amv-radar-layout { grid-template-columns: 1fr; }
+  .amv-radar { min-height: 320px; }
+}
+@media (max-width: 520px) {
+  .amv-radar-stats { grid-template-columns: 1fr; }
 }
 </style>
