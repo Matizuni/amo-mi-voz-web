@@ -495,6 +495,26 @@ const router = createRouter({
         },
 
 
+        /* =================================================
+   EVALUACIÓN AMV · FICHA VOCAL
+================================================== */
+
+        {
+          path: 'estudiante/:studentId/evaluacion-amv',
+          name: 'aula-estudiante-evaluacion-amv',
+
+          meta: {
+            allowedRoles: ['teacher'],
+          },
+
+          component: () =>
+            import(
+              '@/views/aula/MyEvaluationView.vue'
+            ),
+        },
+
+
+
 
         /* =================================================
 
@@ -1084,50 +1104,66 @@ const router = createRouter({
 
 
 
+
         /* =================================================
-
-           MIS EVALUACIONES · ALUMNO
-
+           EVALUACIONES
         ================================================== */
 
-
-
         {
-
-          path:
-
-            'evaluaciones',
-
-
-
-          name:
-
-            'aula-mis-evaluaciones',
-
-
-
-          meta: {
-
-            allowedRoles: [
-
-              'student',
-
-            ],
-
-          },
-
-
-
+          path: 'clase/:id/evaluacion/nueva',
+          name: 'aula-crear-evaluacion',
+          meta: { allowedRoles: ['teacher'] },
           component: () =>
-
-            import(
-
-              '@/views/aula/MyEvaluationsView.vue'
-
-            ),
-
+            import('@/views/aula/CreateQuizView.vue'),
         },
 
+        {
+          path: 'clase/:id/evaluacion/:quizId/editar',
+          name: 'aula-editar-evaluacion',
+          meta: { allowedRoles: ['teacher'] },
+          component: () =>
+            import('@/views/aula/CreateQuizView.vue'),
+        },
+
+        {
+          path: 'clase/:id/evaluacion/:quizId/intentos',
+          name: 'aula-evaluacion-intentos',
+          meta: { allowedRoles: ['teacher'] },
+          component: () =>
+            import('@/views/aula/QuizAttemptsView.vue'),
+        },
+
+        {
+          path: 'clase/:id/evaluacion/:quizId/intentos/:attemptId/revisar',
+          name: 'aula-evaluacion-revisar-intento',
+          meta: { allowedRoles: ['teacher'] },
+          component: () =>
+            import('@/views/aula/TeacherReviewEvaluationView.vue'),
+        },
+
+        {
+          path: 'clase/:id/evaluacion/:quizId',
+          name: 'aula-evaluacion',
+          meta: { allowedRoles: ['student'] },
+          component: () =>
+            import('@/views/aula/QuizView.vue'),
+        },
+
+        {
+          path: 'evaluaciones',
+          name: 'aula-mis-evaluaciones',
+          meta: { allowedRoles: ['student'] },
+          component: () =>
+            import('@/views/aula/MyEvaluationsView.vue'),
+        },
+
+        {
+          path: 'evaluaciones/intento/:attemptId',
+          name: 'aula-evaluacion-revision',
+          meta: { allowedRoles: ['student'] },
+          component: () =>
+            import('@/views/aula/ReviewEvaluationView.vue'),
+        },
 
 
         /* =================================================
@@ -1247,6 +1283,8 @@ const router = createRouter({
           },
 
         },
+
+
 
       ],
 

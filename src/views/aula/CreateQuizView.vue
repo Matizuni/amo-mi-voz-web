@@ -1,15 +1,15 @@
 <template>
-  <section class="quiz-builder amv-view-shell">
+  <section class="quiz-builder">
     <!-- =====================================================
          TOPBAR
     ====================================================== -->
     <header class="builder-topbar">
       <RouterLink
-        :to="`/aula/clase/${lessonId}/trabajo`"
+        :to="isEditMode ? `/aula/clase/${lessonId}/evaluacion/${quizId}/intentos` : `/aula/clase/${lessonId}/trabajo`"
         class="back-link"
       >
         <span>←</span>
-        Volver a la clase
+        {{ isEditMode ? 'Volver a los intentos' : 'Volver a la clase' }}
       </RouterLink>
 
       <div class="builder-topbar__status">
@@ -23,7 +23,9 @@
         {{
           isSaving
             ? 'Guardando evaluación...'
-            : 'Constructor de evaluaciones'
+            : isEditMode
+              ? 'Editor de evaluación'
+              : 'Constructor de evaluaciones'
         }}
       </div>
     </header>
@@ -39,7 +41,7 @@
 
       <section>
         <strong>
-          No podemos crear esta evaluación
+          {{ isEditMode ? 'No podemos abrir esta evaluación' : 'No podemos crear esta evaluación' }}
         </strong>
 
         <p>
@@ -66,12 +68,13 @@
           </div>
 
           <h1>
-            Nueva evaluación
+            {{ isEditMode ? 'Editar evaluación' : 'Nueva evaluación' }}
           </h1>
 
           <p>
-            Crea una evaluación clara, define sus reglas y
-            construye preguntas que orienten el aprendizaje.
+            {{ isEditMode
+              ? 'Actualiza sus reglas, fechas y preguntas desde un solo lugar.'
+              : 'Crea una evaluación clara, define sus reglas y construye preguntas que orienten el aprendizaje.' }}
           </p>
 
           <div
@@ -105,12 +108,13 @@
             </span>
 
             <h2>
-              ¿Qué quieres crear?
+              {{ isEditMode ? 'Tipo de evaluación' : '¿Qué quieres crear?' }}
             </h2>
 
             <p>
-              Elige el comportamiento principal de esta
-              evaluación.
+              {{ isEditMode
+                ? 'Revisa el comportamiento principal de esta evaluación.'
+                : 'Elige el comportamiento principal de esta evaluación.' }}
             </p>
           </div>
         </header>
@@ -825,7 +829,7 @@
                     "
                     :src="question.mediaUrl"
                     alt="Vista previa del recurso de la pregunta"
-                   decoding="async">
+                  >
                 </section>
               </div>
 
@@ -1250,7 +1254,7 @@
       ==================================================== -->
       <footer class="builder-actions">
         <RouterLink
-          :to="`/aula/clase/${lessonId}/trabajo`"
+          :to="isEditMode ? `/aula/clase/${lessonId}/evaluacion/${quizId}/intentos` : `/aula/clase/${lessonId}/trabajo`"
           class="cancel-button"
         >
           Cancelar
@@ -1261,13 +1265,14 @@
             type="button"
             class="save-button"
             :disabled="isSaving"
-            @click="saveQuiz('draft')"
+            @click="saveQuiz(isEditMode ? 'save' : 'draft')"
           >
             {{
-              isSaving &&
-              savingMode === 'draft'
+              isSaving && ['draft', 'save'].includes(savingMode)
                 ? 'Guardando...'
-                : 'Guardar borrador'
+                : isEditMode
+                  ? 'Guardar cambios'
+                  : 'Guardar borrador'
             }}
           </button>
 
@@ -1280,8 +1285,10 @@
             {{
               isSaving &&
               savingMode === 'published'
-                ? 'Publicando...'
-                : 'Publicar evaluación'
+                ? (isEditMode ? 'Guardando y publicando...' : 'Publicando...')
+                : isEditMode
+                  ? 'Guardar y publicar cambios'
+                  : 'Publicar evaluación'
             }}
 
             <span>
@@ -1338,9 +1345,16 @@ import {
 
 import {
   createQuestionWithOptions,
+  fetchQuizWithQuestions,
   insertQuiz,
   publishQuiz,
   recalculateQuizTotalPoints,
+  removeQuestion,
+  removeOption,
+  insertOption,
+  updateOption,
+  updateQuestion,
+  updateQuiz,
 } from '@/services/quizService'
 
 import {
@@ -1390,6 +1404,16 @@ const lessonId =
         : null
     )
   })
+
+const quizId = computed(() => {
+  const id = Number(route.params.quizId)
+  return Number.isFinite(id) && id > 0 ? id : null
+})
+
+const isEditMode = computed(() => quizId.value !== null)
+const originalQuizStatus = ref('draft')
+const originalQuestionIds = ref([])
+const originalOptionIdsByQuestion = ref({})
 
 /* =========================================================
    FORMULARIO
@@ -1579,6 +1603,10 @@ const duplicateQuestion =
     const copy = {
       ...original,
 
+      // Una pregunta duplicada debe guardarse como nueva, no
+      // actualizar por error la misma fila de la pregunta original.
+      id: null,
+
       localId:
         createLocalId(
           'question',
@@ -1588,6 +1616,7 @@ const duplicateQuestion =
         original.options.map(
           option => ({
             ...option,
+            id: null,
 
             localId:
               createLocalId(
@@ -1600,6 +1629,7 @@ const duplicateQuestion =
         (original.matchingPairs || [])
           .map(pair => ({
             ...pair,
+            id: null,
             localId:
               createLocalId('pair'),
           })),
@@ -1608,6 +1638,7 @@ const duplicateQuestion =
         (original.orderingItems || [])
           .map(item => ({
             ...item,
+            id: null,
             localId:
               createLocalId('order-item'),
           })),
@@ -2726,254 +2757,289 @@ const validateQuiz =
   }
 
 /* =========================================================
+   OPCIONES CON IDENTIDAD PERSISTENTE
+   Conserva los IDs de opciones existentes; no las recrea
+   cuando se edita solo el título, las fechas o la configuración.
+========================================================= */
+const getEditableOptionEntries = question => {
+  if (question.type === 'matching') {
+    return (question.matchingPairs || [])
+      .filter(pair => String(pair.left || '').trim() && String(pair.right || '').trim())
+      .map(pair => ({
+        id: Number(pair.id) || null,
+        target: pair,
+        text: `${String(pair.left).trim()}|||${String(pair.right).trim()}`,
+        isCorrect: true,
+      }))
+  }
+
+  if (question.type === 'ordering') {
+    return (question.orderingItems || [])
+      .filter(item => String(item.text || '').trim())
+      .map(item => ({
+        id: Number(item.id) || null,
+        target: item,
+        text: String(item.text).trim(),
+        isCorrect: true,
+      }))
+  }
+
+  return (question.options || [])
+    .filter(option => String(option.text || '').trim())
+    .map(option => ({
+      id: Number(option.id) || null,
+      target: option,
+      text: String(option.text).trim(),
+      isCorrect: Boolean(option.isCorrect),
+    }))
+}
+
+const syncExistingQuestionOptions = async (question, questionId, entries) => {
+  const originalIds = originalOptionIdsByQuestion.value[String(questionId)] || []
+
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index]
+    const optionPayload = {
+      questionId,
+      text: entry.text,
+      isCorrect: entry.isCorrect,
+      position: index + 1,
+    }
+
+    if (entry.id) {
+      await updateOption(entry.id, optionPayload)
+    } else {
+      const createdOption = await insertOption(optionPayload)
+      entry.target.id = Number(createdOption.id)
+      entry.id = Number(createdOption.id)
+    }
+  }
+
+  const keptIds = new Set(entries.map(entry => Number(entry.id)).filter(id => Number.isFinite(id) && id > 0))
+  for (const oldId of originalIds) {
+    if (!keptIds.has(Number(oldId))) {
+      await removeOption(oldId)
+    }
+  }
+
+  originalOptionIdsByQuestion.value[String(questionId)] = [...keptIds]
+}
+
+/* =========================================================
    GUARDAR
 ========================================================= */
 
-const saveQuiz =
-  async status => {
-    const publish =
-      status ===
-      'published'
+const saveQuiz = async status => {
+  const publish = status === 'published'
+  const keepExistingStatus = status === 'save'
+  const mustValidateAsPublished = publish || (
+    keepExistingStatus && originalQuizStatus.value === 'published'
+  )
 
-    if (
-      !validateQuiz(
-        publish,
-      )
-    ) {
-      return
+  if (!validateQuiz(mustValidateAsPublished)) return
+  if (!lessonId.value || isSaving.value) return
+
+  isSaving.value = true
+  savingMode.value = status
+
+  try {
+    const targetStatus = publish
+      ? 'published'
+      : status === 'draft'
+        ? 'draft'
+        : (originalQuizStatus.value || 'draft')
+
+    const quizPayload = {
+      lessonId: lessonId.value,
+      title: form.value.title,
+      description: form.value.description,
+      assessmentType: form.value.assessmentType,
+      status: isEditMode.value ? targetStatus : 'draft',
+      totalPoints: 0,
+      passingPercentage: form.value.passingPercentage,
+      attemptsAllowed: form.value.attemptsAllowed || null,
+      timeLimitMinutes: form.value.timeLimitMinutes || null,
+      opensAt: toIsoDate(form.value.opensAt),
+      closesAt: toIsoDate(form.value.closesAt),
+      shuffleQuestions: form.value.shuffleQuestions,
+      showScoreAfterSubmit: form.value.showScoreAfterSubmit,
+      showCorrectAnswers: form.value.showCorrectAnswers,
     }
 
-    if (
-      !lessonId.value ||
-      isSaving.value
-    ) {
-      return
+    let savedQuizId
+
+    if (isEditMode.value) {
+      savedQuizId = quizId.value
+      await updateQuiz(savedQuizId, quizPayload)
+    } else {
+      const createdQuiz = await insertQuiz(quizPayload)
+      savedQuizId = createdQuiz.id
     }
 
-    isSaving.value = true
-    savingMode.value =
-      status
+    const currentExistingIds = new Set(
+      questions.value
+        .map(question => Number(question.id))
+        .filter(id => Number.isFinite(id) && id > 0),
+    )
 
-    try {
-      /*
-       * Primero siempre creamos como
-       * borrador.
-       *
-       * Así evitamos publicar una
-       * evaluación incompleta si
-       * falla alguna pregunta.
-       */
-      const createdQuiz =
-        await insertQuiz({
-          lessonId:
-            lessonId.value,
-
-          title:
-            form.value.title,
-
-          description:
-            form.value
-              .description,
-
-          assessmentType:
-            form.value
-              .assessmentType,
-
-          status:
-            'draft',
-
-          totalPoints:
-            0,
-
-          passingPercentage:
-            form.value
-              .passingPercentage,
-
-          attemptsAllowed:
-            form.value
-              .attemptsAllowed ||
-            null,
-
-          timeLimitMinutes:
-            form.value
-              .timeLimitMinutes ||
-            null,
-
-          opensAt:
-            toIsoDate(
-              form.value.opensAt,
-            ),
-
-          closesAt:
-            toIsoDate(
-              form.value.closesAt,
-            ),
-
-          shuffleQuestions:
-            form.value
-              .shuffleQuestions,
-
-          showScoreAfterSubmit:
-            form.value
-              .showScoreAfterSubmit,
-
-          showCorrectAnswers:
-            form.value
-              .showCorrectAnswers,
-        })
-
-      /*
-       * Ahora creamos una por una
-       * las preguntas.
-       */
-      for (
-        let index = 0;
-        index <
-        questions.value.length;
-        index += 1
-      ) {
-        const question =
-          questions.value[
-            index
-          ]
-
-        await createQuestionWithOptions({
-          quizId:
-            createdQuiz.id,
-
-          type:
-            question.type,
-
-          prompt:
-            question.prompt.trim(),
-
-          explanation:
-            question.explanation
-              .trim(),
-
-          points:
-            Number(
-              question.points ||
-              0,
-            ),
-
-          position:
-            index + 1,
-
-          required:
-            question.required,
-
-          autoGradable:
-            question.autoGradable,
-
-          mediaType:
-            question.mediaType,
-
-          mediaUrl:
-            question.mediaUrl,
-
-          options:
-            question.type === 'matching'
-              ? (question.matchingPairs || [])
-                  .filter(
-                    pair =>
-                      pair.left.trim() &&
-                      pair.right.trim(),
-                  )
-                  .map(
-                    pair => ({
-                      text:
-                        `${pair.left.trim()}|||${pair.right.trim()}`,
-
-                      isCorrect:
-                        true,
-                    }),
-                  )
-              : question.type === 'ordering'
-                ? (question.orderingItems || [])
-                    .filter(
-                      item =>
-                        item.text.trim(),
-                    )
-                    .map(
-                      item => ({
-                        text:
-                          item.text.trim(),
-
-                        isCorrect:
-                          true,
-                      }),
-                    )
-                : question.options
-                    .filter(
-                      option =>
-                        option.text
-                          .trim(),
-                    )
-                    .map(
-                      option => ({
-                        text:
-                          option.text
-                            .trim(),
-
-                        isCorrect:
-                          option
-                            .isCorrect,
-                      }),
-                    ),
-        })
+    for (let index = 0; index < questions.value.length; index += 1) {
+      const question = questions.value[index]
+      const questionPayload = {
+        quizId: savedQuizId,
+        type: question.type,
+        prompt: String(question.prompt || '').trim(),
+        explanation: String(question.explanation || '').trim(),
+        points: Number(question.points || 0),
+        position: index + 1,
+        required: question.required,
+        autoGradable: question.autoGradable,
+        mediaType: question.mediaType,
+        mediaUrl: question.mediaUrl,
+        options: getEditableOptionEntries(question)
+          .map(({ text, isCorrect }) => ({ text, isCorrect })),
       }
 
-      /*
-       * Supabase recalcula el
-       * puntaje según preguntas.
-       */
-      await recalculateQuizTotalPoints(
-        createdQuiz.id,
-      )
+      if (isEditMode.value && question.id) {
+        await updateQuestion(question.id, questionPayload)
+        const optionEntries = getEditableOptionEntries(question)
+        await syncExistingQuestionOptions(question, question.id, optionEntries)
+      } else {
+        const createdQuestion = await createQuestionWithOptions(questionPayload)
 
-      /*
-       * Solo publicamos cuando todo
-       * lo anterior funcionó.
-       */
-      if (publish) {
-        await publishQuiz(
-          createdQuiz.id,
-        )
+        // En modo edición, las preguntas nuevas quedan vinculadas al editor
+        // y sus opciones conservan los IDs recién creados.
+        if (isEditMode.value && createdQuestion?.id) {
+          question.id = Number(createdQuestion.id)
+          const optionEntries = getEditableOptionEntries(question)
+          const persistedOptions = Array.isArray(createdQuestion.options)
+            ? createdQuestion.options
+            : []
+
+          optionEntries.forEach((entry, optionIndex) => {
+            const persisted = persistedOptions[optionIndex]
+            if (persisted?.id) {
+              entry.target.id = Number(persisted.id)
+              entry.id = Number(persisted.id)
+            }
+          })
+
+          originalOptionIdsByQuestion.value[String(question.id)] = optionEntries
+            .map(entry => Number(entry.id))
+            .filter(id => Number.isFinite(id) && id > 0)
+        }
       }
+    }
 
-      toastMessage.value =
-        publish
-          ? 'La evaluación fue publicada correctamente.'
-          : 'El borrador fue guardado correctamente.'
-
-      /*
-       * Pequeño retraso visual para
-       * mostrar confirmación antes
-       * de volver a la clase.
-       */
-      setTimeout(() => {
-        router.push(
-          `/aula/clase/${lessonId.value}/trabajo`,
-        )
-      }, 700)
-    } catch (error) {
-      console.error(
-        'Error guardando evaluación:',
-        error,
+    if (isEditMode.value) {
+      const removedQuestionIds = originalQuestionIds.value.filter(
+        id => !currentExistingIds.has(Number(id)),
       )
 
-      validationError.value =
-        error?.message ||
-        'No fue posible guardar la evaluación.'
-    } finally {
-      isSaving.value =
-        false
-
-      savingMode.value =
-        ''
+      for (const removedId of removedQuestionIds) {
+        await removeQuestion(removedId)
+      }
     }
+
+    await recalculateQuizTotalPoints(savedQuizId)
+
+    if (publish) {
+      await publishQuiz(savedQuizId)
+      originalQuizStatus.value = 'published'
+    } else {
+      originalQuizStatus.value = targetStatus
+    }
+
+    toastMessage.value = publish
+      ? (isEditMode.value
+          ? 'La evaluación y sus cambios fueron publicados correctamente.'
+          : 'La evaluación fue publicada correctamente.')
+      : (isEditMode.value
+          ? 'Los cambios de la evaluación se guardaron correctamente.'
+          : 'El borrador fue guardado correctamente.')
+
+    if (isEditMode.value) {
+      originalQuestionIds.value = questions.value
+        .map(question => Number(question.id))
+        .filter(id => Number.isFinite(id) && id > 0)
+    }
+
+    setTimeout(() => {
+      const destination = isEditMode.value
+        ? `/aula/clase/${lessonId.value}/evaluacion/${quizId.value}/intentos`
+        : `/aula/clase/${lessonId.value}/trabajo`
+      router.push(destination)
+    }, 700)
+  } catch (error) {
+    console.error('Error guardando evaluación:', error)
+    validationError.value = error?.message || 'No fue posible guardar la evaluación.'
+  } finally {
+    isSaving.value = false
+    savingMode.value = ''
   }
+}
+
+const toLocalDateTimeInput = value => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = number => String(number).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+const mapStoredQuestionToEditor = storedQuestion => {
+  const storedOptions = Array.isArray(storedQuestion.options)
+    ? storedQuestion.options
+    : []
+  const type = storedQuestion.type || 'single_choice'
+  const isMatching = type === 'matching'
+  const isOrdering = type === 'ordering'
+
+  return {
+    id: Number(storedQuestion.id),
+    localId: createLocalId('question'),
+    type,
+    prompt: storedQuestion.prompt || '',
+    explanation: storedQuestion.explanation || '',
+    points: Number(storedQuestion.points ?? 1),
+    required: storedQuestion.required !== false,
+    autoGradable: storedQuestion.autoGradable !== false,
+    mediaType: storedQuestion.mediaType || 'none',
+    mediaUrl: storedQuestion.mediaUrl || '',
+    options: isMatching || isOrdering
+      ? []
+      : storedOptions.map(option => ({
+          id: Number(option.id) || null,
+          localId: createLocalId('option'),
+          text: option.text || '',
+          isCorrect: Boolean(option.isCorrect),
+        })),
+    matchingPairs: isMatching
+      ? storedOptions.map(option => {
+          const [left = '', ...rightParts] = String(option.text || '').split('|||')
+          return {
+            id: Number(option.id) || null,
+            localId: createLocalId('pair'),
+            left,
+            right: rightParts.join('|||'),
+          }
+        })
+      : [],
+    orderingItems: isOrdering
+      ? storedOptions.map(option => ({
+          id: Number(option.id) || null,
+          localId: createLocalId('order-item'),
+          text: option.text || '',
+        }))
+      : [],
+    mediaUploading: false,
+    mediaUploadName: '',
+    mediaUploadSize: 0,
+    mediaSource: storedQuestion.mediaUrl ? 'url' : '',
+    mediaError: '',
+    isRecording: false,
+    recordingSeconds: 0,
+  }
+}
 
 /* =========================================================
    CARGA
@@ -3003,19 +3069,54 @@ const loadPage =
     }
 
     try {
-      lesson.value =
-        await fetchLessonById(
-          lessonId.value,
+      lesson.value = await fetchLessonById(lessonId.value)
+
+      if (isEditMode.value) {
+        const storedQuiz = await fetchQuizWithQuestions(quizId.value)
+
+        if (Number(storedQuiz.lessonId) !== Number(lessonId.value)) {
+          throw new Error('Esta evaluación no pertenece a la clase seleccionada.')
+        }
+
+        form.value = {
+          assessmentType: storedQuiz.assessmentType || 'quiz',
+          title: storedQuiz.title || '',
+          description: storedQuiz.description || '',
+          passingPercentage: storedQuiz.passingPercentage ?? 60,
+          attemptsAllowed: storedQuiz.attemptsAllowed ?? null,
+          timeLimitMinutes: storedQuiz.timeLimitMinutes ?? null,
+          opensAt: toLocalDateTimeInput(storedQuiz.opensAt),
+          closesAt: toLocalDateTimeInput(storedQuiz.closesAt),
+          shuffleQuestions: Boolean(storedQuiz.shuffleQuestions),
+          showScoreAfterSubmit: storedQuiz.showScoreAfterSubmit !== false,
+          showCorrectAnswers: Boolean(storedQuiz.showCorrectAnswers),
+        }
+
+        originalQuizStatus.value = storedQuiz.status || 'draft'
+        originalQuestionIds.value = (storedQuiz.questions || [])
+          .map(question => Number(question.id))
+          .filter(id => Number.isFinite(id) && id > 0)
+        originalOptionIdsByQuestion.value = Object.fromEntries(
+          (storedQuiz.questions || []).map(question => [
+            String(question.id),
+            (Array.isArray(question.options) ? question.options : [])
+              .map(option => Number(option.id))
+              .filter(id => Number.isFinite(id) && id > 0),
+          ]),
         )
+        questions.value = (storedQuiz.questions || []).map(mapStoredQuestionToEditor)
+      }
     } catch (error) {
       console.error(
-        'Error cargando clase:',
+        isEditMode.value ? 'Error cargando evaluación para editar:' : 'Error cargando clase:',
         error,
       )
 
-      pageError.value =
-        error?.message ||
-        'No fue posible cargar la clase.'
+      pageError.value = error?.message || (
+        isEditMode.value
+          ? 'No fue posible cargar la evaluación para editar.'
+          : 'No fue posible cargar la clase.'
+      )
     }
   }
 
@@ -5562,442 +5663,4 @@ onMounted(() => {
   }
 }
 
-
-
-/* =========================================================
-   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
-   Sistema visual común para el SaaS
-========================================================= */
-.quiz-builder {
-  --amv-canvas: #f5f7fb;
-  --amv-card: #ffffff;
-  --amv-ink: #172033;
-  --amv-body: #344359;
-  --amv-muted: #667085;
-  --amv-line: #dbe3ec;
-  --amv-wine: #9f1945;
-  --amv-wine-dark: #7f1237;
-  --amv-gold: #d9a91d;
-  --amv-gold-soft: #fff8e7;
-  --amv-green: #2d8a63;
-  --amv-red: #be4856;
-  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
-  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
-  --amv-radius-sm: 12px;
-  --amv-radius-md: 18px;
-  --amv-radius-lg: 24px;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-.quiz-builder :where(a, button, input, textarea, select, [role="button"]) {
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
-}
-
-.quiz-builder :where(a, button, input, textarea, select, [role="button"]):focus-visible {
-  outline: 3px solid rgba(159, 25, 69, .22) !important;
-  outline-offset: 3px;
-}
-
-.quiz-builder :where(button, [role="button"], .button, .btn):not(:disabled):active {
-  transform: translateY(1px) scale(.99);
-}
-
-.quiz-builder :where(input, textarea, select) {
-  font-size: max(16px, 1em);
-}
-
-.quiz-builder :where(table tbody tr) {
-  transition: background-color .18s ease;
-}
-
-.quiz-builder :where(table tbody tr):hover {
-  background-color: rgba(159, 25, 69, .025);
-}
-
-.quiz-builder :where(.card, [class*="-card"], [class*="__card"]) {
-  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
-}
-
-.quiz-builder :where(.card, [class*="-card"], [class*="__card"]):hover {
-  border-color: rgba(159, 25, 69, .16);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .quiz-builder *, .quiz-builder *::before, .quiz-builder *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-}
-
-
-/* =========================================================
-   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
-   Capa visual segura: no modifica lógica, datos ni estructura.
-========================================================= */
-.quiz-builder {
-  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
-}
-
-.quiz-builder :where(
-  article,
-  [class$="__card"],
-  [class*="-card"],
-  [class*="_card"]
-) {
-  transition:
-    transform .24s cubic-bezier(.2,.75,.25,1),
-    box-shadow .24s ease,
-    border-color .24s ease,
-    background-color .24s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .quiz-builder :where(
-    article,
-    [class$="__card"],
-    [class*="-card"],
-    [class*="_card"]
-  ):hover {
-    transform: translateY(-2px);
-  }
-
-  .quiz-builder :where(
-    button,
-    .button,
-    .btn,
-    a[class*="button"],
-    a[class*="cta"]
-  ):not(:disabled):hover {
-    transform: translateY(-2px);
-    filter: saturate(1.04);
-  }
-
-  .quiz-builder :where(img) {
-    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
-  }
-
-  .quiz-builder :where(
-    [class*="cover"],
-    [class*="hero"],
-    [class*="visual"],
-    [class*="gallery"]
-  ):hover img {
-    transform: scale(1.018);
-  }
-}
-
-.quiz-builder :where(
-  button,
-  .button,
-  .btn,
-  a[class*="button"],
-  a[class*="cta"]
-) {
-  will-change: transform;
-}
-
-.quiz-builder :where(input, textarea, select):focus {
-  transform: translateY(-1px);
-}
-
-.quiz-builder :where(
-  [class*="progress"] > *,
-  [class*="bar"] > *,
-  progress
-) {
-  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
-}
-
-.quiz-builder ::selection {
-  color: #ffffff;
-  background: #9f1945;
-}
-
-@keyframes amvViewEnter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .quiz-builder,
-  .quiz-builder *,
-  .quiz-builder *::before,
-  .quiz-builder *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-</style>
-
-
-<style lang="scss">
-/* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
-.amv-view-shell {
-  --amv-ui-wine: #9f1945;
-  --amv-ui-wine-deep: #7f1237;
-  --amv-ui-gold: #d9a91d;
-  --amv-ui-purple: #7657d9;
-  --amv-ui-cyan: #20b8ae;
-  --amv-ui-ink: #172033;
-  --amv-ui-muted: #6f7c8f;
-  --amv-ui-line: rgba(122, 137, 158, 0.20);
-  --amv-ui-focus: rgba(159, 25, 69, 0.38);
-  --amv-ui-radius-sm: 12px;
-  --amv-ui-radius-md: 18px;
-  --amv-ui-radius-lg: 26px;
-  --amv-ui-shadow: 0 18px 55px rgba(17, 25, 39, 0.09);
-  --amv-ui-shadow-hover: 0 22px 65px rgba(17, 25, 39, 0.14);
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.amv-view-shell::before {
-  content: '';
-  position: absolute;
-  inset: -150px -120px auto auto;
-  width: 420px;
-  height: 420px;
-  pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(159, 25, 69, 0.10), transparent 52%),
-    radial-gradient(circle at 68% 62%, rgba(217, 169, 29, 0.08), transparent 58%);
-  filter: blur(6px);
-  opacity: 0.82;
-  z-index: -1;
-}
-
-.amv-view-shell :where(*, *::before, *::after) {
-  box-sizing: border-box;
-}
-
-.amv-view-shell :where(img, video, svg, canvas) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
-}
-
-.amv-view-shell :where(p, li, td, th, label, small) {
-  overflow-wrap: anywhere;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']) {
-  touch-action: manipulation;
-}
-
-.amv-view-shell :where(button, input, select, textarea) {
-  font: inherit;
-}
-
-.amv-view-shell :where(button) {
-  min-height: 42px;
-}
-
-.amv-view-shell :where(input, select, textarea) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 3px solid var(--amv-ui-focus);
-  outline-offset: 3px;
-}
-
-.amv-view-shell :where(button, [role='button']):disabled,
-.amv-view-shell :where(input, select, textarea):disabled {
-  cursor: not-allowed;
-}
-
-.amv-view-shell :where(.button, .btn, .lux-button, .amv-primary-btn, .amv-secondary-action,
-  .primary-action, .secondary-action, .danger-action, .text-link, .action-link,
-  .lightbox__close, .lightbox__nav, .today-button, .quick-action) {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Premium surface language without changing each view's semantic palette. */
-.amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-  .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-  .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-  .production, .sound-console, .state-card, .empty-card, .workspace,
-  .profile-card, .profile-panel, .vocal-card, .weighted-student, .weighted-category) {
-  border-radius: var(--amv-ui-radius-md);
-}
-
-.amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-  .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-  .task-card, .format-card, .production, .state-card, .empty-card) {
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-    .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-    .task-card, .format-card, .production):not(.is-disabled):hover {
-    transform: translateY(-2px);
-  }
-}
-
-/* Toolbars wrap rather than squeezing controls into unreadable rows. */
-.amv-view-shell :where(.toolbar, .students-toolbar, .calendar-toolbar, .resources-controls,
-  .resources-controls__row, .gradebook-legacy-toolbar, .hero-actions, .actions,
-  .action-row, .question-actions, .filters, .public-jump-nav, .classes-header__actions,
-  .result-action-row, .form-actions, .footer-actions) {
-  min-width: 0;
-}
-
-.amv-view-shell :where(.table-shell, .quiz-table-wrap, .table-wrap, .grade-table-wrap,
-  .data-table-wrap, .scroll-region, .horizontal-scroll) {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.amv-view-shell :where(.table-shell table, .quiz-table-wrap table, .table-wrap table,
-  .grade-table-wrap table, .data-table-wrap table) {
-  max-width: none;
-}
-
-/* Prevent long controls and badges from forcing page-level horizontal overflow. */
-.amv-view-shell :where(.badge, .pill, .chip, .status-pill, .source-badge, .event-chip,
-  .lesson-detail, .student-card__voice, .student-card__status, .course-kicker,
-  .hero-stat, .count, .filename, .meta, .eyebrow) {
-  max-width: 100%;
-}
-
-/* Dialogs/lightboxes stay usable on short laptop and phone viewports. */
-.amv-view-shell :where(.modal, .dialog, .drawer, .lightbox, .lightbox__content,
-  .modal__content, .dialog__content, [role='dialog']) {
-  max-width: min(100%, 100vw);
-}
-
-.amv-view-shell :where(.modal__content, .dialog__content, .lightbox__content,
-  [role='dialog']) {
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Public pages: a cleaner editorial frame around content-heavy sections. */
-.amv-view-shell :where(.hero, .hero-panel, .calendar-hero, .resources-hero, .amv-hero,
-  .students__header, .gradebook__hero, .classes-header, .contact-hero, .training-hero,
-  .academy-hero, .inscription-hero) {
-  isolation: isolate;
-}
-
-.amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid) {
-  min-width: 0;
-}
-
-/* Mobile-first resilience. Existing view-specific breakpoints still win where more
-   specific rules exist, while these defaults catch edge cases and tiny screens. */
-@media (max-width: 760px) {
-  .amv-view-shell {
-    overflow-x: clip;
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 22px;
-  }
-
-  .amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid,
-    .calendar-layout, .quiz-layout, .program-layout, .student-profile__grid,
-    .dashboard-grid, .content-grid, .page-grid, .split-layout) {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .amv-view-shell :where(.hero-actions, .actions, .action-row, .form-actions,
-    .footer-actions, .question-actions, .students__header-actions, .hero-stat,
-    .calendar-toolbar, .resources-controls__row) {
-    flex-wrap: wrap;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    min-width: min(100%, 190px);
-  }
-
-  .amv-view-shell :where(.display-title, .page-title, .hero-title, .section-title,
-    .hero-panel__title, .amv-hero h1, .calendar-hero h1, .students__header h1,
-    .gradebook__hero h1) {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .amv-view-shell :where(.students-toolbar, .resources-controls, .calendar-toolbar,
-    .gradebook-legacy-toolbar, .classes-header, .section-heading, .profile-actions) {
-    gap: 10px;
-  }
-
-  .amv-view-shell :where(input, select, textarea, .select, .search-input) {
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 520px) {
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 18px;
-  }
-
-  .amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-    .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-    .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-    .production, .state-card, .empty-card) {
-    border-radius: 16px;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .amv-view-shell,
-  .amv-view-shell :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
 </style>

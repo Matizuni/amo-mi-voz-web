@@ -1,5 +1,5 @@
 <template>
-  <section class="lesson-page lesson-page--max amv-classroom amv-view-shell">
+  <section class="lesson-page lesson-page--max amv-classroom">
     <!-- LOADING -->
     <section v-if="isLoading" class="amv-state">
       <div class="amv-loader"></div>
@@ -139,14 +139,8 @@
           </div>
           <div class="amv-welcome__status">
             <span>{{ lessonCompleted ? '✓' : '♪' }}</span>
-            <strong>{{ lessonCompleted ? 'Clase completada' : lessonViewProgress.percentage >= 100 ? 'Todo revisado' : 'Sigue avanzando' }}</strong>
-            <small>
-              {{ lessonCompleted
-                ? 'Todos los elementos requeridos están completados.'
-                : lessonViewProgress.pending > 0
-                  ? `${lessonViewProgress.pending} elemento${lessonViewProgress.pending === 1 ? '' : 's'} pendiente${lessonViewProgress.pending === 1 ? '' : 's'} por revisar.`
-                  : 'Ya revisaste todos los elementos. Si corresponde, completa la entrega o evaluación.' }}
-            </small>
+            <strong>{{ lessonCompleted ? 'Clase completada' : 'Sigue avanzando' }}</strong>
+            <small>{{ learningSummary.pending }} elemento{{ learningSummary.pending === 1 ? '' : 's' }} pendiente{{ learningSummary.pending === 1 ? '' : 's' }}</small>
           </div>
         </section>
 
@@ -331,23 +325,13 @@
         >
           <div class="amv-material-preview amv-material-preview--primary">
             <template v-if="getMaterialPreviewKind(primaryMaterial) === 'image'">
-              <img :src="primaryMaterial.url" :alt="getMaterialDisplayName(primaryMaterial)" loading="lazy" decoding="async">
+              <img :src="primaryMaterial.url" :alt="getMaterialDisplayName(primaryMaterial)" loading="lazy" />
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'pdf'">
               <iframe :src="`${primaryMaterial.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(primaryMaterial)}`" loading="lazy"></iframe>
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'audio'">
-              <div class="amv-audio-preview">
-                <div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 26" :key="`primary-audio-${n}`" :style="{ '--h': `${20 + ((n * 29) % 68)}%`, '--d': `${(n % 9) * 0.07}s` }"></i></div>
-                <span>🎧 AUDIO</span>
-                <audio
-                  class="amv-audio-player"
-                  :src="primaryMaterial.url"
-                  controls
-                  preload="metadata"
-                  @play="handleTrackedMaterialOpen(primaryMaterial)"
-                ></audio>
-              </div>
+              <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 26" :key="`primary-audio-${n}`" :style="{ '--h': `${20 + ((n * 29) % 68)}%`, '--d': `${(n % 9) * 0.07}s` }"></i></div><span>🎧 AUDIO</span></div>
             </template>
             <template v-else-if="getMaterialPreviewKind(primaryMaterial) === 'video'">
               <video :src="primaryMaterial.url" controls preload="metadata"></video>
@@ -388,23 +372,13 @@
           >
             <div class="amv-material-preview">
               <template v-if="getMaterialPreviewKind(material) === 'image'">
-                <img :src="material.url" :alt="getMaterialDisplayName(material)" loading="lazy" decoding="async">
+                <img :src="material.url" :alt="getMaterialDisplayName(material)" loading="lazy" />
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'pdf'">
                 <iframe :src="`${material.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`" :title="`Vista previa de ${getMaterialDisplayName(material)}`" loading="lazy"></iframe>
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'audio'">
-                <div class="amv-audio-preview">
-                  <div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 20" :key="`${material.id}-audio-${n}`" :style="{ '--h': `${22 + ((n * 37) % 65)}%`, '--d': `${(n % 8) * 0.08}s` }"></i></div>
-                  <span>🎧 AUDIO</span>
-                  <audio
-                    class="amv-audio-player"
-                    :src="material.url"
-                    controls
-                    preload="metadata"
-                    @play="handleTrackedMaterialOpen(material)"
-                  ></audio>
-                </div>
+                <div class="amv-audio-preview"><div class="amv-audio-wave" aria-hidden="true"><i v-for="n in 20" :key="`${material.id}-audio-${n}`" :style="{ '--h': `${22 + ((n * 37) % 65)}%`, '--d': `${(n % 8) * 0.08}s` }"></i></div><span>🎧 AUDIO</span></div>
               </template>
               <template v-else-if="getMaterialPreviewKind(material) === 'video'">
                 <video :src="material.url" controls preload="metadata"></video>
@@ -594,7 +568,7 @@
                     :src="material.url"
                     :alt="getMaterialDisplayName(material)"
                     loading="lazy"
-                   decoding="async">
+                  >
                 </template>
 
                 <template v-else-if="getAdminMaterialPreviewKind(material) === 'pdf' && material.url">
@@ -768,8 +742,17 @@
                 </div>
 
                 <div class="amv-direct-visual-card__actions">
-                  <RouterLink :to="`/aula/clase/${lesson.id}/trabajo`" class="is-primary">Modificar</RouterLink>
-                  <RouterLink :to="`/aula/clase/${lesson.id}/evaluacion/${quiz.id}`">Vista</RouterLink>
+                  <RouterLink
+                    :to="`/aula/clase/${lesson.id}/evaluacion/${quiz.id}/editar`"
+                    class="is-primary"
+                  >
+                    Modificar
+                  </RouterLink>
+                  <RouterLink
+                    :to="`/aula/clase/${lesson.id}/evaluacion/${quiz.id}/intentos`"
+                  >
+                    Ver entregas
+                  </RouterLink>
                   <button type="button" class="is-danger" :disabled="deletingQuizId === quiz.id" @click="deleteQuizDirect(quiz)">
                     {{ deletingQuizId === quiz.id ? 'Eliminando…' : 'Eliminar' }}
                   </button>
@@ -851,7 +834,7 @@
                 </label>
 
                 <label class="amv-material-file">
-                  <span>Archivo · máximo 100 MB</span>
+                  <span>Archivo · máximo 50 MB</span>
                   <input
                     ref="materialCreateInput"
                     type="file"
@@ -1142,7 +1125,7 @@ const materialCreateInput = ref(null)
 const materialEditError = ref('')
 const materialCreateError = ref('')
 
-const MAX_MATERIAL_FILE_SIZE = 100 * 1024 * 1024
+const MAX_MATERIAL_FILE_SIZE = 50 * 1024 * 1024
 
 const editMaterialForm = reactive({
   title: '',
@@ -1322,7 +1305,7 @@ const handleReplacementMaterial = event => {
   }
 
   if (file.size > MAX_MATERIAL_FILE_SIZE) {
-    materialEditError.value = 'El archivo supera el máximo permitido de 100 MB.'
+    materialEditError.value = 'El archivo supera el máximo permitido de 50 MB.'
     event.target.value = ''
     replacementMaterialFile.value = null
     return
@@ -1529,7 +1512,7 @@ const handleCreateMaterialFile = event => {
   }
 
   if (file.size > MAX_MATERIAL_FILE_SIZE) {
-    materialCreateError.value = 'El archivo supera el máximo permitido de 100 MB.'
+    materialCreateError.value = 'El archivo supera el máximo permitido de 50 MB.'
     event.target.value = ''
     createMaterialForm.file = null
     return
@@ -2393,59 +2376,9 @@ const learningSummary =
     }),
   )
 
-const isLearningItemSeen =
-  (itemType, itemId) =>
-    isLearningItemCompleted(
-      learningItemProgress.value,
-      itemType,
-      itemId,
-    ) ||
-    isLearningItemViewed(
-      learningItemProgress.value,
-      itemType,
-      itemId,
-    )
-
-const lessonViewProgress =
-  computed(() => {
-    const items =
-      requiredLearningItems.value
-
-    if (!items.length) {
-      return {
-        total: 0,
-        completed: 0,
-        pending: 0,
-        percentage: 0,
-      }
-    }
-
-    const completed =
-      items.filter(item =>
-        isLearningItemSeen(
-          item.type,
-          item.id,
-        ),
-      ).length
-
-    const total = items.length
-
-    return {
-      total,
-      completed,
-      pending: Math.max(
-        0,
-        total - completed,
-      ),
-      percentage: Math.round(
-        (completed / total) * 100,
-      ),
-    }
-  })
-
 const lessonItemPercentage =
   computed(() =>
-    lessonViewProgress.value
+    learningSummary.value
       .percentage,
   )
 
@@ -10949,13 +10882,6 @@ a.lesson-navigation__item:hover,
     linear-gradient(145deg,#fbf8ff,#eee8f7);
 }
 .amv-audio-preview > span { color:#654589; font-size:.54rem; font-weight:950; letter-spacing:.16em; }
-.amv-audio-player {
-  width: min(92%, 420px);
-  height: 38px;
-  border-radius: 999px;
-  accent-color: #9f1945;
-  filter: drop-shadow(0 8px 18px rgba(112,75,152,.12));
-}
 .amv-audio-wave { display:flex; align-items:center; justify-content:center; gap:3px; width:88%; height:80px; }
 .amv-audio-wave i {
   display:block;
@@ -12198,267 +12124,6 @@ a.lesson-navigation__item:hover,
   .amv-feature__status {
     white-space: normal;
     line-height: 1.25;
-  }
-}
-</style>
-
-
-<style lang="scss">
-/* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
-.amv-view-shell {
-  --amv-ui-wine: #9f1945;
-  --amv-ui-wine-deep: #7f1237;
-  --amv-ui-gold: #d9a91d;
-  --amv-ui-purple: #7657d9;
-  --amv-ui-cyan: #20b8ae;
-  --amv-ui-ink: #172033;
-  --amv-ui-muted: #6f7c8f;
-  --amv-ui-line: rgba(122, 137, 158, 0.20);
-  --amv-ui-focus: rgba(159, 25, 69, 0.38);
-  --amv-ui-radius-sm: 12px;
-  --amv-ui-radius-md: 18px;
-  --amv-ui-radius-lg: 26px;
-  --amv-ui-shadow: 0 18px 55px rgba(17, 25, 39, 0.09);
-  --amv-ui-shadow-hover: 0 22px 65px rgba(17, 25, 39, 0.14);
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.amv-view-shell::before {
-  content: '';
-  position: absolute;
-  inset: -150px -120px auto auto;
-  width: 420px;
-  height: 420px;
-  pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(159, 25, 69, 0.10), transparent 52%),
-    radial-gradient(circle at 68% 62%, rgba(217, 169, 29, 0.08), transparent 58%);
-  filter: blur(6px);
-  opacity: 0.82;
-  z-index: -1;
-}
-
-.amv-view-shell :where(*, *::before, *::after) {
-  box-sizing: border-box;
-}
-
-.amv-view-shell :where(img, video, svg, canvas) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
-}
-
-.amv-view-shell :where(p, li, td, th, label, small) {
-  overflow-wrap: anywhere;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']) {
-  touch-action: manipulation;
-}
-
-.amv-view-shell :where(button, input, select, textarea) {
-  font: inherit;
-}
-
-.amv-view-shell :where(button) {
-  min-height: 42px;
-}
-
-.amv-view-shell :where(input, select, textarea) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 3px solid var(--amv-ui-focus);
-  outline-offset: 3px;
-}
-
-.amv-view-shell :where(button, [role='button']):disabled,
-.amv-view-shell :where(input, select, textarea):disabled {
-  cursor: not-allowed;
-}
-
-.amv-view-shell :where(.button, .btn, .lux-button, .amv-primary-btn, .amv-secondary-action,
-  .primary-action, .secondary-action, .danger-action, .text-link, .action-link,
-  .lightbox__close, .lightbox__nav, .today-button, .quick-action) {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Premium surface language without changing each view's semantic palette. */
-.amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-  .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-  .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-  .production, .sound-console, .state-card, .empty-card, .workspace,
-  .profile-card, .profile-panel, .vocal-card, .weighted-student, .weighted-category) {
-  border-radius: var(--amv-ui-radius-md);
-}
-
-.amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-  .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-  .task-card, .format-card, .production, .state-card, .empty-card) {
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-    .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-    .task-card, .format-card, .production):not(.is-disabled):hover {
-    transform: translateY(-2px);
-  }
-}
-
-/* Toolbars wrap rather than squeezing controls into unreadable rows. */
-.amv-view-shell :where(.toolbar, .students-toolbar, .calendar-toolbar, .resources-controls,
-  .resources-controls__row, .gradebook-legacy-toolbar, .hero-actions, .actions,
-  .action-row, .question-actions, .filters, .public-jump-nav, .classes-header__actions,
-  .result-action-row, .form-actions, .footer-actions) {
-  min-width: 0;
-}
-
-.amv-view-shell :where(.table-shell, .quiz-table-wrap, .table-wrap, .grade-table-wrap,
-  .data-table-wrap, .scroll-region, .horizontal-scroll) {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.amv-view-shell :where(.table-shell table, .quiz-table-wrap table, .table-wrap table,
-  .grade-table-wrap table, .data-table-wrap table) {
-  max-width: none;
-}
-
-/* Prevent long controls and badges from forcing page-level horizontal overflow. */
-.amv-view-shell :where(.badge, .pill, .chip, .status-pill, .source-badge, .event-chip,
-  .lesson-detail, .student-card__voice, .student-card__status, .course-kicker,
-  .hero-stat, .count, .filename, .meta, .eyebrow) {
-  max-width: 100%;
-}
-
-/* Dialogs/lightboxes stay usable on short laptop and phone viewports. */
-.amv-view-shell :where(.modal, .dialog, .drawer, .lightbox, .lightbox__content,
-  .modal__content, .dialog__content, [role='dialog']) {
-  max-width: min(100%, 100vw);
-}
-
-.amv-view-shell :where(.modal__content, .dialog__content, .lightbox__content,
-  [role='dialog']) {
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Public pages: a cleaner editorial frame around content-heavy sections. */
-.amv-view-shell :where(.hero, .hero-panel, .calendar-hero, .resources-hero, .amv-hero,
-  .students__header, .gradebook__hero, .classes-header, .contact-hero, .training-hero,
-  .academy-hero, .inscription-hero) {
-  isolation: isolate;
-}
-
-.amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid) {
-  min-width: 0;
-}
-
-/* Mobile-first resilience. Existing view-specific breakpoints still win where more
-   specific rules exist, while these defaults catch edge cases and tiny screens. */
-@media (max-width: 760px) {
-  .amv-view-shell {
-    overflow-x: clip;
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 22px;
-  }
-
-  .amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid,
-    .calendar-layout, .quiz-layout, .program-layout, .student-profile__grid,
-    .dashboard-grid, .content-grid, .page-grid, .split-layout) {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .amv-view-shell :where(.hero-actions, .actions, .action-row, .form-actions,
-    .footer-actions, .question-actions, .students__header-actions, .hero-stat,
-    .calendar-toolbar, .resources-controls__row) {
-    flex-wrap: wrap;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    min-width: min(100%, 190px);
-  }
-
-  .amv-view-shell :where(.display-title, .page-title, .hero-title, .section-title,
-    .hero-panel__title, .amv-hero h1, .calendar-hero h1, .students__header h1,
-    .gradebook__hero h1) {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .amv-view-shell :where(.students-toolbar, .resources-controls, .calendar-toolbar,
-    .gradebook-legacy-toolbar, .classes-header, .section-heading, .profile-actions) {
-    gap: 10px;
-  }
-
-  .amv-view-shell :where(input, select, textarea, .select, .search-input) {
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 520px) {
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 18px;
-  }
-
-  .amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-    .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-    .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-    .production, .state-card, .empty-card) {
-    border-radius: 16px;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .amv-view-shell,
-  .amv-view-shell :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
   }
 }
 </style>

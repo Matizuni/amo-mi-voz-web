@@ -1,290 +1,213 @@
 <template>
-  <section class="calendar-page amv-view-shell">
-    <header class="calendar-hero">
-      <div class="calendar-hero__copy">
-        <span class="eyebrow">AULA VIRTUAL · PLANIFICACIÓN</span>
-        <div class="hero-title-row">
-          <div>
-            <h1>Calendario académico</h1>
-            <p>
-              Clases, tareas, quiz, pruebas y eventos especiales reunidos en un solo lugar.
-            </p>
-          </div>
-          <div class="hero-date">
-            <span>HOY</span>
-            <strong>{{ todayDay }}</strong>
-            <small>{{ todayMonth }}</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-actions">
-        <div class="hero-stat">
-          <span>PRÓXIMO HITO</span>
-          <strong>{{ nextEvent?.title || 'Sin eventos próximos' }}</strong>
-          <small v-if="nextEvent">{{ nextEventDateLabel }}</small>
-          <small v-else>Agrega una fecha al calendario.</small>
-        </div>
-
-        <button
-          v-if="isTeacher"
-          type="button"
-          class="primary-action"
-          @click="openCreateEvent()"
-        >
-          + Nuevo evento
-        </button>
-      </div>
-    </header>
-
-    <section v-if="isLoading" class="state-card">
+  <section class="calendar-page calendar-page--compact">
+    <section v-if="isLoading" class="state-card" role="status" aria-live="polite">
       <span class="loader"></span>
       <strong>Organizando tu calendario…</strong>
     </section>
 
-    <section v-else-if="errorMessage" class="state-card state-card--error">
+    <section v-else-if="errorMessage" class="state-card state-card--error" role="alert">
       <strong>No pudimos cargar el calendario</strong>
       <p>{{ errorMessage }}</p>
       <button type="button" @click="loadCalendar">Reintentar</button>
     </section>
 
     <template v-else>
-      <section class="calendar-insight-row">
-        <article class="insight-card insight-card--wine">
-          <span class="insight-icon">♪</span>
-          <div>
-            <small>ESTA SEMANA</small>
-            <strong>{{ weekEventCount }}</strong>
-            <p>actividades y fechas importantes</p>
+      <header class="calendar-toolbar calendar-toolbar--compact">
+        <div class="calendar-toolbar__top">
+          <div class="month-nav" aria-label="Navegación mensual">
+            <button type="button" aria-label="Mes anterior" @click="changeMonth(-1)">←</button>
+            <div class="month-nav__label">
+              <strong>{{ monthTitle }}</strong>
+              <span>{{ filteredEvents.length }} {{ filteredEvents.length === 1 ? 'evento visible' : 'eventos visibles' }}</span>
+            </div>
+            <button type="button" aria-label="Mes siguiente" @click="changeMonth(1)">→</button>
           </div>
-        </article>
 
-        <article class="insight-card insight-card--gold">
-          <span class="insight-icon">★</span>
-          <div>
-            <small>PRUEBAS</small>
-            <strong>{{ assessmentCount }}</strong>
-            <p>quiz y pruebas programadas</p>
+          <div class="calendar-toolbar__actions">
+            <button class="today-button" type="button" @click="goToday">Hoy</button>
+            <button
+              v-if="isTeacher"
+              type="button"
+              class="primary-action primary-action--compact"
+              @click="openCreateEvent(selectedDateKey)"
+            >
+              <span aria-hidden="true">＋</span> Nuevo evento
+            </button>
           </div>
-        </article>
-
-        <article class="insight-card insight-card--green">
-          <span class="insight-icon">◉</span>
-          <div>
-            <small>EVENTOS</small>
-            <strong>{{ customEventCount }}</strong>
-            <p>audiciones, ensayos y actividades especiales</p>
-          </div>
-        </article>
-
-        <article class="insight-card insight-card--slate">
-          <span class="insight-icon">▣</span>
-          <div>
-            <small>REGISTRO</small>
-            <strong>{{ events.length }}</strong>
-            <p>fechas visibles en este calendario</p>
-          </div>
-        </article>
-      </section>
-
-      <div class="calendar-toolbar">
-        <div class="month-nav">
-          <button type="button" aria-label="Mes anterior" @click="changeMonth(-1)">←</button>
-          <div>
-            <strong>{{ monthTitle }}</strong>
-            <span>{{ filteredEvents.length }} fechas visibles</span>
-          </div>
-          <button type="button" aria-label="Mes siguiente" @click="changeMonth(1)">→</button>
         </div>
 
-        <div class="view-switch" aria-label="Vista del calendario">
-          <button
-            type="button"
-            :class="{ active: activeView === 'month' }"
-            @click="activeView = 'month'"
-          >
-            Mes
-          </button>
-          <button
-            type="button"
-            :class="{ active: activeView === 'agenda' }"
-            @click="activeView = 'agenda'"
-          >
-            Agenda
-          </button>
-        </div>
-
-        <div class="filters" aria-label="Filtrar calendario">
+        <div class="filters" aria-label="Filtrar calendario por tipo">
           <button
             v-for="filter in filters"
             :key="filter.value"
             type="button"
             :class="{ active: activeFilter === filter.value }"
+            :aria-pressed="activeFilter === filter.value"
             @click="activeFilter = filter.value"
           >
             <span class="filter-dot" :class="`filter-dot--${filter.value}`"></span>
             {{ filter.label }}
           </button>
         </div>
+      </header>
 
-        <button class="today-button" type="button" @click="goToday">
-          Hoy
-        </button>
-      </div>
+      <section class="month-card calendar-month-card" aria-label="Calendario mensual">
+        <div class="weekdays">
+          <span v-for="day in weekdayLabels" :key="day">{{ day }}</span>
+        </div>
 
-      <div v-if="activeView === 'month'" class="calendar-layout">
-        <section class="month-card">
-          <div class="weekdays">
-            <span v-for="day in weekdayLabels" :key="day">{{ day }}</span>
-          </div>
-
-          <div class="month-grid">
+        <div class="month-grid">
+          <div
+            v-for="cell in calendarCells"
+            :key="cell.key"
+            class="day-cell"
+            :class="{
+              'is-outside': !cell.isCurrentMonth,
+              'is-today': cell.isToday,
+              'is-selected': selectedDateKey === cell.key,
+              'has-events': cell.events.length,
+            }"
+            role="group"
+            :aria-label="`Día ${cell.day}${cell.events.length ? `, ${cell.events.length} actividades` : ''}`"
+          >
             <button
-              v-for="cell in calendarCells"
-              :key="cell.key"
               type="button"
-              class="day-cell"
-              :class="{
-                'is-outside': !cell.isCurrentMonth,
-                'is-today': cell.isToday,
-                'is-selected': selectedDateKey === cell.key,
-                'has-events': cell.events.length,
-              }"
-              @click="selectedDateKey = cell.key"
+              class="day-cell__select"
+              :aria-label="`Seleccionar día ${cell.day}`"
+              :aria-pressed="selectedDateKey === cell.key"
+              @click="selectCalendarDate(cell.key)"
             >
               <span class="day-number">{{ cell.day }}</span>
-              <div class="day-events">
-                <span
-                  v-for="event in cell.events.slice(0, 4)"
-                  :key="event.id"
+            </button>
+
+            <div v-if="cell.events.length" class="day-events">
+              <template v-for="event in cell.events.slice(0, 2)" :key="event.id">
+                <RouterLink
+                  v-if="event.to"
+                  :to="event.to"
                   class="event-chip"
                   :class="`event-chip--${event.type}`"
+                  :title="event.title"
+                  @click.stop
                 >
                   <span class="event-chip__dot"></span>
-                  {{ event.shortTitle }}
-                </span>
-                <small v-if="cell.events.length > 4">
-                  +{{ cell.events.length - 4 }} más
-                </small>
-              </div>
-            </button>
-          </div>
-        </section>
-
-        <aside class="agenda-card">
-          <header class="agenda-card__header">
-            <div>
-              <span class="eyebrow">AGENDA DEL DÍA</span>
-              <h2>{{ selectedDateLabel }}</h2>
+                  <span class="event-chip__label">{{ event.shortTitle }}</span>
+                </RouterLink>
+                <button
+                  v-else
+                  type="button"
+                  class="event-chip"
+                  :class="`event-chip--${event.type}`"
+                  :title="event.title"
+                  @click.stop="selectEventDate(event)"
+                >
+                  <span class="event-chip__dot"></span>
+                  <span class="event-chip__label">{{ event.shortTitle }}</span>
+                </button>
+              </template>
+              <button
+                v-if="cell.events.length > 2"
+                type="button"
+                class="day-more"
+                :aria-label="`Ver las ${cell.events.length} actividades del día ${cell.day}`"
+                @click.stop="selectCalendarDate(cell.key, true)"
+              >
+                +{{ cell.events.length - 2 }} más
+              </button>
             </div>
-            <span class="agenda-count">{{ selectedEvents.length }}</span>
-          </header>
-
-          <div v-if="selectedEvents.length" class="agenda-list">
-            <article
-              v-for="event in selectedEvents"
-              :key="event.id"
-              class="agenda-item"
-              :class="`agenda-item--${event.type}`"
-            >
-              <div class="agenda-marker"></div>
-              <div class="agenda-copy">
-                <div class="agenda-topline">
-                  <small>{{ event.typeLabel }}</small>
-                  <span v-if="event.source === 'manual'" class="source-badge">EVENTO</span>
-                </div>
-                <strong>{{ event.title }}</strong>
-                <p>{{ event.meta }}</p>
-                <p v-if="event.location" class="agenda-location">⌖ {{ event.location }}</p>
-              </div>
-
-              <div class="agenda-actions">
-                <RouterLink v-if="event.to" :to="event.to">Abrir →</RouterLink>
-                <template v-else-if="isTeacher && event.source === 'manual'">
-                  <button type="button" @click="openEditEvent(event.raw)">Editar</button>
-                  <button type="button" class="danger-link" @click="confirmDelete(event.raw)">Eliminar</button>
-                </template>
-              </div>
-            </article>
-          </div>
-
-          <div v-else class="agenda-empty">
-            <div>✓</div>
-            <strong>Sin actividades</strong>
-            <p>No hay fechas programadas para este día.</p>
-            <button v-if="isTeacher" type="button" @click="openCreateEvent(selectedDateKey)">+ Agregar evento</button>
-          </div>
-
-          <section class="upcoming">
-            <header>
-              <span>PRÓXIMAMENTE</span>
-              <strong>Próximos eventos</strong>
-            </header>
-            <article v-for="event in upcomingEvents.slice(0, 6)" :key="`up-${event.id}`">
-              <div class="upcoming-date" :class="`upcoming-date--${event.type}`">
-                <strong>{{ formatDay(event.date) }}</strong>
-                <span>{{ formatMonthShort(event.date) }}</span>
-              </div>
-              <div>
-                <small>{{ event.typeLabel }}</small>
-                <strong>{{ event.title }}</strong>
-              </div>
-            </article>
-            <p v-if="!upcomingEvents.length" class="empty-inline">No hay próximas fechas registradas.</p>
-          </section>
-        </aside>
-      </div>
-
-      <section v-else class="agenda-full-card">
-        <header class="agenda-full-card__header">
-          <div>
-            <span class="eyebrow">AGENDA COMPLETA</span>
-            <h2>Tu recorrido académico</h2>
-            <p>Todas las fechas ordenadas cronológicamente.</p>
-          </div>
-          <button type="button" class="ghost-action" @click="goToday">Volver a hoy</button>
-        </header>
-
-        <div class="agenda-timeline">
-          <article
-            v-for="event in listEvents"
-            :key="event.id"
-            class="timeline-item"
-            :class="`timeline-item--${event.type}`"
-          >
-            <div class="timeline-date">
-              <strong>{{ formatDay(event.date) }}</strong>
-              <span>{{ formatMonthShort(event.date) }}</span>
-            </div>
-            <div class="timeline-line">
-              <span></span>
-            </div>
-            <div class="timeline-body">
-              <div class="timeline-heading">
-                <span class="timeline-kind">{{ event.typeLabel }}</span>
-                <strong>{{ event.title }}</strong>
-              </div>
-              <p v-if="event.meta">{{ event.meta }}</p>
-              <p v-if="event.location">⌖ {{ event.location }}</p>
-              <div class="timeline-actions">
-                <RouterLink v-if="event.to" :to="event.to">Abrir →</RouterLink>
-                <template v-else-if="isTeacher && event.source === 'manual'">
-                  <button type="button" @click="openEditEvent(event.raw)">Editar</button>
-                  <button type="button" class="danger-link" @click="confirmDelete(event.raw)">Eliminar</button>
-                </template>
-              </div>
-            </div>
-          </article>
-
-          <div v-if="!listEvents.length" class="agenda-empty agenda-empty--large">
-            <div>✓</div>
-            <strong>No hay fechas con este filtro</strong>
-            <p>Prueba con otro filtro o crea un nuevo evento.</p>
           </div>
         </div>
       </section>
-    </template>
 
+      <aside ref="agendaCardRef" class="agenda-card calendar-agenda" aria-label="Agenda del día y próximos eventos">
+        <header class="agenda-card__header">
+          <div>
+            <span class="eyebrow">AGENDA DEL DÍA</span>
+            <h2>{{ selectedDateLabel }}</h2>
+          </div>
+          <span class="agenda-count" :aria-label="`${selectedEvents.length} actividades`">{{ selectedEvents.length }}</span>
+        </header>
+
+        <div v-if="selectedEvents.length" class="agenda-list">
+          <article
+            v-for="event in selectedEvents"
+            :key="event.id"
+            class="agenda-item"
+            :class="`agenda-item--${event.type}`"
+          >
+            <div class="agenda-marker"></div>
+            <div class="agenda-copy">
+              <div class="agenda-topline">
+                <small>{{ event.typeLabel }}</small>
+                <span v-if="event.source === 'manual'" class="source-badge">EVENTO</span>
+              </div>
+              <strong>{{ event.title }}</strong>
+              <p v-if="event.meta">{{ event.meta }}</p>
+              <p v-if="event.location" class="agenda-location">⌖ {{ event.location }}</p>
+            </div>
+
+            <div class="agenda-actions">
+              <RouterLink v-if="event.to" :to="event.to">Abrir →</RouterLink>
+              <template v-else-if="isTeacher && event.source === 'manual'">
+                <button type="button" @click="openEditEvent(event.raw)">Editar</button>
+                <button type="button" class="danger-link" @click="confirmDelete(event.raw)">Eliminar</button>
+              </template>
+            </div>
+          </article>
+        </div>
+
+        <div v-else class="agenda-empty">
+          <div>✓</div>
+          <strong>Sin actividades</strong>
+          <p>No hay fechas programadas para este día.</p>
+          <button v-if="isTeacher" type="button" @click="openCreateEvent(selectedDateKey)">＋ Agregar evento</button>
+        </div>
+
+        <section class="upcoming">
+          <header>
+            <span>PRÓXIMAMENTE</span>
+            <strong>Próximos eventos</strong>
+          </header>
+
+          <template v-for="event in upcomingEvents.slice(0, 6)" :key="`up-${event.id}`">
+            <RouterLink
+              v-if="event.to"
+              :to="event.to"
+              class="upcoming-event"
+              :class="`upcoming-event--${event.type}`"
+            >
+              <span class="upcoming-date" :class="`upcoming-date--${event.type}`">
+                <strong>{{ formatDay(event.date) }}</strong>
+                <small>{{ formatMonthShort(event.date) }}</small>
+              </span>
+              <span class="upcoming-event__copy">
+                <small>{{ event.typeLabel }}</small>
+                <strong>{{ event.title }}</strong>
+              </span>
+              <span class="upcoming-event__arrow" aria-hidden="true">→</span>
+            </RouterLink>
+            <button
+              v-else
+              type="button"
+              class="upcoming-event"
+              :class="`upcoming-event--${event.type}`"
+              @click="selectEventDate(event)"
+            >
+              <span class="upcoming-date" :class="`upcoming-date--${event.type}`">
+                <strong>{{ formatDay(event.date) }}</strong>
+                <small>{{ formatMonthShort(event.date) }}</small>
+              </span>
+              <span class="upcoming-event__copy">
+                <small>{{ event.typeLabel }}</small>
+                <strong>{{ event.title }}</strong>
+              </span>
+              <span class="upcoming-event__arrow" aria-hidden="true">→</span>
+            </button>
+          </template>
+          <p v-if="!upcomingEvents.length" class="empty-inline">No hay próximas fechas registradas.</p>
+        </section>
+      </aside>
+    </template>
     <Transition name="modal-fade">
       <div v-if="isEventModalOpen" class="modal-backdrop" @click.self="closeEventModal">
         <section class="event-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-event-title">
@@ -403,7 +326,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, onUnmounted } from 'vue'
+import { computed, onMounted, ref, onUnmounted, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import { fetchLessons } from '@/services/lessonService'
 import { fetchAssignments } from '@/services/assignmentService'
@@ -418,6 +341,16 @@ import { useAuth } from '@/composables/useAuth'
 
 const { isTeacher } = useAuth()
 
+// El destino cambia según el rol: los profesores revisan intentos;
+// los estudiantes ingresan a rendir la evaluación.
+const isTeacherAccount = computed(() => Boolean(isTeacher?.value ?? isTeacher))
+
+// Destino único para el profesor: listado de intentos y seguimiento.
+const getQuizDestination = quiz => {
+  const base = `/aula/clase/${quiz.lessonId}/evaluacion/${quiz.id}`
+  return isTeacherAccount.value ? `${base}/intentos` : base
+}
+
 const isLoading = ref(true)
 const errorMessage = ref('')
 const lessons = ref([])
@@ -425,8 +358,8 @@ const assignments = ref([])
 const quizzes = ref([])
 const manualEvents = ref([])
 const activeFilter = ref('all')
-const activeView = ref('month')
 const selectedDateKey = ref('')
+const agendaCardRef = ref(null)
 const visibleMonth = ref(startOfMonth(new Date()))
 
 const isEventModalOpen = ref(false)
@@ -503,10 +436,6 @@ function parseDateValue(value) {
 function normalizeAssessmentType(value) {
   const type = String(value || '').trim().toLowerCase()
   return ['test','prueba','exam','examen'].some(item => type.includes(item)) ? 'test' : 'quiz'
-}
-
-function normalizeText(value='') {
-  return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
 }
 
 function dateToInputValue(date, allDay) {
@@ -616,7 +545,7 @@ const quizEvents = computed(() => quizzes.value.map(quiz => {
     typeLabel:type === 'test' ? 'PRUEBA' : 'QUIZ',
     meta:[quiz.opensAt ? `Abre ${timeRangeLabel(quiz.opensAt)}` : '', quiz.closesAt ? `Cierra ${timeRangeLabel(quiz.closesAt)}` : ''].filter(Boolean).join(' · '),
     location:'',
-    to:`/aula/clase/${quiz.lessonId}/evaluacion/${quiz.id}`,
+    to: getQuizDestination(quiz),
   }
 }).filter(Boolean))
 
@@ -656,13 +585,8 @@ const selectedEvents = computed(() => filteredEvents.value.filter(event => dateK
 const upcomingEvents = computed(() => {
   const today = new Date()
   today.setHours(0,0,0,0)
-  return events.value.filter(event=>event.date>=today)
+  return filteredEvents.value.filter(event => event.date >= today)
 })
-
-const listEvents = computed(() => filteredEvents.value.filter(event=>event.date >= new Date(new Date().setHours(0,0,0,0))))
-
-const nextEvent = computed(() => upcomingEvents.value[0] || null)
-const nextEventDateLabel = computed(() => nextEvent.value ? new Intl.DateTimeFormat('es-CL',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}).format(nextEvent.value.date) : '')
 
 const monthTitle = computed(() => `${monthNames[visibleMonth.value.getMonth()]} ${visibleMonth.value.getFullYear()}`)
 const selectedDateLabel = computed(() => {
@@ -671,22 +595,6 @@ const selectedDateLabel = computed(() => {
   return new Intl.DateTimeFormat('es-CL',{weekday:'long',day:'numeric',month:'long'}).format(date)
 })
 
-const todayDay = computed(() => new Date().getDate())
-const todayMonth = computed(() => new Intl.DateTimeFormat('es-CL',{month:'short'}).format(new Date()).replace('.','').toUpperCase())
-
-const assessmentCount = computed(() => quizEvents.value.length)
-const customEventCount = computed(() => manualEvents.value.length)
-
-const weekEventCount = computed(() => {
-  const now = new Date()
-  const start = new Date(now)
-  start.setHours(0,0,0,0)
-  const day = (start.getDay()+6)%7
-  start.setDate(start.getDate()-day)
-  const end = new Date(start)
-  end.setDate(end.getDate()+7)
-  return events.value.filter(event => event.date>=start && event.date<end).length
-})
 
 function formatDay(date) { return String(date.getDate()).padStart(2,'0') }
 function formatMonthShort(date) { return new Intl.DateTimeFormat('es-CL',{month:'short'}).format(date).replace('.','').toUpperCase() }
@@ -702,6 +610,28 @@ function goToday() {
   const today = new Date()
   visibleMonth.value = startOfMonth(today)
   selectedDateKey.value = dateKey(today)
+}
+
+function selectCalendarDate(key, scrollToAgenda = false) {
+  const date = parseDateValue(key)
+  if (!date) return
+
+  visibleMonth.value = startOfMonth(date)
+  selectedDateKey.value = dateKey(date)
+
+  if (scrollToAgenda) scrollAgendaIntoView()
+}
+
+function selectEventDate(event, shouldScroll = true) {
+  if (!event?.date) return
+  selectCalendarDate(dateKey(event.date), false)
+  if (shouldScroll) scrollAgendaIntoView()
+}
+
+function scrollAgendaIntoView() {
+  nextTick(() => {
+    agendaCardRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
 }
 
 function openCreateEvent(selectedKey = '') {
@@ -1159,265 +1089,304 @@ button { cursor:pointer; }
   .event-form { padding:15px 18px 18px; }
   .event-type-grid { padding:14px 18px 0; }
 }
-</style>
 
 
-<style lang="scss">
-/* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
-.amv-view-shell {
-  --amv-ui-wine: #9f1945;
-  --amv-ui-wine-deep: #7f1237;
-  --amv-ui-gold: #d9a91d;
-  --amv-ui-purple: #7657d9;
-  --amv-ui-cyan: #20b8ae;
-  --amv-ui-ink: #172033;
-  --amv-ui-muted: #6f7c8f;
-  --amv-ui-line: rgba(122, 137, 158, 0.20);
-  --amv-ui-focus: rgba(159, 25, 69, 0.38);
-  --amv-ui-radius-sm: 12px;
-  --amv-ui-radius-md: 18px;
-  --amv-ui-radius-lg: 26px;
-  --amv-ui-shadow: 0 18px 55px rgba(17, 25, 39, 0.09);
-  --amv-ui-shadow-hover: 0 22px 65px rgba(17, 25, 39, 0.14);
-  position: relative;
+/* =========================================================
+   CALENDARIO COMPACTO · MES PRIMERO + AGENDA DEBAJO
+   ========================================================= */
+.calendar-page--compact {
+  gap: 12px;
+  min-width: 0;
+}
+.calendar-page--compact .calendar-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(221, 229, 237, .95);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 8px 24px rgba(28, 43, 64, .045);
+}
+.calendar-toolbar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+.calendar-page--compact .month-nav {
+  flex: 1 1 250px;
+  min-width: 0;
+  gap: 10px;
+}
+.calendar-page--compact .month-nav button,
+.calendar-page--compact .today-button {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 13px;
+  border-color: #d9e1eb;
+  color: var(--wine);
+  background: linear-gradient(145deg, #fff, #f9fafd);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.calendar-page--compact .month-nav button:hover,
+.calendar-page--compact .today-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(167, 25, 75, .28);
+  box-shadow: 0 5px 13px rgba(167, 25, 75, .08);
+}
+.calendar-page--compact .month-nav__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.calendar-page--compact .month-nav strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: clamp(.9rem, 2vw, 1.05rem);
+  font-weight: 900;
+  letter-spacing: -.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.calendar-page--compact .month-nav span { font-size: .65rem; }
+.calendar-toolbar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+.calendar-page--compact .primary-action--compact {
+  min-height: 40px;
+  border-radius: 13px;
+  padding: 10px 14px;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+.calendar-page--compact .filters {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 0;
+}
+.calendar-page--compact .filters button {
+  min-height: 35px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #f6f8fb;
+  font-size: .67rem;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+.calendar-page--compact .filters button.active {
+  border-color: rgba(167, 25, 75, .22);
+  color: var(--wine-dark);
+  background: var(--wine-soft);
+  box-shadow: inset 0 0 0 1px rgba(167, 25, 75, .025);
+}
+.calendar-page--compact .month-card,
+.calendar-page--compact .agenda-card {
   width: 100%;
-  max-width: 100%;
   min-width: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  -webkit-tap-highlight-color: transparent;
+  border: 1px solid rgba(215, 225, 235, .98);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 10px 26px rgba(28, 43, 64, .045);
 }
-
-.amv-view-shell::before {
-  content: '';
-  position: absolute;
-  inset: -150px -120px auto auto;
-  width: 420px;
-  height: 420px;
-  pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(159, 25, 69, 0.10), transparent 52%),
-    radial-gradient(circle at 68% 62%, rgba(217, 169, 29, 0.08), transparent 58%);
-  filter: blur(6px);
-  opacity: 0.82;
-  z-index: -1;
+.calendar-page--compact .month-card { overflow: hidden; }
+.calendar-page--compact .weekdays { background: linear-gradient(180deg, #fbfcfe, #f5f7fa); }
+.calendar-page--compact .weekdays span { padding: 11px 2px; font-size: .61rem; }
+.calendar-page--compact .month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
-
-.amv-view-shell :where(*, *::before, *::after) {
-  box-sizing: border-box;
-}
-
-.amv-view-shell :where(img, video, svg, canvas) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
-}
-
-.amv-view-shell :where(p, li, td, th, label, small) {
-  overflow-wrap: anywhere;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']) {
-  touch-action: manipulation;
-}
-
-.amv-view-shell :where(button, input, select, textarea) {
-  font: inherit;
-}
-
-.amv-view-shell :where(button) {
-  min-height: 42px;
-}
-
-.amv-view-shell :where(input, select, textarea) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 3px solid var(--amv-ui-focus);
-  outline-offset: 3px;
-}
-
-.amv-view-shell :where(button, [role='button']):disabled,
-.amv-view-shell :where(input, select, textarea):disabled {
-  cursor: not-allowed;
-}
-
-.amv-view-shell :where(.button, .btn, .lux-button, .amv-primary-btn, .amv-secondary-action,
-  .primary-action, .secondary-action, .danger-action, .text-link, .action-link,
-  .lightbox__close, .lightbox__nav, .today-button, .quick-action) {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Premium surface language without changing each view's semantic palette. */
-.amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-  .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-  .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-  .production, .sound-console, .state-card, .empty-card, .workspace,
-  .profile-card, .profile-panel, .vocal-card, .weighted-student, .weighted-category) {
-  border-radius: var(--amv-ui-radius-md);
-}
-
-.amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-  .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-  .task-card, .format-card, .production, .state-card, .empty-card) {
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-    .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-    .task-card, .format-card, .production):not(.is-disabled):hover {
-    transform: translateY(-2px);
-  }
-}
-
-/* Toolbars wrap rather than squeezing controls into unreadable rows. */
-.amv-view-shell :where(.toolbar, .students-toolbar, .calendar-toolbar, .resources-controls,
-  .resources-controls__row, .gradebook-legacy-toolbar, .hero-actions, .actions,
-  .action-row, .question-actions, .filters, .public-jump-nav, .classes-header__actions,
-  .result-action-row, .form-actions, .footer-actions) {
+.calendar-page--compact .day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
   min-width: 0;
+  min-height: 108px;
+  padding: 7px;
+  border: 0;
+  border-right: 1px solid #edf1f5;
+  border-bottom: 1px solid #edf1f5;
+  background: rgba(255, 255, 255, .92);
+  transition: background .16s ease, box-shadow .16s ease;
 }
-
-.amv-view-shell :where(.table-shell, .quiz-table-wrap, .table-wrap, .grade-table-wrap,
-  .data-table-wrap, .scroll-region, .horizontal-scroll) {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+.calendar-page--compact .day-cell:nth-child(7n) { border-right: 0; }
+.calendar-page--compact .day-cell:hover { background: #fdfbfc; }
+.calendar-page--compact .day-cell.is-outside { color: #aeb8c5; background: #fafbfd; }
+.calendar-page--compact .day-cell.is-selected {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(145deg, rgba(255, 245, 249, .98), rgba(255, 255, 255, .94));
+  box-shadow: inset 0 0 0 2px rgba(167, 25, 75, .2);
 }
-
-.amv-view-shell :where(.table-shell table, .quiz-table-wrap table, .table-wrap table,
-  .grade-table-wrap table, .data-table-wrap table) {
-  max-width: none;
-}
-
-/* Prevent long controls and badges from forcing page-level horizontal overflow. */
-.amv-view-shell :where(.badge, .pill, .chip, .status-pill, .source-badge, .event-chip,
-  .lesson-detail, .student-card__voice, .student-card__status, .course-kicker,
-  .hero-stat, .count, .filename, .meta, .eyebrow) {
-  max-width: 100%;
-}
-
-/* Dialogs/lightboxes stay usable on short laptop and phone viewports. */
-.amv-view-shell :where(.modal, .dialog, .drawer, .lightbox, .lightbox__content,
-  .modal__content, .dialog__content, [role='dialog']) {
-  max-width: min(100%, 100vw);
-}
-
-.amv-view-shell :where(.modal__content, .dialog__content, .lightbox__content,
-  [role='dialog']) {
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Public pages: a cleaner editorial frame around content-heavy sections. */
-.amv-view-shell :where(.hero, .hero-panel, .calendar-hero, .resources-hero, .amv-hero,
-  .students__header, .gradebook__hero, .classes-header, .contact-hero, .training-hero,
-  .academy-hero, .inscription-hero) {
-  isolation: isolate;
-}
-
-.amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid) {
+.calendar-page--compact .day-cell__select {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: flex-start;
+  width: 100%;
   min-width: 0;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.calendar-page--compact .day-number {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+  color: var(--ink);
+  font-size: .72rem;
+  font-weight: 900;
+  transition: background .16s ease, color .16s ease;
+}
+.calendar-page--compact .day-cell.is-today .day-number { color: #fff; background: var(--wine); }
+.calendar-page--compact .day-cell.is-selected:not(.is-today) .day-number { color: var(--wine); background: #fbe2eb; }
+.calendar-page--compact .day-events {
+  display: grid;
+  gap: 3px;
+  align-content: start;
+  min-width: 0;
+  margin: 0;
+}
+.calendar-page--compact .event-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  min-height: 19px;
+  overflow: hidden;
+  padding: 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: .54rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.calendar-page--compact .event-chip:hover { filter: saturate(1.12); border-color: currentColor; }
+.calendar-page--compact .event-chip__dot { display: inline-block; width: 5px; height: 5px; min-width: 5px; border-radius: 50%; background: currentColor; opacity: .78; }
+.calendar-page--compact .event-chip__label { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calendar-page--compact .day-more {
+  justify-self: start;
+  padding: 1px 3px;
+  border: 0;
+  color: var(--wine);
+  background: transparent;
+  font-size: .5rem;
+  font-weight: 900;
+  text-align: left;
+  white-space: nowrap;
+}
+.calendar-page--compact .calendar-agenda {
+  align-self: start;
+  margin: 0;
+  padding: 20px;
+  scroll-margin-top: 18px;
+}
+.calendar-page--compact .agenda-card__header { align-items: center; }
+.calendar-page--compact .agenda-card h2 { font-size: clamp(1rem, 2.5vw, 1.22rem); letter-spacing: -.025em; }
+.calendar-page--compact .agenda-item { grid-template-columns: 6px minmax(0, 1fr) auto; gap: 12px; }
+.calendar-page--compact .agenda-copy>strong { font-size: .83rem; line-height: 1.35; }
+.calendar-page--compact .agenda-item small { font-size: .62rem; }
+.calendar-page--compact .agenda-copy p { font-size: .68rem; }
+.calendar-page--compact .agenda-actions a,
+.calendar-page--compact .agenda-actions button { font-size: .67rem; }
+.calendar-page--compact .upcoming { margin-top: 20px; padding-top: 18px; }
+.calendar-page--compact .upcoming>header span { font-size: .58rem; }
+.calendar-page--compact .upcoming>header strong { font-size: .95rem; }
+.calendar-page--compact .upcoming-event {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 8px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.calendar-page--compact .upcoming-event:hover { border-color: #e5eaf0; background: #fbfcfe; transform: translateY(-1px); }
+.calendar-page--compact .upcoming-date { width: 46px; height: 46px; border-radius: 13px; }
+.calendar-page--compact .upcoming-date strong { font-size: .83rem; }
+.calendar-page--compact .upcoming-date small { font-size: .53rem; font-weight: 900; }
+.calendar-page--compact .upcoming-event__copy { display: block; min-width: 0; }
+.calendar-page--compact .upcoming-event__copy small { display: block; color: #8793a4; font-size: .58rem; }
+.calendar-page--compact .upcoming-event__copy strong { display: block; margin-top: 3px; overflow-wrap: anywhere; font-size: .77rem; line-height: 1.35; }
+.calendar-page--compact .upcoming-event__arrow { color: var(--wine); font-size: 1rem; font-weight: 900; }
+.calendar-page--compact .empty-inline { font-size: .72rem; }
+.calendar-page--compact button:focus-visible,
+.calendar-page--compact a:focus-visible { outline: 3px solid rgba(167, 25, 75, .28); outline-offset: 2px; }
+
+@media (max-width: 720px) {
+  .calendar-page--compact { gap: 10px; }
+  .calendar-page--compact .calendar-toolbar { padding: 10px; border-radius: 15px; gap: 10px; }
+  .calendar-toolbar__top { gap: 10px; }
+  .calendar-page--compact .month-nav { gap: 7px; }
+  .calendar-page--compact .month-nav button { flex-basis: 36px; width: 36px; min-width: 36px; height: 36px; border-radius: 11px; }
+  .calendar-page--compact .month-nav strong { font-size: .9rem; }
+  .calendar-page--compact .month-nav span { font-size: .59rem; }
+  .calendar-toolbar__actions { gap: 6px; }
+  .calendar-page--compact .today-button { flex-basis: 36px; width: auto; min-width: 44px; height: 36px; padding: 0 10px; }
+  .calendar-page--compact .primary-action--compact { min-height: 36px; padding: 8px 10px; font-size: .66rem; }
+  .calendar-page--compact .filters { flex-wrap: nowrap; overflow-x: auto; padding: 1px 1px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .calendar-page--compact .filters::-webkit-scrollbar { display: none; }
+  .calendar-page--compact .filters button { flex: 0 0 auto; min-height: 33px; padding: 7px 10px; font-size: .62rem; }
+  .calendar-page--compact .weekdays span { padding: 9px 1px; font-size: .54rem; letter-spacing: .035em; }
+  .calendar-page--compact .day-cell { gap: 3px; min-height: 81px; padding: 4px 3px; }
+  .calendar-page--compact .day-cell__select { min-height: 23px; }
+  .calendar-page--compact .day-number { width: 22px; height: 22px; border-radius: 7px; font-size: .63rem; }
+  .calendar-page--compact .day-events { gap: 2px; }
+  .calendar-page--compact .event-chip { min-height: 14px; gap: 2px; padding: 2px 3px; border-radius: 4px; font-size: .44rem; line-height: 1.12; }
+  .calendar-page--compact .event-chip__dot { width: 4px; height: 4px; min-width: 4px; }
+  .calendar-page--compact .day-more { padding: 0 1px; font-size: .42rem; }
+  .calendar-page--compact .calendar-agenda { padding: 15px 13px; border-radius: 17px; }
+  .calendar-page--compact .agenda-item { grid-template-columns: 5px minmax(0, 1fr) auto; gap: 8px; padding: 12px 0; }
+  .calendar-page--compact .agenda-actions { gap: 8px; }
+  .calendar-page--compact .agenda-actions a,
+  .calendar-page--compact .agenda-actions button { font-size: .62rem; }
+  .calendar-page--compact .upcoming-event { grid-template-columns: 43px minmax(0, 1fr) 14px; gap: 9px; padding: 9px 4px; }
+  .calendar-page--compact .upcoming-date { width: 43px; height: 43px; }
+  .calendar-page--compact .upcoming-event__copy strong { font-size: .72rem; }
+  .calendar-page--compact .upcoming-event__copy small { font-size: .53rem; }
 }
 
-/* Mobile-first resilience. Existing view-specific breakpoints still win where more
-   specific rules exist, while these defaults catch edge cases and tiny screens. */
-@media (max-width: 760px) {
-  .amv-view-shell {
-    overflow-x: clip;
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 22px;
-  }
-
-  .amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid,
-    .calendar-layout, .quiz-layout, .program-layout, .student-profile__grid,
-    .dashboard-grid, .content-grid, .page-grid, .split-layout) {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .amv-view-shell :where(.hero-actions, .actions, .action-row, .form-actions,
-    .footer-actions, .question-actions, .students__header-actions, .hero-stat,
-    .calendar-toolbar, .resources-controls__row) {
-    flex-wrap: wrap;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    min-width: min(100%, 190px);
-  }
-
-  .amv-view-shell :where(.display-title, .page-title, .hero-title, .section-title,
-    .hero-panel__title, .amv-hero h1, .calendar-hero h1, .students__header h1,
-    .gradebook__hero h1) {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .amv-view-shell :where(.students-toolbar, .resources-controls, .calendar-toolbar,
-    .gradebook-legacy-toolbar, .classes-header, .section-heading, .profile-actions) {
-    gap: 10px;
-  }
-
-  .amv-view-shell :where(input, select, textarea, .select, .search-input) {
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 520px) {
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 18px;
-  }
-
-  .amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-    .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-    .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-    .production, .state-card, .empty-card) {
-    border-radius: 16px;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .amv-view-shell,
-  .amv-view-shell :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
+@media (max-width: 500px) {
+  .calendar-page--compact .calendar-toolbar__top { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .calendar-page--compact .month-nav { width: 100%; }
+  .calendar-page--compact .calendar-toolbar__actions { justify-content: space-between; width: 100%; }
+  .calendar-page--compact .primary-action--compact { margin-left: auto; }
+  .calendar-page--compact .day-cell { min-height: 76px; padding: 3px 2px; }
+  .calendar-page--compact .day-cell__select { min-height: 21px; }
+  .calendar-page--compact .day-number { width: 20px; height: 20px; font-size: .59rem; }
+  .calendar-page--compact .event-chip { min-height: 13px; padding: 2px; font-size: .4rem; }
+  .calendar-page--compact .event-chip__dot { display: none; }
+  .calendar-page--compact .day-more { font-size: .4rem; }
+  .calendar-page--compact .agenda-card__header { gap: 8px; }
+  .calendar-page--compact .agenda-item { grid-template-columns: 4px minmax(0, 1fr); }
+  .calendar-page--compact .agenda-actions { grid-column: 2; flex-direction: row; justify-content: flex-start; align-items: center; padding-top: 2px; }
 }
 </style>
