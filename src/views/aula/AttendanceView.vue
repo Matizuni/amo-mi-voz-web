@@ -1,28 +1,15 @@
 <template>
   <section class="attendance amv-view-shell">
-    <!-- =========================================================
-         HEADER
-    ========================================================== -->
     <header class="attendance__header">
       <div>
-        <p class="attendance__eyebrow">
-          Profesor · Aula Virtual
-        </p>
-
-        <h1>
-          Asistencia
-        </h1>
-
+        <p class="attendance__eyebrow">Profesor · Aula Virtual</p>
+        <h1>Asistencia</h1>
         <p class="attendance__description">
-          Registra la asistencia de cada clase
-          de forma rápida y ordenada.
+          Revisa y registra la asistencia de cada clase en un solo lugar.
         </p>
       </div>
     </header>
 
-    <!-- =========================================================
-         ESTADO DE CARGA
-    ========================================================== -->
     <div
       v-if="isLoading"
       class="attendance-state attendance-state--loading"
@@ -30,41 +17,23 @@
       aria-live="polite"
     >
       <span class="attendance-spinner"></span>
-
       <div>
-        <strong>
-          Cargando asistencia
-        </strong>
-
-        <p>
-          Estamos preparando las clases y estudiantes.
-        </p>
+        <strong>Cargando asistencia</strong>
+        <p>Estamos preparando las clases y estudiantes.</p>
       </div>
     </div>
 
     <template v-else>
-      <!-- =========================================================
-           ERROR
-      ========================================================== -->
       <div
         v-if="errorMessage"
         class="attendance-alert attendance-alert--error"
         role="alert"
       >
-        <div class="attendance-alert__icon">
-          !
-        </div>
-
+        <div class="attendance-alert__icon">!</div>
         <div>
-          <strong>
-            No pudimos completar la acción
-          </strong>
-
-          <p>
-            {{ errorMessage }}
-          </p>
+          <strong>No pudimos completar la acción</strong>
+          <p>{{ errorMessage }}</p>
         </div>
-
         <button
           type="button"
           aria-label="Cerrar mensaje de error"
@@ -74,115 +43,134 @@
         </button>
       </div>
 
-      <!-- =========================================================
-           SIN CLASES
-      ========================================================== -->
-      <div
-        v-if="lessons.length === 0"
-        class="attendance-state"
-      >
-        <div class="attendance-state__symbol">
-          ♪
-        </div>
-
+      <div v-if="lessons.length === 0" class="attendance-state">
+        <div class="attendance-state__symbol">♪</div>
         <div>
-          <strong>
-            Todavía no hay clases disponibles
-          </strong>
-
-          <p>
-            Crea una clase para comenzar
-            a registrar asistencia.
-          </p>
+          <strong>Todavía no hay clases disponibles</strong>
+          <p>Crea una clase para comenzar a registrar asistencia.</p>
         </div>
       </div>
 
       <template v-else>
-        <!-- =========================================================
-             SELECTOR
-        ========================================================== -->
-        <section class="attendance__lesson-selector">
+        <section class="attendance__lesson-selector" aria-label="Seleccionar clase">
           <div class="attendance__lesson-selector-main">
-            <label for="lesson">
-              Clase
-            </label>
-
-            <div class="attendance-select">
-              <select
-                id="lesson"
-                v-model.number="selectedLessonId"
-                :disabled="isLoadingAttendance"
-                @change="changeLesson"
+            <label for="lesson">Clase / día</label>
+            <div class="attendance-select-control">
+              <button
+                class="attendance-select-step"
+                type="button"
+                aria-label="Ir a la clase anterior"
+                title="Clase anterior"
+                :disabled="isLoadingAttendance || isSaving || isEditing || currentLessonIndex <= 0"
+                @click="navigateLesson(-1)"
               >
-                <option
-                  v-for="lesson in lessons"
-                  :key="lesson.id"
-                  :value="lesson.id"
+                <span aria-hidden="true">‹</span>
+              </button>
+
+              <div
+                ref="lessonDropdownRef"
+                class="attendance-select"
+                @keydown.esc.stop.prevent="closeLessonMenu"
+              >
+                <button
+                  id="lesson"
+                  type="button"
+                  class="attendance-select-trigger"
+                  :disabled="isLoadingAttendance || isSaving || isEditing"
+                  :aria-expanded="isLessonMenuOpen"
+                  aria-haspopup="listbox"
+                  aria-controls="attendance-lesson-options"
+                  @click="toggleLessonMenu"
+                  @keydown.down.prevent="openLessonMenu"
                 >
-                  {{ getLessonOptionLabel(lesson) }}
-                </option>
-              </select>
+                  <span class="attendance-select-trigger__class">
+                    Clase {{ selectedLessonNumber }}
+                  </span>
+                  <span class="attendance-select-trigger__date">
+                    {{ selectedLesson ? formatLessonDate(selectedLesson.date) : 'Selecciona una clase' }}
+                  </span>
+                  <span
+                    class="attendance-select-trigger__chevron"
+                    :class="{ 'is-open': isLessonMenuOpen }"
+                    aria-hidden="true"
+                  >⌄</span>
+                </button>
+
+                <Transition name="lesson-dropdown">
+                  <div
+                    v-if="isLessonMenuOpen"
+                    id="attendance-lesson-options"
+                    class="attendance-select-menu"
+                    role="listbox"
+                    aria-label="Clases disponibles"
+                  >
+                    <div class="attendance-select-menu__heading">
+                      <span>Elige una clase</span>
+                      <small>{{ lessons.length }} {{ lessons.length === 1 ? 'clase' : 'clases' }}</small>
+                    </div>
+
+                    <button
+                      v-for="lesson in lessons"
+                      :key="lesson.id"
+                      type="button"
+                      role="option"
+                      class="attendance-select-option"
+                      :class="{ 'is-selected': Number(lesson.id) === Number(selectedLessonId) }"
+                      :aria-selected="Number(lesson.id) === Number(selectedLessonId)"
+                      @click="selectLesson(lesson)"
+                    >
+                      <span class="attendance-select-option__number">
+                        {{ String(getAcademicLessonNumber(lesson)).padStart(2, '0') }}
+                      </span>
+                      <span class="attendance-select-option__copy">
+                        <strong>{{ cleanLessonTitle(lesson.title) }}</strong>
+                        <small>{{ formatLessonDate(lesson.date) }}</small>
+                      </span>
+                      <span class="attendance-select-option__indicator" aria-hidden="true">
+                        {{ Number(lesson.id) === Number(selectedLessonId) ? '✓' : '›' }}
+                      </span>
+                    </button>
+                  </div>
+                </Transition>
+              </div>
+
+              <button
+                class="attendance-select-step"
+                type="button"
+                aria-label="Ir a la clase siguiente"
+                title="Clase siguiente"
+                :disabled="isLoadingAttendance || isSaving || isEditing || currentLessonIndex < 0 || currentLessonIndex >= lessons.length - 1"
+                @click="navigateLesson(1)"
+              >
+                <span aria-hidden="true">›</span>
+              </button>
             </div>
           </div>
 
-          <div
-            v-if="selectedLesson"
-            class="attendance__lesson-info"
-          >
-            <span>
-              Clase {{ selectedLessonNumber }}
+          <div v-if="selectedLesson" class="attendance__lesson-info">
+            <span>Clase {{ selectedLessonNumber }}</span>
+            <strong>{{ cleanLessonTitle(selectedLesson.title) }}</strong>
+            <small>{{ formatLessonDate(selectedLesson.date) }}</small>
+          </div>
+
+          <div class="attendance__lesson-actions">
+            <button
+              v-if="!isEditing"
+              type="button"
+              class="attendance-edit-toggle"
+              :disabled="isLoadingAttendance || isSaving || students.length === 0"
+              @click="startEditing"
+            >
+              <span aria-hidden="true">✎</span>
+              Editar asistencia
+            </button>
+            <span v-else class="attendance-editing-status" role="status">
+              <span aria-hidden="true">●</span>
+              Edición activa
             </span>
-
-            <strong>
-              {{ cleanLessonTitle(selectedLesson.title) }}
-            </strong>
-
-            <small>
-              {{ formatLessonDate(selectedLesson.date) }}
-            </small>
           </div>
         </section>
 
-        <!-- =========================================================
-             NAVEGACIÓN CONTEXTUAL · V10
-        ========================================================== -->
-        <nav
-          class="attendance-context-nav"
-          aria-label="Secciones de asistencia"
-        >
-          <button
-            type="button"
-            :class="{ 'is-active': isAttendanceTab('resumen') }"
-            @click="setAttendanceTab('resumen')"
-          >
-            <span>01</span>
-            Resumen
-          </button>
-
-          <button
-            type="button"
-            :class="{ 'is-active': isAttendanceTab('registro') }"
-            @click="setAttendanceTab('registro')"
-          >
-            <span>02</span>
-            Tomar asistencia
-            <small>{{ registeredCount }}/{{ students.length }}</small>
-          </button>
-
-          <button
-            type="button"
-            :class="{ 'is-active': isAttendanceTab('historial') }"
-            @click="setAttendanceTab('historial')"
-          >
-            <span>03</span>
-            Historial
-          </button>
-        </nav>
-
-
-        <!-- =========================================================
-             CARGANDO ASISTENCIA
-        ========================================================== -->
         <div
           v-if="isLoadingAttendance"
           class="attendance-inline-loading"
@@ -190,201 +178,104 @@
           aria-live="polite"
         >
           <span class="attendance-spinner attendance-spinner--small"></span>
-
           Cargando registro de la clase...
         </div>
 
         <template v-else>
-          <!-- =========================================================
-               ESTADO DEL REGISTRO
-          ========================================================== -->
-          <div v-show="isAttendanceTab('resumen')" class="attendance-panel attendance-panel--summary">
-<section
+          <section
             class="attendance-status"
             :class="{
-              'attendance-status--saved': lessonIsSaved,
-              'attendance-status--pending': !lessonIsSaved
+              'attendance-status--saved': lessonIsSaved && !isEditing,
+              'attendance-status--pending': !lessonIsSaved || isEditing,
+              'attendance-status--editing': isEditing
             }"
+            aria-live="polite"
           >
             <div class="attendance-status__icon">
-              {{ lessonIsSaved ? '✓' : '•' }}
+              {{ isEditing ? '✎' : lessonIsSaved ? '✓' : '•' }}
             </div>
-
             <div class="attendance-status__text">
               <strong>
                 {{
-                  lessonIsSaved
-                    ? 'Asistencia guardada'
-                    : 'Asistencia pendiente'
+                  isEditing
+                    ? 'Editando asistencia'
+                    : lessonIsSaved
+                      ? 'Asistencia guardada'
+                      : 'Registro pendiente'
                 }}
               </strong>
-
-              <span v-if="lessonIsSaved">
-                Última actualización:
-                {{ formattedLastUpdate }}
+              <span v-if="isEditing">
+                Marca a los estudiantes y guarda los cambios al terminar.
               </span>
-
+              <span v-else-if="lessonIsSaved">
+                Última actualización: {{ formattedLastUpdate }}
+              </span>
               <span v-else>
-                Marca a los estudiantes y guarda
-                cuando termines.
+                Pulsa «Editar asistencia» para comenzar el registro.
               </span>
             </div>
-
-            <button
-              v-if="lessonIsSaved && !isEditing"
-              type="button"
-              class="attendance-status__edit"
-              @click="startEditing"
-            >
-              Editar
-            </button>
+            <span class="attendance-status__coverage">
+              {{ registeredCount }}/{{ students.length }} registrados
+            </span>
           </section>
 
-          <!-- =========================================================
-               RESUMEN
-          ========================================================== -->
-          <section
-            class="attendance__summary"
-            aria-label="Resumen de asistencia"
-          >
+          <section class="attendance__summary" aria-label="Resumen de asistencia">
             <article class="summary-card summary-card--primary">
-              <span>
-                Asistencia
-              </span>
-
-              <strong>
-                {{ attendancePercentage }}%
-              </strong>
+              <span>Asistencia</span>
+              <strong>{{ attendancePercentage }}%</strong>
             </article>
-
             <article>
-              <span>
-                Presentes
-              </span>
-
-              <strong>
-                {{ presentCount }}
-              </strong>
+              <span>Presentes</span>
+              <strong>{{ presentCount }}</strong>
             </article>
-
             <article>
-              <span>
-                Ausentes
-              </span>
-
-              <strong>
-                {{ absentCount }}
-              </strong>
+              <span>Ausentes</span>
+              <strong>{{ absentCount }}</strong>
             </article>
-
             <article>
-              <span>
-                Justificados
-              </span>
-
-              <strong>
-                {{ justifiedCount }}
-              </strong>
+              <span>Justificados</span>
+              <strong>{{ justifiedCount }}</strong>
             </article>
-
             <article>
-              <span>
-                Sin registrar
-              </span>
-
-              <strong>
-                {{ unregisteredCount }}
-              </strong>
+              <span>Sin registrar</span>
+              <strong>{{ unregisteredCount }}</strong>
             </article>
           </section>
 
-          <!-- =========================================================
-               PROGRESO
-          ========================================================== -->
           <div
             class="attendance-progress"
             :aria-label="`Asistencia: ${attendancePercentage}%`"
           >
             <div
               class="attendance-progress__bar"
-              :style="{
-                width: `${attendancePercentage}%`
-              }"
+              :style="{ width: `${attendancePercentage}%` }"
             ></div>
           </div>
 
-            <section class="attendance-overview">
-              <article>
-                <span>ESTADO DE LA CLASE</span>
-                <strong>{{ lessonIsSaved ? 'Registro guardado' : 'Pendiente de registrar' }}</strong>
-                <p>
-                  {{
-                    lessonIsSaved
-                      ? `Última actualización: ${formattedLastUpdate}`
-                      : 'Aún puedes completar la asistencia de esta clase.'
-                  }}
-                </p>
-                <button type="button" @click="setAttendanceTab('registro')">
-                  {{ lessonIsSaved ? 'Revisar registro →' : 'Tomar asistencia →' }}
-                </button>
-              </article>
-
-              <article>
-                <span>COBERTURA</span>
-                <strong>{{ registeredCount }}/{{ students.length }}</strong>
-                <p>Estudiantes con estado de asistencia registrado.</p>
-                <button type="button" @click="setAttendanceTab('historial')">
-                  Ver historial →
-                </button>
-              </article>
-            </section>
-          </div>
-
-
-          <!-- =========================================================
-               CABECERA ESTUDIANTES
-          ========================================================== -->
-          <div v-show="isAttendanceTab('registro')" class="attendance-panel attendance-panel--register">
-<section class="attendance__content">
+          <section class="attendance__content">
             <div class="attendance__toolbar">
               <div class="attendance__title">
-                <span>
-                  {{ formattedSelectedLessonNumber }}
-                </span>
-
+                <span>{{ formattedSelectedLessonNumber }}</span>
                 <div>
-                  <p>
-                    Clase {{ selectedLessonNumber }}
-                  </p>
-
-                  <h2>
-                    Estudiantes
-                  </h2>
+                  <p>Clase {{ selectedLessonNumber }}</p>
+                  <h2>Estudiantes</h2>
                 </div>
               </div>
 
-              <!-- ACCIONES RÁPIDAS -->
               <div
                 v-if="canEdit && students.length"
                 class="attendance__quick-actions"
               >
-                <span>
-                  Acciones rápidas
-                </span>
-
+                <span>Acciones rápidas</span>
                 <div>
                   <button
                     type="button"
                     class="quick-action quick-action--present"
                     @click="markAllPresent"
                   >
-                    <span aria-hidden="true">
-                      ✓
-                    </span>
-
+                    <span aria-hidden="true">✓</span>
                     Todos presentes
                   </button>
-
                   <button
                     v-if="registeredCount > 0"
                     type="button"
@@ -397,66 +288,50 @@
               </div>
             </div>
 
-            <!-- =========================================================
-                 SIN ESTUDIANTES
-            ========================================================== -->
+            <div class="attendance-voice-legend" aria-label="Leyenda de colores por clasificación vocal">
+              <span class="attendance-voice-legend__label">Grupos vocales</span>
+              <span class="attendance-voice-chip attendance-voice-chip--soprano"><i aria-hidden="true"></i>Soprano</span>
+              <span class="attendance-voice-chip attendance-voice-chip--alto"><i aria-hidden="true"></i>Alto</span>
+              <span class="attendance-voice-chip attendance-voice-chip--tenor"><i aria-hidden="true"></i>Tenor</span>
+              <span class="attendance-voice-chip attendance-voice-chip--bajo"><i aria-hidden="true"></i>Bajo</span>
+              <span class="attendance-voice-chip attendance-voice-chip--unclassified"><i aria-hidden="true"></i>Sin clasificar</span>
+            </div>
+
             <div
               v-if="draftRows.length === 0"
               class="attendance-state attendance-state--compact"
             >
-              <div class="attendance-state__symbol">
-                +
-              </div>
-
+              <div class="attendance-state__symbol">+</div>
               <div>
-                <strong>
-                  No hay estudiantes matriculados
-                </strong>
-
-                <p>
-                  Cuando existan estudiantes activos
-                  aparecerán en esta lista.
-                </p>
+                <strong>No hay estudiantes matriculados</strong>
+                <p>Cuando existan estudiantes activos aparecerán en esta lista.</p>
               </div>
             </div>
 
-            <!-- =========================================================
-                 LISTA
-            ========================================================== -->
-            <div
-              v-else
-              class="attendance-list"
-            >
+            <div v-else class="attendance-list">
               <article
                 v-for="student in draftRows"
                 :key="student.id"
                 class="attendance-card"
-                :class="{
-                  'attendance-card--present':
-                    student.status === 'present',
-                  'attendance-card--absent':
-                    student.status === 'absent',
-                  'attendance-card--justified':
-                    student.status === 'justified'
-                }"
+                :class="[
+                  {
+                    'attendance-card--present': student.status === 'present',
+                    'attendance-card--absent': student.status === 'absent',
+                    'attendance-card--justified': student.status === 'justified'
+                  },
+                  `attendance-card--voice-${getVoiceClass(student.voice)}`
+                ]"
               >
                 <div class="attendance-card__identity">
-                  <div class="attendance-card__avatar">
-                    {{ getInitials(student.name) }}
+                  <div class="attendance-card__avatar" aria-hidden="true">
+                    <span class="attendance-card__avatar-initials">{{ getInitials(student.name) }}</span>
                   </div>
-
                   <div class="attendance-card__student">
-                    <span>
-                      {{ student.voice }}
-                    </span>
-
-                    <h3>
-                      {{ student.name }}
-                    </h3>
+                    <span>{{ student.voice }}</span>
+                    <h3>{{ student.name }}</h3>
                   </div>
                 </div>
 
-                <!-- ESTADOS -->
                 <div
                   class="attendance-card__statuses"
                   role="group"
@@ -470,20 +345,11 @@
                       active: student.status === 'present',
                       'status-button--present': true
                     }"
-                    @click="
-                      setDraftStatus(
-                        student.id,
-                        'present'
-                      )
-                    "
+                    @click="setDraftStatus(student.id, 'present')"
                   >
-                    <span aria-hidden="true">
-                      ✓
-                    </span>
-
+                    <span aria-hidden="true">✓</span>
                     Presente
                   </button>
-
                   <button
                     type="button"
                     :disabled="!canEdit"
@@ -492,20 +358,11 @@
                       active: student.status === 'absent',
                       'status-button--absent': true
                     }"
-                    @click="
-                      setDraftStatus(
-                        student.id,
-                        'absent'
-                      )
-                    "
+                    @click="setDraftStatus(student.id, 'absent')"
                   >
-                    <span aria-hidden="true">
-                      ×
-                    </span>
-
+                    <span aria-hidden="true">×</span>
                     Ausente
                   </button>
-
                   <button
                     type="button"
                     :disabled="!canEdit"
@@ -514,29 +371,15 @@
                       active: student.status === 'justified',
                       'status-button--justified': true
                     }"
-                    @click="
-                      setDraftStatus(
-                        student.id,
-                        'justified'
-                      )
-                    "
+                    @click="setDraftStatus(student.id, 'justified')"
                   >
-                    <span aria-hidden="true">
-                      !
-                    </span>
-
+                    <span aria-hidden="true">!</span>
                     Justificado
                   </button>
                 </div>
 
-                <!-- OBSERVACIÓN -->
                 <div class="attendance-card__note">
-                  <label
-                    :for="`attendance-note-${student.id}`"
-                  >
-                    Observación
-                  </label>
-
+                  <label :for="`attendance-note-${student.id}`">Observación</label>
                   <input
                     :id="`attendance-note-${student.id}`"
                     v-model="student.notes"
@@ -550,37 +393,16 @@
             </div>
           </section>
 
-          <!-- =========================================================
-               ACCIONES GUARDAR
-          ========================================================== -->
           <section
             v-if="canEdit && draftRows.length"
             class="attendance-actions"
           >
             <div class="attendance-actions__info">
-              <strong>
-                {{
-                  lessonIsSaved
-                    ? 'Editando asistencia'
-                    : 'Registro sin guardar'
-                }}
-              </strong>
-
-              <span>
-                {{
-                  registeredCount
-                }}
-                de
-                {{
-                  students.length
-                }}
-                estudiantes registrados.
-              </span>
+              <strong>{{ lessonIsSaved ? 'Editando asistencia' : 'Nuevo registro de asistencia' }}</strong>
+              <span>{{ registeredCount }} de {{ students.length }} estudiantes registrados.</span>
             </div>
-
             <div class="attendance-actions__buttons">
               <button
-                v-if="lessonIsSaved"
                 type="button"
                 class="attendance-actions__cancel"
                 :disabled="isSaving"
@@ -588,7 +410,6 @@
               >
                 Cancelar
               </button>
-
               <button
                 type="button"
                 class="attendance-actions__save"
@@ -599,139 +420,102 @@
                   v-if="isSaving"
                   class="attendance-spinner attendance-spinner--button"
                 ></span>
-
-                {{
-                  isSaving
-                    ? 'Guardando...'
-                    : lessonIsSaved
-                      ? 'Guardar cambios'
-                      : 'Guardar asistencia'
-                }}
+                {{ isSaving ? 'Guardando...' : 'Guardar asistencia' }}
               </button>
             </div>
           </section>
-          </div>
 
-          <!-- =========================================================
-               HISTORIAL · V10
-          ========================================================== -->
-          <section
-            v-show="isAttendanceTab('historial')"
-            class="attendance-panel attendance-history"
-          >
-            <header class="attendance-history__header">
-              <div>
-                <span>SEGUIMIENTO ACADÉMICO</span>
-                <h2>Historial de asistencia</h2>
-                <p>
-                  Revisa rápidamente qué clases ya tienen registro
-                  y cómo se distribuyó la asistencia.
-                </p>
-              </div>
-
-              <div class="attendance-history__metrics">
-                <article>
-                  <small>Clases registradas</small>
-                  <strong>{{ savedLessonsCount }}/{{ lessons.length }}</strong>
-                </article>
-
-                <article>
-                  <small>Promedio registrado</small>
-                  <strong>{{ historyAverage }}%</strong>
-                </article>
-              </div>
-            </header>
-
-            <div
-              v-if="isLoadingHistory"
-              class="attendance-state attendance-state--compact"
+          <section class="attendance-history-section">
+            <button
+              type="button"
+              class="attendance-history-toggle"
+              :aria-expanded="historyExpanded"
+              @click="toggleHistory"
             >
-              <span class="attendance-spinner"></span>
-              <div>
-                <strong>Cargando historial</strong>
-                <p>Estamos reuniendo los registros de las clases.</p>
-              </div>
-            </div>
+              <span class="attendance-history-toggle__text">
+                <strong>Historial de asistencia</strong>
+                <small>{{ historyLoaded ? savedLessonsCount + '/' + lessons.length + ' clases con registro' : 'Consulta los registros de otras clases' }}</small>
+              </span>
+              <span class="attendance-history-toggle__icon" aria-hidden="true">
+                {{ historyExpanded ? '−' : '+' }}
+              </span>
+            </button>
 
-            <div
-              v-else-if="attendanceHistory.length === 0"
-              class="attendance-state attendance-state--compact"
-            >
-              <div class="attendance-state__symbol">○</div>
-              <div>
-                <strong>Aún no hay historial disponible</strong>
-                <p>Los registros guardados aparecerán aquí.</p>
-              </div>
-            </div>
+            <section v-if="historyExpanded" class="attendance-panel attendance-history">
+              <header class="attendance-history__header">
+                <div>
+                  <span>SEGUIMIENTO ACADÉMICO</span>
+                  <h2>Historial de asistencia</h2>
+                  <p>Consulta los registros guardados y vuelve a una clase cuando lo necesites.</p>
+                </div>
+                <div class="attendance-history__metrics">
+                  <article>
+                    <small>Clases registradas</small>
+                    <strong>{{ savedLessonsCount }}/{{ lessons.length }}</strong>
+                  </article>
+                  <article>
+                    <small>Promedio registrado</small>
+                    <strong>{{ historyAverage }}%</strong>
+                  </article>
+                </div>
+              </header>
 
-            <div
-              v-else
-              class="attendance-history__list"
-            >
-              <article
-                v-for="item in attendanceHistory"
-                :key="item.lesson.id"
-                class="attendance-history-card"
-                :class="{ 'is-pending': !item.saved }"
+              <div
+                v-if="isLoadingHistory"
+                class="attendance-state attendance-state--compact"
+                role="status"
               >
-                <div class="attendance-history-card__lesson">
-                  <span>
-                    CLASE {{ getAcademicLessonNumber(item.lesson) }}
-                  </span>
-                  <strong>
-                    {{ cleanLessonTitle(item.lesson.title) }}
-                  </strong>
-                  <small>
-                    {{ formatLessonDate(item.lesson.date) }}
-                  </small>
+                <span class="attendance-spinner attendance-spinner--small"></span>
+                <div>
+                  <strong>Cargando historial</strong>
+                  <p>Estamos reuniendo los registros de las clases.</p>
                 </div>
+              </div>
 
-                <div class="attendance-history-card__stats">
-                  <span>
-                    <b>{{ item.present }}</b>
-                    Presentes
-                  </span>
-                  <span>
-                    <b>{{ item.absent }}</b>
-                    Ausentes
-                  </span>
-                  <span>
-                    <b>{{ item.justified }}</b>
-                    Justificados
-                  </span>
+              <div
+                v-else-if="attendanceHistory.length === 0"
+                class="attendance-state attendance-state--compact"
+              >
+                <div class="attendance-state__symbol">○</div>
+                <div>
+                  <strong>Aún no hay historial disponible</strong>
+                  <p>Los registros guardados aparecerán aquí.</p>
                 </div>
+              </div>
 
-                <div class="attendance-history-card__result">
-                  <strong v-if="item.saved">
-                    {{ item.percentage }}%
-                  </strong>
-                  <strong v-else>—</strong>
-                  <small>
-                    {{ item.saved ? 'Asistencia' : 'Sin registrar' }}
-                  </small>
-                </div>
-
-                <button
-                  type="button"
-                  @click="
-                    selectedLessonId = item.lesson.id;
-                    changeLesson();
-                    setAttendanceTab('registro')
-                  "
+              <div v-else class="attendance-history__list">
+                <article
+                  v-for="item in attendanceHistory"
+                  :key="item.lesson.id"
+                  class="attendance-history-card"
+                  :class="{ 'is-pending': !item.saved }"
                 >
-                  {{ item.saved ? 'Revisar' : 'Registrar' }}
-                </button>
-              </article>
-            </div>
+                  <div class="attendance-history-card__lesson">
+                    <span>CLASE {{ getAcademicLessonNumber(item.lesson) }}</span>
+                    <strong>{{ cleanLessonTitle(item.lesson.title) }}</strong>
+                    <small>{{ formatLessonDate(item.lesson.date) }}</small>
+                  </div>
+                  <div class="attendance-history-card__stats">
+                    <span><b>{{ item.present }}</b> Presentes</span>
+                    <span><b>{{ item.absent }}</b> Ausentes</span>
+                    <span><b>{{ item.justified }}</b> Justificados</span>
+                  </div>
+                  <div class="attendance-history-card__result">
+                    <strong v-if="item.saved">{{ item.percentage }}%</strong>
+                    <strong v-else>—</strong>
+                    <small>{{ item.saved ? 'Asistencia' : 'Sin registrar' }}</small>
+                  </div>
+                  <button type="button" @click="openHistoryLesson(item.lesson)">
+                    {{ item.saved ? 'Revisar clase' : 'Registrar' }}
+                  </button>
+                </article>
+              </div>
+            </section>
           </section>
-
         </template>
       </template>
     </template>
 
-    <!-- =========================================================
-         MENSAJE DE ÉXITO
-    ========================================================== -->
     <Transition name="message">
       <div
         v-if="successMessage"
@@ -739,10 +523,7 @@
         role="status"
         aria-live="polite"
       >
-        <span>
-          ✓
-        </span>
-
+        <span aria-hidden="true">✓</span>
         {{ successMessage }}
       </div>
     </Transition>
@@ -752,6 +533,7 @@
 <script setup>
 import {
   computed,
+  onBeforeUnmount,
   onMounted,
   ref
 } from 'vue'
@@ -779,6 +561,8 @@ const lessonAttendance = ref([])
 const draftRows = ref([])
 
 const selectedLessonId = ref(null)
+const isLessonMenuOpen = ref(false)
+const lessonDropdownRef = ref(null)
 
 const isLoading = ref(true)
 const isLoadingAttendance = ref(false)
@@ -789,26 +573,12 @@ const successMessage = ref('')
 const errorMessage = ref('')
 
 /* =========================================================
-   NAVEGACIÓN CONTEXTUAL · V10
+   HISTORIAL DESPLEGABLE
 ========================================================= */
-const activeAttendanceTab = ref('resumen')
 const isLoadingHistory = ref(false)
 const historyLoaded = ref(false)
 const attendanceHistory = ref([])
-
-const isAttendanceTab = tab =>
-  activeAttendanceTab.value === tab
-
-const setAttendanceTab = async tab => {
-  activeAttendanceTab.value = tab
-
-  if (
-    tab === 'historial' &&
-    !historyLoaded.value
-  ) {
-    await loadAttendanceHistory()
-  }
-}
+const historyExpanded = ref(false)
 
 const loadAttendanceHistory = async () => {
   if (
@@ -888,6 +658,22 @@ const loadAttendanceHistory = async () => {
   } finally {
     isLoadingHistory.value = false
   }
+}
+
+const toggleHistory = async () => {
+  historyExpanded.value = !historyExpanded.value
+
+  if (historyExpanded.value && !historyLoaded.value) {
+    await loadAttendanceHistory()
+  }
+}
+
+const openHistoryLesson = async lesson => {
+  if (!lesson?.id) return
+
+  historyExpanded.value = false
+  selectedLessonId.value = lesson.id
+  await changeLesson()
 }
 
 const savedLessonsCount =
@@ -1074,6 +860,15 @@ const selectedLessonNumber =
     )
   )
 
+const currentLessonIndex =
+  computed(() =>
+    lessons.value.findIndex(
+      lesson =>
+        Number(lesson.id) ===
+        Number(selectedLessonId.value)
+    )
+  )
+
 const formattedSelectedLessonNumber =
   computed(() =>
     String(
@@ -1100,10 +895,7 @@ const lessonIsSaved =
 ========================================================= */
 
 const canEdit =
-  computed(() =>
-    !lessonIsSaved.value ||
-    isEditing.value
-  )
+  computed(() => isEditing.value)
 
 /* =========================================================
    CARGA INICIAL
@@ -1239,11 +1031,69 @@ const loadDraft = () => {
 ========================================================= */
 
 const changeLesson = async () => {
+  isLessonMenuOpen.value = false
   isEditing.value = false
   successMessage.value = ''
   errorMessage.value = ''
 
   await loadAttendance()
+}
+
+const openLessonMenu = () => {
+  if (isLoadingAttendance.value || isSaving.value || isEditing.value) return
+  isLessonMenuOpen.value = true
+}
+
+const closeLessonMenu = () => {
+  isLessonMenuOpen.value = false
+}
+
+const toggleLessonMenu = () => {
+  if (isLessonMenuOpen.value) {
+    closeLessonMenu()
+    return
+  }
+
+  openLessonMenu()
+}
+
+const selectLesson = async lesson => {
+  if (!lesson) return
+
+  selectedLessonId.value = lesson.id
+  closeLessonMenu()
+  await changeLesson()
+}
+
+const handleLessonMenuOutsidePointer = event => {
+  if (!lessonDropdownRef.value?.contains(event.target)) {
+    closeLessonMenu()
+  }
+}
+
+const navigateLesson = async step => {
+  if (
+    isLoadingAttendance.value ||
+    isSaving.value ||
+    !lessons.value.length
+  ) {
+    return
+  }
+
+  const nextIndex =
+    currentLessonIndex.value + step
+
+  if (
+    nextIndex < 0 ||
+    nextIndex >= lessons.value.length
+  ) {
+    return
+  }
+
+  selectedLessonId.value =
+    lessons.value[nextIndex].id
+
+  await changeLesson()
 }
 
 /* =========================================================
@@ -1390,8 +1240,9 @@ const saveAttendance = async () => {
 
     historyLoaded.value = false
     attendanceHistory.value = []
+    historyExpanded.value = false
 
-successMessage.value =
+    successMessage.value =
       'Asistencia guardada correctamente.'
 
     window.setTimeout(() => {
@@ -1534,6 +1385,20 @@ const formattedLastUpdate =
    INICIALES
 ========================================================= */
 
+const getVoiceClass = voice => {
+  const normalized = String(voice || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+
+  if (normalized.includes('sopr')) return 'soprano'
+  if (normalized.includes('alto')) return 'alto'
+  if (normalized.includes('tenor')) return 'tenor'
+  if (normalized.includes('bajo') || normalized.includes('bass')) return 'bajo'
+  return 'unclassified'
+}
+
 const getInitials = name => {
   if (!name) {
     return '?'
@@ -1555,216 +1420,164 @@ const getInitials = name => {
    INICIO
 ========================================================= */
 
-onMounted(
-  loadInitialData
-)
+onMounted(() => {
+  document.addEventListener('pointerdown', handleLessonMenuOutsidePointer)
+  loadInitialData()
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleLessonMenuOutsidePointer)
+})
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/abstracts/variables' as variables;
-
-/* =========================================================
-   PAGE
-========================================================= */
-
 .attendance {
-  width: 100%;
-  max-width: 1200px;
+  --attendance-ink: #2b2025;
+  --attendance-muted: #776b70;
+  --attendance-line: #e8dfe2;
+  --attendance-surface: #ffffff;
+  --attendance-canvas: #fbf8f9;
+  --attendance-wine: #7a2948;
+  --attendance-wine-dark: #602039;
+  --attendance-wine-soft: #f7edf1;
+  --attendance-green: #26734e;
+  --attendance-green-soft: #eaf6ef;
+  --attendance-red: #a63f4e;
+  --attendance-red-soft: #fbefef;
+  --attendance-amber: #94651c;
+  --attendance-amber-soft: #fff6e6;
 
-  margin: 0 auto;
-  padding-bottom:
-    variables.$spacing-4xl;
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  padding: 0 0 2rem;
+  color: var(--attendance-ink);
 }
 
-/* =========================================================
-   HEADER
-========================================================= */
+.attendance,
+.attendance * {
+  box-sizing: border-box;
+}
+
+.attendance button,
+.attendance input,
+.attendance select {
+  font: inherit;
+}
+
+.attendance button {
+  -webkit-tap-highlight-color: transparent;
+}
 
 .attendance__header {
-  display: flex;
-
-  align-items: end;
-  justify-content: space-between;
-
-  margin-bottom:
-    variables.$spacing-2xl;
+  margin: 0 0 1.35rem;
 }
 
 .attendance__eyebrow {
-  margin: 0 0
-    variables.$spacing-sm;
-
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.14em;
-
-  text-transform:
-    uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.45rem;
+  color: var(--attendance-wine);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
 .attendance__header h1 {
   margin: 0;
-
-  font-size:
-    clamp(
-      3rem,
-      6vw,
-      5.2rem
-    );
-
-  line-height:
-    0.98;
+  color: var(--attendance-ink);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 760;
+  letter-spacing: -0.055em;
+  line-height: 1.05;
 }
 
 .attendance__description {
-  max-width: 620px;
-
-  margin:
-    variables.$spacing-lg
-    0
-    0;
-
-  color:
-    variables.$color-text-secondary;
-
-  font-size:
-    variables.$font-size-base;
-
-  line-height:
-    1.7;
+  max-width: 38rem;
+  margin: 0.65rem 0 0;
+  color: var(--attendance-muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
 }
 
-/* =========================================================
-   SELECTOR
-========================================================= */
-
+/* Selector de clase */
 .attendance__lesson-selector {
   display: grid;
-
-  gap:
-    variables.$spacing-xl;
-
+  grid-template-columns: minmax(260px, 1.1fr) minmax(220px, 0.9fr);
+  gap: 1.25rem;
   align-items: end;
-
-  margin-bottom:
-    variables.$spacing-lg;
-
-  padding:
-    variables.$spacing-xl;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 16px;
+  background: var(--attendance-surface);
+  box-shadow: 0 5px 20px rgb(58 29 41 / 3%);
 }
 
 .attendance__lesson-selector-main {
   display: grid;
-
-  gap:
-    variables.$spacing-sm;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .attendance__lesson-selector label {
-  color:
-    variables.$color-text-primary;
+  color: var(--attendance-muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
 
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
+.attendance-select-control {
+  display: flex;
+  gap: 0.45rem;
+  min-width: 0;
+  align-items: stretch;
 }
 
 .attendance-select {
   position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .attendance-select::after {
   position: absolute;
-
   top: 50%;
-  right: 1rem;
-
+  right: 0.85rem;
+  color: #84757b;
   content: '⌄';
-
-  color:
-    variables.$color-text-muted;
-
+  font-size: 1.05rem;
   pointer-events: none;
-
-  transform:
-    translateY(-58%);
+  transform: translateY(-58%);
 }
 
 .attendance__lesson-selector select {
+  display: block;
   width: 100%;
-  min-height:
-    variables.$control-height-lg;
-
-  padding:
-    0
-    3rem
-    0
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-strong;
-
-  border-radius:
-    variables.$radius-md;
-
-  outline: 0;
-
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 2.5rem 0 0.85rem;
+  border: 1px solid #ded0d5;
+  border-radius: 10px;
+  outline: none;
   appearance: none;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    variables.$color-background;
-
-  font-size:
-    variables.$font-size-base;
-
+  background: #fff;
+  color: var(--attendance-ink);
+  font-size: 0.88rem;
+  font-weight: 620;
   cursor: pointer;
-
-  transition:
-    border-color
-      variables.$transition-fast,
-    box-shadow
-      variables.$transition-fast;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.attendance__lesson-selector select:hover {
-  border-color:
-    variables.$color-border-primary;
+.attendance__lesson-selector select:hover:not(:disabled) {
+  border-color: #bc9ba8;
 }
 
 .attendance__lesson-selector select:focus-visible {
-  border-color:
-    variables.$color-primary;
-
-  box-shadow:
-    0 0 0 3px
-    rgba(
-      variables.$color-primary,
-      0.1
-    );
+  border-color: var(--attendance-wine);
+  box-shadow: 0 0 0 3px rgb(122 41 72 / 12%);
 }
 
 .attendance__lesson-selector select:disabled {
@@ -1772,144 +1585,267 @@ onMounted(
   opacity: 0.65;
 }
 
+.attendance-select-step {
+  display: grid;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--attendance-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--attendance-wine);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.attendance-select-step span {
+  position: relative;
+  top: -1px;
+  font-family: Arial, sans-serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.attendance-select-step:hover:not(:disabled) {
+  border-color: #c9a8b5;
+  background: var(--attendance-wine-soft);
+}
+
+.attendance-select-step:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.attendance-select-step:disabled {
+  color: #b6a8ad;
+  background: #faf8f9;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .attendance__lesson-info {
   min-width: 0;
+  align-self: center;
+  padding-left: 1rem;
+  border-left: 1px solid var(--attendance-line);
 }
 
 .attendance__lesson-info > span {
   display: block;
-
-  margin-bottom:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.08em;
-
-  text-transform:
-    uppercase;
+  margin-bottom: 0.22rem;
+  color: var(--attendance-wine);
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 .attendance__lesson-info strong {
   display: block;
-
   overflow: hidden;
-
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    variables.$font-size-md;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
+  color: var(--attendance-ink);
+  font-size: 0.98rem;
+  font-weight: 740;
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .attendance__lesson-info small {
   display: block;
-
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
+  margin-top: 0.22rem;
+  color: var(--attendance-muted);
+  font-size: 0.78rem;
 }
 
-@media (min-width: 850px) {
-  .attendance__lesson-selector {
-    grid-template-columns:
-      minmax(300px, 1fr)
-      minmax(220px, 0.65fr);
-  }
-
-  .attendance__lesson-info {
-    text-align: right;
-  }
+/* Carga y mensajes */
+.attendance-state,
+.attendance-inline-loading {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 1.25rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 14px;
+  background: var(--attendance-surface);
+  color: var(--attendance-ink);
 }
 
-/* =========================================================
-   STATUS
-========================================================= */
+.attendance-state {
+  margin: 0 0 1rem;
+}
+
+.attendance-state--loading {
+  min-height: 150px;
+  justify-content: center;
+}
+
+.attendance-state--compact {
+  padding: 1rem;
+}
+
+.attendance-state strong,
+.attendance-inline-loading strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.attendance-state p {
+  margin: 0.3rem 0 0;
+  color: var(--attendance-muted);
+  font-size: 0.83rem;
+  line-height: 1.5;
+}
+
+.attendance-state__symbol {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--attendance-wine-soft);
+  color: var(--attendance-wine);
+  font-size: 1.2rem;
+}
+
+.attendance-inline-loading {
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: var(--attendance-muted);
+  font-size: 0.86rem;
+}
+
+.attendance-spinner {
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  border: 3px solid #eadde2;
+  border-top-color: var(--attendance-wine);
+  border-radius: 50%;
+  animation: attendance-spin 700ms linear infinite;
+}
+
+.attendance-spinner--small {
+  width: 19px;
+  height: 19px;
+  border-width: 2px;
+}
+
+.attendance-spinner--button {
+  width: 15px;
+  height: 15px;
+  border-width: 2px;
+  border-color: rgb(255 255 255 / 40%);
+  border-top-color: #fff;
+}
+
+@keyframes attendance-spin {
+  to { transform: rotate(360deg); }
+}
+
+.attendance-alert {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #efd0d5;
+  border-radius: 12px;
+  background: var(--attendance-red-soft);
+  color: #71303a;
+}
+
+.attendance-alert__icon {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #f2d5d9;
+  font-weight: 800;
+}
+
+.attendance-alert > div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.attendance-alert strong {
+  font-size: 0.86rem;
+}
+
+.attendance-alert p {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.attendance-alert > button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+/* Resumen de la clase */
+.attendance-panel {
+  min-width: 0;
+}
+
+.attendance-panel--summary {
+  animation: attendance-enter 220ms ease both;
+}
 
 .attendance-status {
   display: flex;
-
-  gap:
-    variables.$spacing-md;
-
+  gap: 0.8rem;
   align-items: center;
+  margin-bottom: 0.9rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 13px;
+  background: #fff;
+}
 
-  margin-bottom:
-    variables.$spacing-xl;
+.attendance-status--saved {
+  border-color: #d4e8da;
+  background: #f7fcf8;
+}
 
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
+.attendance-status--pending {
+  border-color: #eadde2;
+  background: #fffafb;
 }
 
 .attendance-status__icon {
   display: grid;
-
-  width: 44px;
-  height: 44px;
-
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
-
   place-items: center;
-
-  border-radius: 50%;
-
-  font-size:
-    variables.$font-size-md;
-
-  font-weight:
-    variables.$font-weight-bold;
+  border-radius: 11px;
+  background: var(--attendance-green-soft);
+  color: var(--attendance-green);
+  font-size: 1rem;
+  font-weight: 850;
 }
 
-.attendance-status--saved
-.attendance-status__icon {
-  color:
-    variables.$color-success;
-
-  background:
-    variables.$color-success-soft;
-}
-
-.attendance-status--pending
-.attendance-status__icon {
-  color:
-    variables.$color-warning;
-
-  background:
-    variables.$color-warning-soft;
+.attendance-status--pending .attendance-status__icon {
+  background: var(--attendance-amber-soft);
+  color: var(--attendance-amber);
 }
 
 .attendance-status__text {
+  flex: 1 1 auto;
   min-width: 0;
-  flex: 1;
 }
 
 .attendance-status__text strong,
@@ -1918,94 +1854,49 @@ onMounted(
 }
 
 .attendance-status__text strong {
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    variables.$font-size-base;
+  color: var(--attendance-ink);
+  font-size: 0.88rem;
+  font-weight: 760;
 }
 
 .attendance-status__text span {
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
+  margin-top: 0.2rem;
+  color: var(--attendance-muted);
+  font-size: 0.77rem;
+  line-height: 1.45;
 }
 
 .attendance-status__edit {
-  min-height:
-    variables.$control-height-md;
-
-  padding:
-    0
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-strong;
-
-  border-radius:
-    variables.$radius-md;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    transparent;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
+  min-height: 36px;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #dec4cf;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--attendance-wine);
+  font-size: 0.8rem;
+  font-weight: 750;
   cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .attendance-status__edit:hover {
-  border-color:
-    variables.$color-primary;
+  border-color: var(--attendance-wine);
+  background: var(--attendance-wine-soft);
 }
-
-/* =========================================================
-   SUMMARY
-========================================================= */
 
 .attendance__summary {
   display: grid;
-
-  gap:
-    variables.$spacing-md;
-
-  grid-template-columns:
-    repeat(
-      5,
-      minmax(0, 1fr)
-    );
-
-  margin-bottom:
-    variables.$spacing-lg;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
 }
 
 .attendance__summary article {
   min-width: 0;
-
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-soft;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 13px;
+  background: #fff;
 }
 
 .attendance__summary span,
@@ -2014,379 +1905,206 @@ onMounted(
 }
 
 .attendance__summary span {
-  margin-bottom:
-    variables.$spacing-sm;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
+  min-height: 1.2rem;
+  margin-bottom: 0.48rem;
+  color: var(--attendance-muted);
+  font-size: 0.75rem;
+  font-weight: 620;
+  line-height: 1.35;
 }
 
 .attendance__summary strong {
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    clamp(
-      1.5rem,
-      3vw,
-      2.15rem
-    );
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
+  color: var(--attendance-ink);
+  font-size: clamp(1.55rem, 2.7vw, 2rem);
+  font-weight: 780;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
 }
 
-.attendance__summary
-.summary-card--primary {
-  border-color:
-    variables.$color-border-primary;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(
-        variables.$color-primary,
-        0.07
-      ),
-      variables.$color-surface
-    );
+.attendance__summary .summary-card--primary {
+  border-color: #e7cfd8;
+  background: linear-gradient(145deg, #fbf2f5, #fff 90%);
 }
 
-.attendance__summary
-.summary-card--primary strong {
-  color:
-    variables.$color-primary;
+.attendance__summary .summary-card--primary span,
+.attendance__summary .summary-card--primary strong {
+  color: var(--attendance-wine);
 }
-
-/* =========================================================
-   PROGRESS
-========================================================= */
 
 .attendance-progress {
   overflow: hidden;
-
-  height: 5px;
-
-  margin-bottom:
-    variables.$spacing-3xl;
-
-  border-radius:
-    variables.$radius-pill;
-
-  background:
-    variables.$color-border;
+  height: 6px;
+  margin-bottom: 1.2rem;
+  border-radius: 999px;
+  background: #eee6e9;
 }
 
 .attendance-progress__bar {
   height: 100%;
-
   border-radius: inherit;
-
-  background:
-    variables.$color-success;
-
-  transition:
-    width
-      variables.$transition-normal;
+  background: linear-gradient(90deg, #7a2948, #bd7b94);
+  transition: width 220ms ease;
 }
 
-/* =========================================================
-   TOOLBAR
-========================================================= */
+/* Lista de estudiantes */
+.attendance__content {
+  min-width: 0;
+}
 
 .attendance__toolbar {
   display: flex;
-
-  gap:
-    variables.$spacing-xl;
-
+  gap: 1rem;
   align-items: center;
   justify-content: space-between;
-
-  margin-bottom:
-    variables.$spacing-xl;
+  margin: 0 0 0.85rem;
 }
 
 .attendance__title {
   display: flex;
-
+  gap: 0.8rem;
   min-width: 0;
-
-  gap:
-    variables.$spacing-md;
-
   align-items: center;
 }
 
 .attendance__title > span {
   display: grid;
-
-  width: 50px;
-  height: 50px;
-
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
-
   place-items: center;
-
-  border:
-    1px solid
-    variables.$color-border-primary;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.04
-    );
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  font-variant-numeric:
-    tabular-nums;
+  border: 1px solid #e8d2db;
+  border-radius: 12px;
+  background: var(--attendance-wine-soft);
+  color: var(--attendance-wine);
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .attendance__title p {
-  margin: 0 0
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.08em;
-
-  text-transform:
-    uppercase;
+  margin: 0 0 0.15rem;
+  color: var(--attendance-muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.attendance__title h2 {
+.attendance__title h2,
+.attendance-history__header h2 {
   margin: 0;
-
-  font-family:
-    variables.$font-family-primary;
-
-  font-size:
-    variables.$font-size-2xl;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    -0.03em;
+  color: var(--attendance-ink);
+  font-size: 1.45rem;
+  font-weight: 770;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
 }
-
-/* =========================================================
-   QUICK ACTIONS
-========================================================= */
 
 .attendance__quick-actions {
   display: grid;
-
-  gap:
-    variables.$spacing-sm;
-
   justify-items: end;
+  gap: 0.35rem;
 }
 
 .attendance__quick-actions > span {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-medium;
+  color: var(--attendance-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .attendance__quick-actions > div {
   display: flex;
-
-  gap:
-    variables.$spacing-sm;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .quick-action {
-  min-height:
-    variables.$control-height-md;
-
-  padding:
-    0
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-md;
-
-  color:
-    variables.$color-text-secondary;
-
-  background:
-    variables.$color-surface;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--attendance-muted);
+  font-size: 0.76rem;
+  font-weight: 720;
   cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .quick-action:hover {
-  border-color:
-    variables.$color-border-strong;
-
-  color:
-    variables.$color-text-primary;
+  border-color: #cdb2bd;
+  color: var(--attendance-wine);
 }
 
 .quick-action--present {
-  color:
-    variables.$color-success;
-
-  border-color:
-    rgba(
-      variables.$color-success,
-      0.25
-    );
-
-  background:
-    variables.$color-success-soft;
+  border-color: #cbe5d3;
+  background: var(--attendance-green-soft);
+  color: var(--attendance-green);
 }
 
-/* =========================================================
-   CARDS
-========================================================= */
+.quick-action--present:hover {
+  border-color: #9acbad;
+  background: #def1e5;
+  color: #205d40;
+}
 
 .attendance-list {
   display: grid;
-
-  gap:
-    variables.$spacing-md;
+  gap: 0.55rem;
 }
 
 .attendance-card {
   display: grid;
-
-  gap:
-    variables.$spacing-lg;
-
+  grid-template-columns: minmax(180px, 0.82fr) minmax(320px, 1.3fr) minmax(150px, 0.7fr);
+  gap: 0.85rem;
   align-items: center;
-
-  grid-template-columns:
-    minmax(190px, 0.8fr)
-    minmax(390px, 1.3fr)
-    minmax(170px, 0.75fr);
-
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border-soft;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
-
-  transition:
-    border-color
-      variables.$transition-fast,
-    background-color
-      variables.$transition-fast;
+  min-width: 0;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 13px;
+  background: #fff;
+  transition: border-color 150ms ease, background 150ms ease;
 }
 
 .attendance-card--present {
-  border-color:
-    rgba(
-      variables.$color-success,
-      0.18
-    );
+  border-color: #d7e9dd;
+  background: linear-gradient(90deg, #fbfefc, #fff 40%);
 }
 
 .attendance-card--absent {
-  border-color:
-    rgba(
-      variables.$color-danger,
-      0.18
-    );
+  border-color: #efdadd;
+  background: linear-gradient(90deg, #fffafa, #fff 40%);
 }
 
 .attendance-card--justified {
-  border-color:
-    rgba(
-      variables.$color-warning,
-      0.18
-    );
+  border-color: #f0e3c8;
+  background: linear-gradient(90deg, #fffdf8, #fff 40%);
 }
 
 .attendance-card__identity {
   display: flex;
-
+  gap: 0.65rem;
   min-width: 0;
-
-  gap:
-    variables.$spacing-md;
-
   align-items: center;
 }
 
 .attendance-card__avatar {
   display: grid;
-
-  width: 48px;
-  height: 48px;
-
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
-
   place-items: center;
-
-  border:
-    1px solid
-    variables.$color-border-primary;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.07
-    );
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
+  border: 1px solid #e8d2db;
+  border-radius: 12px;
+  background: var(--attendance-wine-soft);
+  color: var(--attendance-wine);
+  font-size: 0.75rem;
+  font-weight: 800;
 }
 
 .attendance-card__student {
@@ -2395,1371 +2113,259 @@ onMounted(
 
 .attendance-card__student span {
   display: block;
-
-  margin-bottom:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-primary;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    0.06em;
-
-  text-transform:
-    uppercase;
+  overflow: hidden;
+  margin-bottom: 0.12rem;
+  color: var(--attendance-wine);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .attendance-card__student h3 {
   overflow: hidden;
-
   margin: 0;
-
-  font-family:
-    variables.$font-family-primary;
-
-  font-size:
-    variables.$font-size-base;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
-  letter-spacing:
-    -0.015em;
-
+  color: var(--attendance-ink);
+  font-size: 0.86rem;
+  font-weight: 750;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* =========================================================
-   STATUS BUTTONS
-========================================================= */
-
 .attendance-card__statuses {
   display: flex;
-
-  gap:
-    variables.$spacing-sm;
-
+  gap: 0.32rem;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .attendance-card__statuses button {
   display: inline-flex;
-
-  min-height: 42px;
-
-  gap:
-    variables.$spacing-xs;
-
+  gap: 0.28rem;
   align-items: center;
   justify-content: center;
-
-  padding:
-    0
-    variables.$spacing-md;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-pill;
-
-  color:
-    variables.$color-text-secondary;
-
-  background:
-    transparent;
-
-  font-size:
-    0.82rem;
-
-  font-weight:
-    variables.$font-weight-medium;
-
+  min-height: 35px;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid #e7e0e3;
+  border-radius: 9px;
+  background: #fff;
+  color: #756870;
+  font-size: 0.72rem;
+  font-weight: 720;
+  white-space: nowrap;
   cursor: pointer;
-
-  transition:
-    color
-      variables.$transition-fast,
-    border-color
-      variables.$transition-fast,
-    background-color
-      variables.$transition-fast,
-    transform
-      variables.$transition-fast;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
-.attendance-card__statuses
-button:hover:not(:disabled) {
-  color:
-    variables.$color-text-primary;
-
-  border-color:
-    variables.$color-border-strong;
-
-  transform:
-    translateY(-1px);
+.attendance-card__statuses button:hover:not(:disabled) {
+  border-color: #cdb5bf;
+  color: var(--attendance-ink);
 }
 
-.attendance-card__statuses
-button:disabled {
+.attendance-card__statuses button:disabled {
   cursor: default;
-  opacity: 0.55;
+  opacity: 0.75;
 }
 
 .status-button--present.active {
-  color:
-    variables.$color-success;
-
-  border-color:
-    rgba(
-      variables.$color-success,
-      0.32
-    );
-
-  background:
-    variables.$color-success-soft;
+  border-color: #b9ddc6;
+  background: var(--attendance-green-soft);
+  color: var(--attendance-green);
 }
 
 .status-button--absent.active {
-  color:
-    variables.$color-danger;
-
-  border-color:
-    rgba(
-      variables.$color-danger,
-      0.32
-    );
-
-  background:
-    variables.$color-danger-soft;
+  border-color: #e8c4ca;
+  background: var(--attendance-red-soft);
+  color: var(--attendance-red);
 }
 
 .status-button--justified.active {
-  color:
-    variables.$color-warning;
-
-  border-color:
-    rgba(
-      variables.$color-warning,
-      0.32
-    );
-
-  background:
-    variables.$color-warning-soft;
+  border-color: #ead6ad;
+  background: var(--attendance-amber-soft);
+  color: var(--attendance-amber);
 }
-
-/* =========================================================
-   NOTE
-========================================================= */
 
 .attendance-card__note {
   display: grid;
-
-  gap:
-    variables.$spacing-xs;
+  gap: 0.3rem;
+  min-width: 0;
 }
 
 .attendance-card__note label {
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-xs;
-
-  font-weight:
-    variables.$font-weight-medium;
+  color: var(--attendance-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .attendance-card__note input {
   width: 100%;
-  min-height: 42px;
-
-  padding:
-    0
-    variables.$spacing-md;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-md;
-
+  min-width: 0;
+  min-height: 35px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #e7dfe2;
+  border-radius: 8px;
   outline: 0;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    variables.$color-background;
-
-  font-size:
-    variables.$font-size-sm;
-
-  transition:
-    border-color
-      variables.$transition-fast,
-    box-shadow
-      variables.$transition-fast;
+  background: #fff;
+  color: var(--attendance-ink);
+  font-size: 0.76rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .attendance-card__note input::placeholder {
-  color:
-    variables.$color-text-disabled;
+  color: #aa9da2;
 }
 
 .attendance-card__note input:focus-visible {
-  border-color:
-    variables.$color-primary;
-
-  box-shadow:
-    0 0 0 3px
-    rgba(
-      variables.$color-primary,
-      0.09
-    );
+  border-color: var(--attendance-wine);
+  box-shadow: 0 0 0 3px rgb(122 41 72 / 10%);
 }
 
 .attendance-card__note input:disabled {
-  cursor: default;
-  opacity: 0.6;
+  background: #faf8f9;
+  color: #82767b;
 }
 
-/* =========================================================
-   SAVE AREA
-========================================================= */
-
+/* Barra para guardar: queda a mano al recorrer muchos alumnos */
 .attendance-actions {
+  position: sticky;
+  z-index: 4;
+  bottom: 0.7rem;
   display: flex;
-
-  gap:
-    variables.$spacing-xl;
-
+  gap: 1rem;
   align-items: center;
   justify-content: space-between;
-
-  margin-top:
-    variables.$spacing-2xl;
-
-  padding:
-    variables.$spacing-xl;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface-elevated;
+  margin-top: 0.9rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #e4d4db;
+  border-radius: 14px;
+  background: rgb(255 252 253 / 94%);
+  box-shadow: 0 8px 28px rgb(44 21 31 / 10%);
+  backdrop-filter: blur(12px);
 }
 
-.attendance-actions__info strong,
-.attendance-actions__info span {
-  display: block;
+.attendance-actions__info {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .attendance-actions__info strong {
-  color:
-    variables.$color-text-primary;
-
-  font-size:
-    variables.$font-size-base;
+  color: var(--attendance-ink);
+  font-size: 0.82rem;
+  font-weight: 780;
 }
 
 .attendance-actions__info span {
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
+  color: var(--attendance-muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
 }
 
 .attendance-actions__buttons {
   display: flex;
-
-  gap:
-    variables.$spacing-md;
+  gap: 0.5rem;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .attendance-actions__cancel,
 .attendance-actions__save {
-  min-height:
-    variables.$control-height-lg;
-
-  padding:
-    0
-    variables.$spacing-xl;
-
-  border-radius:
-    variables.$radius-md;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-semibold;
-
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 760;
   cursor: pointer;
-
-  transition:
-    transform
-      variables.$transition-fast,
-    opacity
-      variables.$transition-fast;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
 .attendance-actions__cancel {
-  border:
-    1px solid
-    variables.$color-border;
+  border-color: var(--attendance-line);
+  background: #fff;
+  color: var(--attendance-muted);
+}
 
-  color:
-    variables.$color-text-primary;
-
-  background:
-    transparent;
+.attendance-actions__cancel:hover:not(:disabled) {
+  border-color: #cbb8c0;
+  color: var(--attendance-ink);
 }
 
 .attendance-actions__save {
-  display: inline-flex;
-
-  gap:
-    variables.$spacing-sm;
-
-  align-items: center;
-  justify-content: center;
-
-  border:
-    1px solid
-    variables.$color-primary;
-
-  color:
-    variables.$color-black;
-
-  background:
-    variables.$color-primary;
+  border-color: var(--attendance-wine);
+  background: var(--attendance-wine);
+  color: #fff;
+  box-shadow: 0 3px 8px rgb(122 41 72 / 15%);
 }
 
-.attendance-actions__save:hover:not(:disabled),
-.attendance-actions__cancel:hover:not(:disabled) {
-  transform:
-    translateY(-1px);
+.attendance-actions__save:hover:not(:disabled) {
+  border-color: var(--attendance-wine-dark);
+  background: var(--attendance-wine-dark);
+  transform: translateY(-1px);
 }
 
 .attendance-actions__save:disabled,
 .attendance-actions__cancel:disabled {
   cursor: not-allowed;
-
-  opacity: 0.5;
-}
-
-/* =========================================================
-   ALERTS
-========================================================= */
-
-.attendance-alert {
-  position: relative;
-
-  display: flex;
-
-  gap:
-    variables.$spacing-md;
-
-  align-items: flex-start;
-
-  margin-bottom:
-    variables.$spacing-lg;
-
-  padding:
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
-}
-
-.attendance-alert--error {
-  border-color:
-    rgba(
-      variables.$color-danger,
-      0.28
-    );
-
-  background:
-    variables.$color-danger-soft;
-}
-
-.attendance-alert__icon {
-  display: grid;
-
-  width: 34px;
-  height: 34px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-danger;
-
-  background:
-    rgba(
-      variables.$color-danger,
-      0.1
-    );
-
-  font-weight:
-    variables.$font-weight-bold;
-}
-
-.attendance-alert strong {
-  display: block;
-
-  color:
-    variables.$color-text-primary;
-}
-
-.attendance-alert p {
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-secondary;
-
-  font-size:
-    variables.$font-size-sm;
-}
-
-.attendance-alert > button {
-  margin-left: auto;
-
-  color:
-    variables.$color-text-muted;
-
-  background: transparent;
-
-  font-size:
-    1.4rem;
-
-  cursor: pointer;
-}
-
-/* =========================================================
-   EMPTY / LOADING
-========================================================= */
-
-.attendance-state {
-  display: flex;
-
-  gap:
-    variables.$spacing-lg;
-
-  align-items: center;
-
-  padding:
-    variables.$spacing-2xl;
-
-  border:
-    1px solid
-    variables.$color-border;
-
-  border-radius:
-    variables.$radius-lg;
-
-  background:
-    variables.$color-surface;
-}
-
-.attendance-state--compact {
-  padding:
-    variables.$spacing-xl;
-}
-
-.attendance-state__symbol {
-  display: grid;
-
-  width: 48px;
-  height: 48px;
-
-  flex: 0 0 auto;
-
-  place-items: center;
-
-  border-radius: 50%;
-
-  color:
-    variables.$color-primary;
-
-  background:
-    rgba(
-      variables.$color-primary,
-      0.08
-    );
-}
-
-.attendance-state strong {
-  color:
-    variables.$color-text-primary;
-}
-
-.attendance-state p {
-  margin-top:
-    variables.$spacing-xs;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
-}
-
-.attendance-inline-loading {
-  display: flex;
-
-  gap:
-    variables.$spacing-sm;
-
-  align-items: center;
-
-  margin-bottom:
-    variables.$spacing-lg;
-
-  color:
-    variables.$color-text-muted;
-
-  font-size:
-    variables.$font-size-sm;
-}
-
-/* =========================================================
-   SPINNER
-========================================================= */
-
-.attendance-spinner {
-  display: inline-block;
-
-  width: 22px;
-  height: 22px;
-
-  flex: 0 0 auto;
-
-  border:
-    2px solid
-    variables.$color-border-strong;
-
-  border-top-color:
-    variables.$color-primary;
-
-  border-radius: 50%;
-
-  animation:
-    attendance-spin
-    0.8s
-    linear
-    infinite;
-}
-
-.attendance-spinner--small {
-  width: 16px;
-  height: 16px;
-}
-
-.attendance-spinner--button {
-  width: 15px;
-  height: 15px;
-
-  border-color:
-    rgba(
-      variables.$color-black,
-      0.25
-    );
-
-  border-top-color:
-    variables.$color-black;
-}
-
-@keyframes attendance-spin {
-  to {
-    transform:
-      rotate(360deg);
-  }
-}
-
-/* =========================================================
-   SUCCESS TOAST
-========================================================= */
-
-.attendance-message {
-  position: fixed;
-
-  right: 2rem;
-  bottom: 2rem;
-
-  z-index: 500;
-
-  display: flex;
-
-  gap:
-    variables.$spacing-sm;
-
-  align-items: center;
-
-  padding:
-    variables.$spacing-md
-    variables.$spacing-lg;
-
-  border:
-    1px solid
-    rgba(
-      variables.$color-success,
-      0.3
-    );
-
-  border-radius:
-    variables.$radius-md;
-
-  color:
-    variables.$color-text-primary;
-
-  background:
-    variables.$color-surface-elevated;
-
-  box-shadow:
-    variables.$shadow-lg;
-
-  font-size:
-    variables.$font-size-sm;
-
-  font-weight:
-    variables.$font-weight-medium;
-}
-
-.attendance-message span {
-  color:
-    variables.$color-success;
-}
-
-.message-enter-active,
-.message-leave-active {
-  transition:
-    opacity
-      variables.$transition-fast,
-    transform
-      variables.$transition-fast;
-}
-
-.message-enter-from,
-.message-leave-to {
-  opacity: 0;
-
-  transform:
-    translateY(8px);
-}
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 1100px) {
-  .attendance__summary {
-    grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
-  }
-
-  .attendance-card {
-    grid-template-columns:
-      minmax(200px, 1fr)
-      minmax(0, 1.5fr);
-  }
-
-  .attendance-card__note {
-    grid-column:
-      1 / -1;
-  }
-}
-
-@media (max-width: 800px) {
-  .attendance__toolbar,
-  .attendance-actions,
-  .attendance-status {
-    align-items:
-      stretch;
-
-    flex-direction:
-      column;
-  }
-
-  .attendance__toolbar {
-    display: flex;
-  }
-
-  .attendance__quick-actions {
-    justify-items:
-      start;
-  }
-
-  .attendance-actions__buttons {
-    width: 100%;
-  }
-
-  .attendance-actions__buttons button {
-    flex: 1;
-  }
-}
-
-@media (max-width: 700px) {
-  .attendance {
-    padding-bottom:
-      variables.$spacing-3xl;
-  }
-
-  .attendance__header {
-    margin-bottom:
-      variables.$spacing-xl;
-  }
-
-  .attendance__header h1 {
-    font-size:
-      clamp(
-        2.9rem,
-        15vw,
-        4.4rem
-      );
-  }
-
-  .attendance__lesson-selector {
-    padding:
-      variables.$spacing-lg;
-  }
-
-  .attendance__summary {
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
-  }
-
-  .attendance__summary article {
-    padding:
-      variables.$spacing-md;
-  }
-
-  .attendance__summary
-  .summary-card--primary {
-    grid-column:
-      1 / -1;
-  }
-
-  .attendance-card {
-    grid-template-columns:
-      1fr;
-
-    padding:
-      variables.$spacing-lg;
-  }
-
-  .attendance-card__statuses {
-    display: grid;
-
-    grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
-  }
-
-  .attendance-card__statuses button {
-    width: 100%;
-
-    padding-inline:
-      variables.$spacing-sm;
-  }
-
-  .attendance-card__note {
-    grid-column:
-      auto;
-  }
-
-  .attendance-actions__buttons {
-    flex-direction:
-      column-reverse;
-  }
-
-  .attendance-message {
-    right:
-      variables.$spacing-md;
-
-    bottom:
-      variables.$spacing-md;
-
-    left:
-      variables.$spacing-md;
-  }
-}
-
-@media (max-width: 520px) {
-  .attendance__summary {
-    gap:
-      variables.$spacing-sm;
-  }
-
-  .attendance__quick-actions,
-  .attendance__quick-actions > div {
-    width: 100%;
-  }
-
-  .attendance__quick-actions > div {
-    display: grid;
-
-    grid-template-columns:
-      1fr 1fr;
-  }
-
-  .quick-action {
-    width: 100%;
-  }
-
-  .attendance-card__statuses {
-    grid-template-columns:
-      1fr;
-  }
-
-  .attendance-card__statuses button {
-    min-height:
-      variables.$control-height-md;
-
-    justify-content:
-      flex-start;
-
-    padding-inline:
-      variables.$spacing-lg;
-  }
-
-  .attendance__title > span {
-    width: 46px;
-    height: 46px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .attendance-spinner {
-    animation-duration:
-      1.5s;
-  }
-
-  .attendance-card__statuses button,
-  .attendance-actions__save,
-  .attendance-actions__cancel {
-    transition: none;
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-/* =========================================================
-   V5.1 · LIGHT LMS PATCH
-========================================================= */
-.attendance {
-  --amv-surface: #ffffff;
-  --amv-soft: #f8fafc;
-  --amv-ink: #172033;
-  --amv-muted: #667085;
-  --amv-border: #dbe3ee;
-  --amv-wine: #9f1d4a;
-  --amv-gold: #c99424;
-  --amv-gold-soft: #fff4d6;
-  --amv-green: #1f8a62;
-  --amv-green-soft: #eef9f4;
-  --amv-red: #b42318;
-  --amv-red-soft: #fff4f2;
-  color: var(--amv-ink);
-}
-
-.attendance__lesson-selector,
-.attendance-status,
-.attendance__summary article,
-.attendance-card,
-.attendance__toolbar,
-.attendance-actions,
-.attendance-state,
-.attendance-alert,
-.attendance-message {
-  background: var(--amv-surface) !important;
-  color: var(--amv-ink) !important;
-  border-color: var(--amv-border) !important;
-  box-shadow: 0 12px 30px rgba(23, 32, 51, 0.055) !important;
-}
-
-.attendance-select select,
-.attendance-select {
-  background: var(--amv-soft) !important;
-  color: var(--amv-ink) !important;
-  border-color: var(--amv-border) !important;
-}
-
-.attendance__lesson-selector label,
-.attendance__lesson-info small,
-.attendance-status__text span,
-.attendance__summary span,
-.attendance-card__identity small,
-.attendance-card__note label,
-.attendance-actions__info,
-.attendance-state p {
-  color: var(--amv-muted) !important;
-}
-
-.attendance__lesson-info strong,
-.attendance-status__text strong,
-.attendance-card__identity strong,
-.attendance__summary strong {
-  color: var(--amv-ink) !important;
-}
-
-.summary-card--primary {
-  background: linear-gradient(145deg, var(--amv-green-soft), #ffffff) !important;
-  border-color: #b8e2d1 !important;
-}
-
-.summary-card--primary strong { color: var(--amv-green) !important; }
-
-.attendance-status--saved {
-  background: var(--amv-green-soft) !important;
-  border-color: #b8e2d1 !important;
-}
-
-.attendance-status--pending {
-  background: #fffaf0 !important;
-  border-color: #f0d99b !important;
-}
-
-.attendance-status__icon {
-  background: #ffffff !important;
-  color: var(--amv-green) !important;
-  border: 1px solid #b8e2d1 !important;
-}
-
-.attendance-status__edit,
-.attendance-actions__cancel {
-  background: #ffffff !important;
-  color: #344054 !important;
-  border-color: var(--amv-border) !important;
-}
-
-.attendance-actions__save {
-  background: var(--amv-wine) !important;
-  border-color: var(--amv-wine) !important;
-  color: #ffffff !important;
-}
-
-.attendance-card--present { border-left: 4px solid var(--amv-green) !important; }
-.attendance-card--absent { border-left: 4px solid var(--amv-red) !important; }
-.attendance-card--justified { border-left: 4px solid var(--amv-gold) !important; }
-
-.status-button--present,
-.status-button--absent,
-.status-button--justified,
-.quick-action {
-  background: #ffffff !important;
-  color: #344054 !important;
-  border-color: var(--amv-border) !important;
-}
-
-.status-button--present.active,
-.quick-action--present.active {
-  background: var(--amv-green-soft) !important;
-  color: var(--amv-green) !important;
-  border-color: #9dd5bf !important;
-}
-
-.status-button--absent.active {
-  background: var(--amv-red-soft) !important;
-  color: var(--amv-red) !important;
-  border-color: #f1b7b2 !important;
-}
-
-.status-button--justified.active {
-  background: var(--amv-gold-soft) !important;
-  color: #8a6510 !important;
-  border-color: #e6c568 !important;
-}
-
-.attendance-card__avatar {
-  background: #eef3f8 !important;
-  color: #365f91 !important;
-}
-
-.attendance-card__note input,
-.attendance-card__note textarea {
-  background: var(--amv-soft) !important;
-  color: var(--amv-ink) !important;
-  border-color: var(--amv-border) !important;
-}
-
-
-/* =========================================================
-   AMV LMS UI SYSTEM · ACADEMIC EXPERIENCE v1.0
-   Sistema visual común para el SaaS
-========================================================= */
-.attendance {
-  --amv-canvas: #f5f7fb;
-  --amv-card: #ffffff;
-  --amv-ink: #172033;
-  --amv-body: #344359;
-  --amv-muted: #667085;
-  --amv-line: #dbe3ec;
-  --amv-wine: #9f1945;
-  --amv-wine-dark: #7f1237;
-  --amv-gold: #d9a91d;
-  --amv-gold-soft: #fff8e7;
-  --amv-green: #2d8a63;
-  --amv-red: #be4856;
-  --amv-shadow-sm: 0 8px 24px rgba(23, 32, 51, .055);
-  --amv-shadow-md: 0 18px 46px rgba(23, 32, 51, .085);
-  --amv-radius-sm: 12px;
-  --amv-radius-md: 18px;
-  --amv-radius-lg: 24px;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-.attendance :where(a, button, input, textarea, select, [role="button"]) {
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease, opacity .2s ease;
-}
-
-.attendance :where(a, button, input, textarea, select, [role="button"]):focus-visible {
-  outline: 3px solid rgba(159, 25, 69, .22) !important;
-  outline-offset: 3px;
-}
-
-.attendance :where(button, [role="button"], .button, .btn):not(:disabled):active {
-  transform: translateY(1px) scale(.99);
-}
-
-.attendance :where(input, textarea, select) {
-  font-size: max(16px, 1em);
-}
-
-.attendance :where(table tbody tr) {
-  transition: background-color .18s ease;
-}
-
-.attendance :where(table tbody tr):hover {
-  background-color: rgba(159, 25, 69, .025);
-}
-
-.attendance :where(.card, [class*="-card"], [class*="__card"]) {
-  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease;
-}
-
-.attendance :where(.card, [class*="-card"], [class*="__card"]):hover {
-  border-color: rgba(159, 25, 69, .16);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .attendance *, .attendance *::before, .attendance *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-}
-
-
-/* =========================================================
-   AMV LMS · FLUID MOTION & PREMIUM INTERACTION v2.0
-   Capa visual segura: no modifica lógica, datos ni estructura.
-========================================================= */
-.attendance {
-  animation: amvViewEnter .46s cubic-bezier(.2,.75,.25,1) both;
-}
-
-.attendance :where(
-  article,
-  [class$="__card"],
-  [class*="-card"],
-  [class*="_card"]
-) {
-  transition:
-    transform .24s cubic-bezier(.2,.75,.25,1),
-    box-shadow .24s ease,
-    border-color .24s ease,
-    background-color .24s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .attendance :where(
-    article,
-    [class$="__card"],
-    [class*="-card"],
-    [class*="_card"]
-  ):hover {
-    transform: translateY(-2px);
-  }
-
-  .attendance :where(
-    button,
-    .button,
-    .btn,
-    a[class*="button"],
-    a[class*="cta"]
-  ):not(:disabled):hover {
-    transform: translateY(-2px);
-    filter: saturate(1.04);
-  }
-
-  .attendance :where(img) {
-    transition: transform .55s cubic-bezier(.2,.75,.25,1), filter .35s ease;
-  }
-
-  .attendance :where(
-    [class*="cover"],
-    [class*="hero"],
-    [class*="visual"],
-    [class*="gallery"]
-  ):hover img {
-    transform: scale(1.018);
-  }
-}
-
-.attendance :where(
-  button,
-  .button,
-  .btn,
-  a[class*="button"],
-  a[class*="cta"]
-) {
-  will-change: transform;
-}
-
-.attendance :where(input, textarea, select):focus {
-  transform: translateY(-1px);
-}
-
-.attendance :where(
-  [class*="progress"] > *,
-  [class*="bar"] > *,
-  progress
-) {
-  transition: width .55s cubic-bezier(.2,.75,.25,1), transform .35s ease;
-}
-
-.attendance ::selection {
-  color: #ffffff;
-  background: #9f1945;
-}
-
-@keyframes amvViewEnter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .attendance,
-  .attendance *,
-  .attendance *::before,
-  .attendance *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-
-/* =========================================================
-   CONTEXT NAVIGATION · V10
-========================================================= */
-.attendance-context-nav {
-  position: sticky;
-  top: 14px;
-  z-index: 30;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-  margin: 0 0 26px;
-  padding: 7px;
-  border: 1px solid #dbe3ec;
-  border-radius: 18px;
-  background: rgba(255,255,255,.94);
-  box-shadow: 0 14px 36px rgba(20,32,51,.08);
-  backdrop-filter: blur(16px);
-}
-
-.attendance-context-nav button {
-  min-height: 58px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  border: 0;
-  border-radius: 13px;
-  padding: 10px 14px;
-  background: transparent;
-  color: #536176;
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
-  transition: .2s ease;
-}
-
-.attendance-context-nav button > span {
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  border-radius: 8px;
-  background: #f2f5f8;
-  color: #7a8798;
-  font-size: 10px;
-}
-
-.attendance-context-nav button > small {
-  padding: 3px 7px;
-  border-radius: 999px;
-  background: #f2f5f8;
-  color: #667085;
-  font-size: 11px;
-}
-
-.attendance-context-nav button:hover {
-  transform: translateY(-1px);
-  background: #faf7f8;
-  color: #9f1945;
-}
-
-.attendance-context-nav button.is-active {
-  background: #9f1945;
-  color: #fff;
-  box-shadow: 0 9px 22px rgba(159,25,69,.20);
-}
-
-.attendance-context-nav button.is-active > span,
-.attendance-context-nav button.is-active > small {
-  background: rgba(255,255,255,.16);
-  color: #fff;
-}
-
-.attendance-panel {
-  animation: attendancePanelIn .35s cubic-bezier(.2,.75,.25,1);
-}
-
-.attendance-overview {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.attendance-overview article {
-  padding: 22px;
-  border: 1px solid #dbe3ec;
-  border-radius: 18px;
-  background: #fff;
-}
-
-.attendance-overview span,
-.attendance-history__header > div:first-child > span {
-  color: #9f1945;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: .11em;
-}
-
-.attendance-overview strong {
-  display: block;
-  margin-top: 8px;
-  color: #172033;
-  font-size: 20px;
-}
-
-.attendance-overview p {
-  min-height: 44px;
-  color: #667085;
-  line-height: 1.55;
-}
-
-.attendance-overview button,
-.attendance-history-card > button {
-  border: 0;
-  background: transparent;
-  color: #9f1945;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 900;
-  cursor: pointer;
+  opacity: 0.55;
+  transform: none;
 }
 
+/* Historial */
 .attendance-history {
-  padding: clamp(22px,3vw,32px);
-  border: 1px solid #dbe3ec;
-  border-radius: 24px;
+  padding: 1rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 15px;
   background: #fff;
-  box-shadow: 0 16px 44px rgba(20,32,51,.07);
+  animation: attendance-enter 220ms ease both;
 }
 
 .attendance-history__header {
   display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid #e5eaf0;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0e7ea;
 }
 
-.attendance-history__header h2 {
-  margin: 6px 0;
-  color: #172033;
-  font-size: clamp(24px,3vw,34px);
+.attendance-history__header > div:first-child > span {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--attendance-wine);
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
 }
 
 .attendance-history__header p {
-  max-width: 650px;
-  margin: 0;
-  color: #667085;
-  line-height: 1.6;
+  max-width: 35rem;
+  margin: 0.4rem 0 0;
+  color: var(--attendance-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .attendance-history__metrics {
   display: flex;
-  gap: 10px;
+  gap: 0.55rem;
+  flex: 0 0 auto;
 }
 
 .attendance-history__metrics article {
-  min-width: 125px;
-  padding: 14px;
-  border: 1px solid #dbe3ec;
-  border-radius: 14px;
-  background: #f8fafc;
+  min-width: 112px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 10px;
+  background: var(--attendance-canvas);
 }
 
 .attendance-history__metrics small,
@@ -3768,399 +2374,1583 @@ button:disabled {
 }
 
 .attendance-history__metrics small {
-  color: #667085;
-  font-size: 11px;
+  margin-bottom: 0.25rem;
+  color: var(--attendance-muted);
+  font-size: 0.67rem;
+  line-height: 1.35;
 }
 
 .attendance-history__metrics strong {
-  margin-top: 5px;
-  color: #172033;
-  font-size: 22px;
+  color: var(--attendance-wine);
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .attendance-history__list {
   display: grid;
-  gap: 11px;
-  margin-top: 20px;
+  gap: 0.55rem;
 }
 
 .attendance-history-card {
   display: grid;
-  grid-template-columns: minmax(210px,1.1fr) minmax(310px,1.4fr) 90px 90px;
-  gap: 18px;
+  grid-template-columns: minmax(170px, 1.2fr) minmax(220px, 1.3fr) 75px auto;
+  gap: 0.85rem;
   align-items: center;
-  padding: 17px;
-  border: 1px solid #dbe3ec;
-  border-radius: 16px;
+  min-width: 0;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 11px;
   background: #fff;
 }
 
 .attendance-history-card.is-pending {
-  background: #fafbfc;
-  opacity: .82;
+  background: #fcfafb;
 }
 
-.attendance-history-card__lesson span,
-.attendance-history-card__lesson strong,
-.attendance-history-card__lesson small {
-  display: block;
+.attendance-history-card__lesson {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .attendance-history-card__lesson span {
-  color: #9f1945;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: .1em;
+  color: var(--attendance-wine);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
 }
 
 .attendance-history-card__lesson strong {
-  margin: 4px 0;
-  color: #172033;
+  overflow: hidden;
+  color: var(--attendance-ink);
+  font-size: 0.83rem;
+  font-weight: 730;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .attendance-history-card__lesson small {
-  color: #667085;
+  color: var(--attendance-muted);
+  font-size: 0.72rem;
 }
 
 .attendance-history-card__stats {
-  display: grid;
-  grid-template-columns: repeat(3,minmax(0,1fr));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+  align-items: center;
 }
 
 .attendance-history-card__stats span {
-  color: #667085;
-  font-size: 11px;
+  display: inline-flex;
+  gap: 0.28rem;
+  align-items: baseline;
+  color: var(--attendance-muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .attendance-history-card__stats b {
-  display: block;
-  margin-bottom: 3px;
-  color: #172033;
-  font-size: 18px;
+  color: var(--attendance-ink);
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .attendance-history-card__result {
+  display: grid;
+  gap: 0.08rem;
   text-align: center;
 }
 
-.attendance-history-card__result strong,
-.attendance-history-card__result small {
-  display: block;
-}
-
 .attendance-history-card__result strong {
-  color: #2d8a63;
-  font-size: 22px;
+  color: var(--attendance-wine);
+  font-size: 1.12rem;
+  font-weight: 820;
+  font-variant-numeric: tabular-nums;
 }
 
 .attendance-history-card__result small {
-  margin-top: 3px;
-  color: #667085;
-  font-size: 10px;
+  color: var(--attendance-muted);
+  font-size: 0.65rem;
 }
 
-@keyframes attendancePanelIn {
-  from { opacity: 0; transform: translateY(8px); }
+.attendance-history-card > button {
+  min-height: 35px;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #e2cbd4;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--attendance-wine);
+  font-size: 0.75rem;
+  font-weight: 750;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.attendance-history-card > button:hover {
+  border-color: #c89eaf;
+  background: var(--attendance-wine-soft);
+}
+
+/* Mensaje de éxito */
+.attendance-message {
+  position: fixed;
+  z-index: 100;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 0.85rem 1rem;
+  border: 1px solid #c9e6d3;
+  border-radius: 12px;
+  background: #f3fbf6;
+  color: #215f40;
+  box-shadow: 0 8px 30px rgb(29 69 46 / 14%);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.attendance-message > span {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #d8f0e1;
+  font-weight: 850;
+}
+
+.message-enter-active,
+.message-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.message-enter-from,
+.message-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@keyframes attendance-enter {
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 900px) {
-  .attendance-context-nav {
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(170px,1fr);
-    overflow-x: auto;
+/* Accesibilidad y adaptación a pantallas */
+.attendance :where(button, input, select):focus-visible {
+  outline: 3px solid rgb(122 41 72 / 20%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1050px) {
+  .attendance-card {
+    grid-template-columns: minmax(170px, 0.8fr) minmax(300px, 1.2fr);
   }
 
-  .attendance-overview {
-    grid-template-columns: 1fr;
+  .attendance-card__note {
+    grid-column: 1 / -1;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .attendance-history-card {
+    grid-template-columns: minmax(150px, 1fr) minmax(180px, 1fr) 65px auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .attendance__lesson-selector {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+    padding: 0.9rem;
+  }
+
+  .attendance__lesson-info {
+    padding: 0.7rem 0 0;
+    border-top: 1px solid var(--attendance-line);
+    border-left: 0;
+  }
+
+  .attendance__lesson-info strong {
+    white-space: normal;
+  }
+
+  .attendance__summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .attendance__summary article {
+    padding: 0.75rem;
+  }
+
+  .attendance__summary span {
+    min-height: 0;
+    font-size: 0.7rem;
+  }
+
+  .attendance__toolbar {
+    align-items: flex-start;
+  }
+
+  .attendance__quick-actions > span {
+    display: none;
+  }
+
+  .attendance__quick-actions {
+    padding-top: 0.15rem;
+  }
+
+  .attendance-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
+    padding: 0.8rem;
+  }
+
+  .attendance-card__statuses {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .attendance-card__statuses button {
+    padding-inline: 0.35rem;
+    font-size: 0.7rem;
+  }
+
+  .attendance-card__note {
+    grid-column: auto;
+  }
+
+  .attendance-actions {
+    bottom: 0.35rem;
+    align-items: flex-start;
   }
 
   .attendance-history__header {
     flex-direction: column;
   }
 
+  .attendance-history__metrics {
+    width: 100%;
+  }
+
+  .attendance-history__metrics article {
+    flex: 1;
+  }
+
   .attendance-history-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+  }
+
+  .attendance-history-card__stats {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .attendance-history-card__result {
-    text-align: left;
+    grid-column: 2;
+    grid-row: 1;
   }
 
-  .attendance-history__metrics {
-    flex-wrap: wrap;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .attendance-context-nav button,
-  .attendance-panel {
-    animation: none !important;
-    transition: none !important;
+  .attendance-history-card > button {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 }
 
-</style>
-
-
-<style lang="scss">
-/* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
-.amv-view-shell {
-  --amv-ui-wine: #9f1945;
-  --amv-ui-wine-deep: #7f1237;
-  --amv-ui-gold: #d9a91d;
-  --amv-ui-purple: #7657d9;
-  --amv-ui-cyan: #20b8ae;
-  --amv-ui-ink: #172033;
-  --amv-ui-muted: #6f7c8f;
-  --amv-ui-line: rgba(122, 137, 158, 0.20);
-  --amv-ui-focus: rgba(159, 25, 69, 0.38);
-  --amv-ui-radius-sm: 12px;
-  --amv-ui-radius-md: 18px;
-  --amv-ui-radius-lg: 26px;
-  --amv-ui-shadow: 0 18px 55px rgba(17, 25, 39, 0.09);
-  --amv-ui-shadow-hover: 0 22px 65px rgba(17, 25, 39, 0.14);
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.amv-view-shell::before {
-  content: '';
-  position: absolute;
-  inset: -150px -120px auto auto;
-  width: 420px;
-  height: 420px;
-  pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(159, 25, 69, 0.10), transparent 52%),
-    radial-gradient(circle at 68% 62%, rgba(217, 169, 29, 0.08), transparent 58%);
-  filter: blur(6px);
-  opacity: 0.82;
-  z-index: -1;
-}
-
-.amv-view-shell :where(*, *::before, *::after) {
-  box-sizing: border-box;
-}
-
-.amv-view-shell :where(img, video, svg, canvas) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
-}
-
-.amv-view-shell :where(p, li, td, th, label, small) {
-  overflow-wrap: anywhere;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']) {
-  touch-action: manipulation;
-}
-
-.amv-view-shell :where(button, input, select, textarea) {
-  font: inherit;
-}
-
-.amv-view-shell :where(button) {
-  min-height: 42px;
-}
-
-.amv-view-shell :where(input, select, textarea) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 3px solid var(--amv-ui-focus);
-  outline-offset: 3px;
-}
-
-.amv-view-shell :where(button, [role='button']):disabled,
-.amv-view-shell :where(input, select, textarea):disabled {
-  cursor: not-allowed;
-}
-
-.amv-view-shell :where(.button, .btn, .lux-button, .amv-primary-btn, .amv-secondary-action,
-  .primary-action, .secondary-action, .danger-action, .text-link, .action-link,
-  .lightbox__close, .lightbox__nav, .today-button, .quick-action) {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Premium surface language without changing each view's semantic palette. */
-.amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-  .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-  .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-  .production, .sound-console, .state-card, .empty-card, .workspace,
-  .profile-card, .profile-panel, .vocal-card, .weighted-student, .weighted-category) {
-  border-radius: var(--amv-ui-radius-md);
-}
-
-.amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-  .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-  .task-card, .format-card, .production, .state-card, .empty-card) {
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-    .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-    .task-card, .format-card, .production):not(.is-disabled):hover {
-    transform: translateY(-2px);
-  }
-}
-
-/* Toolbars wrap rather than squeezing controls into unreadable rows. */
-.amv-view-shell :where(.toolbar, .students-toolbar, .calendar-toolbar, .resources-controls,
-  .resources-controls__row, .gradebook-legacy-toolbar, .hero-actions, .actions,
-  .action-row, .question-actions, .filters, .public-jump-nav, .classes-header__actions,
-  .result-action-row, .form-actions, .footer-actions) {
-  min-width: 0;
-}
-
-.amv-view-shell :where(.table-shell, .quiz-table-wrap, .table-wrap, .grade-table-wrap,
-  .data-table-wrap, .scroll-region, .horizontal-scroll) {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.amv-view-shell :where(.table-shell table, .quiz-table-wrap table, .table-wrap table,
-  .grade-table-wrap table, .data-table-wrap table) {
-  max-width: none;
-}
-
-/* Prevent long controls and badges from forcing page-level horizontal overflow. */
-.amv-view-shell :where(.badge, .pill, .chip, .status-pill, .source-badge, .event-chip,
-  .lesson-detail, .student-card__voice, .student-card__status, .course-kicker,
-  .hero-stat, .count, .filename, .meta, .eyebrow) {
-  max-width: 100%;
-}
-
-/* Dialogs/lightboxes stay usable on short laptop and phone viewports. */
-.amv-view-shell :where(.modal, .dialog, .drawer, .lightbox, .lightbox__content,
-  .modal__content, .dialog__content, [role='dialog']) {
-  max-width: min(100%, 100vw);
-}
-
-.amv-view-shell :where(.modal__content, .dialog__content, .lightbox__content,
-  [role='dialog']) {
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Public pages: a cleaner editorial frame around content-heavy sections. */
-.amv-view-shell :where(.hero, .hero-panel, .calendar-hero, .resources-hero, .amv-hero,
-  .students__header, .gradebook__hero, .classes-header, .contact-hero, .training-hero,
-  .academy-hero, .inscription-hero) {
-  isolation: isolate;
-}
-
-.amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid) {
-  min-width: 0;
-}
-
-/* Mobile-first resilience. Existing view-specific breakpoints still win where more
-   specific rules exist, while these defaults catch edge cases and tiny screens. */
-@media (max-width: 760px) {
-  .amv-view-shell {
-    overflow-x: clip;
+@media (max-width: 480px) {
+  .attendance__header h1 {
+    font-size: 2rem;
   }
 
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 22px;
+  .attendance__description {
+    font-size: 0.85rem;
   }
 
-  .amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid,
-    .calendar-layout, .quiz-layout, .program-layout, .student-profile__grid,
-    .dashboard-grid, .content-grid, .page-grid, .split-layout) {
-    grid-template-columns: minmax(0, 1fr) !important;
+  .attendance-status {
+    align-items: flex-start;
+    padding: 0.75rem;
   }
 
-  .amv-view-shell :where(.hero-actions, .actions, .action-row, .form-actions,
-    .footer-actions, .question-actions, .students__header-actions, .hero-stat,
-    .calendar-toolbar, .resources-controls__row) {
-    flex-wrap: wrap;
+  .attendance-status__icon {
+    width: 32px;
+    height: 32px;
   }
 
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    min-width: min(100%, 190px);
+  .attendance-status__edit {
+    min-height: 32px;
+    padding-inline: 0.6rem;
   }
 
-  .amv-view-shell :where(.display-title, .page-title, .hero-title, .section-title,
-    .hero-panel__title, .amv-hero h1, .calendar-hero h1, .students__header h1,
-    .gradebook__hero h1) {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
+  .attendance__summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .amv-view-shell :where(.students-toolbar, .resources-controls, .calendar-toolbar,
-    .gradebook-legacy-toolbar, .classes-header, .section-heading, .profile-actions) {
-    gap: 10px;
+  .attendance__summary .summary-card--primary {
+    grid-column: 1 / -1;
   }
 
-  .amv-view-shell :where(input, select, textarea, .select, .search-input) {
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 520px) {
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: minmax(0, 1fr);
+  .attendance__toolbar {
+    flex-direction: column;
+    gap: 0.7rem;
   }
 
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 18px;
-  }
-
-  .amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-    .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-    .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-    .production, .state-card, .empty-card) {
-    border-radius: 16px;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
+  .attendance__quick-actions {
     width: 100%;
+    justify-items: stretch;
+  }
+
+  .attendance__quick-actions > div {
+    justify-content: flex-start;
+  }
+
+  .attendance-actions {
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .attendance-actions__buttons {
+    width: 100%;
+  }
+
+  .attendance-actions__cancel,
+  .attendance-actions__save {
+    flex: 1;
+  }
+
+  .attendance-history {
+    padding: 0.7rem;
+  }
+
+  .attendance-history__header h2 {
+    font-size: 1.25rem;
+  }
+
+  .attendance-history__metrics article {
     min-width: 0;
+    padding: 0.55rem;
+  }
+
+  .attendance-history__metrics small {
+    font-size: 0.62rem;
+  }
+
+  .attendance-history-card__stats {
+    gap: 0.35rem 0.65rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .amv-view-shell,
-  .amv-view-shell :where(*, *::before, *::after) {
+  .attendance,
+  .attendance :where(*, *::before, *::after) {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* Vista de una sola pantalla: selector, lista y acciones sin pestañas */
+.attendance__lesson-selector {
+  grid-template-columns: minmax(260px, 1.1fr) minmax(200px, 0.85fr) auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.attendance__lesson-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: max-content;
+}
+
+.attendance-edit-toggle {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 43px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--attendance-wine);
+  border-radius: 10px;
+  background: var(--attendance-wine);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 760;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.attendance-edit-toggle:hover:not(:disabled) {
+  background: var(--attendance-wine-dark);
+  transform: translateY(-1px);
+}
+
+.attendance-edit-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.attendance-editing-status {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 42px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #e8d2db;
+  border-radius: 10px;
+  background: var(--attendance-wine-soft);
+  color: var(--attendance-wine);
+  font-size: 0.8rem;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.attendance-editing-status > span {
+  color: #b56e87;
+  font-size: 0.7rem;
+}
+
+.attendance-status--editing {
+  border-color: #e8d2db;
+  background: #fff8fb;
+}
+
+.attendance-status__coverage {
+  flex: 0 0 auto;
+  color: var(--attendance-muted);
+  font-size: 0.76rem;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.attendance__content {
+  margin-top: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 15px;
+  background: #fff;
+}
+
+.attendance__title > span {
+  border-radius: 11px;
+}
+
+.attendance-history-section {
+  margin-top: 1.1rem;
+}
+
+.attendance-history-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 62px;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--attendance-line);
+  border-radius: 13px;
+  background: #fff;
+  color: var(--attendance-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.attendance-history-toggle:hover {
+  border-color: #d8bbc7;
+  background: #fffafb;
+}
+
+.attendance-history-toggle__text {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.attendance-history-toggle__text strong {
+  font-size: 0.88rem;
+  font-weight: 780;
+}
+
+.attendance-history-toggle__text small {
+  color: var(--attendance-muted);
+  font-size: 0.75rem;
+}
+
+.attendance-history-toggle__icon {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #e8d2db;
+  border-radius: 9px;
+  background: var(--attendance-wine-soft);
+  color: var(--attendance-wine);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.attendance-history {
+  margin-top: 0.65rem;
+}
+
+@media (max-width: 960px) {
+  .attendance__lesson-selector {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .attendance__lesson-info {
+    grid-column: 1;
+    padding: 0.7rem 0 0;
+    border-top: 1px solid var(--attendance-line);
+    border-left: 0;
+  }
+
+  .attendance__lesson-actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .attendance__lesson-selector {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .attendance__lesson-actions,
+  .attendance__lesson-info {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+  }
+
+  .attendance__lesson-actions {
+    justify-content: stretch;
+  }
+
+  .attendance-edit-toggle,
+  .attendance-editing-status {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .attendance-status {
+    flex-wrap: wrap;
+  }
+
+  .attendance-status__coverage {
+    width: 100%;
+    padding-left: calc(32px + 0.75rem);
+  }
+
+  .attendance__content {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .attendance__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .attendance__summary .summary-card--primary {
+    grid-column: 1 / -1;
+  }
+
+  .attendance-actions__buttons {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+  }
+}
+
+
+/* =========================================================
+   AMV KAHOOT COLOR SYSTEM · clasificación vocal + microinteracciones
+   Soprano: fucsia | Alto: violeta | Tenor: azul | Bajo: turquesa
+========================================================= */
+.attendance {
+  --voice-soprano: #b51f5b;
+  --voice-soprano-soft: #ffe3ee;
+  --voice-soprano-bg: #fff3f7;
+
+  --voice-alto: #7651d7;
+  --voice-alto-soft: #e8e0ff;
+  --voice-alto-bg: #f7f3ff;
+
+  --voice-tenor: #3675d3;
+  --voice-tenor-soft: #dceaff;
+  --voice-tenor-bg: #f1f7ff;
+
+  --voice-bajo: #229b88;
+  --voice-bajo-soft: #d8f2ed;
+  --voice-bajo-bg: #effaf8;
+
+  --voice-unclassified: #aa7815;
+  --voice-unclassified-soft: #ffedbf;
+  --voice-unclassified-bg: #fff9e9;
+
+  --kahoot-purple: #7040d4;
+  --kahoot-purple-deep: #502ba8;
+  --kahoot-pink: #b51f5b;
+}
+
+.attendance__header h1 {
+  background: linear-gradient(105deg, #241c27 0%, #58317e 48%, #9c275b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.attendance__lesson-selector {
+  border-color: #e8dce8;
+  background: linear-gradient(115deg, #fff 0%, #fffafd 58%, #f7f3ff 100%);
+  box-shadow: 0 8px 26px rgb(74 42 84 / 6%);
+}
+
+.attendance-edit-toggle,
+.attendance-actions__save {
+  border-color: transparent;
+  background: linear-gradient(110deg, var(--kahoot-purple), var(--kahoot-pink));
+  box-shadow: 0 5px 13px rgb(112 64 212 / 20%);
+}
+
+.attendance-edit-toggle:hover:not(:disabled),
+.attendance-actions__save:hover:not(:disabled) {
+  border-color: transparent;
+  background: linear-gradient(110deg, var(--kahoot-purple-deep), #901a4a);
+  box-shadow: 0 7px 17px rgb(112 64 212 / 24%);
+  transform: translateY(-2px);
+}
+
+.attendance-status--editing {
+  border-color: #d9cbfb;
+  background: linear-gradient(110deg, #fbf8ff, #fff8fb);
+}
+
+.attendance-status--editing .attendance-status__icon {
+  background: #eee7ff;
+  color: var(--kahoot-purple);
+}
+
+.attendance__summary article {
+  position: relative;
+  overflow: hidden;
+  border-color: #ece4ed;
+  box-shadow: 0 4px 12px rgb(45 28 52 / 3%);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.attendance__summary article::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: #d7cde3;
+  content: '';
+}
+
+.attendance__summary article:nth-child(1)::before { background: linear-gradient(90deg, #7040d4, #b51f5b); }
+.attendance__summary article:nth-child(2)::before { background: #229b88; }
+.attendance__summary article:nth-child(3)::before { background: #e05268; }
+.attendance__summary article:nth-child(4)::before { background: #d69a24; }
+.attendance__summary article:nth-child(5)::before { background: #3675d3; }
+
+.attendance__summary article:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 19px rgb(45 28 52 / 7%);
+}
+
+.attendance__summary article:nth-child(2) strong { color: #188566; }
+.attendance__summary article:nth-child(3) strong { color: #ca4057; }
+.attendance__summary article:nth-child(4) strong { color: #ad7715; }
+.attendance__summary article:nth-child(5) strong { color: #3675d3; }
+
+.attendance-progress {
+  height: 7px;
+  background: #eee8f3;
+}
+
+.attendance-progress__bar {
+  background: linear-gradient(90deg, #229b88 0%, #3675d3 48%, #7651d7 75%, #b51f5b 100%);
+}
+
+.attendance__content {
+  padding: 1.05rem;
+  border: 1px solid #e7dfee;
+  border-radius: 18px;
+  background: linear-gradient(150deg, #fff 0%, #fff 68%, #fcf9ff 100%);
+  box-shadow: 0 8px 24px rgb(63 36 81 / 4%);
+}
+
+.attendance__title > span {
+  border-color: #ded2fb;
+  background: linear-gradient(145deg, #f1eaff, #fff0f6);
+  color: var(--kahoot-purple);
+  box-shadow: 0 3px 9px rgb(112 64 212 / 7%);
+}
+
+.attendance-voice-legend {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: -0.1rem 0 0.85rem;
+}
+
+.attendance-voice-legend__label {
+  margin-right: 0.15rem;
+  color: #8b7b8e;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.attendance-voice-chip {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  min-height: 27px;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.attendance-voice-chip i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 65%);
+}
+
+.attendance-voice-chip--soprano { border-color: #f6c7d9; background: var(--voice-soprano-bg); color: var(--voice-soprano); }
+.attendance-voice-chip--alto { border-color: #d9cefb; background: var(--voice-alto-bg); color: var(--voice-alto); }
+.attendance-voice-chip--tenor { border-color: #cbdfff; background: var(--voice-tenor-bg); color: var(--voice-tenor); }
+.attendance-voice-chip--bajo { border-color: #c2e9e2; background: var(--voice-bajo-bg); color: var(--voice-bajo); }
+.attendance-voice-chip--unclassified { border-color: #f2dfb0; background: var(--voice-unclassified-bg); color: var(--voice-unclassified); }
+
+.attendance-card {
+  --voice-color: var(--voice-unclassified);
+  --voice-soft: var(--voice-unclassified-soft);
+  --voice-bg: var(--voice-unclassified-bg);
+
+  position: relative;
+  overflow: hidden;
+  border-color: #e8e2ee;
+  border-left: 4px solid var(--voice-color);
+  border-radius: 15px;
+  background: linear-gradient(100deg, var(--voice-bg) 0%, #fff 34%);
+  box-shadow: 0 3px 10px rgb(42 30 49 / 3%);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.attendance-card--voice-soprano {
+  --voice-color: var(--voice-soprano);
+  --voice-soft: var(--voice-soprano-soft);
+  --voice-bg: var(--voice-soprano-bg);
+}
+
+.attendance-card--voice-alto {
+  --voice-color: var(--voice-alto);
+  --voice-soft: var(--voice-alto-soft);
+  --voice-bg: var(--voice-alto-bg);
+}
+
+.attendance-card--voice-tenor {
+  --voice-color: var(--voice-tenor);
+  --voice-soft: var(--voice-tenor-soft);
+  --voice-bg: var(--voice-tenor-bg);
+}
+
+.attendance-card--voice-bajo {
+  --voice-color: var(--voice-bajo);
+  --voice-soft: var(--voice-bajo-soft);
+  --voice-bg: var(--voice-bajo-bg);
+}
+
+.attendance-card--voice-unclassified {
+  --voice-color: var(--voice-unclassified);
+  --voice-soft: var(--voice-unclassified-soft);
+  --voice-bg: var(--voice-unclassified-bg);
+}
+
+.attendance-card:hover {
+  z-index: 1;
+  border-color: var(--voice-soft);
+  border-left-color: var(--voice-color);
+  box-shadow: 0 8px 20px rgb(42 30 49 / 8%);
+  transform: translateY(-2px);
+}
+
+.attendance-card__avatar {
+  border-color: var(--voice-soft);
+  border-radius: 13px;
+  background: linear-gradient(145deg, #fff 0%, var(--voice-soft) 100%);
+  color: var(--voice-color);
+  box-shadow: 0 3px 8px rgb(42 30 49 / 5%);
+}
+
+.attendance-card__student span {
+  display: inline-flex;
+  max-width: 100%;
+  width: fit-content;
+  align-items: center;
+  padding: 0.18rem 0.44rem;
+  border-radius: 999px;
+  background: var(--voice-soft);
+  color: var(--voice-color);
+  font-size: 0.62rem;
+  letter-spacing: 0.045em;
+  line-height: 1.25;
+}
+
+.attendance-card__student h3 {
+  font-size: 0.88rem;
+  letter-spacing: -0.015em;
+}
+
+.attendance-card__statuses button {
+  min-height: 36px;
+  border-radius: 10px;
+  transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.attendance-card__statuses button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.status-button--present.active {
+  border-color: #199866;
+  background: linear-gradient(130deg, #219c6b, #12865b);
+  color: #fff;
+  box-shadow: 0 3px 8px rgb(25 152 102 / 19%);
+}
+
+.status-button--absent.active {
+  border-color: #d9435e;
+  background: linear-gradient(130deg, #ec5b70, #d9435e);
+  color: #fff;
+  box-shadow: 0 3px 8px rgb(217 67 94 / 17%);
+}
+
+.status-button--justified.active {
+  border-color: #c98a15;
+  background: linear-gradient(130deg, #e5a62c, #c98a15);
+  color: #fff;
+  box-shadow: 0 3px 8px rgb(201 138 21 / 18%);
+}
+
+.attendance-card__note input:focus-visible {
+  border-color: var(--voice-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--voice-color) 15%, transparent);
+}
+
+.attendance-actions {
+  border-color: #dfd3f0;
+  background: rgb(255 253 255 / 94%);
+  box-shadow: 0 10px 30px rgb(73 43 104 / 12%);
+}
+
+.attendance-actions__save {
+  min-width: 150px;
+  border-radius: 11px;
+  font-weight: 800;
+}
+
+.attendance-actions__cancel {
+  border-radius: 11px;
+}
+
+.attendance-history-toggle {
+  border-color: #e6dcef;
+  background: linear-gradient(100deg, #fff, #fbf8ff);
+  box-shadow: 0 4px 12px rgb(63 36 81 / 3%);
+}
+
+.attendance-history-toggle:hover {
+  border-color: #d5c3f1;
+  background: linear-gradient(100deg, #fff, #f5f0ff);
+}
+
+.attendance-history-toggle__icon {
+  border-color: #ded2fb;
+  background: #f0eaff;
+  color: var(--kahoot-purple);
+}
+
+.attendance-history-card {
+  border-color: #ebe3f1;
+  border-radius: 13px;
+  box-shadow: 0 3px 9px rgb(42 30 49 / 3%);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.attendance-history-card:hover {
+  border-color: #d7c7f2;
+  box-shadow: 0 6px 15px rgb(42 30 49 / 6%);
+  transform: translateY(-1px);
+}
+
+.attendance-history-card > button {
+  border-color: #d9cbfb;
+  border-radius: 9px;
+  background: #f5f0ff;
+  color: var(--kahoot-purple);
+  font-weight: 780;
+}
+
+.attendance-history-card > button:hover {
+  border-color: var(--kahoot-purple);
+  background: var(--kahoot-purple);
+  color: #fff;
+}
+
+.attendance-message {
+  border: 1px solid #c7e9d5;
+  background: linear-gradient(110deg, #edfff4, #f2f1ff);
+  box-shadow: 0 12px 34px rgb(35 75 58 / 14%);
+}
+
+.attendance button:focus-visible,
+.attendance select:focus-visible,
+.attendance input:focus-visible {
+  outline: 3px solid rgb(112 64 212 / 22%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .attendance-voice-legend {
+    gap: 0.35rem;
+  }
+
+  .attendance-voice-legend__label {
+    width: 100%;
+    margin-bottom: 0.05rem;
+  }
+
+  .attendance-voice-chip {
+    min-height: 25px;
+    padding-inline: 0.45rem;
+    font-size: 0.65rem;
+  }
+
+  .attendance-card {
+    border-left-width: 4px;
+    background: linear-gradient(100deg, var(--voice-bg) 0%, #fff 48%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attendance-card,
+  .attendance__summary article,
+  .attendance-history-card {
+    transition: none;
+  }
+}
+
+
+
+/* =========================================================
+   ACABADO PREMIUM · selector a medida + glass vocal
+========================================================= */
+.attendance__lesson-selector {
+  position: relative;
+  z-index: 12;
+  overflow: visible;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 5% 0%, rgb(255 231 243 / 55%), transparent 48%),
+    linear-gradient(130deg, rgb(255 255 255 / 86%), rgb(250 246 255 / 76%));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 96%),
+    0 12px 32px rgb(63 36 81 / 7%),
+    0 2px 6px rgb(63 36 81 / 3%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
+}
+
+.attendance-select {
+  z-index: 20;
+}
+
+.attendance-select::after {
+  display: none;
+  content: none;
+}
+
+.attendance-select-trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  align-items: center;
+  gap: 0.72rem;
+  padding: 0.42rem 0.55rem 0.42rem 0.65rem;
+  border: 1px solid rgb(139 73 113 / 18%);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 96%), rgb(255 249 253 / 91%));
+  color: var(--attendance-ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 #fff, 0 4px 11px rgb(70 35 78 / 4%);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.attendance-select-trigger:hover:not(:disabled),
+.attendance-select-trigger[aria-expanded='true'] {
+  border-color: rgb(112 64 212 / 38%);
+  background: linear-gradient(135deg, #fff, #fbf6ff 65%, #fff5fa);
+  box-shadow: 0 0 0 3px rgb(112 64 212 / 7%), 0 8px 22px rgb(112 64 212 / 9%), inset 0 1px 0 #fff;
+}
+
+.attendance-select-trigger:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.attendance-select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.attendance-select-trigger__class {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 31px;
+  padding: 0.36rem 0.68rem;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 999px;
+  background: linear-gradient(115deg, #7040d4, #a82a76 92%);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 820;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgb(112 64 212 / 19%);
+}
+
+.attendance-select-trigger__date {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: #42333f;
+  font-size: 0.87rem;
+  font-weight: 720;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendance-select-trigger__chevron {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(112 64 212 / 12%);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fff, #f2edff);
+  color: #7040d4;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.attendance-select-trigger__chevron.is-open {
+  transform: rotate(180deg);
+  background: #eee6ff;
+}
+
+.attendance-select-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  left: 0;
+  max-height: min(360px, 58vh);
+  overflow: auto;
+  padding: 0.55rem;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgb(255 255 255 / 96%), rgb(250 246 255 / 92%));
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 98%),
+    0 22px 60px rgb(44 26 58 / 19%),
+    0 4px 14px rgb(112 64 212 / 8%);
+  scrollbar-width: thin;
+  scrollbar-color: #d4c4ee transparent;
+}
+
+.attendance-select-menu__heading {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.15rem 0.55rem 0.45rem;
+  color: #8c6c83;
+  font-size: 0.69rem;
+  font-weight: 850;
+  letter-spacing: 0.085em;
+  text-transform: uppercase;
+}
+
+.attendance-select-menu__heading small {
+  padding: 0.25rem 0.48rem;
+  border: 1px solid #e8def8;
+  border-radius: 999px;
+  background: #f6f1ff;
+  color: #7040d4;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.attendance-select-option {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  gap: 0.72rem;
+  margin: 0 0 0.3rem;
+  padding: 0.56rem 0.64rem;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  background: transparent;
+  color: var(--attendance-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.attendance-select-option:last-child {
+  margin-bottom: 0;
+}
+
+.attendance-select-option:hover {
+  border-color: rgb(112 64 212 / 17%);
+  background: linear-gradient(105deg, rgb(248 243 255 / 92%), rgb(255 245 250 / 92%));
+  box-shadow: 0 4px 12px rgb(74 42 84 / 5%);
+  transform: translateY(-1px);
+}
+
+.attendance-select-option.is-selected {
+  border-color: rgb(112 64 212 / 25%);
+  background: linear-gradient(105deg, rgb(242 235 255 / 96%), rgb(255 239 247 / 92%));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 80%), 0 4px 12px rgb(112 64 212 / 7%);
+}
+
+.attendance-select-option__number {
+  display: grid;
+  width: 41px;
+  height: 41px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #e8def9;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #fff, #eee7ff 80%);
+  color: #7040d4;
+  font-size: 0.76rem;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 #fff, 0 2px 7px rgb(112 64 212 / 7%);
+}
+
+.attendance-select-option.is-selected .attendance-select-option__number {
+  border-color: transparent;
+  background: linear-gradient(145deg, #7040d4, #a82a76);
+  color: #fff;
+  box-shadow: 0 4px 9px rgb(112 64 212 / 21%);
+}
+
+.attendance-select-option__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 0.18rem;
+}
+
+.attendance-select-option__copy strong {
+  overflow: hidden;
+  color: #362938;
+  font-size: 0.83rem;
+  font-weight: 790;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendance-select-option__copy small {
+  color: #897b8d;
+  font-size: 0.73rem;
+  font-weight: 570;
+}
+
+.attendance-select-option__indicator {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #eee6f4;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 82%);
+  color: #a491ac;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.attendance-select-option.is-selected .attendance-select-option__indicator {
+  border-color: transparent;
+  background: #7040d4;
+  color: #fff;
+  font-size: 0.8rem;
+  box-shadow: 0 3px 8px rgb(112 64 212 / 20%);
+}
+
+.lesson-dropdown-enter-active,
+.lesson-dropdown-leave-active {
+  transform-origin: top center;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.lesson-dropdown-enter-from,
+.lesson-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.99);
+}
+
+/* Tarjetas de alumnos tipo glass: conserva el color de la cuerda vocal */
+.attendance-card,
+.attendance-card--present,
+.attendance-card--absent,
+.attendance-card--justified {
+  border: 1px solid color-mix(in srgb, var(--voice-color) 22%, #ffffff);
+  border-left: 4px solid var(--voice-color);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--voice-soft) 39%, transparent), transparent 48%),
+    linear-gradient(115deg, color-mix(in srgb, var(--voice-bg) 78%, transparent) 0%, rgb(255 255 255 / 77%) 65%, rgb(255 255 255 / 69%) 100%);
+  -webkit-backdrop-filter: blur(16px) saturate(142%);
+  backdrop-filter: blur(16px) saturate(142%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 92%),
+    0 5px 18px rgb(42 30 49 / 5%),
+    0 1px 3px rgb(42 30 49 / 3%);
+}
+
+.attendance-card:hover {
+  border-color: color-mix(in srgb, var(--voice-color) 36%, #ffffff);
+  border-left-color: var(--voice-color);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 96%),
+    0 12px 28px color-mix(in srgb, var(--voice-color) 12%, transparent),
+    0 3px 8px rgb(42 30 49 / 4%);
+  transform: translateY(-2px);
+}
+
+.attendance-card__avatar {
+  border: 1px solid color-mix(in srgb, var(--voice-color) 24%, #ffffff);
+  background: linear-gradient(145deg, rgb(255 255 255 / 96%), color-mix(in srgb, var(--voice-bg) 79%, #ffffff));
+  box-shadow: inset 0 1px 0 #fff, 0 4px 10px color-mix(in srgb, var(--voice-color) 9%, transparent);
+}
+
+.attendance-card__student span {
+  border: 1px solid color-mix(in srgb, var(--voice-color) 17%, #ffffff);
+  background: color-mix(in srgb, var(--voice-bg) 79%, rgb(255 255 255 / 76%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 85%);
+}
+
+.attendance-card__statuses button {
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 78%);
+  font-weight: 760;
+}
+
+.attendance-card__note input {
+  border-radius: 12px;
+  border-color: color-mix(in srgb, var(--voice-color) 16%, #ffffff);
+  background: rgb(255 255 255 / 66%);
+  box-shadow: inset 0 1px 3px rgb(44 26 58 / 3%);
+}
+
+.attendance__summary article,
+.attendance-status,
+.attendance-history-toggle,
+.attendance-history-card {
+  border-radius: 19px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 89%), rgb(251 247 255 / 75%));
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  backdrop-filter: blur(14px) saturate(135%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 92%), 0 6px 18px rgb(63 36 81 / 5%);
+}
+
+.attendance__summary article:hover {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 96%), 0 11px 24px rgb(63 36 81 / 8%);
+}
+
+.attendance-edit-toggle,
+.attendance-actions__save,
+.attendance-history-card > button {
+  border-radius: 999px;
+  font-weight: 820;
+}
+
+.attendance-select-trigger:focus-visible,
+.attendance-select-option:focus-visible {
+  outline: 3px solid rgb(112 64 212 / 27%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .attendance-select-trigger {
+    min-height: 50px;
+    gap: 0.45rem;
+    padding-inline: 0.45rem;
+  }
+
+  .attendance-select-trigger__class {
+    min-height: 28px;
+    padding-inline: 0.52rem;
+    font-size: 0.68rem;
+  }
+
+  .attendance-select-trigger__date {
+    font-size: 0.78rem;
+  }
+
+  .attendance-select-menu {
+    max-height: 54vh;
+    border-radius: 18px;
+  }
+
+  .attendance-select-option {
+    min-height: 60px;
+    gap: 0.58rem;
+    padding: 0.5rem;
+    border-radius: 13px;
+  }
+
+  .attendance-select-option__number {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+
+  .attendance-card,
+  .attendance-card--present,
+  .attendance-card--absent,
+  .attendance-card--justified {
+    border-radius: 18px;
+    background:
+      radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--voice-soft) 35%, transparent), transparent 52%),
+      linear-gradient(125deg, color-mix(in srgb, var(--voice-bg) 76%, transparent), rgb(255 255 255 / 78%));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attendance-select-trigger,
+  .attendance-select-option,
+  .lesson-dropdown-enter-active,
+  .lesson-dropdown-leave-active,
+  .attendance-card {
+    transition: none !important;
+  }
+}
+
+
+/* =========================================================
+   GLASS VOCAL V2 · tintes más visibles + monograma refinado
+   No altera la lógica ni el comportamiento del registro.
+========================================================= */
+.attendance-list .attendance-card,
+.attendance-list .attendance-card--present,
+.attendance-list .attendance-card--absent,
+.attendance-list .attendance-card--justified {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--voice-color) 27%, #ffffff);
+  border-left: 4px solid color-mix(in srgb, var(--voice-color) 88%, #ffffff);
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 2% 50%, color-mix(in srgb, var(--voice-color) 13%, transparent) 0%, transparent 56%),
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--voice-soft) 62%, transparent) 0%, transparent 48%),
+    linear-gradient(112deg,
+      color-mix(in srgb, var(--voice-bg) 80%, rgb(255 255 255 / 52%)) 0%,
+      rgb(255 255 255 / 67%) 61%,
+      rgb(255 255 255 / 74%) 100%);
+  -webkit-backdrop-filter: blur(18px) saturate(158%);
+  backdrop-filter: blur(18px) saturate(158%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 96%),
+    inset 0 -1px 0 color-mix(in srgb, var(--voice-color) 8%, transparent),
+    0 7px 20px color-mix(in srgb, var(--voice-color) 7%, transparent),
+    0 2px 5px rgb(43 32 48 / 3%);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.attendance-list .attendance-card::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(125deg, rgb(255 255 255 / 55%) 0%, transparent 36%, transparent 78%, color-mix(in srgb, var(--voice-color) 5%, transparent) 100%);
+  content: '';
+  pointer-events: none;
+}
+
+.attendance-list .attendance-card:hover {
+  border-color: color-mix(in srgb, var(--voice-color) 42%, #ffffff);
+  border-left-color: var(--voice-color);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 13px 29px color-mix(in srgb, var(--voice-color) 13%, transparent),
+    0 3px 8px rgb(43 32 48 / 4%);
+  transform: translateY(-2px);
+}
+
+/* Avatar tipo medallón: el color vocal se reconoce incluso de reojo. */
+.attendance-list .attendance-card__avatar {
+  position: relative;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--voice-color) 34%, #ffffff);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 29% 19%, rgb(255 255 255 / 96%) 0%, rgb(255 255 255 / 50%) 19%, transparent 44%),
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--voice-color) 20%, #ffffff) 0%,
+      color-mix(in srgb, var(--voice-soft) 76%, #ffffff) 52%,
+      color-mix(in srgb, var(--voice-color) 13%, #ffffff) 100%);
+  color: var(--voice-color);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 97%),
+    inset 0 -3px 7px color-mix(in srgb, var(--voice-color) 9%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--voice-color) 8%, transparent),
+    0 7px 16px color-mix(in srgb, var(--voice-color) 17%, transparent);
+  isolation: isolate;
+}
+
+.attendance-list .attendance-card__avatar::before {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+}
+
+.attendance-list .attendance-card__avatar::after {
+  position: absolute;
+  top: 4px;
+  left: 10px;
+  width: 15px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 55%);
+  content: '';
+  filter: blur(1px);
+  transform: rotate(-28deg);
+  pointer-events: none;
+}
+
+.attendance-card__avatar-initials {
+  position: relative;
+  z-index: 1;
+  display: block;
+  max-width: 100%;
+  padding-inline: 2px;
+  color: var(--voice-color);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 70%);
+}
+
+.attendance-list .attendance-card__student span {
+  padding: 0.2rem 0.56rem;
+  border: 1px solid color-mix(in srgb, var(--voice-color) 19%, #ffffff);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--voice-bg) 72%, rgb(255 255 255 / 80%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 94%);
+  color: var(--voice-color);
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.055em;
+}
+
+.attendance-list .attendance-card__student h3 {
+  color: #28212d;
+  font-weight: 800;
+  letter-spacing: -0.018em;
+}
+
+.attendance-list .attendance-card__note input {
+  border-color: color-mix(in srgb, var(--voice-color) 20%, #ffffff);
+  border-radius: 13px;
+  background: rgb(255 255 255 / 61%);
+  box-shadow: inset 0 1px 2px rgb(39 29 47 / 3%), 0 1px 0 rgb(255 255 255 / 70%);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.attendance-list .attendance-card__note input:focus-visible {
+  border-color: color-mix(in srgb, var(--voice-color) 63%, #ffffff);
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--voice-color) 15%, transparent);
+}
+
+@media (max-width: 760px) {
+  .attendance-list .attendance-card,
+  .attendance-list .attendance-card--present,
+  .attendance-list .attendance-card--absent,
+  .attendance-list .attendance-card--justified {
+    border-radius: 19px;
+    background:
+      radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--voice-color) 12%, transparent), transparent 56%),
+      linear-gradient(120deg, color-mix(in srgb, var(--voice-bg) 77%, rgb(255 255 255 / 50%)), rgb(255 255 255 / 75%));
+  }
+
+  .attendance-list .attendance-card__avatar {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attendance-list .attendance-card,
+  .attendance-list .attendance-card__avatar {
+    transition: none !important;
+  }
+}
+
 </style>
