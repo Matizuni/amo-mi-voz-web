@@ -35,7 +35,7 @@
           :to="`/aula/clase/${lesson.id}`"
           class="lesson-card__banner"
           :style="lessonCoverStyle(lesson)"
-          :aria-label="`Abrir ${lesson.title}`"
+          :aria-label="`Entrar a clase: ${lesson.title}`"
         >
           <div class="lesson-card__cover" aria-hidden="true"></div>
           <div class="lesson-card__veil" aria-hidden="true"></div>
@@ -134,6 +134,11 @@
           </span>
 
           <span class="lesson-card__enter">ENTRAR</span>
+
+          <span class="lesson-card__enter-mobile">
+            <span>Entrar a clase</span>
+            <AulaIcon name="arrow" aria-hidden="true" />
+          </span>
         </RouterLink>
       </article>
 
@@ -1478,6 +1483,324 @@ onUnmounted(() => {
     animation: none;
   }
 }
+
+
+/* =========================================================
+   EXPERIENCIA MÓVIL — MI CURSO
+   Conserva la portada cinematográfica, reduce altura y efectos,
+   centra el progreso y hace explícito el acceso a la clase.
+   Solo afecta a anchos de teléfono; escritorio conserva su diseño.
+========================================================= */
+.lesson-card__enter-mobile {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  .course-hub--classes {
+    gap: 14px;
+    padding-bottom: 16px;
+  }
+
+  .lessons-list {
+    gap: 14px;
+  }
+
+  .lesson-card {
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(3, 8, 17, .16);
+    transition: none;
+  }
+
+  .lesson-card:hover {
+    transform: none;
+    border-color: rgba(255, 255, 255, .13);
+    box-shadow: 0 8px 24px rgba(3, 8, 17, .16);
+  }
+
+  .lesson-card--completed,
+  .lesson-card--completed:hover {
+    box-shadow: 0 8px 24px rgba(3, 8, 17, .16);
+  }
+
+  .lesson-card__banner {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    background-position: center;
+  }
+
+  .lesson-card__cover {
+    transform: none;
+    filter: none;
+    background-position: center center;
+    transition: none;
+  }
+
+  .lesson-card:hover .lesson-card__cover {
+    transform: none;
+    filter: none;
+  }
+
+  .lesson-card__veil {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(3, 8, 16, .76) 0%,
+        rgba(3, 8, 16, .54) 37%,
+        rgba(3, 8, 16, .88) 70%,
+        rgba(3, 8, 16, .97) 100%
+      ),
+      linear-gradient(90deg, rgba(3, 8, 16, .25), rgba(3, 8, 16, .08));
+  }
+
+  /* Reflejos y auras son decorativos: se desactivan en pantallas táctiles. */
+  .lesson-card__shine,
+  .lesson-card__glow {
+    display: none;
+  }
+
+  .lesson-card__hero {
+    padding: 17px 16px 0;
+  }
+
+  .lesson-card__eyebrow {
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 11px;
+    padding-right: 42px;
+  }
+
+  .lesson-number {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    font-size: .55rem;
+    letter-spacing: .045em;
+    box-shadow: none;
+  }
+
+  .lesson-date {
+    min-width: 0;
+    font-size: .55rem;
+    line-height: 1.3;
+    letter-spacing: .045em;
+    overflow-wrap: anywhere;
+  }
+
+  .lesson-card__hero h2 {
+    max-width: 100%;
+    padding-right: 2px;
+    font-size: clamp(1.38rem, 6.2vw, 1.72rem);
+    line-height: 1.06;
+    letter-spacing: -.035em;
+    text-wrap: balance;
+  }
+
+  .lesson-accent,
+  .lesson-card:hover .lesson-accent {
+    width: 46px;
+    height: 3px;
+    margin-top: 11px;
+    box-shadow: none;
+    transition: none;
+  }
+
+  .lesson-card__progress-mini {
+    width: min(272px, 100%);
+    max-width: 100%;
+    margin: 12px auto 0;
+    padding-top: 0;
+  }
+
+  .lesson-card__progress-head {
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .lesson-card__progress-head span {
+    font-size: .49rem;
+    letter-spacing: .09em;
+  }
+
+  .lesson-card__progress-head strong {
+    font-size: .7rem;
+    text-shadow: none;
+  }
+
+  .lesson-card__progress-track {
+    height: 5px;
+    border-color: rgba(255, 255, 255, .22);
+    box-shadow: none;
+  }
+
+  .lesson-card__progress-fill {
+    box-shadow: none !important;
+    transition: none;
+  }
+
+  .lesson-card__progress-fill::after,
+  .lesson-card__progress-particle {
+    display: none !important;
+    animation: none !important;
+  }
+
+  .lesson-card__progress-mini > small {
+    display: -webkit-box;
+    margin-top: 5px;
+    font-size: .49rem;
+    line-height: 1.35;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .lesson-card__info {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+    padding: 14px 16px 13px;
+    background: linear-gradient(
+      180deg,
+      rgba(3, 8, 16, .48) 0%,
+      rgba(3, 8, 16, .86) 30%,
+      rgba(3, 8, 16, .96) 100%
+    );
+    border-top-color: rgba(255, 255, 255, .09);
+    backdrop-filter: none;
+  }
+
+  .lesson-card__description .body-kicker {
+    font-size: .54rem;
+    letter-spacing: .12em;
+    text-shadow: none;
+  }
+
+  .lesson-card__description p {
+    margin-top: 6px;
+    font-size: .74rem;
+    line-height: 1.48;
+    -webkit-line-clamp: 2;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+  }
+
+  .lesson-card__details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    justify-content: stretch;
+    gap: 7px;
+  }
+
+  .lesson-detail {
+    min-width: 0;
+    min-height: 56px;
+    padding: 8px;
+    gap: 7px;
+    border-radius: 10px;
+    background: rgba(7, 15, 27, .78);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .detail-icon {
+    flex: 0 0 auto;
+    font-size: .82rem;
+    text-shadow: none;
+  }
+
+  .lesson-detail strong {
+    font-size: .61rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .lesson-detail span {
+    font-size: .49rem;
+    line-height: 1.32;
+  }
+
+  .lesson-card__arrow {
+    top: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    box-shadow: none;
+    backdrop-filter: none;
+    transition: none;
+  }
+
+  .lesson-card:hover .lesson-card__arrow {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* This is a clear CTA visually; the parent RouterLink remains the real link,
+     avoiding nested interactive controls and preserving the existing route. */
+  .lesson-card__enter-mobile {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 46px;
+    margin: 0 16px 15px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, .23);
+    border-radius: 12px;
+    background: linear-gradient(120deg, #c51d5d 0%, #a6154c 52%, #8e123f 100%);
+    color: #fff;
+    box-shadow: 0 5px 13px rgba(0, 0, 0, .18);
+    font-size: .67rem;
+    font-weight: 900;
+    letter-spacing: .035em;
+    text-align: center;
+  }
+
+  .lesson-card__enter-mobile :deep(svg) {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
+
+  .lesson-card__enter {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .lesson-card__hero {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .lesson-card__eyebrow {
+    gap: 6px;
+    padding-right: 38px;
+  }
+
+  .lesson-date {
+    font-size: .51rem;
+  }
+
+  .lesson-card__info {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .lesson-card__details {
+    gap: 6px;
+  }
+
+  .lesson-detail {
+    padding: 7px 6px;
+  }
+
+  .lesson-card__enter-mobile {
+    margin-right: 13px;
+    margin-left: 13px;
+  }
+}
+
 </style>
 
 
