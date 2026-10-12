@@ -884,3 +884,14 @@
   background: #fff !important;
   color: var(--amv-ui-brand) !important;
 }
+
+/* =========================================================
+   AMV TITLE TYPOGRAPHY · V3
+   Usa la misma familia condensada del título CALENDARIO
+   en todos los encabezados de las vistas, sin cargar fuentes
+   remotas ni añadir dependencias.
+========================================================= */
+#app :is(h1, h2, h3, h4, h5, h6),
+#app :is(h1, h2, h3, h4, h5, h6) :is(span, strong, em, b) {
+  font-family: "Arial Narrow", "Roboto Condensed", "Aptos Narrow", Impact, sans-serif !important;
+}

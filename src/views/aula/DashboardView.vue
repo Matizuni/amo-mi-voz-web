@@ -155,11 +155,111 @@
               </div>
             </div>
             <div class="hero-panel__visual hero-panel__visual--student">
-              <div class="student-life-card">
-                <div class="student-life-card__top"><span>MI ESTADO</span><b>{{ studentPendingTasks.length ? `${studentPendingTasks.length} pendientes` : 'Todo al día' }}</b></div>
-                <div class="student-life-card__rings"><div class="life-ring"><strong>{{ studentAttendancePercentage }}%</strong><small>asistencia</small></div><div class="life-ring life-ring--gold"><strong>{{ studentAverageGrade }}</strong><small>promedio</small></div></div>
-                <div class="student-life-card__quote">“Un paso más y seguimos avanzando.”</div>
-              </div>
+              <section class="student-scoreboard" aria-label="Partitura de progreso personal">
+                <div class="student-scoreboard__top">
+                  <div class="student-scoreboard__identity">
+                    <span class="student-scoreboard__mark" aria-hidden="true">♫</span>
+                    <div>
+                      <span class="student-scoreboard__kicker">MI RECORRIDO MUSICAL</span>
+                      <strong>Una nota a la vez</strong>
+                    </div>
+                  </div>
+                  <span
+                    class="student-scoreboard__status"
+                    :class="{ 'student-scoreboard__status--pending': studentPendingTasks.length > 0 }"
+                  >
+                    <i aria-hidden="true"></i>
+                    {{ studentPendingTasks.length ? `${studentPendingTasks.length} pendientes` : 'Todo al día' }}
+                  </span>
+                </div>
+
+                <div class="student-scoreboard__notation">
+                  <div class="student-scoreboard__notation-label">
+                    <span>EL PROGRESO SE CONSTRUYE</span>
+                    <span>AMV · 01</span>
+                  </div>
+                  <svg
+                    class="student-scoreboard__staff"
+                    viewBox="0 0 440 74"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <g class="student-scoreboard__staff-lines">
+                      <line x1="0" y1="13" x2="440" y2="13" />
+                      <line x1="0" y1="25" x2="440" y2="25" />
+                      <line x1="0" y1="37" x2="440" y2="37" />
+                      <line x1="0" y1="49" x2="440" y2="49" />
+                      <line x1="0" y1="61" x2="440" y2="61" />
+                    </g>
+                    <g class="student-scoreboard__staff-notes">
+                      <ellipse cx="48" cy="37" rx="8" ry="5.5" transform="rotate(-24 48 37)" />
+                      <path d="M55 34 V8" />
+                      <ellipse cx="131" cy="49" rx="8" ry="5.5" transform="rotate(-24 131 49)" />
+                      <path d="M138 46 V19" />
+                      <path d="M138 19 C154 20 157 29 146 33" />
+                      <ellipse cx="239" cy="25" rx="8" ry="5.5" transform="rotate(-24 239 25)" />
+                      <path d="M246 22 V3" />
+                      <ellipse cx="329" cy="37" rx="8" ry="5.5" transform="rotate(-24 329 37)" />
+                      <path d="M336 34 V10" />
+                      <path d="M336 10 C352 11 355 20 344 24" />
+                      <ellipse cx="398" cy="49" rx="8" ry="5.5" transform="rotate(-24 398 49)" />
+                      <path d="M405 46 V20" />
+                    </g>
+                  </svg>
+                </div>
+
+                <div class="student-scoreboard__metrics">
+                  <article class="student-scoreboard__metric student-scoreboard__metric--attendance">
+                    <div class="student-scoreboard__metric-heading">
+                      <span>ASISTENCIA</span>
+                      <small>01</small>
+                    </div>
+                    <div class="student-scoreboard__metric-value">
+                      <strong>{{ studentAttendancePercentage }}</strong><span>%</span>
+                    </div>
+                    <div
+                      class="student-scoreboard__track"
+                      role="progressbar"
+                      aria-label="Porcentaje de asistencia"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      :aria-valuenow="Math.max(0, Math.min(100, Number(studentAttendancePercentage) || 0))"
+                    >
+                      <span :style="{ width: `${Math.max(0, Math.min(100, Number(studentAttendancePercentage) || 0))}%` }"></span>
+                    </div>
+                    <p>{{ studentAttendanceRegistered ? 'De las clases registradas' : 'Aún sin registros' }}</p>
+                  </article>
+
+                  <div class="student-scoreboard__divider" aria-hidden="true"></div>
+
+                  <article class="student-scoreboard__metric student-scoreboard__metric--average">
+                    <div class="student-scoreboard__metric-heading">
+                      <span>PROMEDIO</span>
+                      <small>02</small>
+                    </div>
+                    <div class="student-scoreboard__metric-value">
+                      <strong>{{ studentAverageGrade }}</strong>
+                    </div>
+                    <div class="student-scoreboard__grade-rule" aria-hidden="true"></div>
+                    <p>{{ studentAverageGrade === '—' ? 'Sin notas revisadas aún' : 'Promedio de entregas revisadas' }}</p>
+                  </article>
+                </div>
+
+                <footer class="student-scoreboard__footer">
+                  <span class="student-scoreboard__footer-mark" aria-hidden="true">{{ studentPendingTasks.length ? '!' : '✓' }}</span>
+                  <div class="student-scoreboard__footer-copy">
+                    <strong>{{ studentPendingTasks.length ? 'Tu próxima nota te espera' : 'Vas a tu propio ritmo' }}</strong>
+                    <p v-if="studentPendingTasks.length">
+                      Tienes {{ studentPendingTasks.length }} actividad{{ studentPendingTasks.length === 1 ? '' : 'es' }} pendiente{{ studentPendingTasks.length === 1 ? '' : 's' }}.
+                    </p>
+                    <p v-else>Continúa practicando y celebrando cada avance.</p>
+                  </div>
+                  <RouterLink to="/aula/mis-tareas" class="student-scoreboard__link">
+                    {{ studentPendingTasks.length ? 'Ver tareas' : 'Mis tareas' }} <span aria-hidden="true">↗</span>
+                  </RouterLink>
+                </footer>
+              </section>
             </div>
           </header>
 
@@ -3094,4 +3194,1021 @@ onMounted(
     animation-iteration-count: 1 !important;
   }
 }
+
+
+</style>
+
+
+<style scoped lang="scss">
+/* AMV Student Dashboard · signature musical banner
+   Editorial carmine, warm score paper, gold notation; no blur or animated effects. */
+.dashboard-v3.dashboard-v3 .hero-panel--student {
+  grid-template-columns: minmax(0, 1.12fr) minmax(390px, 0.88fr);
+  align-items: stretch;
+  gap: clamp(1.35rem, 3.4vw, 3rem);
+  min-height: 350px;
+  padding: clamp(1.35rem, 3vw, 2.55rem);
+  border-radius: 14px !important;
+  background: #bd0b46 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student::before {
+  content: "";
+  position: absolute;
+  inset: 10% 32% 10% auto;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.22), transparent);
+  pointer-events: none;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f0ce7a 0 14%, rgba(255,255,255,.38) 14% 24%, transparent 58%);
+  pointer-events: none;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__copy {
+  align-self: center;
+  max-width: 680px;
+  padding: .5rem 0;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .eyebrow {
+  color: #fff1f5 !important;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .eyebrow i {
+  width: 7px;
+  height: 7px;
+  background: #f1d17f;
+  box-shadow: none;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__copy > p {
+  max-width: 54ch;
+  color: rgba(255,255,255,.92) !important;
+  font-size: clamp(.9rem, 1.1vw, 1.02rem);
+  line-height: 1.65;
+  text-shadow: none;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__chips {
+  gap: .5rem;
+  margin-top: 1.3rem;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__chips span {
+  min-height: 33px;
+  padding: .4rem .78rem;
+  border: 1px solid rgba(255,255,255,.48);
+  border-radius: 999px;
+  background: rgba(255,255,255,.075);
+  color: #fff !important;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  font-size: .67rem;
+  line-height: 1.2;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__chips span::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__chips span:hover {
+  transform: none;
+  border-color: rgba(255,255,255,.86);
+  background: rgba(255,255,255,.15);
+  box-shadow: none;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__visual--student {
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding: .15rem 0;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--student .student-scoreboard {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: .9rem;
+  width: min(100%, 500px);
+  min-width: 0;
+  padding: clamp(1rem, 1.7vw, 1.3rem);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 14px;
+  background: #fffaf6;
+  color: #29202a;
+  box-shadow: 0 8px 24px rgba(68, 5, 29, .11);
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: .65rem;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__mark {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  flex: 0 0 39px;
+  place-items: center;
+  border-radius: 11px;
+  background: #bd0b46;
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__identity > div {
+  display: grid;
+  gap: .18rem;
+  min-width: 0;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__kicker {
+  color: #9a6c47;
+  font-size: .57rem;
+  font-weight: 900;
+  letter-spacing: .13em;
+  line-height: 1.2;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__identity strong {
+  color: #291d25 !important;
+  font-family: "Arial Narrow", "Roboto Condensed", "Aptos Narrow", Impact, sans-serif;
+  font-size: clamp(1.23rem, 1.8vw, 1.55rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  max-width: 44%;
+  padding: .42rem .56rem;
+  border: 1px solid #d9eee3;
+  border-radius: 999px;
+  background: #edf8f1;
+  color: #14694a;
+  font-size: .59rem;
+  font-weight: 850;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__status i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__status--pending {
+  border-color: #f1dfb5;
+  background: #fff5dc;
+  color: #83570b;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__notation {
+  padding: .58rem .65rem .25rem;
+  border: 1px solid #f0e3df;
+  border-radius: 11px;
+  background: #fff3ee;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__notation-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  color: #9a7880;
+  font-size: .5rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+  line-height: 1.2;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__notation-label span:last-child {
+  color: #bd0b46;
+  white-space: nowrap;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__staff {
+  display: block;
+  width: 100%;
+  height: 61px;
+  margin-top: .2rem;
+  overflow: visible;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__staff-lines {
+  fill: none;
+  stroke: #e5cbd0;
+  stroke-width: 1.1;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__staff-notes {
+  fill: #bd0b46;
+  stroke: #bd0b46;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__staff-notes ellipse:nth-of-type(2n) {
+  fill: #cf9c42;
+  stroke: #cf9c42;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  align-items: stretch;
+  gap: .85rem;
+  padding: .1rem .15rem 0;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metric {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: .26rem;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metric-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .45rem;
+  color: #7c6771;
+  font-size: .56rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metric-heading small {
+  color: #c6a2a9;
+  font-size: .53rem;
+  font-weight: 900;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metric-value {
+  display: flex;
+  align-items: baseline;
+  gap: .1rem;
+  min-height: 2.2rem;
+  color: #bd0b46;
+  line-height: 1;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metric-value strong {
+  color: #bd0b46 !important;
+  font-family: "Arial Narrow", "Roboto Condensed", "Aptos Narrow", Impact, sans-serif;
+  font-size: clamp(1.75rem, 2.5vw, 2.2rem);
+  font-weight: 850;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metric-value > span {
+  color: #bd0b46;
+  font-size: .92rem;
+  font-weight: 800;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__track {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #f0dfe3;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #bd0b46;
+  transition: width 180ms ease-out;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__metric p {
+  margin: .12rem 0 0;
+  color: #746875;
+  font-size: .6rem;
+  line-height: 1.4;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__divider {
+  align-self: stretch;
+  background: #ebdbe0;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__grade-rule {
+  width: 38px;
+  height: 4px;
+  border-radius: 99px;
+  background: #cf9c42;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__footer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .62rem;
+  padding-top: .8rem;
+  border-top: 1px solid #efe1e5;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__footer-mark {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f7e2e9;
+  color: #a80a40;
+  font-size: .86rem;
+  font-weight: 900;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__footer-copy {
+  min-width: 0;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__footer-copy strong {
+  display: block;
+  color: #31232b !important;
+  font-size: .68rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__footer-copy p {
+  margin: .12rem 0 0;
+  color: #786b73 !important;
+  font-size: .59rem;
+  line-height: 1.35;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .38rem;
+  min-height: 34px;
+  padding: .46rem .68rem;
+  border: 1px solid #bd0b46;
+  border-radius: 8px;
+  background: #bd0b46;
+  color: #fff !important;
+  font-size: .62rem;
+  font-weight: 850;
+  line-height: 1.1;
+  white-space: nowrap;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard__link:hover {
+  background: #9f093c;
+  border-color: #9f093c;
+}
+
+.dashboard-v3.dashboard-v3 .student-scoreboard :is(span, p, small) {
+  text-shadow: none !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-v3.dashboard-v3 .hero-panel--student {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, .9fr);
+    gap: 1.2rem;
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard__link {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-v3.dashboard-v3 .hero-panel--student {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    min-height: 0;
+    padding: 1.4rem;
+  }
+  .dashboard-v3.dashboard-v3 .hero-panel--student::before {
+    display: none;
+  }
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__visual--student {
+    justify-content: flex-start;
+    padding: 0;
+  }
+  .dashboard-v3.dashboard-v3 .hero-panel--student .student-scoreboard {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-v3.dashboard-v3 .hero-panel--student {
+    padding: 1.1rem;
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard {
+    padding: .85rem;
+    gap: .72rem;
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard__top {
+    align-items: flex-start;
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard__status {
+    font-size: .55rem;
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metrics {
+    gap: .55rem;
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .dashboard-v3.dashboard-v3 .student-scoreboard__link {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-v3.dashboard-v3 .student-scoreboard__track span,
+  .dashboard-v3.dashboard-v3 .student-scoreboard__link,
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__chips span {
+    transition: none !important;
+  }
+}
+
+
+/* =========================================================
+   AMV STUDENT MOBILE EXPERIENCE · compact / low-motion
+   Keeps the musical identity while prioritizing actual work.
+========================================================= */
+@media (max-width: 760px) {
+  .dashboard-v3.dashboard-v3 {
+    width: 100%;
+    padding: .45rem 0 calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    gap: .8rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .dashboard-v3__content--student {
+    gap: .85rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .8rem;
+    min-height: 0;
+    padding: clamp(.9rem, 4vw, 1.25rem);
+    border-radius: 22px;
+    box-shadow: 0 10px 25px rgba(91, 8, 37, .10);
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student::before,
+  .dashboard-v3.dashboard-v3 .hero-panel--student::after,
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__grid,
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__ambient,
+  .dashboard-v3.dashboard-v3 .hero-panel--student .floating-orb {
+    display: none !important;
+    animation: none !important;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__copy {
+    min-width: 0;
+    padding: 0;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student .eyebrow {
+    gap: .42rem;
+    font-size: .61rem;
+    letter-spacing: .12em;
+    line-height: 1.25;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student .eyebrow i {
+    box-shadow: none;
+    flex: 0 0 7px;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student h1 {
+    margin: .38rem 0 .48rem;
+    font-size: clamp(2.15rem, 9.4vw, 3rem) !important;
+    line-height: .98;
+    letter-spacing: -.065em;
+    text-shadow: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student h1 strong {
+    letter-spacing: -.065em;
+    text-shadow: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student h1 strong::after {
+    display: none;
+    animation: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student p {
+    max-width: 36rem;
+    font-size: .9rem;
+    line-height: 1.42;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin-top: .75rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__chips span {
+    min-height: 29px;
+    padding: .28rem .58rem;
+    border-color: rgba(255,255,255,.35);
+    background: rgba(255,255,255,.09);
+    color: #fff;
+    font-size: .61rem;
+    line-height: 1.2;
+    backdrop-filter: none;
+    transition: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student .hero-panel__visual--student {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard {
+    display: grid;
+    gap: .62rem;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding: .82rem;
+    border: 1px solid #f0dce0;
+    border-radius: 17px;
+    background: #fffaf6;
+    color: #29202a;
+    box-shadow: 0 4px 13px rgba(72, 8, 31, .08);
+    backdrop-filter: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__top {
+    align-items: center;
+    gap: .55rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__identity {
+    gap: .52rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__mark {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__kicker {
+    font-size: .49rem;
+    letter-spacing: .11em;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__identity strong {
+    font-size: 1.08rem;
+    line-height: 1.04;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__status {
+    flex: 0 0 auto;
+    max-width: 42%;
+    padding: .36rem .48rem;
+    font-size: .55rem;
+    line-height: 1.1;
+    backdrop-filter: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__notation {
+    padding: .42rem .5rem .1rem;
+    border-radius: 10px;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__notation-label {
+    font-size: .43rem;
+    letter-spacing: .085em;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__staff {
+    height: 34px;
+    margin-top: .12rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metrics {
+    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+    gap: .55rem;
+    padding: 0 .05rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metric {
+    gap: .18rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metric-heading {
+    font-size: .49rem;
+    letter-spacing: .075em;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metric-heading small {
+    font-size: .46rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metric-value {
+    min-height: 1.65rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metric-value strong {
+    font-size: 1.65rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__track {
+    height: 5px;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__grade-rule {
+    height: 4px;
+    max-width: 4.1rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__metric p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    font-size: .57rem;
+    line-height: 1.25;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .48rem;
+    padding-top: .45rem;
+    border-top: 1px solid #f0dce0;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer-mark {
+    width: 28px;
+    height: 28px;
+    font-size: .82rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer-copy strong {
+    font-size: .72rem;
+    line-height: 1.18;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    margin-top: .1rem;
+    font-size: .6rem;
+    line-height: 1.28;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__link {
+    grid-column: auto;
+    justify-self: end;
+    align-self: center;
+    min-height: 38px;
+    padding: .48rem .62rem;
+    border-radius: 10px;
+    font-size: .61rem;
+    white-space: nowrap;
+    box-shadow: none;
+    transition: none;
+  }
+
+  /* Four student shortcuts become a compact 2 × 2 dashboard rather than
+     four tall full-width rows on phones. */
+  .dashboard-v3.dashboard-v3 .smart-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: .55rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .smart-item {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: .45rem;
+    min-height: 67px;
+    padding: .62rem .58rem;
+    border-radius: 15px;
+    box-shadow: none;
+    transition: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .smart-item > span {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: .9rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .smart-item small {
+    font-size: .47rem;
+    letter-spacing: .065em;
+    line-height: 1.2;
+  }
+
+  .dashboard-v3.dashboard-v3 .smart-item strong {
+    margin-top: .18rem;
+    font-size: 1.03rem;
+    line-height: 1;
+  }
+
+  .dashboard-v3.dashboard-v3 .smart-item i {
+    font-size: .82rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-focus-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .8rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .focus-card,
+  .dashboard-v3.dashboard-v3 .wide-panel {
+    min-width: 0;
+    padding: .92rem;
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(24, 36, 58, .045);
+  }
+
+  .dashboard-v3.dashboard-v3 .section-heading {
+    gap: .55rem;
+    margin-bottom: .72rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .section-index {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboard-v3.dashboard-v3 .section-heading h2 {
+    font-size: 1.2rem;
+    line-height: 1.1;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student {
+    grid-template-columns: 74px minmax(0, 1fr) !important;
+    gap: .68rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student .next-class-card__visual {
+    display: flex;
+    min-height: 100px;
+    height: 100%;
+    padding: .55rem .3rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: .35rem;
+    border-radius: 13px;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student .next-class-card__visual i {
+    font-size: 1.1rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student .next-class-card__visual em {
+    font-size: .48rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student .next-class-card__content {
+    min-width: 0;
+    padding: .12rem 0;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student .next-class-card__content h3 {
+    font-size: 1rem;
+    line-height: 1.15;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student .next-class-card__content p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    margin: .35rem 0 .55rem;
+    font-size: .76rem;
+    line-height: 1.35;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student .lux-button {
+    min-height: 42px;
+    padding: .58rem .72rem;
+    font-size: .72rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .task-stack {
+    gap: .5rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .task-row {
+    grid-template-columns: 34px minmax(0, 1fr) 18px;
+    gap: .55rem;
+    padding: .68rem;
+    border-radius: 13px;
+  }
+
+  .dashboard-v3.dashboard-v3 .task-row__icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dashboard-v3.dashboard-v3 .task-row small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: .55rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: .45rem;
+    min-height: 72px;
+    padding: .62rem;
+    border-radius: 14px;
+    box-shadow: none;
+    transition: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource__visual {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 1rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource span {
+    font-size: .44rem;
+    letter-spacing: .055em;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource strong {
+    font-size: .68rem;
+    line-height: 1.15;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource small {
+    display: none;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource i {
+    font-size: .78rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel__ambient,
+  .dashboard-v3.dashboard-v3 .hero-panel__grid,
+  .dashboard-v3.dashboard-v3 .floating-orb,
+  .dashboard-v3.dashboard-v3 .latest-result__sparkles,
+  .dashboard-v3.dashboard-v3 .student-card__halo,
+  .dashboard-v3.dashboard-v3 .metric-card__shine {
+    display: none !important;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-v3.dashboard-v3 .hero-panel--student {
+    padding: .82rem;
+    gap: .66rem;
+    border-radius: 18px;
+  }
+
+  .dashboard-v3.dashboard-v3 .hero-panel--student h1 {
+    font-size: clamp(2rem, 9.2vw, 2.55rem) !important;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard {
+    padding: .7rem;
+    gap: .52rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__notation {
+    padding: .36rem .42rem .08rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__staff {
+    height: 29px;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__status {
+    max-width: 40%;
+    padding: .31rem .4rem;
+    font-size: .52rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer {
+    grid-template-columns: 25px minmax(0, 1fr) auto;
+    gap: .38rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__footer-mark {
+    width: 25px;
+    height: 25px;
+  }
+
+  .dashboard-v3.dashboard-v3 .student-scoreboard__link {
+    min-height: 44px;
+    padding: .42rem .48rem;
+    font-size: .58rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .smart-item {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    min-height: 62px;
+    padding: .55rem .48rem;
+    gap: .38rem;
+  }
+
+  .dashboard-v3.dashboard-v3 .smart-item > span {
+    width: 28px;
+    height: 28px;
+  }
+
+  .dashboard-v3.dashboard-v3 .next-class-card--student {
+    grid-template-columns: 62px minmax(0, 1fr) !important;
+  }
+
+  .dashboard-v3.dashboard-v3 .quick-resource-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .dashboard-v3.dashboard-v3 .smart-item:hover,
+  .dashboard-v3.dashboard-v3 .quick-resource:hover,
+  .dashboard-v3.dashboard-v3 .metric-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-v3.dashboard-v3 .hero-panel--student *,
+  .dashboard-v3.dashboard-v3 .student-scoreboard *,
+  .dashboard-v3.dashboard-v3 .smart-item,
+  .dashboard-v3.dashboard-v3 .quick-resource {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 </style>

@@ -3755,4 +3755,94 @@ const hasWeightedResults =
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* =========================================================
+   AMV BANNER FIX · LIBRO DE NOTAS
+   Tarjeta de matrícula clara con contraste real sobre el carmín.
+   Se eliminan blur/filtros innecesarios; la lectura no depende del efecto.
+========================================================= */
+.gradebook.gradebook .gradebook__hero .hero-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.38rem;
+  box-sizing: border-box;
+  min-width: 190px;
+  max-width: 240px;
+  min-height: 128px;
+  padding: 20px 22px;
+  background: #ffffff !important;
+  color: #202735 !important;
+  border: 1px solid rgba(255, 255, 255, 0.82) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 22px rgba(66, 7, 30, 0.12) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  text-shadow: none !important;
+}
+
+.gradebook.gradebook .gradebook__hero .hero-status span {
+  display: block;
+  margin: 0;
+  color: #7e2948 !important;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: 1 !important;
+}
+
+.gradebook.gradebook .gradebook__hero .hero-status strong {
+  display: block;
+  margin: 0 !important;
+  color: #bd0b46 !important;
+  font-size: clamp(2.1rem, 3vw, 2.6rem) !important;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.gradebook.gradebook .gradebook__hero .hero-status small {
+  display: block;
+  margin: 0;
+  color: #596273 !important;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.45;
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  .gradebook.gradebook .gradebook__hero .hero-status {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 0;
+    padding: 15px 17px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+
+  .gradebook.gradebook .gradebook__hero .hero-status span {
+    flex: 1 1 120px;
+  }
+
+  .gradebook.gradebook .gradebook__hero .hero-status strong {
+    flex: 0 0 auto;
+    font-size: 2rem !important;
+  }
+
+  .gradebook.gradebook .gradebook__hero .hero-status small {
+    flex: 0 1 auto;
+  }
+}
+
 </style>
