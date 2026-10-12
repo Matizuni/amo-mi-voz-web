@@ -417,7 +417,7 @@ import {
 
 import {
   fetchVocalRecordings,
-} from '@/services/VocalIntelligenceService'
+} from '@/services/vocalIntelligenceService'
 
 /* =========================================================
    RUTA / ESTUDIANTE
