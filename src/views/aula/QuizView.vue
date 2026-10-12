@@ -873,57 +873,33 @@
 
                   <span class="matching-question__arrow" aria-hidden="true">→</span>
 
-                  <details class="matching-select">
-                    <summary
-                      class="matching-select__trigger"
+                  <div class="matching-select">
+                    <button
+                      type="button"
+                      class="matching-select__native amv-matching-trigger"
                       :aria-label="`Seleccionar respuesta para ${pair.left}`"
+                      aria-haspopup="dialog"
+                      :aria-expanded="Boolean(activeMatchingPicker && Number(activeMatchingPicker.questionId) === Number(currentQuestion.id) && activeMatchingPicker.left === pair.left)"
+                      @click="openMatchingPicker(currentQuestion, pair.left, $event.currentTarget)"
                     >
-                      <span
-                        :class="{
-                          'matching-select__placeholder': !getMatchingSelection(currentQuestion.id, pair.left),
-                        }"
-                      >
-                        {{
-                          getMatchingSelection(currentQuestion.id, pair.left) ||
-                          'Selecciona una respuesta...'
-                        }}
+                      <span :class="{ 'amv-matching-trigger__placeholder': !getMatchingSelection(currentQuestion.id, pair.left) }">
+                        {{ getMatchingSelection(currentQuestion.id, pair.left) || 'Selecciona una respuesta…' }}
                       </span>
-                      <b aria-hidden="true">⌄</b>
-                    </summary>
-
-                    <div class="matching-select__menu">
-                      <button
-                        v-for="choice in getMatchingChoices(currentQuestion)"
-                        :key="choice"
-                        type="button"
-                        class="matching-select__option"
-                        :class="{
-                          'matching-select__option--selected':
-                            getMatchingSelection(currentQuestion.id, pair.left) === choice,
-                        }"
-                        :disabled="
-                          isMatchingChoiceUsed(currentQuestion, pair.left, choice)
-                        "
-                        @click="
-                          updateMatchingSelection(currentQuestion, pair.left, choice);
-                          $event.currentTarget.closest('details').open = false
-                        "
-                      >
-                        <span class="matching-select__option-dot" aria-hidden="true"></span>
-                        <span>{{ choice }}</span>
-                        <b v-if="getMatchingSelection(currentQuestion.id, pair.left) === choice" aria-hidden="true">✓</b>
-                      </button>
-                    </div>
-                  </details>
+                      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                        <path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
 
                   <button
                     v-if="getMatchingSelection(currentQuestion.id, pair.left)"
                     type="button"
                     class="matching-question__clear"
-                    :aria-label="`Borrar relación de ${pair.left}`"
+                    :aria-label="`Limpiar relación de ${pair.left}`"
+                    title="Limpiar esta relación"
                     @click="updateMatchingSelection(currentQuestion, pair.left, '')"
                   >
-                    ×
+                    <span>Limpiar</span>
                   </button>
                 </article>
               </div>
@@ -1251,6 +1227,67 @@
     </template>
 
   </section>
+
+    <Teleport to="body">
+      <div
+        v-if="activeMatchingPicker && activeMatchingQuestion"
+        class="amv-matching-picker-backdrop"
+        role="presentation"
+        tabindex="-1"
+        @click.self="closeMatchingPicker"
+        @keydown.esc.stop.prevent="closeMatchingPicker"
+      >
+        <section
+          class="amv-matching-picker amv-matching-picker--popover"
+          :style="matchingPickerStyle"
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="amv-matching-picker-title"
+          tabindex="-1"
+        >
+          <header class="amv-matching-picker__header">
+            <div class="amv-matching-picker__eyebrow">EMPAREJAMIENTO</div>
+            <h2 id="amv-matching-picker-title">Elige una respuesta</h2>
+            <p>Concepto: <strong>{{ activeMatchingPicker.left }}</strong></p>
+            <button
+              type="button"
+              class="amv-matching-picker__close"
+              aria-label="Cerrar opciones"
+              @click="closeMatchingPicker"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </header>
+
+          <div class="amv-matching-picker__list" role="listbox" :aria-label="`Respuestas para ${activeMatchingPicker.left}`">
+            <button
+              v-for="(choice, choiceIndex) in getMatchingChoices(activeMatchingQuestion)"
+              :key="`${choice}-${choiceIndex}`"
+              type="button"
+              role="option"
+              class="amv-matching-picker__option"
+              :aria-selected="getMatchingSelection(activeMatchingQuestion.id, activeMatchingPicker.left) === choice"
+              :class="{
+                'amv-matching-picker__option--selected': getMatchingSelection(activeMatchingQuestion.id, activeMatchingPicker.left) === choice,
+                'amv-matching-picker__option--used': isMatchingChoiceUsed(activeMatchingQuestion, activeMatchingPicker.left, choice),
+              }"
+              :disabled="isMatchingChoiceUsed(activeMatchingQuestion, activeMatchingPicker.left, choice)"
+              @click="chooseMatchingChoice(choice)"
+            >
+              <span class="amv-matching-picker__option-marker">{{ String.fromCharCode(65 + (choiceIndex % 26)) }}</span>
+              <span class="amv-matching-picker__option-text">{{ choice }}</span>
+              <span v-if="getMatchingSelection(activeMatchingQuestion.id, activeMatchingPicker.left) === choice" class="amv-matching-picker__option-check" aria-hidden="true">✓</span>
+              <span v-else-if="isMatchingChoiceUsed(activeMatchingQuestion, activeMatchingPicker.left, choice)" class="amv-matching-picker__option-note">Usada</span>
+            </button>
+          </div>
+
+          <footer class="amv-matching-picker__footer">
+            <span>Cada alternativa se usa una sola vez.</span>
+            <button type="button" @click="closeMatchingPicker">Volver</button>
+          </footer>
+        </section>
+      </div>
+    </Teleport>
 </template>
 
 <script setup>
@@ -1393,6 +1430,17 @@ const lesson = ref(null)
 const allLessons = ref([])
 
 const answers = ref({})
+
+// Estado del selector emergente de emparejamiento (Kahoot-inspired).
+const activeMatchingPicker = ref(null)
+const matchingPickerStyle = ref({})
+const activeMatchingQuestion = computed(() => {
+  const activeId = Number(activeMatchingPicker.value?.questionId)
+  if (!Number.isFinite(activeId)) return null
+  return questions.value.find(question => Number(question.id) === activeId) || null
+})
+let matchingPickerOpener = null
+let matchingPickerPreviousOverflow = ''
 
 const isLoading = ref(true)
 const isSubmitting = ref(false)
@@ -2236,6 +2284,78 @@ const updateMatchingSelection = (question, left, value) => {
   scheduleAnswerSave(question.id, 200)
 }
 
+
+const positionMatchingPicker = () => {
+  const opener = matchingPickerOpener
+  if (!activeMatchingPicker.value || !opener?.isConnected || typeof window === 'undefined') return
+
+  const rect = opener.getBoundingClientRect()
+  const viewportWidth = document.documentElement.clientWidth || window.innerWidth
+  const viewportHeight = window.innerHeight
+  const margin = 12
+  const width = Math.max(0, Math.min(380, viewportWidth - margin * 2))
+  const question = activeMatchingQuestion.value
+  const choiceCount = getMatchingChoices(question).length
+  const maxHeight = Math.min(440, Math.floor(viewportHeight * 0.68))
+  const estimatedHeight = Math.min(maxHeight, 122 + choiceCount * 56 + 64)
+
+  const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin))
+  const roomBelow = viewportHeight - rect.bottom - 8 - margin
+  const roomAbove = rect.top - 8 - margin
+  let top = roomBelow >= Math.min(estimatedHeight, 230)
+    ? rect.bottom + 8
+    : rect.top - Math.min(estimatedHeight, roomAbove) - 8
+
+  top = Math.max(margin, Math.min(top, viewportHeight - Math.min(estimatedHeight, maxHeight) - margin))
+  matchingPickerStyle.value = {
+    top: `${top}px`,
+    left: `${left}px`,
+    width: `${width}px`,
+    maxHeight: `${maxHeight}px`,
+  }
+}
+
+const openMatchingPicker = async (question, left, opener = null) => {
+  if (!question || !left || !opener) return
+  matchingPickerOpener = opener
+  if (!activeMatchingPicker.value && typeof document !== 'undefined') {
+    matchingPickerPreviousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+  }
+  activeMatchingPicker.value = {
+    questionId: Number(question.id),
+    left: String(left),
+  }
+  await nextTick()
+  positionMatchingPicker()
+  await nextTick()
+  const selected = document.querySelector('.amv-matching-picker__option--selected:not(:disabled)')
+  const firstAvailable = document.querySelector('.amv-matching-picker__option:not(:disabled)')
+  ;(selected || firstAvailable || document.querySelector('.amv-matching-picker__close'))?.focus()
+}
+
+const closeMatchingPicker = async () => {
+  if (!activeMatchingPicker.value) return
+  activeMatchingPicker.value = null
+  matchingPickerStyle.value = {}
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = matchingPickerPreviousOverflow
+  }
+  const opener = matchingPickerOpener
+  matchingPickerOpener = null
+  await nextTick()
+  if (opener?.isConnected && typeof opener.focus === 'function') opener.focus()
+}
+
+const chooseMatchingChoice = choice => {
+  const picker = activeMatchingPicker.value
+  const question = activeMatchingQuestion.value
+  if (!picker || !question || !choice) return
+  if (isMatchingChoiceUsed(question, picker.left, choice)) return
+  updateMatchingSelection(question, picker.left, choice)
+  closeMatchingPicker()
+}
+
 /* =========================================================
    ORDENAR · V9
 ========================================================= */
@@ -2985,6 +3105,7 @@ watch(
     route.params.quizId,
   ],
   async () => {
+    closeMatchingPicker()
     stopTimer()
 
     for (
@@ -3008,6 +3129,11 @@ onMounted(
 )
 
 onBeforeUnmount(() => {
+  if (activeMatchingPicker.value && typeof document !== 'undefined') {
+    document.body.style.overflow = matchingPickerPreviousOverflow
+  }
+  activeMatchingPicker.value = null
+  matchingPickerOpener = null
   stopTimer()
 
   for (
@@ -10693,4 +10819,1229 @@ textarea:focus {
   }
 }
 
+</style>
+
+
+<style lang="scss">
+/* =========================================================
+   AMV MOBILE UX PATCH · 2026-10
+   Scope: student quiz controls, with matching clear-button fix.
+   No data/state logic changed. Desktop remains unchanged.
+========================================================= */
+@media (max-width: 760px) {
+  .quiz-page {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px 10px 28px !important;
+    overflow-x: clip !important;
+  }
+
+  .quiz-hero {
+    min-height: 0 !important;
+    padding: 15px !important;
+    border-radius: 20px !important;
+  }
+
+  .quiz-progress {
+    top: 4px !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 5px 16px rgba(23, 32, 51, 0.07) !important;
+  }
+
+  .question-panel {
+    min-width: 0 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 28px rgba(25, 35, 56, 0.07) !important;
+  }
+
+  .question-content {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 16px 12px 18px !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+
+  .question-content h2 {
+    margin: 0 auto 14px !important;
+    font-size: clamp(1.28rem, 5.8vw, 1.72rem) !important;
+    line-height: 1.16 !important;
+    letter-spacing: -0.025em !important;
+    overflow-wrap: anywhere;
+  }
+
+  .question-meta-rail {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .question-meta-pill {
+    min-height: 30px !important;
+    padding-inline: 9px !important;
+    font-size: 0.59rem !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .options-list {
+    gap: 8px !important;
+  }
+
+  .option-card {
+    box-sizing: border-box !important;
+    min-height: 64px !important;
+    padding: 10px 11px !important;
+    gap: 9px !important;
+    border-radius: 16px !important;
+    transform: none !important;
+    transition: border-color 0.15s ease, background-color 0.15s ease !important;
+    box-shadow: 0 3px 10px rgba(31, 48, 73, 0.035) !important;
+  }
+
+  .option-card__marker {
+    width: 34px !important;
+    height: 34px !important;
+    flex: 0 0 34px !important;
+  }
+
+  .option-card strong {
+    min-width: 0 !important;
+    font-size: 0.84rem !important;
+    line-height: 1.38 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .audio-experience {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 11px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 12px rgba(31, 48, 73, 0.04) !important;
+  }
+
+  .audio-experience__icon {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 12px !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+
+  .text-answer input,
+  .text-answer textarea {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .text-answer input {
+    min-height: 50px !important;
+  }
+
+  .text-answer textarea {
+    min-height: 150px !important;
+    padding: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  .question-actions {
+    gap: 8px !important;
+    padding: 11px 12px !important;
+    background: #fff !important;
+  }
+
+  .question-actions .button {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    padding: 10px 12px !important;
+    border-radius: 13px !important;
+    font-size: 0.78rem !important;
+    white-space: normal !important;
+  }
+
+  /* Matching: two tidy rows per item. The clear control gets its own
+     top-right grid cell instead of overlapping the selector. */
+  .matching-question {
+    min-width: 0 !important;
+  }
+
+  .matching-question__intro {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 11px 12px !important;
+    margin-bottom: 10px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 12px rgba(78, 70, 126, 0.035) !important;
+  }
+
+  .matching-question__intro > div {
+    min-width: 0 !important;
+  }
+
+  .matching-question__intro > div p {
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .matching-question__intro > strong {
+    flex: 0 0 42px !important;
+    width: 42px !important;
+    min-height: 38px !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+  }
+
+  .matching-question__list {
+    gap: 9px !important;
+    overflow: visible !important;
+  }
+
+  .matching-question__row {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) 44px !important;
+    grid-template-areas:
+      "number concept clear"
+      "select select select" !important;
+    align-items: center !important;
+    gap: 9px 10px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 10px !important;
+    border-width: 1px !important;
+    border-radius: 17px !important;
+    overflow: visible !important;
+    transform: none !important;
+    transition: border-color 0.15s ease, background-color 0.15s ease !important;
+    box-shadow: 0 3px 12px rgba(31, 48, 73, 0.035) !important;
+  }
+
+  .matching-question__number {
+    grid-area: number !important;
+    width: 34px !important;
+    height: 34px !important;
+    align-self: start !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    font-size: 0.76rem !important;
+  }
+
+  .matching-question__concept {
+    grid-area: concept !important;
+    min-width: 0 !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    align-self: center !important;
+  }
+
+  .matching-question__concept > span {
+    font-size: 0.55rem !important;
+    letter-spacing: 0.09em !important;
+  }
+
+  .matching-question__concept > strong {
+    display: block !important;
+    min-width: 0 !important;
+    font-size: 0.9rem !important;
+    line-height: 1.24 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .matching-question__arrow {
+    display: none !important;
+  }
+
+  .matching-select {
+    grid-area: select !important;
+    display: block !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .matching-select__trigger {
+    box-sizing: border-box !important;
+    display: flex !important;
+    width: 100% !important;
+    min-height: 52px !important;
+    gap: 8px !important;
+    padding: 9px 12px !important;
+    border-width: 1.5px !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .matching-select__trigger > span {
+    display: -webkit-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    font-size: 0.82rem !important;
+    font-weight: 650 !important;
+    line-height: 1.28 !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  .matching-select__trigger::after {
+    flex: 0 0 8px !important;
+  }
+
+  .matching-question__clear {
+    grid-area: clear !important;
+    display: grid !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    place-items: center !important;
+    justify-self: end !important;
+    align-self: start !important;
+    box-sizing: border-box !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid #edc5d1 !important;
+    border-radius: 12px !important;
+    color: #ad174d !important;
+    background: #fff3f6 !important;
+    box-shadow: none !important;
+    font-size: 1.35rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    transform: none !important;
+  }
+
+  .matching-question__clear:active {
+    background: #fbe1e9 !important;
+    border-color: #d98ca6 !important;
+  }
+
+  .matching-select__menu {
+    max-height: min(42dvh, 300px) !important;
+    padding: 6px !important;
+    border-radius: 15px !important;
+    background: #fff !important;
+    box-shadow: 0 12px 32px rgba(24, 34, 54, 0.18) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    animation: none !important;
+  }
+
+  .matching-select__option {
+    min-height: 48px !important;
+    padding: 10px !important;
+    border-radius: 11px !important;
+    font-size: 0.82rem !important;
+    line-height: 1.3 !important;
+    transition: background-color 0.12s ease !important;
+  }
+
+  .matching-select__option:hover:not(:disabled) {
+    transform: none !important;
+  }
+
+  .matching-question__row:has(.matching-select[open]) {
+    z-index: 1200 !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .matching-question__list:has(.matching-select[open]),
+  .matching-question:has(.matching-select[open]),
+  .question-panel:has(.matching-select[open]),
+  .question-content:has(.matching-select[open]) {
+    overflow: visible !important;
+  }
+
+  /* Ordering remains usable without drag precision: arrow controls stay
+     visible and gain a comfortable touch area. */
+  .ordering-question__list {
+    gap: 8px !important;
+    perspective: none !important;
+  }
+
+  .ordering-question__item {
+    grid-template-columns: 36px 18px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    min-height: 64px !important;
+    padding: 9px 10px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 3px 10px rgba(31, 48, 73, 0.04) !important;
+    transform: none !important;
+    transition: border-color 0.14s ease, background-color 0.14s ease !important;
+  }
+
+  .ordering-question__position {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  .ordering-question__handle {
+    display: none !important;
+  }
+
+  .ordering-question__item > strong {
+    grid-column: 2 / -1 !important;
+    min-width: 0 !important;
+    font-size: 0.85rem !important;
+    line-height: 1.35 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .ordering-question__controls {
+    grid-column: 2 / -1 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  .ordering-question__controls button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    transition: border-color 0.12s ease, background-color 0.12s ease !important;
+  }
+
+  .ordering-question__controls button:hover:not(:disabled) {
+    transform: none !important;
+  }
+
+  .ordering-question__footer {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .interactive-secondary,
+  .interactive-primary {
+    width: 100% !important;
+    min-height: 48px !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Avoid ornamental effects that cost paint/compositing on touch screens. */
+  .quiz-page::before,
+  .quiz-page::after,
+  .question-content::before,
+  .question-content::after,
+  .matching-question::before,
+  .matching-question__intro::after,
+  .ordering-question::before,
+  .option-card::after,
+  .question-actions .button--primary::after,
+  .quiz-progress__bar span::after {
+    animation: none !important;
+    filter: none !important;
+  }
+
+  .option-card::after,
+  .question-actions .button--primary::after,
+  .quiz-progress__bar span::after {
+    display: none !important;
+  }
+
+  .option-card:hover,
+  .option-card--selected,
+  .ordering-question__item:hover,
+  .matching-question__row:hover {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .quiz-page {
+    padding-inline: 8px !important;
+  }
+
+  .question-content {
+    padding: 14px 10px 16px !important;
+  }
+
+  .question-content h2 {
+    font-size: clamp(1.22rem, 6vw, 1.55rem) !important;
+  }
+
+  .question-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .question-actions__center {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+  }
+
+  .question-actions .button {
+    width: 100% !important;
+    min-height: 48px !important;
+    padding-inline: 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .matching-question__row {
+    grid-template-columns: 32px minmax(0, 1fr) 44px !important;
+    gap: 8px !important;
+    padding: 9px !important;
+  }
+
+  .matching-question__number {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .matching-question__concept > strong {
+    font-size: 0.85rem !important;
+  }
+
+  .matching-select__trigger {
+    min-height: 50px !important;
+    padding: 8px 10px !important;
+  }
+
+  .matching-select__trigger > span {
+    font-size: 0.79rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-page *,
+  .quiz-page *::before,
+  .quiz-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* =========================================================
+   AMV MOBILE MATCHING FIX V2
+   Native select avoids the custom details menu collapsing into a
+   narrow overlay on mobile. Clear action shares a stable grid row.
+========================================================= */
+.matching-question__row {
+  grid-template-columns: 32px minmax(140px, .95fr) 28px minmax(170px, 1.2fr) minmax(92px, auto) !important;
+}
+
+.matching-select {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  z-index: 2 !important;
+}
+
+.matching-select__native {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 50px !important;
+  margin: 0 !important;
+  padding: 10px 34px 10px 12px !important;
+  border: 1.5px solid #d5dfea !important;
+  border-radius: 14px !important;
+  color: #34445c !important;
+  background-color: #fff !important;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #77869a 50%),
+    linear-gradient(135deg, #77869a 50%, transparent 50%) !important;
+  background-position:
+    calc(100% - 17px) 21px,
+    calc(100% - 12px) 21px !important;
+  background-size: 5px 5px, 5px 5px !important;
+  background-repeat: no-repeat !important;
+  font: inherit !important;
+  font-size: .86rem !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+  text-overflow: ellipsis !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+.matching-select__native:focus-visible {
+  border-color: #bd0b46 !important;
+  outline: 3px solid rgba(189, 11, 70, .17) !important;
+  outline-offset: 2px !important;
+}
+
+.matching-select__native option {
+  color: #26354b;
+  background: #fff;
+  white-space: normal;
+}
+
+.matching-select__native option:disabled {
+  color: #9aa4b2;
+}
+
+.matching-question__clear {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: 92px !important;
+  min-width: 92px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  border: 1px solid #a70b3c !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  background: #bd0b46 !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-size: .78rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.matching-question__clear:hover:not(:disabled),
+.matching-question__clear:active:not(:disabled) {
+  border-color: #820831 !important;
+  background: #990a39 !important;
+}
+
+.matching-question__clear:disabled {
+  color: #fff !important;
+  background: #8f123b !important;
+  border-color: #8f123b !important;
+  cursor: not-allowed !important;
+  opacity: .78 !important;
+}
+
+@media (max-width: 760px) {
+  .matching-question__row {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) 88px !important;
+    grid-template-areas:
+      "number concept concept"
+      "select select clear" !important;
+    align-items: center !important;
+    gap: 9px 8px !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    padding: 10px !important;
+  }
+
+  .matching-question__number {
+    grid-area: number !important;
+  }
+
+  .matching-question__concept {
+    grid-area: concept !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    min-width: 0 !important;
+  }
+
+  .matching-question__arrow {
+    display: none !important;
+  }
+
+  .matching-select {
+    grid-area: select !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .matching-select__native {
+    width: 100% !important;
+    min-height: 50px !important;
+    padding: 9px 31px 9px 10px !important;
+    background-position:
+      calc(100% - 15px) 21px,
+      calc(100% - 10px) 21px !important;
+    font-size: .8rem !important;
+  }
+
+  .matching-question__clear {
+    grid-area: clear !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    justify-self: stretch !important;
+    align-self: stretch !important;
+    width: 88px !important;
+    min-width: 88px !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    padding: 0 6px !important;
+    border-radius: 12px !important;
+    font-size: .77rem !important;
+  }
+
+  /* We use the platform's native select popup, not an absolutely
+     positioned HTML menu that can be clipped by viewport containers. */
+  .matching-select__menu,
+  .matching-select__trigger {
+    display: none !important;
+  }
+
+  .matching-question__row:focus-within {
+    z-index: 5 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .matching-question__row {
+    grid-template-columns: 32px minmax(0, 1fr) 82px !important;
+    gap: 8px 7px !important;
+    padding: 9px !important;
+  }
+
+  .matching-question__clear {
+    width: 82px !important;
+    min-width: 82px !important;
+    font-size: .73rem !important;
+  }
+
+  .matching-select__native {
+    font-size: .77rem !important;
+  }
+}
+
+
+
+/* =========================================================
+   AMV MATCHING POPOVER V5
+   Anchored, viewport-aware options panel. The selected label remains
+   visible in the trigger; mobile rows keep selector and clear action
+   in distinct, predictable grid areas.
+========================================================= */
+button.amv-matching-trigger {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 48px !important;
+  height: auto !important;
+  padding: 10px 12px !important;
+  border: 1.5px solid #d5dfea !important;
+  border-radius: 13px !important;
+  color: #34445c !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  text-align: left !important;
+  line-height: 1.35 !important;
+  cursor: pointer !important;
+}
+button.amv-matching-trigger:hover,
+button.amv-matching-trigger:focus-visible,
+button.amv-matching-trigger[aria-expanded="true"] {
+  border-color: #bd0b46 !important;
+  outline: 3px solid rgba(189, 11, 70, .12) !important;
+  outline-offset: 1px !important;
+}
+button.amv-matching-trigger > span {
+  display: block !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  text-overflow: clip !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: initial !important;
+  color: #34445c !important;
+  font-weight: 650 !important;
+}
+button.amv-matching-trigger > span.amv-matching-trigger__placeholder {
+  color: #8390a3 !important;
+  font-weight: 500 !important;
+}
+button.amv-matching-trigger > svg {
+  flex: 0 0 19px !important;
+  width: 19px !important;
+  height: 19px !important;
+  color: #77869a !important;
+}
+
+.amv-matching-picker-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100000 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  padding: 0 !important;
+  background: rgba(13, 20, 36, .10) !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.amv-matching-picker.amv-matching-picker--popover {
+  position: fixed !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  width: min(380px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  min-width: 0 !important;
+  max-height: min(68dvh, 440px) !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #eadce4 !important;
+  border-radius: 18px !important;
+  color: #172238 !important;
+  background: #fffdfd !important;
+  box-shadow: 0 14px 38px rgba(5, 12, 27, .22), 0 3px 10px rgba(5, 12, 27, .08) !important;
+  outline: none !important;
+  transform: none !important;
+  animation: amv-popover-enter .12s ease-out both;
+}
+@keyframes amv-popover-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.amv-matching-picker__header {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  padding: 15px 52px 12px 16px !important;
+  border-bottom: 1px solid #f0e2e8 !important;
+  background: linear-gradient(135deg, #fff8fb, #fffdf7) !important;
+}
+.amv-matching-picker__eyebrow {
+  margin-bottom: 5px !important;
+  color: #a36f00 !important;
+  font-size: .62rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .11em !important;
+}
+.amv-matching-picker__header h2 {
+  margin: 0 0 5px !important;
+  color: #182238 !important;
+  font-size: 1.08rem !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.02em !important;
+}
+.amv-matching-picker__header p {
+  margin: 0 !important;
+  color: #657287 !important;
+  font-size: .8rem !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere !important;
+}
+.amv-matching-picker__header p strong {
+  color: #bd0b46 !important;
+  font-weight: 800 !important;
+}
+.amv-matching-picker__close {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  border: 1px solid #ecd9e1 !important;
+  border-radius: 12px !important;
+  color: #922044 !important;
+  background: #fff !important;
+  font: inherit !important;
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+}
+.amv-matching-picker__list {
+  display: grid !important;
+  flex: 1 1 auto !important;
+  gap: 7px !important;
+  min-height: 0 !important;
+  padding: 10px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.amv-matching-picker__option {
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr) 20px !important;
+  align-items: center !important;
+  gap: 9px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  height: auto !important;
+  padding: 8px 9px !important;
+  border: 1px solid #dbe3ec !important;
+  border-radius: 12px !important;
+  color: #283952 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  white-space: normal !important;
+}
+.amv-matching-picker__option:hover:not(:disabled),
+.amv-matching-picker__option:focus-visible {
+  border-color: #dba4b9 !important;
+  background: #fff5f8 !important;
+  outline: 2px solid rgba(189, 11, 70, .11) !important;
+  outline-offset: 1px !important;
+}
+.amv-matching-picker__option-marker {
+  display: grid !important;
+  place-items: center !important;
+  width: 29px !important;
+  height: 29px !important;
+  border-radius: 9px !important;
+  color: #a70b3c !important;
+  background: #fbe8ef !important;
+  font-size: .72rem !important;
+  font-weight: 900 !important;
+}
+.amv-matching-picker__option-text {
+  min-width: 0 !important;
+  color: inherit !important;
+  font-size: .85rem !important;
+  font-weight: 650 !important;
+  line-height: 1.32 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+.amv-matching-picker__option-check {
+  display: grid !important;
+  place-items: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+  background: #bd0b46 !important;
+  font-size: .72rem !important;
+  font-weight: 900 !important;
+}
+.amv-matching-picker__option--selected {
+  border-color: #bd0b46 !important;
+  background: #fff3f7 !important;
+}
+.amv-matching-picker__option--used {
+  color: #8792a2 !important;
+  background: #f5f7fa !important;
+  cursor: not-allowed !important;
+  opacity: .62 !important;
+}
+.amv-matching-picker__option-note {
+  color: #7c8796 !important;
+  font-size: .62rem !important;
+  font-weight: 800 !important;
+}
+.amv-matching-picker__footer {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
+  border-top: 1px solid #edf0f4 !important;
+  background: #fff !important;
+}
+.amv-matching-picker__footer > span {
+  min-width: 0 !important;
+  color: #6d788b !important;
+  font-size: .68rem !important;
+  line-height: 1.3 !important;
+}
+.amv-matching-picker__footer > button {
+  flex: 0 0 auto !important;
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  color: #fff !important;
+  background: #bd0b46 !important;
+  font: inherit !important;
+  font-size: .78rem !important;
+  font-weight: 850 !important;
+  cursor: pointer !important;
+}
+
+@media (max-width: 760px) {
+  .quiz-page .matching-question .matching-question__row {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) 88px !important;
+    grid-template-areas: "number concept concept" "select select clear" !important;
+    align-items: center !important;
+    gap: 9px 8px !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    padding: 10px !important;
+  }
+  .quiz-page .matching-question .matching-question__number {
+    grid-area: number !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    align-self: start !important;
+  }
+  .quiz-page .matching-question .matching-question__concept {
+    grid-area: concept !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    min-width: 0 !important;
+  }
+  .quiz-page .matching-question .matching-question__arrow { display: none !important; }
+  .quiz-page .matching-question .matching-select {
+    grid-area: select !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    justify-self: stretch !important;
+  }
+  .quiz-page .matching-question button.amv-matching-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 48px !important;
+    height: auto !important;
+    padding: 10px 10px !important;
+    font-size: .82rem !important;
+  }
+  .quiz-page .matching-question .matching-question__clear {
+    grid-area: clear !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    justify-self: stretch !important;
+    align-self: stretch !important;
+    width: 88px !important;
+    min-width: 88px !important;
+    max-width: 88px !important;
+    min-height: 48px !important;
+    height: auto !important;
+    padding: 0 5px !important;
+    border-radius: 12px !important;
+    font-size: .74rem !important;
+  }
+}
+
+@media (max-width: 370px) {
+  .quiz-page .matching-question .matching-question__row {
+    grid-template-columns: 32px minmax(0, 1fr) 78px !important;
+    gap: 8px 6px !important;
+    padding: 8px !important;
+  }
+  .quiz-page .matching-question .matching-question__clear {
+    width: 78px !important;
+    min-width: 78px !important;
+    max-width: 78px !important;
+    font-size: .7rem !important;
+  }
+  .quiz-page .matching-question button.amv-matching-trigger { font-size: .78rem !important; }
+  .amv-matching-picker.amv-matching-picker--popover { max-width: calc(100vw - 20px) !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .amv-matching-picker.amv-matching-picker--popover { animation: none !important; }
+}
+
+
+/* =========================================================
+   AMV MATCHING MOBILE LAYOUT V5
+   Give the selected label a full-width row. The old layout reserved an
+   88px clear column beside the trigger, leaving too little room for text.
+   Clear is rendered only for an actual selection, keeping unanswered rows
+   compact while preserving the familiar carmine action after selection.
+========================================================= */
+@media (max-width: 760px) {
+  .quiz-page .matching-question .matching-question__row {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) !important;
+    grid-template-areas:
+      "number concept"
+      "select select"
+      "clear clear" !important;
+    align-items: center !important;
+    gap: 11px 11px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+    overflow: visible !important;
+    border-radius: 17px !important;
+    box-sizing: border-box !important;
+  }
+
+  .quiz-page .matching-question .matching-question__number {
+    grid-area: number !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    align-self: start !important;
+  }
+
+  .quiz-page .matching-question .matching-question__concept {
+    grid-area: concept !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    align-self: center !important;
+  }
+
+  .quiz-page .matching-question .matching-question__concept > strong {
+    display: block !important;
+    font-size: .94rem !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  .quiz-page .matching-question .matching-question__arrow {
+    display: none !important;
+  }
+
+  .quiz-page .matching-question .matching-select {
+    grid-area: select !important;
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .quiz-page .matching-question button.amv-matching-trigger {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 54px !important;
+    height: auto !important;
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    font-size: .9rem !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+  }
+
+  .quiz-page .matching-question button.amv-matching-trigger > span {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+    text-overflow: clip !important;
+    -webkit-line-clamp: unset !important;
+  }
+
+  .quiz-page .matching-question button.amv-matching-trigger > svg {
+    flex: 0 0 19px !important;
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  .quiz-page .matching-question .matching-question__clear {
+    grid-area: clear !important;
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    justify-self: end !important;
+    align-self: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    width: 104px !important;
+    min-width: 104px !important;
+    max-width: 104px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 14px !important;
+    border: 1px solid #a70b3c !important;
+    border-radius: 12px !important;
+    color: #fff !important;
+    background: #bd0b46 !important;
+    box-shadow: none !important;
+    font-size: .8rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    opacity: 1 !important;
+    cursor: pointer !important;
+  }
+
+  .quiz-page .matching-question .matching-question__clear:hover,
+  .quiz-page .matching-question .matching-question__clear:active {
+    color: #fff !important;
+    background: #990a39 !important;
+    border-color: #820831 !important;
+  }
+
+  .quiz-page .matching-question .matching-question__row:has(.amv-matching-trigger[aria-expanded="true"]) {
+    z-index: 1200 !important;
+  }
+}
+
+@media (max-width: 370px) {
+  .quiz-page .matching-question .matching-question__row {
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+  .quiz-page .matching-question button.amv-matching-trigger {
+    padding: 11px 12px !important;
+    font-size: .86rem !important;
+  }
+  .quiz-page .matching-question .matching-question__clear {
+    width: 98px !important;
+    min-width: 98px !important;
+    max-width: 98px !important;
+  }
+}
 </style>
