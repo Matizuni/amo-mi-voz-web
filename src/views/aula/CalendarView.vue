@@ -12,6 +12,25 @@
     </section>
 
     <template v-else>
+      <header class="calendar-page-banner">
+        <div class="calendar-page-banner__copy">
+          <span class="calendar-page-banner__eyebrow">AULA VIRTUAL · ORGANIZACIÓN</span>
+          <h1>Calendario</h1>
+          <p>Clases, tareas, evaluaciones y eventos de la academia en un solo lugar.</p>
+        </div>
+        <div class="calendar-page-banner__actions">
+          <span class="calendar-page-banner__count">{{ filteredEvents.length }} {{ filteredEvents.length === 1 ? 'evento visible' : 'eventos visibles' }}</span>
+          <button
+            v-if="isTeacher"
+            type="button"
+            class="calendar-page-banner__action"
+            @click="openCreateEvent(selectedDateKey)"
+          >
+            <span aria-hidden="true">＋</span> Nuevo evento
+          </button>
+        </div>
+      </header>
+
       <header class="calendar-toolbar calendar-toolbar--compact">
         <div class="calendar-toolbar__top">
           <div class="month-nav" aria-label="Navegación mensual">
@@ -25,14 +44,6 @@
 
           <div class="calendar-toolbar__actions">
             <button class="today-button" type="button" @click="goToday">Hoy</button>
-            <button
-              v-if="isTeacher"
-              type="button"
-              class="primary-action primary-action--compact"
-              @click="openCreateEvent(selectedDateKey)"
-            >
-              <span aria-hidden="true">＋</span> Nuevo evento
-            </button>
           </div>
         </div>
 
@@ -816,6 +827,58 @@ onUnmounted(() => {
 
 button,input,select,textarea { font:inherit; }
 button { cursor:pointer; }
+
+.calendar-page-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+  margin: 0 0 4px;
+  padding: 30px 36px;
+  border: 0;
+  border-radius: 14px;
+  background: #bd0b46;
+  color: #fff;
+  box-shadow: none;
+}
+.calendar-page-banner__copy { min-width: 0; }
+.calendar-page-banner__eyebrow {
+  display: block; margin: 0 0 7px;
+  color: rgba(255,255,255,.88); font-size: .65rem; font-weight: 850;
+  letter-spacing: .14em; text-transform: uppercase;
+}
+.calendar-page-banner h1 {
+  margin: 0; color: #fff;
+  font-family: "Arial Narrow", "Roboto Condensed", "Aptos Narrow", Impact, sans-serif;
+  font-size: clamp(2.4rem, 5vw, 3.4rem); font-weight: 850;
+  line-height: .98; letter-spacing: -.025em; text-transform: uppercase;
+}
+.calendar-page-banner p {
+  max-width: 65ch; margin: .6rem 0 0;
+  color: rgba(255,255,255,.9); font-size: .9rem; line-height: 1.5;
+}
+.calendar-page-banner__actions {
+  display: flex; flex: 0 0 auto; align-items: flex-end;
+  flex-direction: column; gap: 10px;
+}
+.calendar-page-banner__count { color: rgba(255,255,255,.92); font-size: .74rem; font-weight: 800; }
+.calendar-page-banner__action {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 42px; padding: 0 16px;
+  border: 1px solid rgba(255,255,255,.78); border-radius: 9px;
+  background: rgba(255,255,255,.08); color: #fff;
+  font-size: .76rem; font-weight: 850; cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+.calendar-page-banner__action:hover:not(:disabled) { background: #fff; border-color: #fff; color: #bd0b46; }
+.calendar-page-banner__action:focus-visible { outline: 3px solid rgba(255,255,255,.65); outline-offset: 3px; }
+@media (max-width: 720px) {
+  .calendar-page-banner { align-items: flex-start; flex-direction: column; gap: 16px; padding: 22px 18px; }
+  .calendar-page-banner__actions { align-items: flex-start; width: 100%; }
+  .calendar-page-banner__action { width: 100%; }
+  .calendar-page-banner h1 { font-size: clamp(2rem, 8vw, 2.75rem); }
+}
 
 .calendar-hero {
   display:flex;

@@ -4,14 +4,6 @@
          HERO
     ========================================================== -->
     <section class="vocal-hero">
-      <div class="vocal-hero__glow vocal-hero__glow--wine"></div>
-      <div class="vocal-hero__glow vocal-hero__glow--gold"></div>
-      <div class="vocal-hero__wave vocal-hero__wave--one"></div>
-      <div class="vocal-hero__wave vocal-hero__wave--two"></div>
-      <div class="vocal-hero__particles" aria-hidden="true">
-        <i v-for="n in 10" :key="n" :style="{ '--i': n }"></i>
-      </div>
-
       <div class="vocal-hero__copy">
         <span class="vocal-kicker">
           <i></i>

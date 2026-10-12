@@ -58,9 +58,6 @@
         </div>
 
         <div class="amv-hero__visuals" aria-hidden="true">
-          <div class="amv-hero__soundscape">
-            <i v-for="n in 18" :key="`wave-${n}`" :style="{ '--bar-delay': `${n * 0.045}s`, '--bar-scale': `${0.35 + ((n * 17) % 55) / 100}` }"></i>
-          </div>
           <div v-if="!isTeacher" class="amv-progress-ring" :style="{ '--progress-angle': `${lessonItemPercentage * 3.6}deg` }">
             <strong>{{ lessonItemPercentage }}%</strong>
             <span>avance</span>

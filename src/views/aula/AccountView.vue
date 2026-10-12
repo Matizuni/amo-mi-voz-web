@@ -7,23 +7,6 @@
         <p>Administra los datos que aparecen en el Aula Virtual y mantén tu acceso protegido.</p>
       </div>
 
-      <div class="profile-hero__identity">
-        <button
-          type="button"
-          class="profile-avatar profile-avatar--hero"
-          title="Cambiar foto de perfil"
-          @click="chooseAvatar"
-        >
-          <img v-if="avatarPreview" :src="avatarPreview" alt="Foto de perfil" decoding="async">
-          <span v-else>{{ initials }}</span>
-          <small>✎</small>
-        </button>
-        <div>
-          <span>{{ roleLabel }}</span>
-          <strong>{{ form.displayName || 'Usuario' }}</strong>
-          <small v-if="isStudent && student?.voice">{{ student.voice }}</small>
-        </div>
-      </div>
     </header>
 
     <input
@@ -313,24 +296,15 @@ onBeforeUnmount(() => {
 .profile-hero,.overview-card,.profile-editor-card,.academic-grid article,.security-card,.security-note {
   border:1px solid var(--line); background:var(--surface); box-shadow:0 16px 38px rgba(18,31,51,.055);
 }
-.profile-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr auto; gap:28px; padding:34px; border-radius:26px; background:
-  radial-gradient(circle at 85% 10%,rgba(217,169,29,.18),transparent 26%),
-  radial-gradient(circle at 72% 90%,rgba(166,25,74,.08),transparent 30%), linear-gradient(135deg,#fff,#fbfcfe 64%,#fff9ef); }
-.profile-hero::before { content:''; position:absolute; inset:0; background:linear-gradient(110deg,transparent 10%,rgba(255,255,255,.7) 42%,transparent 74%); transform:translateX(-110%); animation:shine 5.5s ease-in-out infinite; pointer-events:none; }
-@keyframes shine { 0%,55%{transform:translateX(-110%)} 75%,100%{transform:translateX(110%)} }
-.profile-kicker { color:var(--gold-deep); font-weight:900; font-size:.68rem; letter-spacing:.18em; }
-.profile-kicker i { display:inline-block; width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:8px;box-shadow:0 0 14px rgba(43,150,109,.45); }
-.profile-hero h1 { margin:14px 0 12px; font-size:clamp(3rem,6vw,5.2rem); line-height:.94; letter-spacing:-.06em; }
-.profile-hero h1 span { color:var(--gold-deep); }
-.profile-hero p { max-width:660px; margin:0; color:var(--muted); font-size:.95rem; line-height:1.7; }
-.profile-hero__identity { display:flex; align-items:center; gap:15px; align-self:center; min-width:260px; }
-.profile-hero__identity > div { display:flex; flex-direction:column; min-width:0; }
-.profile-hero__identity span { color:var(--gold-deep); font-size:.58rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
-.profile-hero__identity strong { font-size:1.05rem; margin-top:4px; }
-.profile-hero__identity small { margin-top:3px; color:var(--muted); }
+.profile-hero { position:relative; overflow:hidden; display:flex; align-items:center; min-height:176px; padding:32px 36px; border:0; border-radius:14px; background:#bd0b46; color:#fff; box-shadow:none; }
+.profile-hero::before { content:none; display:none; animation:none; }
+.profile-kicker { color:rgba(255,255,255,.9); font-weight:850; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; }
+.profile-kicker i { display:inline-block; width:7px;height:7px;border-radius:50%;background:#fff;margin-right:8px;box-shadow:none; }
+.profile-hero h1 { margin:12px 0 10px; color:#fff; font-family:"Arial Narrow","Roboto Condensed","Aptos Narrow",Impact,sans-serif; font-size:clamp(2.4rem,5vw,3.4rem); font-weight:850; line-height:.98; letter-spacing:-.025em; text-transform:uppercase; }
+.profile-hero h1 span { color:#fff; }
+.profile-hero p { max-width:660px; margin:0; color:rgba(255,255,255,.9); font-size:.92rem; line-height:1.55; }
 .profile-avatar { position:relative; display:grid; place-items:center; flex:0 0 auto; overflow:hidden; border:0; background:linear-gradient(145deg,#8e123e,#b62159); color:#fff; cursor:pointer; box-shadow:0 12px 28px rgba(166,25,74,.22); }
 .profile-avatar img { width:100%;height:100%;object-fit:cover; }
-.profile-avatar--hero { width:74px;height:74px;border-radius:24px; }
 .profile-avatar--large { width:104px;height:104px;border-radius:30px; border:4px solid #fff; box-shadow:0 15px 35px rgba(166,25,74,.22); }
 .profile-avatar--hero small,.profile-avatar--large b { position:absolute; right:5px; bottom:5px; display:grid;place-items:center; width:24px;height:24px;border-radius:50%;background:#fff;color:var(--wine);font-size:.7rem; }
 .sr-only { position:absolute; width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap; }
@@ -395,7 +369,7 @@ onBeforeUnmount(() => {
 .profile-footer { display:flex;justify-content:center;gap:9px;margin-top:36px;color:#8d98a9;font-size:.54rem;font-weight:900;letter-spacing:.14em; }
 .profile-footer i { width:4px;height:4px;border-radius:50%;background:var(--gold); }
 @media (max-width:900px){ .profile-overview,.academic-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.profile-editor-grid{grid-template-columns:1fr;}.security-card{grid-template-columns:1fr;}.profile-section__header{align-items:flex-start;flex-direction:column;}.profile-section__header p{text-align:left;} }
-@media (max-width:640px){ .profile-page{width:min(100% - 22px,1180px);padding-top:20px;}.profile-hero{grid-template-columns:1fr;padding:22px;border-radius:20px;}.profile-hero__identity{min-width:0;}.profile-overview,.academic-grid{grid-template-columns:1fr;}.profile-tabs{grid-template-columns:1fr;position:static;}.profile-section__header h2{font-size:1.6rem;}.profile-editor-card--photo{align-items:flex-start;flex-direction:column;}.security-card{padding:18px;}.security-card__visual{min-height:160px;} }
+@media (max-width:640px){ .profile-page{width:min(100% - 22px,1180px);padding-top:20px;}.profile-hero{grid-template-columns:1fr;padding:22px;border-radius:14px;}.profile-overview,.academic-grid{grid-template-columns:1fr;}.profile-tabs{grid-template-columns:1fr;position:static;}.profile-section__header h2{font-size:1.6rem;}.profile-editor-card--photo{align-items:flex-start;flex-direction:column;}.security-card{padding:18px;}.security-card__visual{min-height:160px;} }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important;}}
 </style>
 

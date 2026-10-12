@@ -38,9 +38,6 @@
       <template v-else-if="!isLoading && isTeacher">
         <div class="dashboard-v3__content dashboard-v3__content--teacher">
           <header class="hero-panel hero-panel--teacher">
-            <div class="hero-panel__ambient hero-panel__ambient--wine"></div>
-            <div class="hero-panel__ambient hero-panel__ambient--gold"></div>
-            <div class="hero-panel__grid"></div>
             <div class="hero-panel__copy">
               <span class="eyebrow eyebrow--light"><i></i> AULA VIRTUAL · PROFESOR</span>
               <h1>Hola, <strong>{{ firstName }}</strong><span>.</span></h1>
@@ -58,8 +55,6 @@
                 <small>{{ generalAttendancePercentage }}% asistencia general</small>
                 <div class="hero-visual-card__meter"><span :style="{ width: `${generalAttendancePercentage}%` }"></span></div>
               </div>
-              <div class="floating-orb floating-orb--one">✦</div>
-              <div class="floating-orb floating-orb--two">♫</div>
             </div>
           </header>
 
@@ -149,9 +144,6 @@
       <template v-else>
         <div class="dashboard-v3__content dashboard-v3__content--student">
           <header class="hero-panel hero-panel--student">
-            <div class="hero-panel__ambient hero-panel__ambient--wine"></div>
-            <div class="hero-panel__ambient hero-panel__ambient--gold"></div>
-            <div class="hero-panel__grid"></div>
             <div class="hero-panel__copy">
               <span class="eyebrow"><i></i> AULA VIRTUAL · ESTUDIANTE</span>
               <h1>Hola, <strong>{{ firstName }}</strong><span>.</span></h1>
@@ -168,8 +160,6 @@
                 <div class="student-life-card__rings"><div class="life-ring"><strong>{{ studentAttendancePercentage }}%</strong><small>asistencia</small></div><div class="life-ring life-ring--gold"><strong>{{ studentAverageGrade }}</strong><small>promedio</small></div></div>
                 <div class="student-life-card__quote">“Un paso más y seguimos avanzando.”</div>
               </div>
-              <div class="floating-orb floating-orb--one">♪</div>
-              <div class="floating-orb floating-orb--two">✦</div>
             </div>
           </header>
 
