@@ -182,30 +182,15 @@
           </button>
         </div>
 
-        <!-- IDENTIDAD PRINCIPAL -->
-        <RouterLink
-          to="/aula/cuenta"
-          class="workspace-profile"
-          aria-label="Abrir mi perfil"
-          @click="mobileOpen = false"
-        >
-          <span class="workspace-profile__avatar avatar avatar--workspace avatar--photo">
-            <img
-              v-if="profileAvatarUrl"
-              :key="profileAvatarUserId"
-              :src="profileAvatarUrl"
-              :alt="`Foto de ${currentUser?.name || 'usuario'}`"
-            />
-            <b v-else>{{ initials }}</b>
-          </span>
-
-          <span class="workspace-profile__copy">
-            <strong>{{ currentUser?.name || 'Usuario' }}</strong>
-            <small>{{ roleLabel }}</small>
-          </span>
-
-          <span class="workspace-profile__chevron" aria-hidden="true">›</span>
-        </RouterLink>
+        <!-- WORKSPACE -->
+        <div class="workspace-card">
+          <div class="workspace-card__icon">A</div>
+          <div class="workspace-card__copy">
+            <small>ESPACIO ACADÉMICO</small>
+            <strong>Academia Amo Mi Voz</strong>
+            <span><i></i> Plataforma activa</span>
+          </div>
+        </div>
 
         <!-- NAV -->
         <nav class="sidebar-nav" aria-label="Navegación del aula">
@@ -243,8 +228,31 @@
           </section>
         </nav>
 
-        <!-- FOOTER · SOLO SESIÓN -->
+        <!-- FOOTER -->
         <div class="sidebar-footer">
+          <RouterLink to="/" class="sidebar-site-link">
+            <span class="sidebar-site-link__icon">
+              <AulaIcon name="external" />
+            </span>
+            <span>Ver sitio web</span>
+          </RouterLink>
+
+          <RouterLink to="/aula/cuenta" class="sidebar-profile">
+            <div class="avatar avatar--sidebar">{{ initials }}</div>
+
+            <div class="sidebar-profile__copy">
+              <strong>{{ currentUser?.name }}</strong>
+              <span>
+                {{ roleLabel }}
+                <template v-if="isStudent && currentUser?.voice">
+                  · {{ currentUser.voice }}
+                </template>
+              </span>
+            </div>
+
+            <span class="sidebar-profile__chevron">›</span>
+          </RouterLink>
+
           <button
             type="button"
             class="sidebar-logout"
@@ -277,6 +285,20 @@
             </div>
           </div>
 
+          <div class="topbar-right">
+            <div class="topbar-status">
+              <span></span>
+              Plataforma activa
+            </div>
+
+            <RouterLink to="/aula/cuenta" class="topbar-profile">
+              <div class="avatar avatar--small">{{ initials }}</div>
+              <div>
+                <strong>{{ firstName }}</strong>
+                <span>{{ roleLabel }}</span>
+              </div>
+            </RouterLink>
+          </div>
         </header>
 
         <main class="aula-content">
@@ -288,12 +310,121 @@
           <span>Portal académico · versión SaaS</span>
         </footer>
       </div>
+
+      <!-- NAVEGACIÓN INFERIOR: solo móvil -->
+      <Transition name="mobile-more">
+        <div
+          v-if="mobileMoreOpen"
+          class="mobile-more-backdrop"
+          @click="mobileMoreOpen = false"
+        ></div>
+      </Transition>
+
+      <Transition name="mobile-more-sheet">
+        <section
+          v-if="mobileMoreOpen"
+          id="mobile-more-navigation"
+          class="mobile-more-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Más secciones del aula"
+        >
+          <div class="mobile-more-sheet__handle" aria-hidden="true"></div>
+          <header class="mobile-more-sheet__header">
+            <div class="avatar avatar--mobile">{{ initials }}</div>
+            <div class="mobile-more-sheet__identity">
+              <strong>{{ currentUser?.name || firstName }}</strong>
+              <span>{{ roleLabel }} · Academia Amo Mi Voz</span>
+            </div>
+            <button
+              class="mobile-more-sheet__close"
+              type="button"
+              aria-label="Cerrar menú Más"
+              @click="mobileMoreOpen = false"
+            >
+              <AulaIcon name="close" />
+            </button>
+          </header>
+
+          <div class="mobile-more-sheet__content">
+            <section
+              v-for="group in mobileMoreGroups"
+              :key="group.label"
+              class="mobile-more-group"
+            >
+              <p>{{ group.label }}</p>
+              <RouterLink
+                v-for="item in group.items"
+                :key="item.to"
+                :to="item.to"
+                class="mobile-more-link"
+                :class="{ 'is-active': isNavActive(item) }"
+                @click="mobileMoreOpen = false"
+              >
+                <span class="mobile-more-link__icon">
+                  <AulaIcon :name="item.icon" />
+                </span>
+                <span>{{ item.label }}</span>
+                <AulaIcon name="chevron" />
+              </RouterLink>
+            </section>
+
+            <RouterLink
+              to="/"
+              class="mobile-more-link mobile-more-link--secondary"
+              @click="mobileMoreOpen = false"
+            >
+              <span class="mobile-more-link__icon"><AulaIcon name="external" /></span>
+              <span>Ver sitio web</span>
+              <AulaIcon name="chevron" />
+            </RouterLink>
+
+            <button
+              type="button"
+              class="mobile-more-logout"
+              :disabled="isLoggingOut"
+              @click="handleLogout"
+            >
+              <AulaIcon name="logout" />
+              {{ isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión' }}
+            </button>
+          </div>
+        </section>
+      </Transition>
+
+      <nav class="aula-mobile-nav" aria-label="Navegación principal móvil">
+        <RouterLink
+          v-for="item in mobilePrimaryNav"
+          :key="item.to"
+          :to="item.to"
+          class="aula-mobile-nav__item"
+          :class="{ 'is-active': isNavActive(item) }"
+          :aria-label="item.label"
+          :aria-current="isNavActive(item) ? 'page' : undefined"
+          @click="mobileMoreOpen = false"
+        >
+          <span class="aula-mobile-nav__icon"><AulaIcon :name="item.icon" /></span>
+          <span class="aula-mobile-nav__label">{{ item.label }}</span>
+        </RouterLink>
+
+        <button
+          type="button"
+          class="aula-mobile-nav__item"
+          :class="{ 'is-active': mobileMoreOpen || isMobileMoreActive }"
+          :aria-expanded="mobileMoreOpen"
+          aria-controls="mobile-more-navigation"
+          @click="mobileMoreOpen = !mobileMoreOpen"
+        >
+          <span class="aula-mobile-nav__icon"><AulaIcon name="menu" /></span>
+          <span class="aula-mobile-nav__label">Más</span>
+        </button>
+      </nav>
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import AulaIcon from '@/components/aula/AulaIcon.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -324,65 +455,7 @@ const authReady = ref(false)
 const resetMessage = ref('')
 const isSendingReset = ref(false)
 const mobileOpen = ref(false)
-const profileAvatarUrl = ref('')
-const profileAvatarUserId = ref('')
-
-const clearProfileAvatar = () => {
-  profileAvatarUrl.value = ''
-  profileAvatarUserId.value = ''
-}
-
-const loadProfileAvatar = async (expectedUserId = '') => {
-  try {
-    const { data: userData } = await supabase.auth.getUser()
-    const userId = userData?.user?.id || ''
-
-    if (!userId) {
-      clearProfileAvatar()
-      return
-    }
-
-    // Evita que una respuesta atrasada termine mostrando el avatar
-    // del usuario anterior después de cambiar de sesión.
-    if (expectedUserId && userId !== expectedUserId) {
-      return
-    }
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('avatar_url, display_name')
-      .eq('id', userId)
-      .maybeSingle()
-
-    if (error) throw error
-
-    // La sesión pudo cambiar mientras Supabase respondía.
-    const { data: latestUserData } = await supabase.auth.getUser()
-    const latestUserId = latestUserData?.user?.id || ''
-
-    if (latestUserId !== userId) {
-      return
-    }
-
-    profileAvatarUserId.value = userId
-    profileAvatarUrl.value = data?.avatar_url || ''
-
-    if (
-      currentUser.value &&
-      data?.display_name
-    ) {
-      currentUser.value.name = data.display_name
-    }
-  } catch (error) {
-    console.warn('No se pudo cargar la foto de perfil:', error)
-  }
-}
-
-const handleProfileUpdated = () => {
-  loadProfileAvatar()
-}
-
-let authSubscription = null
+const mobileMoreOpen = ref(false)
 
 const loginError = computed(
   () => localError.value || authError.value || '',
@@ -412,6 +485,7 @@ const teacherNav = [
   { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
   { label: 'Centro del curso', to: '/aula/curso', icon: 'course' },
   { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
+  { label: 'Contenido', to: '/aula/programa-formativo', icon: 'program' },
   { label: 'Recursos', to: '/aula/recursos', icon: 'folder' },
   { label: 'Alumnos', to: '/aula/alumnos', icon: 'users' },
   { label: 'Inscripciones', to: '/aula/inscripciones', icon: 'inbox' },
@@ -454,6 +528,48 @@ const navGroups = computed(() =>
     },
   ].filter(group => group.items.length),
 )
+
+const mobilePrimaryNav = computed(() =>
+  isTeacher.value
+    ? [
+        { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
+        { label: 'Curso', to: '/aula/curso', icon: 'course' },
+        { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
+        { label: 'Alumnos', to: '/aula/alumnos', icon: 'users' },
+      ]
+    : [
+        { label: 'Inicio', to: '/aula', icon: 'home', exact: true },
+        { label: 'Mi curso', to: '/aula/curso', icon: 'course' },
+        { label: 'Calendario', to: '/aula/calendario', icon: 'calendar' },
+        { label: 'Tareas', to: '/aula/mis-tareas', icon: 'tasks' },
+      ],
+)
+
+const mobileMoreGroups = computed(() => {
+  const primaryPaths = new Set(mobilePrimaryNav.value.map(item => item.to))
+  const fullNav = isTeacher.value ? teacherNav : studentNav.value
+  const extraItems = fullNav.filter(item => !primaryPaths.has(item.to))
+
+  return [
+    {
+      label: isTeacher.value ? 'GESTIÓN ACADÉMICA' : 'APRENDIZAJE',
+      items: extraItems,
+    },
+    {
+      label: 'CUENTA',
+      items: [{ label: 'Mi cuenta', to: '/aula/cuenta', icon: 'account' }],
+    },
+  ].filter(group => group.items.length)
+})
+
+const isMobileMoreActive = computed(() => {
+  const extraPaths = mobileMoreGroups.value.flatMap(group => group.items.map(item => item.to))
+  const currentPath = route.path.replace(/\/$/, '') || '/aula'
+  return extraPaths.some(path => {
+    const normalizedPath = String(path).replace(/\/$/, '')
+    return currentPath === normalizedPath || currentPath.startsWith(`${normalizedPath}/`)
+  }) || route.path === '/aula/cuenta'
+})
 
 const sectionNames = {
   aula: 'Inicio',
@@ -578,44 +694,9 @@ const handleLogout = async () => {
 onMounted(async () => {
   try {
     await initializeAuth()
-    await loadProfileAvatar()
-
-    authSubscription = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        const nextUserId = session?.user?.id || ''
-
-        // Cambio de cuenta: limpiar primero para que nunca quede
-        // visible el avatar de la sesión anterior.
-        if (nextUserId !== profileAvatarUserId.value) {
-          profileAvatarUrl.value = ''
-          profileAvatarUserId.value = nextUserId
-        }
-
-        if (nextUserId) {
-          // Dejamos que el callback de Supabase termine antes de
-          // consultar nuevamente la tabla profiles.
-          window.setTimeout(() => {
-            loadProfileAvatar(nextUserId)
-          }, 0)
-        }
-      },
-    )
-
-    window.addEventListener(
-      'amv:profile-updated',
-      handleProfileUpdated,
-    )
   } finally {
     authReady.value = true
   }
-})
-
-onUnmounted(() => {
-  window.removeEventListener(
-    'amv:profile-updated',
-    handleProfileUpdated,
-  )
-  authSubscription?.data?.subscription?.unsubscribe?.()
 })
 </script>
 
@@ -1366,123 +1447,6 @@ onUnmounted(() => {
 .sidebar-logout:disabled { opacity: 0.55; cursor: wait; }
 
 /* =========================================================
-   PERFIL EN CABECERA LATERAL
-========================================================= */
-.workspace-profile {
-  position: relative;
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 18px;
-  gap: 10px;
-  align-items: center;
-  margin: 14px 12px 8px;
-  padding: 10px 10px 10px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background:
-    linear-gradient(135deg, rgba(159, 25, 69, 0.14), rgba(255, 255, 255, 0.035));
-  color: #fff;
-  text-decoration: none;
-  overflow: hidden;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.018),
-    0 10px 28px rgba(4, 10, 24, 0.10);
-  transition:
-    transform .22s cubic-bezier(.2,.75,.25,1),
-    border-color .22s ease,
-    background .22s ease,
-    box-shadow .22s ease;
-}
-
-.workspace-profile::before {
-  content: '';
-  position: absolute;
-  inset: -35% auto -35% -30%;
-  width: 34%;
-  transform: rotate(14deg);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
-  pointer-events: none;
-  transition: transform .55s ease;
-}
-
-.workspace-profile:hover {
-  transform: translateY(-1px);
-  border-color: rgba(217, 169, 29, 0.22);
-  background:
-    linear-gradient(135deg, rgba(159, 25, 69, 0.20), rgba(255, 255, 255, 0.045));
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.03),
-    0 12px 30px rgba(4, 10, 24, .16),
-    0 0 28px rgba(159,25,69,.08);
-}
-
-.workspace-profile:hover::before {
-  transform: translateX(360%) rotate(14deg);
-}
-
-.workspace-profile__avatar {
-  position: relative;
-  z-index: 1;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 12px;
-  background: linear-gradient(145deg, #b22558, #7f1238);
-  box-shadow:
-    0 8px 20px rgba(159,25,69,.22),
-    inset 0 0 0 1px rgba(255,255,255,.05);
-  color: #fff;
-  font-size: .72rem;
-  font-weight: 850;
-}
-
-.workspace-profile__avatar img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.workspace-profile__copy {
-  min-width: 0;
-}
-
-.workspace-profile__copy strong,
-.workspace-profile__copy small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.workspace-profile__copy strong {
-  color: #f6f8fb;
-  font-size: .78rem;
-  font-weight: 760;
-  letter-spacing: -.01em;
-}
-
-.workspace-profile__copy small {
-  margin-top: 3px;
-  color: #8b98ab;
-  font-size: .60rem;
-  font-weight: 650;
-}
-
-.workspace-profile__chevron {
-  color: #6f7c91;
-  font-size: 1.05rem;
-  transition: transform .22s ease, color .22s ease;
-}
-
-.workspace-profile:hover .workspace-profile__chevron {
-  color: #f0cf63;
-  transform: translateX(2px);
-}
-
-/* =========================================================
    WORKSPACE + TOPBAR
 ========================================================= */
 .aula-workspace {
@@ -1499,7 +1463,7 @@ onUnmounted(() => {
   height: 72px;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   padding: 0 clamp(20px, 3vw, 42px);
   border-bottom: 1px solid #e1e5ea;
   background: rgba(255, 255, 255, 0.92);
@@ -1507,6 +1471,13 @@ onUnmounted(() => {
   box-shadow: 0 4px 18px rgba(24, 39, 65, 0.025);
 }
 
+.topbar-left,
+.topbar-right,
+.breadcrumb,
+.topbar-profile {
+  display: flex;
+  align-items: center;
+}
 
 .breadcrumb {
   gap: 8px;
@@ -1518,6 +1489,51 @@ onUnmounted(() => {
 .breadcrumb strong { color: #27364a; font-weight: 750; }
 .breadcrumb__root { color: #8a97a8; }
 
+.topbar-right { gap: 15px; }
+
+.topbar-status {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: #667085;
+  font-size: 0.66rem;
+  font-weight: 650;
+}
+
+.topbar-status > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34b56f;
+  box-shadow: 0 0 0 4px rgba(52, 181, 111, 0.08);
+}
+
+.topbar-profile {
+  gap: 9px;
+  padding: 5px 7px 5px 5px;
+  border-radius: 11px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: 0.18s ease;
+}
+
+.topbar-profile:hover { background: #f3f5f8; }
+
+.avatar--small {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+}
+
+.topbar-profile strong,
+.topbar-profile span { display: block; }
+.topbar-profile strong { font-size: 0.72rem; }
+.topbar-profile span {
+  margin-top: 1px;
+  color: #98a2b3;
+  font-size: 0.6rem;
+}
 
 .mobile-menu { display: none; }
 
@@ -1601,6 +1617,7 @@ onUnmounted(() => {
     color: #344054;
   }
 
+  .topbar-status { display: none; }
 }
 
 @media (max-width: 640px) {
@@ -1624,7 +1641,8 @@ onUnmounted(() => {
   }
 
   .breadcrumb__root,
-  .breadcrumb svg {
+  .breadcrumb svg,
+  .topbar-profile > div:last-child {
     display: none;
   }
 
@@ -1636,293 +1654,328 @@ onUnmounted(() => {
   .aula-footer span:last-child { display: none; }
 }
 
+
 /* =========================================================
-   AMO MI VOZ · SIDEBAR MAX EFFECTS
-   Capa visual segura: no modifica lógica ni navegación.
+   NAVEGACIÓN INFERIOR MÓVIL
+   El sidebar original se conserva para escritorio.
 ========================================================= */
-
-.aula-sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
-  isolation: isolate;
+.aula-mobile-nav,
+.mobile-more-backdrop,
+.mobile-more-sheet {
+  display: none;
 }
 
-.aula-sidebar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  background:
-    radial-gradient(circle at 10% 12%, rgba(177, 25, 78, .12), transparent 30%),
-    radial-gradient(circle at 90% 55%, rgba(214, 165, 31, .07), transparent 30%);
+.mobile-more-enter-active,
+.mobile-more-leave-active {
+  transition: opacity 0.16s ease;
+}
+.mobile-more-enter-from,
+.mobile-more-leave-to {
+  opacity: 0;
+}
+.mobile-more-sheet-enter-active,
+.mobile-more-sheet-leave-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.mobile-more-sheet-enter-from,
+.mobile-more-sheet-leave-to {
+  transform: translateY(16px);
+  opacity: 0;
 }
 
-.sidebar-link {
-  position: relative;
-  overflow: hidden;
-  transition:
-    transform .22s ease,
-    background .22s ease,
-    border-color .22s ease,
-    box-shadow .22s ease;
-}
+@media (max-width: 768px) {
+  .aula-layout {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
 
-.sidebar-link::after {
-  content: "";
-  position: absolute;
-  top: -20%;
-  bottom: -20%;
-  left: -75%;
-  width: 38%;
-  transform: skewX(-18deg);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.10),
-    transparent
-  );
-  transition: left .55s ease;
-  pointer-events: none;
-}
+  .aula-sidebar,
+  .mobile-backdrop,
+  .mobile-menu {
+    display: none !important;
+  }
 
-.sidebar-link:hover {
-  transform: translateX(3px);
-}
+  .aula-workspace {
+    min-height: calc(100vh - 76px - env(safe-area-inset-bottom, 0px));
+    min-height: calc(100dvh - 76px - env(safe-area-inset-bottom, 0px));
+    margin-left: 0;
+  }
 
-.sidebar-link:hover::after {
-  left: 125%;
-}
+  .aula-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: 58px;
+    padding-inline: 14px;
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.97);
+  }
 
-.sidebar-link.is-active {
-  box-shadow:
-    0 10px 26px rgba(5, 10, 25, .18),
-    inset 0 0 0 1px rgba(255,255,255,.045);
-}
+  .breadcrumb__root,
+  .breadcrumb svg,
+  .topbar-profile > div:last-child,
+  .topbar-status {
+    display: none;
+  }
 
-.sidebar-link.is-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 12%;
-  bottom: 12%;
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #b1194e, #d6a51f);
-  box-shadow: 0 0 14px rgba(177,25,78,.42);
-}
+  .aula-content {
+    padding: 18px 12px 28px;
+  }
 
-.sidebar-link__icon {
-  transition: transform .22s ease, filter .22s ease;
-}
+  .aula-footer {
+    display: block;
+    padding: 12px 14px;
+  }
 
-.sidebar-link:hover .sidebar-link__icon {
-  transform: scale(1.06);
-}
+  .aula-footer span:last-child {
+    display: none;
+  }
 
-.sidebar-link.is-active .sidebar-link__icon {
-  filter: drop-shadow(0 0 7px rgba(214,165,31,.24));
-}
+  .aula-mobile-nav {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 120;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    min-height: 64px;
+    padding: 7px 7px calc(7px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid #e5dce2;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 -8px 26px rgba(30, 24, 36, 0.08);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .sidebar-link,
-  .sidebar-link::after,
-  .sidebar-link__icon {
-    transition: none;
+  .aula-mobile-nav__item {
+    min-width: 0;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px 2px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #768195;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .aula-mobile-nav__icon {
+    display: grid;
+    place-items: center;
+    width: 27px;
+    height: 25px;
+    font-size: 1.13rem;
+  }
+
+  .aula-mobile-nav__label {
+    max-width: 100%;
+    overflow: hidden;
+    color: inherit;
+    font-size: 0.61rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .aula-mobile-nav__item.is-active {
+    background: #fff0f5;
+    color: #ad0d43;
+  }
+
+  .aula-mobile-nav__item.is-active .aula-mobile-nav__icon {
+    color: #ad0d43;
+  }
+
+  .mobile-more-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    display: block;
+    background: rgba(13, 20, 35, 0.36);
+  }
+
+  .mobile-more-sheet {
+    position: fixed;
+    inset: auto 0 calc(64px + env(safe-area-inset-bottom, 0px));
+    z-index: 131;
+    display: block;
+    max-height: min(72dvh, 600px);
+    overflow: hidden;
+    padding: 8px 16px 14px;
+    border: 1px solid #e9dce3;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    box-shadow: 0 -18px 44px rgba(18, 24, 38, 0.18);
+  }
+
+  .mobile-more-sheet__handle {
+    width: 38px;
+    height: 4px;
+    margin: 0 auto 14px;
+    border-radius: 999px;
+    background: #d8dde5;
+  }
+
+  .mobile-more-sheet__header {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 0 0 14px;
+    border-bottom: 1px solid #eef0f4;
+  }
+
+  .avatar--mobile {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #c30d4c, #8f123b);
+    font-size: 0.78rem;
+  }
+
+  .mobile-more-sheet__identity {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .mobile-more-sheet__identity strong,
+  .mobile-more-sheet__identity span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-more-sheet__identity strong {
+    color: #202b3e;
+    font-size: 0.88rem;
+  }
+
+  .mobile-more-sheet__identity span {
+    margin-top: 3px;
+    color: #7a8495;
+    font-size: 0.69rem;
+  }
+
+  .mobile-more-sheet__close {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    background: #f8f9fb;
+    color: #536176;
+  }
+
+  .mobile-more-sheet__content {
+    max-height: calc(min(72dvh, 600px) - 120px);
+    overflow-y: auto;
+    padding: 5px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-more-group {
+    padding-top: 10px;
+  }
+
+  .mobile-more-group > p {
+    margin: 6px 8px 5px;
+    color: #9aa3b2;
+    font-size: 0.59rem;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+  }
+
+  .mobile-more-link {
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 9px;
+    border-radius: 12px;
+    color: #39465b;
+    font-size: 0.82rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .mobile-more-link > svg:last-child {
+    color: #a2aaba;
+    font-size: 0.75rem;
+  }
+
+  .mobile-more-link__icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #f5f6f9;
+    color: #68778e;
+    font-size: 1rem;
+  }
+
+  .mobile-more-link.is-active {
+    background: #fff0f5;
+    color: #a80e41;
+  }
+
+  .mobile-more-link.is-active .mobile-more-link__icon {
+    background: #f8dce7;
+    color: #a80e41;
+  }
+
+  .mobile-more-link--secondary {
+    margin-top: 8px;
+    border-top: 1px solid #eef0f4;
+    border-radius: 0;
+    padding-top: 12px;
+  }
+
+  .mobile-more-logout {
+    width: 100%;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 7px;
+    border: 1px solid #f1d6df;
+    border-radius: 12px;
+    background: #fff6f8;
+    color: #a20d40;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 750;
   }
 }
 
-</style>
-
-
-<style lang="scss">
-/* AMV · perfil compacto en cabecera */
-.aula-layout .avatar--photo{overflow:hidden;padding:0;}
-.aula-layout .avatar--photo img{width:100%;height:100%;object-fit:cover;}
-.aula-layout .avatar--photo b{font-size:.67rem;color:#fff;}
-@media (max-width:760px){.aula-layout .topbar-profile--identity{min-width:0}.aula-layout .topbar-profile__copy{display:none}.aula-layout .topbar-profile__chevron{display:none}.aula-layout .topbar-profile__avatar{width:36px;height:36px}.aula-layout .topbar-right{gap:0}}
-</style>
-<style lang="scss" scoped>
-/* =========================================================
-   AMV · IDENTIDAD ARRIBA + FOOTER LIMPIO v2
-========================================================= */
-.aula-layout .workspace-card--identity {
-  position: relative;
-  overflow: hidden;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin: 17px 14px 8px;
-  padding: 11px;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 14px;
-  background:
-    radial-gradient(circle at 88% 0%, rgba(217,169,29,.13), transparent 30%),
-    linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.045),
-    0 12px 30px rgba(3,8,19,.13);
-}
-
-.aula-layout .workspace-card--identity::after {
-  position: absolute;
-  top: -34px;
-  right: -22px;
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(159,25,69,.18), transparent 67%);
-  content: '';
-  pointer-events: none;
-}
-
-.aula-layout .workspace-card__academy {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 34px minmax(0,1fr);
-  gap: 10px;
-  align-items: center;
-}
-
-.aula-layout .workspace-identity {
-  position: relative;
-  z-index: 1;
-  min-height: 49px;
-  display: grid;
-  grid-template-columns: 34px minmax(0,1fr) 14px;
-  gap: 9px;
-  align-items: center;
-  padding: 7px 7px 7px 6px;
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 11px;
-  background: linear-gradient(90deg, rgba(159,25,69,.18), rgba(255,255,255,.035));
-  color: #fff;
-  text-decoration: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
-  transition: transform .22s cubic-bezier(.2,.75,.25,1), border-color .22s ease, background .22s ease, box-shadow .22s ease;
-}
-
-.aula-layout .workspace-identity::before {
-  position: absolute;
-  top: 7px;
-  bottom: 7px;
-  left: 0;
-  width: 2px;
-  border-radius: 99px;
-  background: linear-gradient(180deg, #d9a91d, #9f1945);
-  content: '';
-}
-
-.aula-layout .workspace-identity:hover {
-  transform: translateY(-1px);
-  border-color: rgba(217,169,29,.22);
-  background: linear-gradient(90deg, rgba(159,25,69,.25), rgba(255,255,255,.05));
-  box-shadow: 0 10px 22px rgba(3,8,19,.16), 0 0 22px rgba(159,25,69,.08);
-}
-
-.aula-layout .avatar--workspace {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: linear-gradient(145deg, #b8285c, #81143a);
-  color: #fff;
-  font-size: .61rem;
-  box-shadow: 0 7px 15px rgba(159,25,69,.2);
-}
-
-.aula-layout .avatar--workspace img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.aula-layout .workspace-identity__copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.aula-layout .workspace-identity__copy strong,
-.aula-layout .workspace-identity__copy small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.aula-layout .workspace-identity__copy strong {
-  color: #f8fafc;
-  font-size: .70rem;
-  font-weight: 780;
-  letter-spacing: -.01em;
-}
-
-.aula-layout .workspace-identity__copy small {
-  margin-top: 2px;
-  color: #9da8ba;
-  font-size: .57rem;
-  font-weight: 650;
-}
-
-.aula-layout .workspace-identity__chevron {
-  color: #7f8ca0;
-  font-size: 1rem;
-  line-height: 1;
-  transition: transform .22s ease, color .22s ease;
-}
-
-.aula-layout .workspace-identity:hover .workspace-identity__chevron {
-  color: #f4cf63;
-  transform: translateX(2px);
-}
-
-.aula-layout .sidebar-footer {
-  margin-top: auto;
-  padding: 10px 11px 13px;
-}
-
-.aula-layout .sidebar-logout {
-  min-height: 42px;
-  margin-top: 0;
-  justify-content: flex-start;
-  padding-inline: 11px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
-}
-
-.aula-layout .sidebar-logout:hover {
-  transform: translateY(-1px);
-  border-color: rgba(190,72,86,.12);
-}
-
-@media (max-width: 760px) {
-  .aula-layout .workspace-card--identity {
-    margin-inline: 12px;
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-/* =========================================================
-   V3 · FIX DE ESTRUCTURA DEL AULA
-========================================================= */
-.aula-sidebar {
-  position: fixed !important;
-  inset: 0 auto 0 0 !important;
-}
-
-.sidebar-footer {
-  margin-top: auto;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .workspace-profile {
-    transition: none !important;
+@media (max-width: 380px) {
+  .aula-mobile-nav {
+    padding-inline: 4px;
   }
 
-  .workspace-profile::before {
-    transition: none !important;
+  .aula-mobile-nav__label {
+    font-size: 0.56rem;
+  }
+
+  .aula-content {
+    padding-inline: 10px;
   }
 }
+
 </style>
