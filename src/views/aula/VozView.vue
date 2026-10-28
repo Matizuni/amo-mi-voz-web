@@ -1,2480 +1,930 @@
 <template>
-  <section class="voice-page amv-view-shell">
-    <div class="voice-shell">
-      <!-- =====================================================
-           ENCABEZADO
-      ====================================================== -->
-      <header class="voice-header">
-        <div>
-          <RouterLink
-            :to="`/aula/estudiante/${studentId}`"
-            class="back-link"
-          >
-            ← Volver al perfil
-          </RouterLink>
 
-          <div class="eyebrow">
-            SEGUIMIENTO VOCAL
-          </div>
+  <main class="amv-page">
 
-          <h1>
-            {{ student?.name || 'Estudiante' }}
-          </h1>
+    <header class="hero">
 
-          <p>
-            Grabaciones, evolución técnica y análisis asistido por IA
-            en ocho dimensiones del canto.
-          </p>
+      <div>
+
+        <p class="eyebrow">AMO MI VOZ · VOCAL ENGINE</p>
+
+        <h1>Audición y evaluación integral</h1>
+
+        <p class="subtitle">Análisis acústico AMV + criterio docente + plan de práctica.</p>
+
+      </div>
+
+      <div class="hero-mark">AMV</div>
+
+    </header>
+
+    <p v-if="error" class="notice error" role="alert">{{ error }}</p>
+
+    <p v-if="message" class="notice success" role="status">{{ message }}</p>
+
+    <section class="layout">
+
+      <aside class="panel students-panel">
+
+        <div class="section-heading">
+
+          <div><p class="eyebrow">GESTIÓN DOCENTE</p><h2>Alumnos</h2></div>
+
+          <span class="count">{{ filteredStudents.length }}</span>
+
         </div>
 
+        <input v-model="search" class="field" placeholder="Buscar alumno…" aria-label="Buscar alumno" />
+
+        <div v-if="loadingStudents" class="muted">Cargando alumnos…</div>
+
         <button
-          type="button"
-          class="primary-button"
-          @click="openRecordingModal"
+
+          v-for="student in filteredStudents"
+
+          :key="student.id"
+
+          class="student-option"
+
+          :class="{ selected: String(selectedStudentId) === String(student.id) }"
+
+          @click="selectStudent(student)"
+
         >
-          <span aria-hidden="true">＋</span>
-          Nueva grabación
+
+          <span class="avatar">{{ initials(student.name) }}</span>
+
+          <span class="student-copy"><strong>{{ student.name }}</strong><small>{{ student.voice || 'Voz por registrar' }}</small></span>
+
+          <span class="chevron">›</span>
+
         </button>
-      </header>
 
-      <!-- =====================================================
-           CARGA
-      ====================================================== -->
-      <div
-        v-if="isLoading"
-        class="loading-card"
-      >
-        <div class="loading-spinner"></div>
-        <strong>Cargando seguimiento vocal…</strong>
-        <span>Estamos preparando las muestras del estudiante.</span>
-      </div>
+        <p v-if="!loadingStudents && !filteredStudents.length" class="muted">No hay alumnos que coincidan con la búsqueda.</p>
 
-      <!-- =====================================================
-           ERROR
-      ====================================================== -->
-      <div
-        v-else-if="loadError"
-        class="alert-card alert-card--error"
-        role="alert"
-      >
-        <strong>No pudimos cargar el seguimiento vocal</strong>
-        <p>{{ loadError }}</p>
-        <button
-          type="button"
-          class="secondary-button"
-          @click="loadPage"
-        >
-          Intentar nuevamente
-        </button>
-      </div>
+      </aside>
 
-      <template v-else>
-        <!-- ===================================================
-             AVISO PEDAGÓGICO
-        ==================================================== -->
-        <section class="ai-notice">
-          <div class="ai-notice__icon" aria-hidden="true">
-            ✦
-          </div>
+      <section class="workspace">
 
-          <div>
-            <strong>IA como apoyo pedagógico</strong>
-            <p>
-              El análisis auditivo ayuda a observar patrones de la muestra.
-              No diagnostica salud vocal ni afirma postura, tensión laríngea
-              o coordinación respiratoria observable sin video o evaluación presencial.
-            </p>
-          </div>
+        <section v-if="!selectedStudent" class="panel empty-state">
+
+          <div class="empty-icon">♫</div>
+
+          <h2>Selecciona un alumno</h2>
+
+          <p>Luego podrás iniciar una audición, ejecutar el análisis AMV y completar tu pauta docente.</p>
+
         </section>
 
-        <!-- ===================================================
-             MAPA VOCAL
-        ==================================================== -->
-        <section class="panel">
-          <div class="section-heading">
-            <div>
-              <span class="section-kicker">PERFIL ACTUAL</span>
-              <h2>Mapa vocal</h2>
-              <p>
-                El radar muestra únicamente dimensiones con un puntaje de referencia
-                válido. Los indicadores acústicos se presentan aparte.
-              </p>
+        <template v-else>
+
+          <section class="panel student-summary">
+
+            <div class="avatar large">{{ initials(selectedStudent.name) }}</div>
+
+            <div class="student-heading">
+
+              <p class="eyebrow">FICHA VOCAL</p>
+
+              <h2>{{ selectedStudent.name }}</h2>
+
+              <p class="muted">{{ selectedStudent.voice || 'Clasificación vocal pendiente' }}</p>
+
             </div>
 
-            <div class="profile-meta">
-              <span>{{ recordings.length }} {{ recordings.length === 1 ? 'muestra' : 'muestras' }}</span>
-              <span v-if="latestAnalysisDate">
-                Último análisis · {{ latestAnalysisDate }}
-              </span>
-            </div>
-          </div>
+            <button class="primary" @click="showNewAudition = !showNewAudition">
 
-          <div class="map-layout">
-            <div class="radar-card">
-              <svg
-                class="radar"
-                viewBox="0 0 520 520"
-                role="img"
-                aria-label="Mapa de dimensiones vocales"
-              >
-                <g class="radar-grid">
-                  <polygon
-                    v-for="level in radarLevels"
-                    :key="`grid-${level}`"
-                    :points="radarPolygon(level)"
-                  />
+              {{ showNewAudition ? 'Cerrar formulario' : '+ Nueva audición' }}
 
-                  <line
-                    v-for="(dimension, index) in dimensions"
-                    :key="`axis-${dimension.key}`"
-                    x1="260"
-                    y1="260"
-                    :x2="radarPoint(index, 100).x"
-                    :y2="radarPoint(index, 100).y"
-                  />
-                </g>
+            </button>
 
-                <g v-if="hasReferenceScores">
-                  <polygon
-                    class="radar-area"
-                    :points="radarScorePolygon"
-                  />
+          </section>
 
-                  <circle
-                    v-for="(point, index) in radarScorePoints"
-                    :key="`point-${dimensions[index].key}`"
-                    class="radar-point"
-                    :cx="point.x"
-                    :cy="point.y"
-                    r="5"
-                  />
-                </g>
+          <section v-if="showNewAudition" class="panel">
 
-                <g v-else class="radar-empty">
-                  <circle
-                    cx="260"
-                    cy="260"
-                    r="8"
-                  />
-                  <text
-                    x="260"
-                    y="246"
-                    text-anchor="middle"
-                  >
-                    Sin referencia
-                  </text>
-                  <text
-                    x="260"
-                    y="270"
-                    text-anchor="middle"
-                  >
-                    melódica todavía
-                  </text>
-                </g>
+            <div class="section-heading"><div><p class="eyebrow">PASO 1</p><h2>Registrar audición</h2></div><span class="step">01 / 03</span></div>
 
-                <g class="radar-labels">
-                  <text
-                    v-for="(dimension, index) in dimensions"
-                    :key="`label-${dimension.key}`"
-                    :x="radarLabelPoint(index).x"
-                    :y="radarLabelPoint(index).y"
-                    :text-anchor="radarLabelPoint(index).anchor"
-                  >
-                    {{ dimension.shortLabel }}
-                  </text>
-                </g>
-              </svg>
-            </div>
+            <form class="form-grid" @submit.prevent="createAudition">
 
-            <div class="dimension-list">
-              <article
-                v-for="dimension in dimensions"
-                :key="dimension.key"
-                class="dimension-card"
-              >
-                <div class="dimension-card__top">
+              <label class="wide">Título de la audición
+
+                <input v-model.trim="form.title" class="field" required placeholder="Ej. Audición de octubre" />
+
+              </label>
+
+              <label>Canción
+
+                <input v-model.trim="form.song" class="field" placeholder="Nombre de la canción" />
+
+              </label>
+
+              <label>Artista / referencia
+
+                <input v-model.trim="form.artist" class="field" placeholder="Artista original" />
+
+              </label>
+
+              <label class="wide">Audio del alumno
+
+                <input class="field file-field" type="file" accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg" required @change="form.audio = $event.target.files?.[0] || null" />
+
+              </label>
+
+              <label class="wide">Archivo de referencia MIDI o audio
+
+                <input class="field file-field" type="file" accept="audio/*,.mid,.midi,.wav,.mp3,.m4a,.flac,.ogg" required @change="form.referenceFile = $event.target.files?.[0] || null" />
+
+                <small class="muted">El servicio AMV disponible actualmente exige una referencia para comparar la interpretación.</small>
+
+              </label>
+
+              <label>Tipo de audición
+
+                <select v-model="form.songType" class="field"><option value="cover">Cover</option><option value="original">Canción original</option><option value="exercise">Ejercicio vocal</option></select>
+
+              </label>
+
+              <label>Tonalidad (opcional)
+
+                <input v-model.trim="form.key" class="field" placeholder="Ej. Sol mayor" />
+
+              </label>
+
+              <label class="wide">Observación inicial (opcional)
+
+                <textarea v-model.trim="form.context" class="field" rows="2" placeholder="Objetivo de esta audición, contexto o dificultad que observarás." />
+
+              </label>
+
+              <div class="wide form-actions">
+
+                <button class="primary" :disabled="busy" type="submit">{{ busy ? 'Subiendo audición…' : 'Guardar audición y analizar' }}</button>
+
+                <span class="muted">Subida segura mediante el servicio existente; el análisis se solicita a la Edge Function.</span>
+
+              </div>
+
+            </form>
+
+          </section>
+
+          <section class="panel">
+
+            <div class="section-heading"><div><p class="eyebrow">PASO 2</p><h2>Historial de audiciones</h2></div><button class="secondary" :disabled="loadingRecordings" @click="loadRecordings">Actualizar</button></div>
+
+            <p v-if="loadingRecordings" class="muted">Cargando historial…</p>
+
+            <div v-else-if="!recordings.length" class="muted empty-inline">Este alumno todavía no tiene audiciones registradas.</div>
+
+            <button v-for="recording in recordings" :key="recording.id" class="recording-row" :class="{ active: String(activeRecordingId) === String(recording.id) }" @click="selectRecording(recording)">
+
+              <span class="record-icon">♫</span>
+
+              <span class="record-copy"><strong>{{ recording.title || recording.song || 'Audición vocal' }}</strong><small>{{ formatDate(recording.recordedAt) }} · {{ recording.song || 'Canción no indicada' }}</small></span>
+
+              <span class="status" :class="recording.analysis ? 'done' : 'pending'">{{ recording.analysis ? 'Analizada' : 'Pendiente' }}</span>
+
+            </button>
+
+          </section>
+
+          <template v-if="activeRecording">
+
+            <section class="panel">
+
+              <div class="section-heading"><div><p class="eyebrow">EVIDENCIA DEL MOTOR</p><h2>{{ activeRecording.title || 'Análisis AMV' }}</h2></div><span class="status" :class="activeRecording.analysis ? 'done' : 'pending'">{{ activeRecording.analysis ? 'Resultado disponible' : 'Sin resultado visible' }}</span></div>
+
+              <p class="muted">Las mediciones automáticas se conservan como evidencia independiente. No reemplazan la pauta docente ni generan por sí solas un diagnóstico vocal.</p>
+
+              <pre v-if="activeRecording.analysis" class="analysis-json">{{ JSON.stringify(activeRecording.analysis.workerResult || activeRecording.analysis.worker_result || activeRecording.analysis, null, 2) }}</pre>
+
+              <p v-else class="muted">Esta audición no muestra un análisis asociado todavía. Puedes solicitarlo nuevamente.</p>
+
+              <button class="secondary" :disabled="busy" @click="runAnalysis">{{ busy ? 'Procesando solicitud…' : 'Solicitar / reintentar análisis AMV' }}</button>
+
+            </section>
+
+            <section class="panel">
+
+              <div class="section-heading"><div><p class="eyebrow">PASO 3</p><h2>Tu evaluación docente</h2></div><span class="step">OCHO DIMENSIONES</span></div>
+
+              <p class="muted">Evalúa cada dimensión de 1 a 10 según la pauta pedagógica. 1–2 = requiere apoyo prioritario; 3–4 = desarrollo inicial; 5–6 = en desarrollo; 7–8 = buen desempeño; 9–10 = desempeño destacado. No dejes dimensiones sin evaluar.</p>
+
+              <div class="evaluation-progress" aria-live="polite">
+                <div class="evaluation-progress__copy">
+                  <span>PROGRESO DE LA PAUTA</span>
+                  <strong>{{ completedDimensions }} de 8 dimensiones</strong>
+                </div>
+                <div class="evaluation-progress__track" role="progressbar" :aria-valuenow="completedDimensions" aria-valuemin="0" aria-valuemax="8" :aria-label="`${completedDimensions} de 8 dimensiones evaluadas`">
+                  <span :style="{ width: `${(completedDimensions / 8) * 100}%` }"></span>
+                </div>
+                <div class="evaluation-progress__average">
+                  <small>Promedio actual</small>
+                  <strong>{{ teacherAverage }}<small>/10</small></strong>
+                </div>
+              </div>
+
+              <form @submit.prevent="saveEvaluation">
+
+                <div class="proposal-toolbar">
+
                   <div>
-                    <span class="dimension-card__index">
-                      {{ String(dimension.index).padStart(2, '0') }}
-                    </span>
-                    <h3>{{ dimension.label }}</h3>
+
+                    <strong>Asistente pedagógico</strong>
+
+                    <p class="muted">Genera un borrador editable desde tus ocho puntuaciones. No sustituye tu criterio ni presenta el análisis AMV como una medición que no está validada.</p>
+
                   </div>
 
-                  <span
-                    class="dimension-status"
-                    :class="`dimension-status--${dimensionStatusClass(dimension.key)}`"
-                  >
-                    {{ dimensionStatusLabel(dimension.key) }}
-                  </span>
+                  <button class="secondary" type="button" @click="generatePedagogicalProposal">Generar propuesta</button>
+
                 </div>
 
-                <div class="dimension-value">
-                  <strong v-if="dimensionReferenceScore(dimension.key) !== null">
-                    {{ Math.round(dimensionReferenceScore(dimension.key)) }}
-                  </strong>
-                  <strong v-else-if="dimensionIndicatorScore(dimension.key) !== null">
-                    {{ Math.round(dimensionIndicatorScore(dimension.key)) }}
-                  </strong>
-                  <strong v-else>—</strong>
+                <div class="dimension-grid">
 
-                  <span v-if="dimensionReferenceScore(dimension.key) !== null">
-                    / 100 · referencia
-                  </span>
-                  <span v-else-if="dimensionIndicatorScore(dimension.key) !== null">
-                    / 100 · indicador
-                  </span>
-                  <span v-else>
-                    Sin observación registrada todavía
-                  </span>
+                  <article v-for="dimension in dimensions" :key="dimension.key" class="dimension-card">
+
+                    <div><h3>{{ dimension.label }}</h3><p>{{ dimension.prompt }}</p></div>
+
+                    <div
+
+  class="rating-row"
+
+  role="group"
+
+  :aria-label="`Puntuación docente: ${dimension.label}`"
+
+>
+
+                      <button v-for="n in 10" :key="n" type="button" class="rating" :class="{ chosen: Number(scores[dimension.key]) === n }" :aria-pressed="Number(scores[dimension.key]) === n" @click="scores[dimension.key] = n">{{ n }}</button>
+
+                    </div>
+
+                  </article>
+
                 </div>
 
-                <p>
-                  {{ dimension.description }}
-                </p>
-              </article>
-            </div>
-          </div>
-        </section>
+                <div class="form-grid">
 
-        <!-- ===================================================
-             ÚLTIMA MUESTRA
-        ==================================================== -->
-        <section
-          v-if="latestRecording"
-          class="latest-card"
-        >
-          <div class="latest-card__content">
-            <span class="section-kicker">ÚLTIMA MUESTRA</span>
-            <h2>{{ latestRecording.title }}</h2>
-            <p v-if="latestRecording.song">
-              {{ latestRecording.song }}
-              <span v-if="latestRecording.artist"> · {{ latestRecording.artist }}</span>
-            </p>
-            <small>
-              {{ formatDate(latestRecording.recordedAt) }}
-            </small>
-          </div>
+                  <label>Fortalezas observadas<textarea v-model.trim="strengths" class="field" rows="3" placeholder="¿Qué hizo bien? ¿Qué conviene mantener?" /></label>
 
-          <div class="latest-card__actions">
-            <audio
-              v-if="latestRecording.audioUrl"
-              :src="latestRecording.audioUrl"
-              controls
-              preload="none"
-            ></audio>
+                  <label>Prioridades de mejora<textarea v-model.trim="priorities" class="field" rows="3" placeholder="¿Qué necesita trabajar primero y por qué?" /></label>
 
-            <button
-              v-if="!latestRecording.analysis || latestRecording.analysis.status === 'failed'"
-              type="button"
-              class="secondary-button"
-              :disabled="analyzingId === latestRecording.id"
-              @click="analyzeRecording(latestRecording)"
-            >
-              {{ analyzingId === latestRecording.id ? 'Analizando…' : 'Analizar con IA' }}
-            </button>
-          </div>
-        </section>
+                  <label class="wide">Observaciones del profesor<textarea v-model.trim="observations" class="field" rows="3" placeholder="Evidencia escuchada, contexto, matices o discrepancias con AMV." /></label>
 
-        <!-- ===================================================
-             HISTORIAL
-        ==================================================== -->
-        <section class="panel">
-          <div class="section-heading">
-            <div>
-              <span class="section-kicker">HISTORIAL</span>
-              <h2>Grabaciones vocales</h2>
-              <p>
-                Cada muestra puede convertirse en una nueva referencia para el seguimiento.
-              </p>
-            </div>
+                  <label class="wide">Plan de ejercicios para la próxima clase<textarea v-model.trim="exercisePlan" class="field" rows="4" placeholder="Ejercicio, instrucciones, duración/repeticiones y criterio de logro. Fundamentar en las fuentes de estudio AMV." /></label>
 
-            <span class="count-badge">
-              {{ recordings.length }} {{ recordings.length === 1 ? 'muestra' : 'muestras' }}
-            </span>
-          </div>
-
-          <div
-            v-if="!recordings.length"
-            class="empty-state"
-          >
-            <div class="empty-state__icon" aria-hidden="true">
-              ♫
-            </div>
-            <div>
-              <h3>Todavía no hay grabaciones</h3>
-              <p>
-                La primera muestra servirá como línea base para comenzar el seguimiento vocal.
-              </p>
-            </div>
-            <button
-              type="button"
-              class="secondary-button"
-              @click="openRecordingModal"
-            >
-              Crear primera muestra
-            </button>
-          </div>
-
-          <div
-            v-else
-            class="recording-list"
-          >
-            <article
-              v-for="recording in recordings"
-              :key="recording.id"
-              class="recording-card"
-            >
-              <div class="recording-card__main">
-                <div class="recording-icon" aria-hidden="true">
-                  ♪
                 </div>
 
-                <div>
-                  <div class="recording-card__title-row">
-                    <h3>{{ recording.title }}</h3>
-                    <span
-                      class="analysis-pill"
-                      :class="`analysis-pill--${analysisStatusClass(recording.analysis)}`"
-                    >
-                      {{ analysisStatusLabel(recording.analysis) }}
-                    </span>
-                  </div>
+                <div class="form-actions">
 
-                  <p v-if="recording.song">
-                    {{ recording.song }}
-                    <span v-if="recording.artist"> · {{ recording.artist }}</span>
-                  </p>
+                  <button class="primary" :disabled="busy" type="submit">{{ busy ? 'Guardando…' : 'Guardar evaluación docente' }}</button>
 
-                  <div class="recording-card__meta">
-                    <small>{{ formatDate(recording.recordedAt) }}</small>
-                    <span v-if="recording.referenceStatus === 'processed_deleted'">Referencia procesada ✓</span>
-                    <span v-else-if="recording.referenceStatus === 'uploaded'">Referencia lista</span>
-                    <span v-else-if="recording.referenceStatus === 'processing'">Procesando referencia…</span>
-                  </div>
+                  <span class="muted">La evaluación queda vinculada a esta audición.</span>
+
                 </div>
+
+              </form>
+
+            </section>
+
+            <section class="panel">
+
+              <p class="eyebrow">SÍNTESIS ACTUAL</p>
+
+              <h2>Resultado docente y siguiente paso</h2>
+
+              <p class="muted">La puntuación mostrada aquí resume tu pauta. La evidencia AMV se conserva aparte hasta que se validen reglas de integración específicas para cada dimensión; así no fingimos que el motor mide aspectos que no puede medir.</p>
+
+              <div class="summary-grid">
+
+                <div class="metric"><span>Promedio docente</span><strong>{{ teacherAverage }}</strong><small>Escala 1–10 · ocho dimensiones</small></div>
+
+                <div class="metric"><span>Dimensiones evaluadas</span><strong>{{ completedDimensions }}/8</strong><small>Evaluación docente</small></div>
+
               </div>
 
-              <div class="recording-card__right">
-                <audio
-                  v-if="recording.audioUrl"
-                  :src="recording.audioUrl"
-                  controls
-                  preload="none"
-                ></audio>
+              <div v-if="completedDimensions === 8" class="recommendation">
 
-                <button
-                  v-if="!recording.analysis || recording.analysis.status === 'failed'"
-                  type="button"
-                  class="ghost-button"
-                  :disabled="analyzingId === recording.id"
-                  @click="analyzeRecording(recording)"
-                >
-                  {{ analyzingId === recording.id ? 'Analizando…' : 'Analizar' }}
-                </button>
+                <strong>Próximo paso pedagógico</strong>
 
-                <button
-                  type="button"
-                  class="danger-button"
-                  :disabled="deletingId === recording.id"
-                  @click="removeRecording(recording)"
-                >
-                  {{ deletingId === recording.id ? 'Eliminando…' : 'Eliminar' }}
-                </button>
+                <p>{{ derivedNextStep }}</p>
+
               </div>
-            </article>
-          </div>
-        </section>
-      </template>
-    </div>
 
-    <!-- =====================================================
-         MODAL NUEVA GRABACIÓN
-    ====================================================== -->
-    <Transition name="modal">
-      <div
-        v-if="isRecordingModalOpen"
-        class="modal-backdrop"
-        @click.self="closeRecordingModal"
-      >
-        <section
-          class="recording-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="new-recording-title"
-        >
-          <div class="recording-modal__header">
-            <div>
-              <span class="section-kicker">NUEVA MUESTRA</span>
-              <h2 id="new-recording-title">Subir grabación vocal</h2>
-              <p>
-                Guarda una muestra limpia para iniciar o continuar el seguimiento.
-              </p>
-            </div>
+            </section>
 
-            <button
-              type="button"
-              class="close-button"
-              aria-label="Cerrar"
-              @click="closeRecordingModal"
-            >
-              ×
-            </button>
-          </div>
+          </template>
 
-          <form @submit.prevent="saveRecording">
-            <div class="form-grid">
-              <label class="field field--full">
-                <span>Título de la muestra</span>
-                <input
-                  v-model="recordingForm.title"
-                  type="text"
-                  maxlength="120"
-                  placeholder="Ej. Prueba vocal 01"
-                />
-              </label>
+        </template>
 
-              <label class="field field--full">
-                <span>Canción / ejercicio</span>
-                <input
-                  v-model="recordingForm.song"
-                  type="text"
-                  maxlength="160"
-                  placeholder="Ej. Canción de prueba"
-                />
-              </label>
+      </section>
 
-              <label class="field">
-                <span>Artista original</span>
-                <input
-                  v-model="recordingForm.artist"
-                  type="text"
-                  maxlength="160"
-                  placeholder="Ej. Artista"
-                />
-              </label>
+    </section>
 
-              <label class="field">
-                <span>Tipo</span>
-                <select v-model="recordingForm.songType">
-                  <option value="cover">Cover</option>
-                  <option value="exercise">Ejercicio</option>
-                  <option value="original">Original</option>
-                </select>
-              </label>
+    <footer>AMV Vocal Engine · Evaluación pedagógica asistida · La valoración docente y la evidencia automática permanecen diferenciadas.</footer>
 
-              <label class="field">
-                <span>Tonalidad</span>
-                <select v-model="recordingForm.key">
-                  <option value="">Sin especificar</option>
-                  <option v-for="note in keyOptions" :key="note" :value="note">
-                    {{ note }}
-                  </option>
-                </select>
-              </label>
+  </main>
 
-              <label class="field">
-                <span>Escala / modo</span>
-                <select v-model="recordingForm.scale">
-                  <option value="">Sin especificar</option>
-                  <option
-                    v-for="scale in scaleOptions"
-                    :key="scale.value"
-                    :value="scale.value"
-                  >
-                    {{ scale.label }}
-                  </option>
-                </select>
-              </label>
-
-              <label class="field">
-                <span>BPM</span>
-                <input
-                  v-model="recordingForm.bpm"
-                  type="number"
-                  min="1"
-                  max="300"
-                  step="0.1"
-                  placeholder="Ej. 120"
-                />
-              </label>
-
-              <label class="field">
-                <span>Compás</span>
-                <input
-                  v-model="recordingForm.timeSignature"
-                  type="text"
-                  maxlength="20"
-                  placeholder="Ej. 4/4"
-                />
-              </label>
-
-              <label class="field">
-                <span>Transposición</span>
-                <input
-                  v-model="recordingForm.transpositionSemitones"
-                  type="number"
-                  min="-24"
-                  max="24"
-                  step="1"
-                  placeholder="0"
-                />
-                <small>Semitonos respecto de la referencia.</small>
-              </label>
-
-              <label class="field field--full">
-                <span>Enlace de YouTube · solo contexto</span>
-                <input
-                  v-model="recordingForm.youtubeUrl"
-                  type="url"
-                  maxlength="500"
-                  placeholder="https://www.youtube.com/watch?v=..."
-                />
-                <small>AMV no descarga este enlace. Se guarda para identificar/reproducir la canción.</small>
-              </label>
-
-              <label class="field field--full">
-                <span>Referencia AMV · MIDI o audio</span>
-                <input
-                  ref="referenceInput"
-                  type="file"
-                  accept="audio/*,.mp3,.wav,.m4a,.flac,.ogg,.webm,.mid,.midi"
-                  @change="handleReferenceFile"
-                />
-                <small>
-                  Esta es la referencia que AMV analizará. MIDI es la opción más ligera; con audio, AMV deriva un perfil musical y luego elimina el archivo temporal.
-                </small>
-              </label>
-
-              <label class="field field--full">
-                <span>Tu interpretación</span>
-                <input
-                  ref="audioInput"
-                  type="file"
-                  accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm"
-                  @change="handleAudioFile"
-                />
-                <small>
-                  Recomendado: voz clara y lo más aislada posible de la pista.
-                </small>
-              </label>
-            </div>
-
-            <div
-              v-if="selectedReferenceFile"
-              class="selected-file selected-file--reference"
-            >
-              <span aria-hidden="true">🎼</span>
-              <div>
-                <strong>{{ selectedReferenceFile.name }}</strong>
-                <small>{{ formatFileSize(selectedReferenceFile.size) }} · referencia AMV</small>
-              </div>
-            </div>
-
-            <div
-              v-if="selectedFile"
-              class="selected-file"
-            >
-              <span aria-hidden="true">♫</span>
-              <div>
-                <strong>{{ selectedFile.name }}</strong>
-                <small>{{ formatFileSize(selectedFile.size) }}</small>
-              </div>
-            </div>
-
-            <div
-              v-if="recordingFormError"
-              class="form-error"
-              role="alert"
-            >
-              {{ recordingFormError }}
-            </div>
-
-            <div class="recording-modal__footer">
-              <button
-                type="button"
-                class="secondary-button"
-                :disabled="isSavingRecording"
-                @click="closeRecordingModal"
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="submit"
-                class="primary-button"
-                :disabled="isSavingRecording"
-              >
-                {{ isSavingRecording ? 'Subiendo…' : 'Guardar grabación' }}
-              </button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </Transition>
-  </section>
 </template>
 
 <script setup>
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  reactive,
-  ref
-} from 'vue'
+
+import { computed, onMounted, reactive, ref } from 'vue'
+
+import { fetchStudents } from '@/services/studentService'
 
 import {
-  RouterLink,
-  useRoute
-} from 'vue-router'
 
-import {
-  fetchStudentById
-} from '@/services/studentService'
-
-import {
-  createVocalRecordingSignedUrl,
-  deleteVocalRecording,
   fetchVocalRecordings,
-  getVocalDimensionValue,
-  requestVocalAnalysis,
+
   uploadVocalRecording,
-  VOCAL_DIMENSIONS
+
+  requestVocalAnalysis,
+
+  fetchVocalRecordingById
+
 } from '@/services/vocalIntelligenceService'
 
-/* =========================================================
-   BASE
-========================================================= */
+import {
 
-const route = useRoute()
+  AMV_DIMENSIONS,
 
-const studentId = computed(() =>
-  Number(route.params.studentId)
-)
+  fetchTeacherEvaluation,
 
-const student = ref(null)
+  saveTeacherEvaluation as persistTeacherEvaluation
+
+} from '@/services/vocalTeacherEvaluationService'
+
+const dimensions = AMV_DIMENSIONS
+
+const students = ref([])
+
+const selectedStudent = ref(null)
+
+const selectedStudentId = ref(null)
+
 const recordings = ref([])
 
-const isLoading = ref(true)
-const loadError = ref('')
+const activeRecording = ref(null)
 
-const analyzingId = ref(null)
-const deletingId = ref(null)
+const activeRecordingId = ref(null)
 
-/* =========================================================
-   MODAL
-========================================================= */
+const search = ref('')
 
-const isRecordingModalOpen = ref(false)
-const isSavingRecording = ref(false)
-const recordingFormError = ref('')
-const selectedFile = ref(null)
-const selectedReferenceFile = ref(null)
-const audioInput = ref(null)
-const referenceInput = ref(null)
+const loadingStudents = ref(false)
 
-const recordingForm = reactive({
-  title: '',
-  song: '',
-  artist: '',
-  songType: 'cover',
-  key: '',
-  scale: '',
-  bpm: '',
-  timeSignature: '4/4',
-  youtubeUrl: '',
-  transpositionSemitones: 0
+const loadingRecordings = ref(false)
+
+const showNewAudition = ref(false)
+
+const busy = ref(false)
+
+const error = ref('')
+
+const message = ref('')
+
+const scores = reactive(Object.fromEntries(dimensions.map(d => [d.key, null])))
+
+const observations = ref('')
+
+const strengths = ref('')
+
+const priorities = ref('')
+
+const exercisePlan = ref('')
+
+const form = reactive({ title: '', song: '', artist: '', songType: 'cover', key: '', audio: null, referenceFile: null, context: '' })
+
+const filteredStudents = computed(() => students.value.filter(s => s.name.toLowerCase().includes(search.value.toLowerCase())))
+
+const completedDimensions = computed(() => dimensions.filter(d => { const value = Number(scores[d.key]); return Number.isInteger(value) && value >= 1 && value <= 10 }).length)
+
+const teacherAverage = computed(() => completedDimensions.value ? (dimensions.reduce((sum, d) => sum + (Number(scores[d.key]) || 0), 0) / completedDimensions.value).toFixed(2) : '—')
+
+const derivedNextStep = computed(() => {
+
+  const weakest = [...dimensions].filter(d => scores[d.key] != null).sort((a, b) => scores[a.key] - scores[b.key])[0]
+
+  if (!weakest) return 'Completa la pauta docente.'
+
+  return `Prioriza ${weakest.label.toLowerCase()} en la próxima clase. Define un ejercicio concreto y vuelve a observar esta dimensión en la siguiente audición.`
+
 })
 
-const keyOptions = [
-  'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb',
-  'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'
-]
+onMounted(loadStudents)
 
-const scaleOptions = [
-  { value: 'major', label: 'Mayor' },
-  { value: 'minor', label: 'Menor' },
-  { value: 'natural_minor', label: 'Menor natural' },
-  { value: 'harmonic_minor', label: 'Menor armónica' },
-  { value: 'melodic_minor', label: 'Menor melódica' },
-  { value: 'dorian', label: 'Dórico' },
-  { value: 'phrygian', label: 'Frigio' },
-  { value: 'lydian', label: 'Lidio' },
-  { value: 'mixolydian', label: 'Mixolidio' },
-  { value: 'aeolian', label: 'Eólico' },
-  { value: 'locrian', label: 'Locrio' },
-  { value: 'pentatonic_major', label: 'Pentatónica mayor' },
-  { value: 'pentatonic_minor', label: 'Pentatónica menor' },
-  { value: 'blues', label: 'Blues' }
-]
+async function loadStudents() {
 
+  loadingStudents.value = true
 
-/* =========================================================
-   DIMENSIONES
-========================================================= */
+  error.value = ''
 
-const dimensions = computed(() =>
-  VOCAL_DIMENSIONS.map((dimension, index) => ({
-    ...dimension,
-    index: index + 1
-  }))
-)
+  try { students.value = await fetchStudents() }
 
-const latestRecording = computed(() =>
-  recordings.value[0] || null
-)
+  catch (e) { error.value = readableError(e, 'No se pudieron cargar los alumnos.') }
 
-const latestAnalysis = computed(() =>
-  latestRecording.value?.analysis || null
-)
+  finally { loadingStudents.value = false }
 
-const latestAnalysisDate = computed(() =>
-  latestAnalysis.value?.createdAt
-    ? formatDate(latestAnalysis.value.createdAt)
-    : ''
-)
-
-const hasReferenceScores = computed(() =>
-  dimensions.value.some(dimension =>
-    dimensionReferenceScore(dimension.key) !== null
-  )
-)
-
-/* =========================================================
-   RADAR
-========================================================= */
-
-const radarLevels = [20, 40, 60, 80, 100]
-const radarCenter = 260
-const radarRadius = 165
-
-const radarPoint = (index, value) => {
-  const angle =
-    (-Math.PI / 2) +
-    (index * (Math.PI * 2 / dimensions.value.length))
-
-  const radius =
-    radarRadius * (Math.max(0, Math.min(100, Number(value) || 0)) / 100)
-
-  return {
-    x: radarCenter + Math.cos(angle) * radius,
-    y: radarCenter + Math.sin(angle) * radius
-  }
 }
 
-const radarPolygon = value =>
-  dimensions.value
-    .map((_, index) => {
-      const point = radarPoint(index, value)
-      return `${point.x},${point.y}`
-    })
-    .join(' ')
+async function selectStudent(student) {
 
-const radarScorePoints = computed(() =>
-  dimensions.value.map((dimension, index) =>
-    radarPoint(
-      index,
-      dimensionReferenceScore(dimension.key) ?? 0
-    )
-  )
-)
+  selectedStudent.value = student
 
-const radarScorePolygon = computed(() =>
-  radarScorePoints.value
-    .map(point => `${point.x},${point.y}`)
-    .join(' ')
-)
+  selectedStudentId.value = student.id
 
-const radarLabelPoint = index => {
-  const point = radarPoint(index, 118)
-  const angle =
-    (-Math.PI / 2) +
-    (index * (Math.PI * 2 / dimensions.value.length))
+  activeRecording.value = null
 
-  const cosine = Math.cos(angle)
+  activeRecordingId.value = null
 
-  return {
-    x: point.x,
-    y: point.y,
-    anchor:
-      cosine > 0.35
-        ? 'start'
-        : cosine < -0.35
-          ? 'end'
-          : 'middle'
-  }
+  showNewAudition.value = false
+
+  resetEvaluation()
+
+  await loadRecordings()
+
 }
 
-/* =========================================================
-   VALORES DE DIMENSIONES
-========================================================= */
+async function loadRecordings() {
 
-const dimensionObject = key =>
-  getVocalDimensionValue(
-    latestAnalysis.value,
-    key
-  )
+  if (!selectedStudentId.value) return
 
-const rawDimensionScore = key => {
-  const value = dimensionObject(key)
+  loadingRecordings.value = true
 
-  if (value === null || value === undefined) {
-    return null
-  }
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null
-  }
-
-  if (typeof value !== 'object') {
-    return null
-  }
-
-  const candidates = [
-    value.score,
-    value.value,
-    value.indicator,
-    value.pedagogical_score
-  ]
-
-  const score = candidates.find(candidate =>
-    Number.isFinite(Number(candidate))
-  )
-
-  return score === undefined
-    ? null
-    : Number(score)
-}
-
-const dimensionSemantics = key => {
-  const value = dimensionObject(key)
-
-  if (!value || typeof value !== 'object') {
-    return null
-  }
-
-  return (
-    value.score_semantics ||
-    value.semantics ||
-    value.scoreSemantics ||
-    null
-  )
-}
-
-const dimensionReferenceScore = key => {
-  if (dimensionSemantics(key) !== 'reference_score') {
-    return null
-  }
-
-  return rawDimensionScore(key)
-}
-
-const dimensionIndicatorScore = key => {
-  if (dimensionSemantics(key) !== 'acoustic_proxy') {
-    return null
-  }
-
-  return rawDimensionScore(key)
-}
-
-const dimensionStatusClass = key => {
-  if (dimensionReferenceScore(key) !== null) {
-    return 'reference'
-  }
-
-  if (dimensionIndicatorScore(key) !== null) {
-    return 'indicator'
-  }
-
-  const value = dimensionObject(key)
-
-  if (value) {
-    const semantics = dimensionSemantics(key)
-
-    if (semantics === 'descriptive') {
-      return 'descriptive'
-    }
-
-    if (semantics === 'not_scoreable') {
-      return 'pending'
-    }
-  }
-
-  return 'pending'
-}
-
-const dimensionStatusLabel = key => {
-  if (dimensionReferenceScore(key) !== null) {
-    return 'Referencia'
-  }
-
-  if (dimensionIndicatorScore(key) !== null) {
-    return 'Indicador'
-  }
-
-  const semantics = dimensionSemantics(key)
-
-  if (semantics === 'descriptive') {
-    return 'Descriptivo'
-  }
-
-  return 'Sin datos'
-}
-
-/* =========================================================
-   ESTADOS DE ANÁLISIS
-========================================================= */
-
-const analysisStatusClass = analysis => {
-  if (!analysis) {
-    return 'pending'
-  }
-
-  switch (analysis.status) {
-    case 'completed':
-      return 'completed'
-    case 'processing':
-      return 'processing'
-    case 'failed':
-      return 'failed'
-    default:
-      return 'pending'
-  }
-}
-
-const analysisStatusLabel = analysis => {
-  if (!analysis) {
-    return 'Pendiente de análisis'
-  }
-
-  switch (analysis.status) {
-    case 'completed':
-      return 'Análisis disponible'
-    case 'processing':
-      return 'Procesando'
-    case 'failed':
-      return 'Análisis fallido'
-    default:
-      return 'Pendiente'
-  }
-}
-
-/* =========================================================
-   CARGA
-========================================================= */
-
-const loadStudent = async () => {
-  const id = Number(studentId.value)
-
-  if (!Number.isFinite(id)) {
-    throw new Error('El ID del estudiante no es válido.')
-  }
-
-  return fetchStudentById(id)
-}
-
-const attachAudioUrls = async sourceRecordings => {
-  return Promise.all(
-    sourceRecordings.map(async recording => {
-      if (!recording?.storagePath) {
-        return recording
-      }
-
-      try {
-        const audioUrl =
-          await createVocalRecordingSignedUrl(
-            recording.storagePath
-          )
-
-        return {
-          ...recording,
-          audioUrl
-        }
-      } catch (error) {
-        console.warn(
-          '[VozView] No fue posible crear URL temporal:',
-          error
-        )
-
-        return recording
-      }
-    })
-  )
-}
-
-const loadRecordings = async () => {
-  const loaded = await fetchVocalRecordings(
-    studentId.value
-  )
-
-  recordings.value =
-    await attachAudioUrls(loaded || [])
-}
-
-const loadPage = async () => {
-  isLoading.value = true
-  loadError.value = ''
+  error.value = ''
 
   try {
-    const [loadedStudent] =
-      await Promise.all([
-        loadStudent(),
-        loadRecordings()
-      ])
 
-    student.value =
-      loadedStudent || null
-  } catch (error) {
-    console.error(
-      '[VozView] Error cargando seguimiento vocal:',
-      error
-    )
+    recordings.value = await fetchVocalRecordings(selectedStudentId.value)
 
-    student.value = null
-    recordings.value = []
+    if (recordings.value.length && !activeRecordingId.value) await selectRecording(recordings.value[0])
 
-    loadError.value =
-      error?.message ||
-      'No pudimos cargar el seguimiento vocal.'
-  } finally {
-    isLoading.value = false
-  }
+  } catch (e) { error.value = readableError(e, 'No se pudo cargar el historial de audiciones.') }
+
+  finally { loadingRecordings.value = false }
+
 }
 
-/* =========================================================
-   MODAL
-========================================================= */
+async function selectRecording(recording) {
 
-const resetRecordingForm = () => {
-  recordingForm.title = ''
-  recordingForm.song = ''
-  recordingForm.artist = ''
-  recordingForm.songType = 'cover'
-  recordingForm.key = ''
-  recordingForm.scale = ''
-  recordingForm.bpm = ''
-  recordingForm.timeSignature = '4/4'
-  recordingForm.youtubeUrl = ''
-  recordingForm.transpositionSemitones = 0
-  selectedFile.value = null
-  selectedReferenceFile.value = null
-  recordingFormError.value = ''
+  activeRecording.value = recording
 
-  if (audioInput.value) {
-    audioInput.value.value = ''
-  }
+  activeRecordingId.value = recording.id
 
-  if (referenceInput.value) {
-    referenceInput.value.value = ''
-  }
-}
+  resetEvaluation()
 
-const openRecordingModal = async () => {
-  resetRecordingForm()
-  isRecordingModalOpen.value = true
-
-  await nextTick()
-}
-
-const closeRecordingModal = () => {
-  if (isSavingRecording.value) {
-    return
-  }
-
-  isRecordingModalOpen.value = false
-  resetRecordingForm()
-}
-
-const handleAudioFile = event => {
-  const file = event?.target?.files?.[0] || null
-  selectedFile.value = file
-  recordingFormError.value = ''
-
-  if (!file) {
-    return
-  }
-
-  if (!file.type.startsWith('audio/')) {
-    recordingFormError.value =
-      'Selecciona un archivo de audio válido.'
-    selectedFile.value = null
-    return
-  }
-
-  const maxSize = 100 * 1024 * 1024
-
-  if (file.size > maxSize) {
-    recordingFormError.value =
-      'El archivo supera el límite de 100 MB.'
-    selectedFile.value = null
-  }
-}
-
-const handleReferenceFile = event => {
-  const file = event?.target?.files?.[0] || null
-  selectedReferenceFile.value = file
-  recordingFormError.value = ''
-
-  if (!file) {
-    return
-  }
-
-  const isAudio = file.type.startsWith('audio/')
-  const isMidi = /\.(mid|midi)$/i.test(file.name)
-
-  if (!isAudio && !isMidi) {
-    recordingFormError.value =
-      'La referencia debe ser un archivo MIDI o de audio.'
-    selectedReferenceFile.value = null
-    return
-  }
-
-  const maxSize = 200 * 1024 * 1024
-
-  if (file.size > maxSize) {
-    recordingFormError.value =
-      'La referencia supera el límite de 200 MB.'
-    selectedReferenceFile.value = null
-  }
-}
-
-const saveRecording = async () => {
-  recordingFormError.value = ''
-
-  if (!selectedFile.value) {
-    recordingFormError.value =
-      'Selecciona la grabación de la estudiante antes de continuar.'
-    return
-  }
-
-  if (!selectedReferenceFile.value) {
-    recordingFormError.value =
-      'Selecciona la referencia MIDI o audio que AMV usará para comparar.'
-    return
-  }
-
-  if (recordingForm.songType === 'cover' && !recordingForm.song.trim()) {
-    recordingFormError.value =
-      'Indica el nombre de la canción para una referencia de cover.'
-    return
-  }
-
-  isSavingRecording.value = true
+  error.value = ''
 
   try {
-    await uploadVocalRecording({
-      studentId: studentId.value,
-      file: selectedFile.value,
-      title: recordingForm.title,
-      song: recordingForm.song,
-      artist: recordingForm.artist,
-      songType: recordingForm.songType,
-      key: recordingForm.key,
-      scale: recordingForm.scale,
-      bpm: recordingForm.bpm,
-      timeSignature: recordingForm.timeSignature,
-      youtubeUrl: recordingForm.youtubeUrl,
-      referenceFile: selectedReferenceFile.value,
-      transpositionSemitones: recordingForm.transpositionSemitones,
+
+    const saved = await fetchTeacherEvaluation(recording.id)
+
+    if (saved) {
+
+      for (const d of dimensions) scores[d.key] = saved.scores?.[d.key] ?? null
+
+      observations.value = saved.observations || ''
+
+      strengths.value = saved.strengths || ''
+
+      priorities.value = saved.priorities || ''
+
+      exercisePlan.value = saved.exercise_plan || ''
+
+    }
+
+  } catch (e) { error.value = readableError(e, 'No se pudo recuperar la evaluación docente. Revisa la migración y las políticas RLS.') }
+
+}
+
+async function createAudition() {
+
+  if (!selectedStudentId.value) return
+
+  if (!form.audio || !form.referenceFile) { error.value = 'Selecciona el audio del alumno y el archivo de referencia.'; return }
+
+  busy.value = true
+
+  error.value = ''
+
+  message.value = ''
+
+  try {
+
+    const recording = await uploadVocalRecording({
+
+      studentId: selectedStudentId.value,
+
+      file: form.audio,
+
+      referenceFile: form.referenceFile,
+
+      title: form.title,
+
+      song: form.song,
+
+      artist: form.artist,
+
+      songType: form.songType,
+
+      key: form.key,
+
       recordedAt: new Date().toISOString()
+
     })
 
-    isRecordingModalOpen.value = false
-    resetRecordingForm()
+    await requestVocalAnalysis(recording.id)
+
+    message.value = 'Audición guardada y solicitud de análisis enviada. Actualiza el historial cuando el procesamiento termine.'
+
+    form.title = ''; form.song = ''; form.artist = ''; form.key = ''; form.audio = null; form.referenceFile = null; form.context = ''
+
+    showNewAudition.value = false
 
     await loadRecordings()
-  } catch (error) {
-    console.error(
-      '[VozView] Error guardando grabación:',
-      error
-    )
 
-    recordingFormError.value =
-      error?.message ||
-      'No fue posible guardar la grabación.'
-  } finally {
-    isSavingRecording.value = false
-  }
+    const fresh = await fetchVocalRecordingById(recording.id)
+
+    await selectRecording(fresh)
+
+  } catch (e) {
+
+    error.value = readableError(e, 'No se pudo completar la audición. Comprueba los requisitos de AMV y vuelve a intentarlo.')
+
+  } finally { busy.value = false }
+
 }
 
-/* =========================================================
-   ANÁLISIS
-========================================================= */
+async function runAnalysis() {
 
-const sleep = ms =>
-  new Promise(resolve => setTimeout(resolve, ms))
+  if (!activeRecording.value) return
 
-const waitForAnalysis = async recordingId => {
-  // El análisis completo puede tardar varios minutos, especialmente
-  // cuando la referencia es un tema completo y requiere separación Demucs.
-  // 180 intentos x 4 s = hasta 12 minutos de espera activa en la UI.
-  const maxAttempts = 180
-  const pollIntervalMs = 4000
-
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    await sleep(pollIntervalMs)
-    await loadRecordings()
-
-    const current = recordings.value.find(
-      recording => Number(recording.id) === Number(recordingId)
-    )
-
-    const status = current?.analysis?.status
-
-    if (status === 'completed' || status === 'failed') {
-      return current
-    }
-  }
-
-  return recordings.value.find(
-    recording => Number(recording.id) === Number(recordingId)
-  ) || null
-}
-
-const analyzeRecording = async recording => {
-  if (!recording?.id || analyzingId.value) {
-    return
-  }
-
-  analyzingId.value = recording.id
-  loadError.value = ''
+  busy.value = true; error.value = ''; message.value = ''
 
   try {
-    await requestVocalAnalysis(recording.id)
-    await loadRecordings()
-    await waitForAnalysis(recording.id)
-  } catch (error) {
-    console.error(
-      '[VozView] Error solicitando análisis:',
-      error
-    )
 
-    loadError.value =
-      error?.message ||
-      'No fue posible solicitar el análisis vocal.'
-  } finally {
-    analyzingId.value = null
-  }
+    await requestVocalAnalysis(activeRecording.value.id)
+
+    message.value = 'Solicitud enviada a AMV. Si el análisis es asíncrono, actualiza el historial después de que termine.'
+
+    const fresh = await fetchVocalRecordingById(activeRecording.value.id)
+
+    await selectRecording(fresh)
+
+    await loadRecordings()
+
+  } catch (e) { error.value = readableError(e, 'No se pudo solicitar el análisis AMV.') }
+
+  finally { busy.value = false }
+
 }
 
-/* =========================================================
-   ELIMINAR
-========================================================= */
+function generatePedagogicalProposal() {
 
-const removeRecording = async recording => {
-  if (!recording?.id) {
+  if (completedDimensions.value !== 8) {
+
+    error.value = `Para generar la propuesta, completa las ocho puntuaciones. Llevas ${completedDimensions.value} de 8.`
+
     return
+
   }
 
-  const confirmed = window.confirm(
-    `¿Eliminar la grabación "${recording.title}"? Esta acción también eliminará su análisis asociado.`
+  // Normaliza valores que puedan venir de Supabase como texto.
+
+  for (const d of dimensions) scores[d.key] = Number(scores[d.key])
+
+  const ordered = dimensions
+
+    .map(d => ({ ...d, score: Number(scores[d.key]) }))
+
+    .sort((a, b) => a.score - b.score)
+
+  const strong = ordered.filter(d => d.score >= 7).sort((a, b) => b.score - a.score)
+
+  const priority = ordered.filter(d => d.score <= 4)
+
+  const developing = ordered.filter(d => d.score >= 5 && d.score <= 6)
+
+  const analysisAvailable = Boolean(
+
+    activeRecording.value?.analysis ||
+
+    activeRecording.value?.workerResult ||
+
+    activeRecording.value?.worker_result
+
   )
 
-  if (!confirmed) {
-    return
+  strengths.value = strong.length
+
+    ? strong.map(d => `${d.label} (${d.score}/10): desempeño valorado como sólido en la pauta docente; conviene mantenerlo y observar su consistencia en la próxima audición.`).join('\n')
+
+    : 'La pauta aún no identifica dimensiones con puntuaciones 7–10. Vuelve a escuchar la audición y registra conductas concretas que el alumno ya realiza bien.'
+
+  priorities.value = priority.length
+
+    ? priority.map((d, i) => `${i + 1}. ${d.label} (${d.score}/10): prioridad de trabajo. Anota qué escuchaste específicamente y compara el resultado en la siguiente audición.`).join('\n')
+
+    : developing.length
+
+      ? `No hay puntuaciones de 1–4. Enfoca la práctica en consolidar: ${developing.map(d => `${d.label} (${d.score}/10)`).join(', ')}.`
+
+      : 'No se detectan prioridades bajas en esta pauta. Mantén el trabajo y comprueba la estabilidad del desempeño en otra interpretación.'
+
+  const exerciseByKey = {
+
+    intonation: 'Afinación: sostener notas cómodas con una referencia tonal; realizar patrones cortos de 3–5 notas y comprobar cada repetición contra la referencia.',
+
+    rhythm: 'Ritmo: marcar el pulso con palmas o pasos, practicar entradas y frases lentas con metrónomo, y luego acercarse al tempo de la canción.',
+
+    air: 'Aire y fraseo: planificar respiraciones sobre el texto; cantar frases breves sin forzar y revisar que el final de frase conserve estabilidad.',
+
+    phonation: 'Fonación y emisión: realizar inicio suave con vocales cómodas y ejercicios breves de resonancia sin empujar ni aumentar el volumen.',
+
+    register: 'Registro: trabajar transiciones en rango cómodo con patrones ascendentes y descendentes suaves; detenerse si aparece tensión.',
+
+    resonance: 'Resonancia y timbre: comparar vocales sostenidas en una intensidad cómoda y buscar claridad sin apretar la garganta.',
+
+    diction: 'Dicción: recitar el texto con pulso, exagerar suavemente consonantes difíciles y luego cantar manteniendo la inteligibilidad.',
+
+    expression: 'Expresión: definir intención por frase, marcar palabras clave y repetir la interpretación variando dinámicas sin perder afinación ni claridad.'
+
   }
 
-  deletingId.value = recording.id
-  loadError.value = ''
+  const focus = (priority.length ? priority : ordered.slice(0, 2))
+
+    .slice(0, 3)
+
+    .map((d, i) => `${i + 1}. ${exerciseByKey[d.key] || `Practicar ${d.label.toLowerCase()} con una consigna concreta y volver a observarla.`}`)
+
+  exercisePlan.value = `${focus.join('\n\n')}\n\nCriterio de logro: repetir una toma breve y comparar la misma dimensión con la pauta docente. Registrar qué cambió y qué necesita otra práctica. Ajustar el ejercicio según la respuesta del alumno; suspenderlo si genera dolor o tensión.`
+
+  observations.value = [
+
+    'Borrador generado a partir de la pauta docente; revisar y editar antes de guardar.',
+
+    analysisAvailable
+
+      ? 'Hay un resultado AMV asociado a la audición. Esta propuesta no fusiona automáticamente sus datos con las notas docentes: contrasta las mediciones disponibles por separado y evita inferir dimensiones no medidas.'
+
+      : 'No se detecta un resultado AMV asociado a esta audición. La propuesta se basa únicamente en las puntuaciones docentes.'
+
+  ].join('\n\n')
+
+  message.value = 'Propuesta pedagógica generada. Revísala y edítala antes de guardar.'
+
+  error.value = ''
+
+}
+
+async function saveEvaluation() {
+
+  if (!activeRecording.value) return
+
+  if (completedDimensions.value !== 8) { error.value = 'Evalúa las ocho dimensiones antes de guardar.'; return }
+
+  busy.value = true; error.value = ''; message.value = ''
 
   try {
-    await deleteVocalRecording(recording)
-    await loadRecordings()
-  } catch (error) {
-    console.error(
-      '[VozView] Error eliminando grabación:',
-      error
-    )
 
-    loadError.value =
-      error?.message ||
-      'No fue posible eliminar la grabación.'
-  } finally {
-    deletingId.value = null
-  }
+    await persistTeacherEvaluation({
+
+      recordingId: activeRecording.value.id,
+
+      studentId: selectedStudentId.value,
+
+      scores: { ...scores },
+
+      observations: observations.value,
+
+      strengths: strengths.value,
+
+      priorities: priorities.value,
+
+      exercisePlan: exercisePlan.value,
+
+      integratedResult: { status: 'teacher_only_until_rules_validated', note: 'Las evidencias automáticas se mantienen separadas hasta validar reglas de combinación por dimensión.', amv_analysis_available: Boolean(activeRecording.value?.analysis || activeRecording.value?.workerResult || activeRecording.value?.worker_result), proposal_generated_from: 'teacher_scores', generated_at: new Date().toISOString() }
+
+    })
+
+    message.value = 'Evaluación docente guardada correctamente.'
+
+  } catch (e) { error.value = readableError(e, 'No se pudo guardar. Revisa la migración y las políticas de acceso.') }
+
+  finally { busy.value = false }
+
 }
 
-/* =========================================================
-   FORMATO
-========================================================= */
+function resetEvaluation() {
 
-const formatDate = value => {
-  if (!value) {
-    return 'Fecha no disponible'
-  }
+  for (const d of dimensions) scores[d.key] = null
 
-  const date = new Date(value)
+  observations.value = ''; strengths.value = ''; priorities.value = ''; exercisePlan.value = ''
 
-  if (Number.isNaN(date.getTime())) {
-    return String(value)
-  }
-
-  return new Intl.DateTimeFormat(
-    'es-CL',
-    {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    }
-  ).format(date)
 }
 
-const formatFileSize = bytes => {
-  const value = Number(bytes)
+function initials(name) { return String(name || '?').split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() }
 
-  if (!Number.isFinite(value) || value <= 0) {
-    return 'Tamaño no disponible'
-  }
+function formatDate(value) { if (!value) return 'Fecha sin registrar'; const date = new Date(value); return Number.isNaN(date.getTime()) ? 'Fecha sin registrar' : new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' }).format(date) }
 
-  if (value < 1024 * 1024) {
-    return `${(value / 1024).toFixed(0)} KB`
-  }
+function readableError(e, fallback) { return e?.message || fallback }
 
-  return `${(value / (1024 * 1024)).toFixed(1)} MB`
-}
-
-/* =========================================================
-   CICLO DE VIDA
-========================================================= */
-
-onMounted(loadPage)
-
-onBeforeUnmount(() => {
-  recordings.value = []
-})
 </script>
 
-<style scoped>
-:global(*) {
-  box-sizing: border-box;
-}
 
-.voice-page {
-  min-height: 100%;
-  padding: 32px 24px 64px;
-  background:
-    radial-gradient(circle at top right, rgba(87, 92, 255, 0.07), transparent 32%),
-    #f6f7fb;
-  color: #172033;
-}
-
-.voice-shell {
-  width: min(1380px, 100%);
+<style>
+/* AMV Vocal Engine — visual system 2026 */
+.amv-page {
+  --amv-ink: #172033;
+  --amv-muted: #667085;
+  --amv-line: #e4e8f0;
+  --amv-paper: #ffffff;
+  --amv-canvas: #f5f7fb;
+  --amv-indigo: #4f46e5;
+  --amv-indigo-dark: #3730a3;
+  --amv-indigo-soft: #eef2ff;
+  max-width: 1600px;
+  padding: clamp(16px, 2.4vw, 36px);
   margin: 0 auto;
-}
-
-.voice-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 28px;
-  margin-bottom: 28px;
-}
-
-.back-link {
-  display: inline-flex;
-  margin-bottom: 22px;
-  color: #5e687b;
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.back-link:hover {
-  color: #4f46e5;
-}
-
-.eyebrow,
-.section-kicker {
-  display: block;
-  color: #64748b;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-
-.voice-header h1 {
-  margin: 6px 0 8px;
-  color: #111827;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-}
-
-.voice-header p {
-  max-width: 760px;
-  margin: 0;
-  color: #687386;
-  font-size: 1rem;
-  line-height: 1.65;
-}
-
-.primary-button,
-.secondary-button,
-.ghost-button,
-.danger-button,
-.close-button {
-  border: 0;
-  font: inherit;
-  cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background 160ms ease,
-    color 160ms ease;
-}
-
-.primary-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 46px;
-  padding: 0 18px;
-  border-radius: 13px;
-  background: #4f46e5;
-  color: #fff;
-  font-weight: 800;
-  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.2);
-}
-
-.primary-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: #4338ca;
-}
-
-.secondary-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 0 15px;
-  border: 1px solid #d8deea;
-  border-radius: 11px;
-  background: #fff;
-  color: #334155;
-  font-weight: 800;
-}
-
-.secondary-button:hover:not(:disabled) {
-  border-color: #b9c1d1;
-  background: #f8fafc;
-}
-
-.ghost-button {
-  padding: 8px 10px;
-  border-radius: 9px;
-  background: #eef2ff;
-  color: #4338ca;
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.ghost-button:hover:not(:disabled) {
-  background: #e0e7ff;
-}
-
-.danger-button {
-  padding: 8px 10px;
-  border-radius: 9px;
-  background: #fff1f2;
-  color: #be123c;
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.danger-button:hover:not(:disabled) {
-  background: #ffe4e6;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.loading-card,
-.alert-card,
-.ai-notice,
-.panel,
-.latest-card {
-  border: 1px solid #e4e8f0;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 12px 38px rgba(31, 41, 55, 0.055);
-}
-
-.loading-card {
-  display: flex;
-  min-height: 240px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #64748b;
-  text-align: center;
-}
-
-.loading-card strong {
-  color: #1f2937;
-}
-
-.loading-spinner {
-  width: 34px;
-  height: 34px;
-  margin-bottom: 8px;
-  border: 3px solid #e0e7ff;
-  border-top-color: #4f46e5;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.alert-card {
-  padding: 24px;
-}
-
-.alert-card--error {
-  border-color: #fecdd3;
-  background: #fff7f8;
-}
-
-.alert-card strong {
-  color: #9f1239;
-}
-
-.alert-card p {
-  margin: 8px 0 16px;
-  color: #64748b;
-  line-height: 1.6;
-}
-
-.ai-notice {
-  display: flex;
-  gap: 14px;
-  margin-bottom: 22px;
-  padding: 18px 20px;
-  border-color: #dbe4ff;
-  background: linear-gradient(135deg, #f8faff, #f3f5ff);
-}
-
-.ai-notice__icon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  place-items: center;
-  border-radius: 12px;
-  background: #e0e7ff;
-  color: #4f46e5;
-  font-weight: 900;
-}
-
-.ai-notice strong {
-  color: #27327a;
-}
-
-.ai-notice p {
-  margin: 4px 0 0;
-  color: #59647a;
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
-.panel {
-  margin-bottom: 22px;
-  padding: 26px;
-}
-
-.section-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.section-heading h2,
-.latest-card h2,
-.recording-modal h2 {
-  margin: 5px 0 7px;
-  color: #111827;
-  font-size: 1.55rem;
-  letter-spacing: -0.025em;
-}
-
-.section-heading p,
-.recording-modal__header p {
-  max-width: 760px;
-  margin: 0;
-  color: #738095;
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
-.profile-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 7px;
-  color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-align: right;
-}
-
-.profile-meta span {
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: #f1f5f9;
-}
-
-.count-badge {
-  flex: 0 0 auto;
-  padding: 8px 11px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.map-layout {
-  display: grid;
-  grid-template-columns: minmax(380px, 0.9fr) minmax(0, 1.1fr);
-  gap: 28px;
-  align-items: stretch;
-}
-
-.radar-card {
-  display: flex;
-  min-height: 600px;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 1px solid #edf0f5;
-  border-radius: 18px;
-  background: linear-gradient(145deg, #fbfcff, #f7f8fc);
-}
-
-.radar {
-  width: min(100%, 560px);
-  height: auto;
-  overflow: visible;
-}
-
-.radar-grid polygon,
-.radar-grid line {
-  fill: none;
-  stroke: #dce2ed;
-  stroke-width: 1;
-}
-
-.radar-area {
-  fill: rgba(79, 70, 229, 0.14);
-  stroke: #4f46e5;
-  stroke-width: 3;
-}
-
-.radar-point {
-  fill: #4f46e5;
-  stroke: #fff;
-  stroke-width: 3;
-}
-
-.radar-labels text {
-  fill: #475569;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.radar-empty circle {
-  fill: #e2e8f0;
-}
-
-.radar-empty text {
-  fill: #94a3b8;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.dimension-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.dimension-card {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid #e7ebf2;
-  border-radius: 15px;
-  background: #fff;
-}
-
-.dimension-card__top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.dimension-card__top > div {
-  display: flex;
-  min-width: 0;
-  gap: 9px;
-}
-
-.dimension-card__index {
-  color: #a1aabb;
-  font-size: 0.7rem;
-  font-weight: 900;
-}
-
-.dimension-card h3 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 0.9rem;
-  line-height: 1.3;
-}
-
-.dimension-status,
-.analysis-pill {
-  flex: 0 0 auto;
-  padding: 5px 8px;
-  border-radius: 999px;
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-}
-
-.dimension-status--reference,
-.analysis-pill--completed {
-  background: #ecfdf5;
-  color: #047857;
-}
-
-.dimension-status--indicator {
-  background: #eff6ff;
-  color: #1d4ed8;
-}
-
-.dimension-status--descriptive {
-  background: #f5f3ff;
-  color: #6d28d9;
-}
-
-.dimension-status--pending,
-.analysis-pill--pending {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.analysis-pill--processing {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-.analysis-pill--failed {
-  background: #fff1f2;
-  color: #be123c;
-}
-
-.dimension-value {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  margin: 17px 0 7px;
-}
-
-.dimension-value strong {
-  color: #111827;
-  font-size: 1.55rem;
-  letter-spacing: -0.03em;
-}
-
-.dimension-value span {
-  color: #94a3b8;
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
-.dimension-card p {
-  margin: 0;
-  color: #7b8798;
-  font-size: 0.75rem;
+  color: var(--amv-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
   line-height: 1.5;
 }
-
-.latest-card {
+.amv-page, .amv-page * { box-sizing: border-box; }
+.amv-page .hero {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 22px;
-  padding: 22px 24px;
-  background: linear-gradient(135deg, #ffffff, #f8f9ff);
-}
-
-.latest-card__content h2 {
-  margin-bottom: 3px;
-}
-
-.latest-card__content p {
-  margin: 0 0 4px;
-  color: #5f6b7d;
-}
-
-.latest-card__content small {
-  color: #9aa4b4;
-}
-
-.latest-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.latest-card audio,
-.recording-card audio {
-  max-width: 320px;
-  height: 36px;
-}
-
-.empty-state {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  border: 1px dashed #d8dee9;
-  border-radius: 15px;
-  background: #fbfcfe;
-}
-
-.empty-state__icon {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  place-items: center;
-  border-radius: 13px;
-  background: #eef2ff;
-  color: #4f46e5;
-  font-size: 1.2rem;
-  font-weight: 900;
-}
-
-.empty-state h3 {
-  margin: 0 0 4px;
-  color: #1f2937;
-  font-size: 0.95rem;
-}
-
-.empty-state p {
-  margin: 0;
-  color: #7b8798;
-  font-size: 0.82rem;
-  line-height: 1.5;
-}
-
-.empty-state .secondary-button {
-  margin-left: auto;
-}
-
-.recording-list {
-  display: grid;
-  gap: 10px;
-}
-
-.recording-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 16px;
-  border: 1px solid #e8ebf1;
-  border-radius: 15px;
-  background: #fff;
-}
-
-.recording-card__main {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 13px;
-}
-
-.recording-icon {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  place-items: center;
-  border-radius: 12px;
-  background: #f1f5ff;
-  color: #4f46e5;
-  font-weight: 900;
-}
-
-.recording-card__title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.recording-card h3 {
-  overflow: hidden;
-  margin: 0;
-  color: #1f2937;
-  font-size: 0.92rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.recording-card p {
-  margin: 0 0 3px;
-  color: #667286;
-  font-size: 0.8rem;
-}
-
-.recording-card small {
-  color: #a0a9b8;
-  font-size: 0.7rem;
-}
-
-.recording-card__right {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.modal-backdrop {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  display: grid;
-  overflow: auto;
-  place-items: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.48);
-  backdrop-filter: blur(5px);
-}
-
-.recording-modal {
-  width: min(620px, 100%);
-  padding: 24px;
-  border: 1px solid #e4e8f0;
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.2);
-}
-
-.recording-modal__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 22px;
-}
-
-.close-button {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  place-items: center;
-  border-radius: 10px;
-  background: #f1f5f9;
-  color: #64748b;
-  font-size: 1.4rem;
-}
-
-.close-button:hover {
-  background: #e2e8f0;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.field {
-  display: grid;
-  gap: 7px;
-}
-
-.field--full {
-  grid-column: 1 / -1;
-}
-
-.field > span {
-  color: #334155;
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.field input {
-  width: 100%;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid #d9dfe9;
-  border-radius: 11px;
-  outline: none;
-  background: #fff;
-  color: #1f2937;
-  font: inherit;
-}
-
-.field input:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.field input[type='file'] {
-  min-height: auto;
-  padding: 10px;
-  background: #f8fafc;
-  cursor: pointer;
-}
-
-.field small {
-  color: #94a3b8;
-  font-size: 0.72rem;
-  line-height: 1.4;
-}
-
-.recording-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
-  color: #7a8495;
-}
-
-.recording-card__meta span {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
-.selected-file--reference {
-  border-color: #c7d2fe;
-  background: #eef2ff;
-}
-
-.selected-file {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-  padding: 12px;
-  border: 1px solid #dbe4ff;
-  border-radius: 12px;
-  background: #f8faff;
-  color: #4f46e5;
-}
-
-.selected-file > div {
-  display: grid;
-  min-width: 0;
-}
-
-.selected-file strong {
-  overflow: hidden;
-  color: #334155;
-  font-size: 0.8rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.selected-file small {
-  color: #94a3b8;
-}
-
-.form-error {
-  margin-top: 14px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #fff1f2;
-  color: #be123c;
-  font-size: 0.78rem;
-  line-height: 1.45;
-}
-
-.recording-modal__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid #edf0f4;
-}
-
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 180ms ease;
-}
-
-.modal-enter-active .recording-modal,
-.modal-leave-active .recording-modal {
-  transition: transform 180ms ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-from .recording-modal,
-.modal-leave-to .recording-modal {
-  transform: translateY(10px) scale(0.99);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 1100px) {
-  .map-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .radar-card {
-    min-height: 520px;
-  }
-}
-
-@media (max-width: 760px) {
-  .voice-page {
-    padding: 22px 14px 44px;
-  }
-
-  .voice-header,
-  .latest-card,
-  .recording-card,
-  .empty-state {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .voice-header .primary-button,
-  .empty-state .secondary-button {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .panel {
-    padding: 18px;
-  }
-
-  .section-heading {
-    flex-direction: column;
-  }
-
-  .profile-meta {
-    justify-content: flex-start;
-    text-align: left;
-  }
-
-  .dimension-list {
-    grid-template-columns: 1fr;
-  }
-
-  .radar-card {
-    min-height: 420px;
-  }
-
-  .latest-card__actions,
-  .recording-card__right {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .latest-card audio,
-  .recording-card audio {
-    width: 100%;
-    max-width: none;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .field--full {
-    grid-column: auto;
-  }
-}
-</style>
-
-
-<style lang="scss">
-/* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
-.amv-view-shell {
-  --amv-ui-wine: #9f1945;
-  --amv-ui-wine-deep: #7f1237;
-  --amv-ui-gold: #d9a91d;
-  --amv-ui-purple: #7657d9;
-  --amv-ui-cyan: #20b8ae;
-  --amv-ui-ink: #172033;
-  --amv-ui-muted: #6f7c8f;
-  --amv-ui-line: rgba(122, 137, 158, 0.20);
-  --amv-ui-focus: rgba(159, 25, 69, 0.38);
-  --amv-ui-radius-sm: 12px;
-  --amv-ui-radius-md: 18px;
-  --amv-ui-radius-lg: 26px;
-  --amv-ui-shadow: 0 18px 55px rgba(17, 25, 39, 0.09);
-  --amv-ui-shadow-hover: 0 22px 65px rgba(17, 25, 39, 0.14);
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.amv-view-shell::before {
-  content: '';
-  position: absolute;
-  inset: -150px -120px auto auto;
-  width: 420px;
-  height: 420px;
-  pointer-events: none;
-  border-radius: 50%;
+  min-height: 190px;
+  padding: clamp(24px, 4vw, 44px);
+  margin-bottom: 24px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px;
+  color: #fff;
   background:
-    radial-gradient(circle at 35% 35%, rgba(159, 25, 69, 0.10), transparent 52%),
-    radial-gradient(circle at 68% 62%, rgba(217, 169, 29, 0.08), transparent 58%);
-  filter: blur(6px);
-  opacity: 0.82;
-  z-index: -1;
+    radial-gradient(circle at 82% 15%, rgba(129,140,248,.32), transparent 28%),
+    radial-gradient(circle at 70% 110%, rgba(99,102,241,.28), transparent 36%),
+    linear-gradient(125deg, #111827 0%, #202b49 58%, #3730a3 100%);
+  box-shadow: 0 18px 50px rgba(27, 39, 78, .14);
 }
-
-.amv-view-shell :where(*, *::before, *::after) {
-  box-sizing: border-box;
+.amv-page .hero:after {
+  content: "";
+  position: absolute;
+  width: 280px; height: 280px;
+  right: 8%; top: -170px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 50%;
+  box-shadow: 0 0 0 28px rgba(255,255,255,.025), 0 0 0 58px rgba(255,255,255,.02);
+  pointer-events: none;
 }
-
-.amv-view-shell :where(img, video, svg, canvas) {
-  max-width: 100%;
+.amv-page .hero > div:first-child { position: relative; z-index: 1; }
+.amv-page .hero .eyebrow { color: #c7d2fe; letter-spacing: .16em; }
+.amv-page .hero h1 { max-width: 760px; margin: 0 0 10px; font-size: clamp(28px, 3.2vw, 42px); font-weight: 760; letter-spacing: -.045em; line-height: 1.12; }
+.amv-page .subtitle { max-width: 680px; color: #d7def1; font-size: 15px; }
+.amv-page .hero-mark {
+  position: relative; z-index: 1; display: grid; place-items: center;
+  width: 82px; height: 82px; flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,.28); border-radius: 24px;
+  color: #fff; background: rgba(255,255,255,.08); backdrop-filter: blur(8px);
+  font-size: 19px; font-weight: 850; letter-spacing: .08em;
 }
-
-.amv-view-shell :where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
+.amv-page .layout { display: grid; grid-template-columns: minmax(245px, 285px) minmax(0,1fr); gap: 22px; align-items: start; }
+.amv-page .panel {
+  min-width: 0; padding: clamp(18px, 2vw, 26px); margin-bottom: 20px;
+  border: 1px solid var(--amv-line); border-radius: 18px; background: var(--amv-paper);
+  box-shadow: 0 3px 10px rgba(16,24,40,.025), 0 12px 28px rgba(16,24,40,.025);
 }
-
-.amv-view-shell :where(p, li, td, th, label, small) {
-  overflow-wrap: anywhere;
+.amv-page .students-panel { position: sticky; top: 18px; max-height: calc(100vh - 36px); overflow: auto; }
+.amv-page .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.amv-page .section-heading h2, .amv-page .student-heading h2 { margin: 0; color: var(--amv-ink); font-size: 20px; font-weight: 750; letter-spacing: -.025em; }
+.amv-page .eyebrow { margin: 0 0 6px; color: #7c83a0; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.amv-page .muted { color: var(--amv-muted); font-size: 13px; line-height: 1.6; }
+.amv-page .count, .amv-page .step {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 5px 9px;
+  border: 1px solid #e0e7ff; border-radius: 8px; color: #4338ca; background: #eef2ff;
+  font-size: 11px; font-weight: 800; white-space: nowrap;
 }
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']) {
-  touch-action: manipulation;
+.amv-page .field {
+  display: block; width: 100%; min-width: 0; min-height: 43px; margin-top: 7px; padding: 10px 12px;
+  border: 1px solid #d9deea; border-radius: 10px; outline: none; color: #172033; background: #fff;
+  font: inherit; transition: border-color .18s ease, box-shadow .18s ease;
 }
-
-.amv-view-shell :where(button, input, select, textarea) {
-  font: inherit;
+.amv-page textarea.field { min-height: 92px; resize: vertical; }
+.amv-page .field:focus { border-color: #818cf8; box-shadow: 0 0 0 4px rgba(99,102,241,.12); }
+.amv-page label { display: block; color: #344054; font-size: 12px; font-weight: 700; }
+.amv-page .file-field { padding: 9px; font-size: 12px; }
+.amv-page .student-option, .amv-page .recording-row {
+  display: flex; align-items: center; gap: 11px; width: 100%; min-width: 0; padding: 11px 10px; margin-top: 6px;
+  border: 1px solid transparent; border-radius: 12px; color: inherit; background: transparent; text-align: left; cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
 }
-
-.amv-view-shell :where(button) {
-  min-height: 42px;
+.amv-page .student-option:hover, .amv-page .recording-row:hover { background: #f8f9ff; border-color: #e7e9fb; }
+.amv-page .student-option.selected, .amv-page .recording-row.active { border-color: #c7d2fe; background: #eef2ff; }
+.amv-page .avatar { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; border-radius: 13px; color: #4338ca; background: #eef2ff; font-size: 12px; font-weight: 850; }
+.amv-page .avatar.large { width: 60px; height: 60px; border-radius: 17px; font-size: 17px; }
+.amv-page .student-copy, .amv-page .record-copy { display: grid; gap: 3px; min-width: 0; flex: 1; }
+.amv-page .student-copy strong, .amv-page .record-copy strong { overflow: hidden; color: #202a40; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 750; }
+.amv-page .student-copy small, .amv-page .record-copy small { overflow: hidden; color: #7b8498; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.amv-page .chevron { color: #98a2b3; font-size: 22px; }
+.amv-page .student-summary { display: flex; align-items: center; gap: 15px; }
+.amv-page .student-heading { min-width: 0; flex: 1; }
+.amv-page .student-heading .muted { margin: 4px 0 0; }
+.amv-page .primary, .amv-page .secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 10px 15px;
+  border: 1px solid transparent; border-radius: 10px; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
-
-.amv-view-shell :where(input, select, textarea) {
-  max-width: 100%;
+.amv-page .primary { color: #fff; background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 5px 12px rgba(79,70,229,.15); }
+.amv-page .primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(79,70,229,.22); }
+.amv-page .secondary { color: #344054; border-color: #dce1ec; background: #fff; }
+.amv-page .secondary:hover:not(:disabled) { border-color: #c7d2fe; background: #f8f9ff; }
+.amv-page button:focus-visible { outline: 3px solid rgba(99,102,241,.35); outline-offset: 2px; }
+.amv-page button:disabled { opacity: .55; cursor: not-allowed; }
+.amv-page .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 17px; }
+.amv-page .wide { grid-column: 1 / -1; }
+.amv-page .form-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.amv-page .form-actions .muted { flex: 1; }
+.amv-page .empty-state { display: grid; justify-items: center; padding: 70px 24px; text-align: center; }
+.amv-page .empty-state h2 { margin: 10px 0 5px; }
+.amv-page .empty-state p { max-width: 430px; color: var(--amv-muted); }
+.amv-page .empty-icon { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 8px; border: 1px solid #e0e7ff; border-radius: 20px; color: #4f46e5; background: #eef2ff; font-size: 30px; }
+.amv-page .empty-inline { padding: 20px 0; }
+.amv-page .record-icon { display: grid; place-items: center; width: 39px; height: 39px; flex: 0 0 auto; border-radius: 12px; color: #4f46e5; background: #eef2ff; }
+.amv-page .status { display: inline-flex; align-items: center; padding: 6px 9px; border-radius: 999px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.amv-page .status.done { color: #067647; background: #e7f8ef; }
+.amv-page .status.pending { color: #925f12; background: #fff4d6; }
+.amv-page .dimension-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 18px 0 22px; }
+.amv-page .dimension-card {
+  display: flex; flex-direction: column; justify-content: space-between; gap: 18px; min-width: 0; padding: 17px;
+  border: 1px solid #e5e9f2; border-radius: 14px; background: linear-gradient(180deg,#fff,#fcfcff);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 3px solid var(--amv-ui-focus);
-  outline-offset: 3px;
+.amv-page .dimension-card:focus-within { border-color: #c7d2fe; box-shadow: 0 0 0 3px rgba(99,102,241,.07); }
+.amv-page .dimension-card h3 { margin: 0 0 5px; color: #202a40; font-size: 13px; font-weight: 800; letter-spacing: -.01em; }
+.amv-page .dimension-card p { margin: 0; color: #727d91; font-size: 11px; line-height: 1.55; }
+.amv-page .rating-row { display: grid; grid-template-columns: repeat(10,minmax(0,1fr)); gap: 5px; }
+.amv-page .rating {
+  display: grid; place-items: center; min-width: 0; height: 35px; padding: 0;
+  border: 1px solid #dfe4ee; border-radius: 8px; color: #526078; background: #fff;
+  font-size: 12px; font-weight: 800; cursor: pointer; transition: color .15s ease, background .15s ease, border-color .15s ease, transform .15s ease;
 }
-
-.amv-view-shell :where(button, [role='button']):disabled,
-.amv-view-shell :where(input, select, textarea):disabled {
-  cursor: not-allowed;
+.amv-page .rating:hover { border-color: #a5b4fc; color: #4338ca; background: #f5f6ff; }
+.amv-page .rating.chosen { border-color: #4338ca; color: #fff; background: #4338ca; box-shadow: 0 3px 8px rgba(67,56,202,.18); }
+.amv-page .analysis-json { max-height: 340px; overflow: auto; padding: 15px; border: 1px solid #28324a; border-radius: 12px; color: #dbe5ff; background: #111827; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.amv-page .summary-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 18px 0; }
+.amv-page .metric { display: grid; gap: 6px; padding: 17px; border: 1px solid #e5e9f2; border-radius: 13px; background: #fbfcff; }
+.amv-page .metric span, .amv-page .metric small { color: #737e92; font-size: 11px; }
+.amv-page .metric strong { color: #222c43; font-size: 27px; font-weight: 800; letter-spacing: -.04em; }
+.amv-page .recommendation { padding: 17px; border: 1px solid #dfe5ff; border-radius: 13px; color: #27335b; background: #f5f6ff; line-height: 1.6; }
+.amv-page .recommendation p { margin: 6px 0 0; color: #596582; font-size: 12px; }
+.amv-page .notice { padding: 13px 15px; margin: 0 0 17px; border: 1px solid transparent; border-radius: 12px; font-size: 13px; }
+.amv-page .notice.error { border-color: #fecdd3; color: #9f1239; background: #fff1f2; }
+.amv-page .notice.success { border-color: #bbf7d0; color: #166534; background: #f0fdf4; }
+.amv-page .proposal-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px; margin: 18px 0; border: 1px solid #e3e7f2; border-radius: 13px; background: #f8f9fd; }
+.amv-page .proposal-toolbar strong { display: block; margin-bottom: 5px; color: #28334b; font-size: 13px; }
+.amv-page .proposal-toolbar p { max-width: 720px; margin: 0; }
+.amv-page .evaluation-progress {
+  display: grid; grid-template-columns: minmax(150px,1fr) minmax(120px,1.5fr) auto; align-items: center; gap: 16px;
+  padding: 15px 17px; border: 1px solid #e0e7ff; border-radius: 14px; background: linear-gradient(100deg,#f7f8ff,#fff);
 }
-
-.amv-view-shell :where(.button, .btn, .lux-button, .amv-primary-btn, .amv-secondary-action,
-  .primary-action, .secondary-action, .danger-action, .text-link, .action-link,
-  .lightbox__close, .lightbox__nav, .today-button, .quick-action) {
-  -webkit-user-select: none;
-  user-select: none;
+.amv-page .evaluation-progress__copy { display: grid; gap: 3px; }
+.amv-page .evaluation-progress__copy span { color: #737e92; font-size: 9px; font-weight: 850; letter-spacing: .12em; }
+.amv-page .evaluation-progress__copy strong { color: #293450; font-size: 12px; }
+.amv-page .evaluation-progress__track { height: 7px; overflow: hidden; border-radius: 999px; background: #e5e7eb; }
+.amv-page .evaluation-progress__track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#6366f1,#4338ca); transition: width .25s ease; }
+.amv-page .evaluation-progress__average { display: grid; gap: 1px; text-align: right; }
+.amv-page .evaluation-progress__average > small { color: #737e92; font-size: 10px; }
+.amv-page .evaluation-progress__average strong { color: #3730a3; font-size: 21px; font-weight: 850; line-height: 1.1; }
+.amv-page .evaluation-progress__average strong small { color: #7c83a0; font-size: 11px; }
+.amv-page footer { padding: 12px 3px 25px; color: #8790a2; font-size: 11px; text-align: center; }
+@media (max-width: 1050px) {
+  .amv-page .layout { grid-template-columns: 1fr; }
+  .amv-page .students-panel { position: static; max-height: none; }
+  .amv-page .students-panel .student-option { display: inline-flex; width: calc(50% - 5px); vertical-align: top; }
 }
-
-/* Premium surface language without changing each view's semantic palette. */
-.amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-  .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-  .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-  .production, .sound-console, .state-card, .empty-card, .workspace,
-  .profile-card, .profile-panel, .vocal-card, .weighted-student, .weighted-category) {
-  border-radius: var(--amv-ui-radius-md);
+@media (max-width: 700px) {
+  .amv-page { padding: 12px; }
+  .amv-page .hero { min-height: 0; padding: 24px 20px; border-radius: 18px; }
+  .amv-page .hero-mark { display: none; }
+  .amv-page .panel { padding: 16px; border-radius: 15px; }
+  .amv-page .form-grid, .amv-page .dimension-grid, .amv-page .summary-grid { grid-template-columns: 1fr; }
+  .amv-page .form-grid .wide { grid-column: auto; }
+  .amv-page .student-summary { flex-wrap: wrap; }
+  .amv-page .student-summary .primary { width: 100%; }
+  .amv-page .students-panel .student-option { width: 100%; }
+  .amv-page .rating-row { gap: 4px; }
+  .amv-page .rating { height: 32px; border-radius: 7px; font-size: 11px; }
+  .amv-page .evaluation-progress { grid-template-columns: 1fr auto; gap: 10px 14px; }
+  .amv-page .evaluation-progress__track { grid-column: 1 / -1; grid-row: 2; }
+  .amv-page .proposal-toolbar { align-items: stretch; flex-direction: column; }
+  .amv-page .proposal-toolbar .secondary { width: 100%; }
 }
-
-.amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-  .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-  .task-card, .format-card, .production, .state-card, .empty-card) {
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-    .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-    .task-card, .format-card, .production):not(.is-disabled):hover {
-    transform: translateY(-2px);
-  }
-}
-
-/* Toolbars wrap rather than squeezing controls into unreadable rows. */
-.amv-view-shell :where(.toolbar, .students-toolbar, .calendar-toolbar, .resources-controls,
-  .resources-controls__row, .gradebook-legacy-toolbar, .hero-actions, .actions,
-  .action-row, .question-actions, .filters, .public-jump-nav, .classes-header__actions,
-  .result-action-row, .form-actions, .footer-actions) {
-  min-width: 0;
-}
-
-.amv-view-shell :where(.table-shell, .quiz-table-wrap, .table-wrap, .grade-table-wrap,
-  .data-table-wrap, .scroll-region, .horizontal-scroll) {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.amv-view-shell :where(.table-shell table, .quiz-table-wrap table, .table-wrap table,
-  .grade-table-wrap table, .data-table-wrap table) {
-  max-width: none;
-}
-
-/* Prevent long controls and badges from forcing page-level horizontal overflow. */
-.amv-view-shell :where(.badge, .pill, .chip, .status-pill, .source-badge, .event-chip,
-  .lesson-detail, .student-card__voice, .student-card__status, .course-kicker,
-  .hero-stat, .count, .filename, .meta, .eyebrow) {
-  max-width: 100%;
-}
-
-/* Dialogs/lightboxes stay usable on short laptop and phone viewports. */
-.amv-view-shell :where(.modal, .dialog, .drawer, .lightbox, .lightbox__content,
-  .modal__content, .dialog__content, [role='dialog']) {
-  max-width: min(100%, 100vw);
-}
-
-.amv-view-shell :where(.modal__content, .dialog__content, .lightbox__content,
-  [role='dialog']) {
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Public pages: a cleaner editorial frame around content-heavy sections. */
-.amv-view-shell :where(.hero, .hero-panel, .calendar-hero, .resources-hero, .amv-hero,
-  .students__header, .gradebook__hero, .classes-header, .contact-hero, .training-hero,
-  .academy-hero, .inscription-hero) {
-  isolation: isolate;
-}
-
-.amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid) {
-  min-width: 0;
-}
-
-/* Mobile-first resilience. Existing view-specific breakpoints still win where more
-   specific rules exist, while these defaults catch edge cases and tiny screens. */
-@media (max-width: 760px) {
-  .amv-view-shell {
-    overflow-x: clip;
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 22px;
-  }
-
-  .amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid,
-    .calendar-layout, .quiz-layout, .program-layout, .student-profile__grid,
-    .dashboard-grid, .content-grid, .page-grid, .split-layout) {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .amv-view-shell :where(.hero-actions, .actions, .action-row, .form-actions,
-    .footer-actions, .question-actions, .students__header-actions, .hero-stat,
-    .calendar-toolbar, .resources-controls__row) {
-    flex-wrap: wrap;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    min-width: min(100%, 190px);
-  }
-
-  .amv-view-shell :where(.display-title, .page-title, .hero-title, .section-title,
-    .hero-panel__title, .amv-hero h1, .calendar-hero h1, .students__header h1,
-    .gradebook__hero h1) {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .amv-view-shell :where(.students-toolbar, .resources-controls, .calendar-toolbar,
-    .gradebook-legacy-toolbar, .classes-header, .section-heading, .profile-actions) {
-    gap: 10px;
-  }
-
-  .amv-view-shell :where(input, select, textarea, .select, .search-input) {
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 520px) {
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 18px;
-  }
-
-  .amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-    .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-    .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-    .production, .state-card, .empty-card) {
-    border-radius: 16px;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .amv-view-shell,
-  .amv-view-shell :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
+  .amv-page *, .amv-page *::before, .amv-page *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 </style>

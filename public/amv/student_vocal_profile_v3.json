@@ -1,5 +1,5 @@
 {
-  "profile_version": "amv-vocal-profile-3.2.1",
+  "profile_version": "amv-vocal-profile-3.2.2",
   "profile_purpose": "ficha_vocal_educativa",
   "clinical_diagnosis": false,
   "observed_pitch": {
@@ -9,136 +9,136 @@
     "highest_note": "D5",
     "range_semitones": 16.85,
     "range_cents": 1685.0,
-    "median_midi": 65.742,
-    "median_f0_hz": 364.52,
-    "p10_midi": 61.404,
+    "median_midi": 65.667,
+    "median_f0_hz": 362.95,
+    "p10_midi": 61.412,
     "p10_note": "C#4",
-    "p90_midi": 68.852,
+    "p90_midi": 68.862,
     "p90_note": "A4",
-    "observed_tessitura_semitones": 7.448,
-    "observed_tessitura_cents": 744.8
+    "observed_tessitura_semitones": 7.45,
+    "observed_tessitura_cents": 745.0
   },
   "event_statistics": {
-    "event_count": 155,
-    "voiced_event_time_seconds": 50.493,
-    "event_time_coverage_of_input": 0.2919,
-    "mean_event_duration_seconds": 0.326,
+    "event_count": 154,
+    "voiced_event_time_seconds": 50.754,
+    "event_time_coverage_of_input": 0.2934,
+    "mean_event_duration_seconds": 0.33,
     "median_event_duration_seconds": 0.186,
-    "p10_event_duration_seconds": 0.104,
-    "p90_event_duration_seconds": 0.808,
-    "mean_voicing_probability": 0.809,
-    "p10_voicing_probability": 0.723,
-    "p90_voicing_probability": 0.881,
-    "f0_coverage": 0.3704
+    "p10_event_duration_seconds": 0.116,
+    "p90_event_duration_seconds": 0.809,
+    "mean_voicing_probability": 0.807,
+    "p10_voicing_probability": 0.724,
+    "p90_voicing_probability": 0.882,
+    "f0_coverage": 0.3713
   },
   "pitch_stability": {
     "available": true,
     "median_within_event_variation_cents": 0.0,
     "median_p90_within_event_variation_cents": 0.0,
-    "median_abs_pitch_slope_cents_per_second": 156.19,
-    "pitch_slope_std_cents_per_second": 452.85,
+    "median_abs_pitch_slope_cents_per_second": 152.21,
+    "pitch_slope_std_cents_per_second": 438.28,
     "measurement_version": "frame_level_v312_core_and_total",
     "median_mad_cents": 14.83,
-    "median_p90_p10_spread_cents": 38.0,
-    "median_within_event_std_cents": 15.76,
-    "median_drift_cents_per_second": 157.69,
-    "p90_abs_drift_cents_per_second": 617.82
+    "median_p90_p10_spread_cents": 40.0,
+    "median_within_event_std_cents": 15.74,
+    "median_drift_cents_per_second": 152.6,
+    "p90_abs_drift_cents_per_second": 609.86
   },
   "note_distribution": {
     "unique_rounded_notes": 15,
     "most_frequent_notes": [
       {
-        "midi": 66,
-        "note": "F#4",
-        "count": 24,
-        "percent_events": 15.48
-      },
-      {
         "midi": 68,
         "note": "G#4",
+        "count": 23,
+        "percent_events": 14.94
+      },
+      {
+        "midi": 66,
+        "note": "F#4",
         "count": 22,
-        "percent_events": 14.19
+        "percent_events": 14.29
       },
       {
         "midi": 64,
         "note": "E4",
         "count": 20,
-        "percent_events": 12.9
+        "percent_events": 12.99
       },
       {
         "midi": 63,
         "note": "D#4",
         "count": 19,
-        "percent_events": 12.26
+        "percent_events": 12.34
       },
       {
-        "midi": 62,
-        "note": "D4",
-        "count": 13,
-        "percent_events": 8.39
+        "midi": 61,
+        "note": "C#4",
+        "count": 14,
+        "percent_events": 9.09
       },
       {
         "midi": 67,
         "note": "G4",
         "count": 13,
-        "percent_events": 8.39
+        "percent_events": 8.44
       },
       {
-        "midi": 61,
-        "note": "C#4",
+        "midi": 62,
+        "note": "D4",
         "count": 12,
-        "percent_events": 7.74
+        "percent_events": 7.79
       },
       {
         "midi": 69,
         "note": "A4",
         "count": 10,
-        "percent_events": 6.45
+        "percent_events": 6.49
       },
       {
         "midi": 65,
         "note": "F4",
         "count": 6,
-        "percent_events": 3.87
-      },
-      {
-        "midi": 60,
-        "note": "C4",
-        "count": 5,
-        "percent_events": 3.23
+        "percent_events": 3.9
       },
       {
         "midi": 71,
         "note": "B4",
         "count": 4,
-        "percent_events": 2.58
+        "percent_events": 2.6
+      },
+      {
+        "midi": 60,
+        "note": "C4",
+        "count": 4,
+        "percent_events": 2.6
       },
       {
         "midi": 70,
         "note": "A#4",
         "count": 4,
-        "percent_events": 2.58
+        "percent_events": 2.6
       }
     ]
   },
   "comparison_to_reference": {
     "available": true,
     "matched_events": 123,
-    "mean_signed_error_cents": -0.5,
-    "mean_absolute_error_cents": 149.05,
-    "median_absolute_error_cents": 95.0,
-    "p90_absolute_error_cents": 348.0,
-    "within_25_cents_percent": 21.95,
-    "within_50_cents_percent": 38.21,
-    "within_100_cents_percent": 51.22,
-    "intonation_score": 39.84,
+    "mean_signed_error_cents": -2.88,
+    "mean_absolute_error_cents": 142.04,
+    "median_absolute_error_cents": 80.0,
+    "p90_absolute_error_cents": 350.0,
+    "within_25_cents_percent": 24.39,
+    "within_50_cents_percent": 39.02,
+    "within_100_cents_percent": 56.91,
+    "intonation_score": 42.03,
     "rhythm_score": 98.17,
-    "alignment_confidence": 0.673,
-    "alignment_coverage": 0.794,
-    "alignment_mean_cost": 0.57,
-    "mean_time_residual_seconds": 1.569,
-    "max_time_residual_seconds": 5.442,
-    "temporal_quality": 0.579,
+    "alignment_confidence": 0.679,
+    "alignment_coverage": 0.799,
+    "alignment_mean_cost": 0.5665,
+    "mean_time_residual_seconds": 1.519,
+    "max_time_residual_seconds": 5.439,
+    "temporal_quality": 0.592,
     "time_warp_scale": 1.05,
     "octave_candidates": 0,
     "octave_confirmed": 0,
@@ -169,111 +169,99 @@
     "version": "amv-acoustic-profile-1.2",
     "source": "audio_frame_analysis_voiced_scope",
     "analysis_scope": "voiced_frames",
-    "voiced_frame_fraction": 0.3712,
+    "voiced_frame_fraction": 0.3713,
     "dynamics": {
       "available": true,
-      "rms_dbfs_p10": -18.37,
+      "rms_dbfs_p10": -18.25,
       "rms_dbfs_median": -14.25,
-      "rms_dbfs_p90": -12.75,
-      "observed_dynamic_range_db": 5.61,
-      "crest_factor_db": 15.66,
-      "peak_amplitude": 0.86564,
+      "rms_dbfs_p90": -12.76,
+      "observed_dynamic_range_db": 5.49,
+      "crest_factor_db": 15.86,
+      "peak_amplitude": 0.88514,
       "interpretation_note": "Nivel acústico observado principalmente durante frames con F0 válido; depende de captura, distancia y procesamiento."
     },
     "timbre": {
       "available": true,
-      "spectral_centroid_hz_p10": 1640.5,
-      "spectral_centroid_hz_median": 2512.7,
-      "spectral_centroid_hz_p90": 3232.8,
-      "spectral_bandwidth_hz_median": 2518.6,
+      "spectral_centroid_hz_p10": 1637.8,
+      "spectral_centroid_hz_median": 2507.2,
+      "spectral_centroid_hz_p90": 3235.5,
+      "spectral_bandwidth_hz_median": 2510.3,
       "spectral_rolloff85_hz_median": 4382.0,
-      "zero_crossing_rate_median": 0.1001,
-      "spectral_slope_median": -0.522,
+      "zero_crossing_rate_median": 0.09961,
+      "spectral_slope_median": -0.521,
       "interpretation_note": "Descriptores tímbricos acústicos calculados principalmente sobre frames con F0 válido; no equivalen por sí solos a identificación de timbre o tipo de voz."
     },
     "vibrato": {
       "available": true,
-      "rate_hz": 4.96,
-      "depth_cents_peak_to_peak": 23.0,
-      "confidence": 0.795,
-      "segments_analyzed": 20,
+      "rate_hz": 4.79,
+      "depth_cents_peak_to_peak": 23.9,
+      "confidence": 0.777,
+      "segments_analyzed": 19,
       "rate_iqr_hz": 1.45,
-      "depth_iqr_cents": 7.2,
+      "depth_iqr_cents": 12.7,
       "method": "event_local_f0_modulation_v312"
     },
     "pitch_stability_v31": {
       "available": true,
-      "events_analyzed": 153,
+      "events_analyzed": 154,
       "measurement_version": "frame_level_v312_core_and_total",
       "median_mad_cents": 14.83,
-      "median_p90_p10_spread_cents": 38.0,
-      "median_within_event_std_cents": 15.76,
-      "median_drift_cents_per_second": 157.69,
-      "p90_abs_drift_cents_per_second": 617.82,
+      "median_p90_p10_spread_cents": 40.0,
+      "median_within_event_std_cents": 15.74,
+      "median_drift_cents_per_second": 152.6,
+      "p90_abs_drift_cents_per_second": 609.86,
       "sustained_core_events_analyzed": 34,
       "sustained_core_median_mad_cents": 14.83,
       "sustained_core_median_p90_p10_spread_cents": 30.0,
       "sustained_core_median_std_cents": 13.02,
-      "sustained_core_median_abs_drift_cents_per_second": 38.01,
-      "sustained_core_p90_abs_drift_cents_per_second": 240.16
+      "sustained_core_median_abs_drift_cents_per_second": 40.14,
+      "sustained_core_p90_abs_drift_cents_per_second": 238.6
     },
     "formants": {
       "available": true,
       "method": "lpc_roots_v312",
-      "frames_analyzed": 302,
+      "frames_analyzed": 301,
       "confidence": 0.9,
       "f1_hz": {
-        "p10": 373.5,
-        "median": 686.5,
-        "p90": 1009.4
+        "p10": 376.8,
+        "median": 705.3,
+        "p90": 999.8
       },
       "f2_hz": {
-        "p10": 1596.4,
-        "median": 2011.2,
-        "p90": 2553.6
+        "p10": 1603.8,
+        "median": 2017.1,
+        "p90": 2508.1
       },
       "f3_hz": {
-        "p10": 3135.8,
-        "median": 3335.0,
-        "p90": 3618.3
+        "p10": 3120.8,
+        "median": 3307.1,
+        "p90": 3566.2
       },
       "bandwidth_median_hz": {
-        "f1": 170.8,
-        "f2": 150.1,
-        "f3": 160.6
+        "f1": 180.1,
+        "f2": 154.2,
+        "f3": 150.1
       },
       "interpretation_note": "Estimación acústica educativa de formantes mediante raíces LPC sobre frames con F0 válido; no es una medición clínica o forense."
     },
     "breath_activity_proxy": {
       "available": true,
       "method": "voiced_pause_proxy_v312",
-      "voiced_segments": 452,
+      "voiced_segments": 445,
       "pause_segments_ge_0_20s": 71,
       "median_pause_seconds": 0.337,
-      "p90_pause_seconds": 1.8,
-      "median_voiced_segment_seconds": 0.058,
+      "p90_pause_seconds": 1.997,
+      "median_voiced_segment_seconds": 0.07,
       "interpretation_note": "Proxy de pausas vocales; no detecta inhalaciones ni evalúa soporte respiratorio."
     },
     "breath_metrics": {
       "available": false,
       "reason": "No se infiere respiración fisiológica; se ofrece un proxy separado de pausas vocales."
-    },
-    "source_audio_file": "prueba2_catalina.mp3",
-    "source_audio_mode": "demucs_vocals",
-    "separation": {
-      "mode": "demucs",
-      "model": "htdemucs",
-      "device": "cpu",
-      "source_file": "prueba2_catalina.mp3",
-      "stems": [
-        "vocals"
-      ],
-      "temporary": true
     }
   },
   "acoustic_source": {
-    "audio_file": "prueba2_catalina.mp3",
-    "mode": "demucs_vocals",
+    "audio_file": null,
+    "mode": null,
     "scope": "voiced_frames"
   },
   "pedagogical_summary": {
@@ -298,12 +286,12 @@
   },
   "feature_quality": {
     "acoustic_scope": "voiced_frames",
-    "acoustic_voiced_frame_fraction": 0.3712,
-    "vibrato_segments": 20,
-    "vibrato_confidence": 0.795,
-    "stability_events_analyzed": 153,
+    "acoustic_voiced_frame_fraction": 0.3713,
+    "vibrato_segments": 19,
+    "vibrato_confidence": 0.777,
+    "stability_events_analyzed": 154,
     "stability_sustained_core_events": 34,
-    "formant_frames_analyzed": 302,
+    "formant_frames_analyzed": 301,
     "formant_confidence": 0.9,
     "breath_proxy_available": true
   },
@@ -312,21 +300,23 @@
     "raw_metrics_preserved": true,
     "interpretations_are_non_clinical": true,
     "permanent_voice_type_not_inferred": true,
-    "student_facing_metrics_separated_from_raw_metrics": true
+    "student_facing_metrics_separated_from_raw_metrics": true,
+    "performance_status_separated_from_comparison_quality": true,
+    "profile_quality_scope_explicit": true
   },
   "assessment_context": {
     "student": "Catalina",
-    "title": "Ficha Vocal Catalina 3.2.1",
+    "title": "Ficha Vocal Catalina 3.2.2",
     "song_title": "La Bikina",
     "artist": "Luis Miguel",
-    "reference_source": "json"
+    "reference_source": "audio"
   },
   "comparison_quality": {
     "status": "moderate",
-    "score_0_100": 69.0,
-    "alignment_confidence": 0.673,
-    "alignment_coverage": 0.794,
-    "temporal_quality": 0.579,
+    "score_0_100": 69.8,
+    "alignment_confidence": 0.679,
+    "alignment_coverage": 0.799,
+    "temporal_quality": 0.592,
     "basis": "0.50*confianza_alineacion + 0.30*cobertura + 0.20*calidad_temporal"
   },
   "profile_quality": {
@@ -334,18 +324,20 @@
     "available_feature_count": 12,
     "feature_count_considered": 12,
     "completeness_percent": 100.0,
-    "voiced_frame_fraction": 0.3712,
-    "vibrato_confidence": 0.795,
+    "voiced_frame_fraction": 0.3713,
+    "vibrato_confidence": 0.777,
     "formant_confidence": 0.9,
-    "vibrato_segments": 20,
-    "stability_events_analyzed": 153,
+    "vibrato_segments": 19,
+    "stability_events_analyzed": 154,
     "stability_sustained_core_events": 34,
-    "formant_frames_analyzed": 302,
-    "measurement_quality_status": "strong"
+    "formant_frames_analyzed": 301,
+    "legacy_core_feature_completeness_percent": 100.0,
+    "measurement_quality_status": "strong",
+    "completeness_scope": "legacy_core_features"
   },
   "pedagogical_dimensions": {
     "intonation": {
-      "score_0_100": 39.84,
+      "score_0_100": 42.03,
       "status": "reference_based",
       "basis": "Comparación contra la referencia validada."
     },
@@ -356,12 +348,12 @@
     },
     "stability": {
       "status": "moderate",
-      "index_0_100": 72.8,
+      "index_0_100": 72.7,
       "sustained_core_events": 34,
       "evidence": {
         "spread_cents": 30.0,
         "std_cents": 13.02,
-        "drift_cents_per_second": 38.01
+        "drift_cents_per_second": 40.14
       },
       "method": "heuristic_v32_sustained_core",
       "method_note": "Índice descriptivo educativo; no es una escala clínica ni una medida absoluta de habilidad vocal."
@@ -369,54 +361,58 @@
     "vibrato": {
       "observed": true,
       "status": "strong_evidence",
-      "rate_hz": 4.96,
-      "depth_cents_peak_to_peak": 23.0,
-      "confidence": 0.795,
-      "segments": 20,
+      "rate_hz": 4.79,
+      "depth_cents_peak_to_peak": 23.9,
+      "confidence": 0.777,
+      "segments": 19,
       "rate_iqr_hz": 1.45,
-      "depth_iqr_cents": 7.2,
+      "depth_iqr_cents": 12.7,
       "method": "event_local_f0_modulation_v312",
       "interpretation_note": "Presencia observada en esta interpretación; no se clasifica como correcta o incorrecta por sí sola."
     },
     "dynamics": {
       "available": true,
       "status": "descriptive_only",
-      "observed_dynamic_range_db": 5.61,
+      "observed_dynamic_range_db": 5.49,
       "rms_dbfs_median": -14.25,
-      "crest_factor_db": 15.66,
+      "crest_factor_db": 15.86,
       "interpretation_note": "Nivel acústico observado principalmente durante frames con F0 válido; depende de captura, distancia y procesamiento."
     },
     "resonance_formants": {
       "available": true,
       "status": "descriptive_only",
       "confidence": 0.9,
-      "frames_analyzed": 302,
-      "f1_hz_median": 686.5,
-      "f2_hz_median": 2011.2,
-      "f3_hz_median": 3335.0,
+      "frames_analyzed": 301,
+      "f1_hz_median": 705.3,
+      "f2_hz_median": 2017.1,
+      "f3_hz_median": 3307.1,
       "interpretation_note": "Estimación acústica educativa; no equivale a una identificación permanente del timbre o tipo de voz."
     },
     "pause_pattern": {
       "available": true,
       "status": "descriptive_only",
-      "voiced_segments": 452,
+      "voiced_segments": 445,
       "pause_segments_ge_0_20s": 71,
       "median_pause_seconds": 0.337,
-      "p90_pause_seconds": 1.8,
+      "p90_pause_seconds": 1.997,
       "interpretation_note": "Proxy de pausas vocales; no detecta inhalaciones ni mide soporte respiratorio."
     }
   },
   "ui_indicators": {
     "intonation": {
-      "value": 39.84,
+      "value": 42.03,
       "kind": "score",
       "unit": "/100",
+      "performance_status": "needs_attention",
+      "comparison_quality_status": "moderate",
       "quality_status": "moderate"
     },
     "rhythm": {
       "value": 98.17,
       "kind": "score",
       "unit": "/100",
+      "performance_status": "strong",
+      "comparison_quality_status": "moderate",
       "quality_status": "moderate"
     },
     "range": {
@@ -426,28 +422,28 @@
       "label": "A3–D5"
     },
     "tessitura": {
-      "value": 7.448,
+      "value": 7.45,
       "kind": "observed",
       "unit": "semitones",
       "label": "C#4–A4"
     },
     "stability": {
-      "value": 72.8,
+      "value": 72.7,
       "kind": "observed_index",
       "unit": "/100",
       "status": "moderate",
       "evidence_events": 34
     },
     "vibrato": {
-      "value": 4.96,
+      "value": 4.79,
       "kind": "observed",
       "unit": "Hz",
       "status": "strong_evidence",
-      "depth_cents_peak_to_peak": 23.0,
-      "segments": 20
+      "depth_cents_peak_to_peak": 23.9,
+      "segments": 19
     },
     "dynamics": {
-      "value": 5.61,
+      "value": 5.49,
       "kind": "descriptive",
       "unit": "dB",
       "status": null
@@ -456,28 +452,33 @@
       "kind": "descriptive",
       "status": "descriptive_only",
       "confidence": 0.9,
-      "f1_hz": 686.5,
-      "f2_hz": 2011.2,
-      "f3_hz": 3335.0
+      "f1_hz": 705.3,
+      "f2_hz": 2017.1,
+      "f3_hz": 3307.1
     },
     "pause_pattern": {
       "kind": "descriptive",
       "status": "descriptive_only",
       "pause_segments_ge_0_20s": 71,
       "median_pause_seconds": 0.337,
-      "p90_pause_seconds": 1.8
+      "p90_pause_seconds": 1.997
     },
     "comparison_quality": {
-      "value": 69.0,
+      "value": 69.8,
       "kind": "quality",
       "unit": "/100",
       "status": "moderate"
     },
     "profile_quality": {
-      "value": 100.0,
-      "kind": "feature_completeness",
+      "value": 92.9,
+      "kind": "feature_completeness_all_declared_features",
       "unit": "%",
-      "status": "strong"
+      "status": "strong",
+      "available_feature_count": 13,
+      "feature_count_considered": 14,
+      "unavailable_features": [
+        "breath_metrics"
+      ]
     }
   },
   "pedagogical_summary_v32": {
@@ -486,7 +487,7 @@
       "headline": "Tu ficha vocal resume lo observado en esta interpretación.",
       "observed_range": "A3–D5",
       "observed_tessitura": "C#4–A4",
-      "intonation_score": 39.84,
+      "intonation_score": 42.03,
       "rhythm_score": 98.17,
       "strengths": [
         "Buena correspondencia rítmica con la referencia.",
@@ -549,19 +550,19 @@
     "unavailable_features": [
       "breath_metrics"
     ],
-    "acoustic_score_0_100": 90.6,
+    "acoustic_score_0_100": 90.1,
     "acoustic_status": "strong",
-    "comparison_score_0_100": 69.0,
+    "comparison_score_0_100": 69.8,
     "comparison_status": "moderate",
     "note": "La completitud cuenta todas las prestaciones declaradas por el perfil; la respiración fisiológica puede permanecer no disponible mientras el proxy de pausas sí esté disponible."
   },
-  "pedagogical_summary_v321": {
+  "pedagogical_summary_v322": {
     "assessment_scope": "educational_observation",
     "student_facing": {
       "headline": "Tu ficha vocal resume lo observado en esta interpretación.",
       "observed_range": "A3–D5",
       "observed_tessitura": "C#4–A4",
-      "intonation_score": 39.84,
+      "intonation_score": 42.03,
       "rhythm_score": 98.17,
       "strengths": [
         "Buena correspondencia rítmica con la referencia.",

@@ -1,0 +1,886 @@
+/*
+ * AMO MI VOZ — sistema visual ligero del Aula Virtual
+ * Importar UNA vez desde src/main.js: import '@/views/amv-view-design-system.scss'
+ * Sin dependencias visuales externas, filtros pesados ni animaciones de fondo.
+ */
+:root {
+  --amv-ui-brand: #bd0b46;
+  --amv-ui-brand-hover: #a5093d;
+  --amv-ui-brand-dark: #870632;
+  --amv-ui-brand-soft: #fff0f5;
+  --amv-ui-ink: #202735;
+  --amv-ui-muted: #697586;
+  --amv-ui-line: #e3e8ef;
+  --amv-ui-surface: #ffffff;
+  --amv-ui-canvas: #f6f7fa;
+  --amv-ui-gold: #d2a044;
+  --amv-ui-success: #167e68;
+  --amv-ui-danger: #b4233b;
+  --amv-ui-radius: 14px;
+  --amv-ui-radius-sm: 9px;
+  --amv-ui-shadow: 0 3px 14px rgba(29, 40, 57, 0.055);
+  --amv-ui-focus: 0 0 0 3px rgba(189, 11, 70, 0.2);
+}
+
+/* Alineación tipográfica y controles: el sistema usa fuentes del dispositivo. */
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) {
+  color: var(--amv-ui-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) :is(button, input, select, textarea) {
+  font: inherit;
+}
+
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) button {
+  border-radius: var(--amv-ui-radius-sm);
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) :is(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 3px solid rgba(189, 11, 70, 0.3) !important;
+  outline-offset: 2px;
+}
+
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  border-color: var(--amv-ui-line);
+  border-radius: 9px;
+}
+
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):focus {
+  border-color: var(--amv-ui-brand) !important;
+  box-shadow: var(--amv-ui-focus) !important;
+}
+
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) button:disabled,
+:where(.amv-view-shell, .calendar-page, .quiz-builder, .quiz-page, .lesson-page) [aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none !important;
+}
+
+/* Cabeceras principales: banda carmín, tipografía condensada y jerarquía clara. */
+:is(
+  .profile-page.profile-page .profile-hero,
+  .activate-account.activate-account .activate-account__header,
+  .assignment.assignment .assignment__header,
+  .attendance.attendance .attendance__header,
+  .classwork.classwork .classwork__hero,
+  .course-hub.course-hub .classes-header,
+  .create-assignment.create-assignment .create-assignment__header,
+  .create-lesson.create-lesson .page-header,
+  .quiz-builder.quiz-builder .builder-hero,
+  .create-resource.create-resource .create-resource__header,
+  .dashboard-v3.dashboard-v3 .hero-panel--teacher,
+  .dashboard-v3.dashboard-v3 .hero-panel--student,
+  .edit-assignment.edit-assignment .edit-assignment__header,
+  .edit-lesson.edit-lesson .editor-hero,
+  .gradebook.gradebook .gradebook__hero,
+  .grading-settings.grading-settings .grading-hero,
+  .inscriptions-page.inscriptions-page > .page-header,
+  .my-tasks.my-tasks .tasks-header,
+  .program.program .program-hero,
+  .teacher-attempts.teacher-attempts .teacher-attempts__hero,
+  .resources.resources .resources-hero,
+  .review-page.review-page .review-hero,
+  .review.review .review__header,
+  .student-profile.student-profile .student-profile__hero,
+  .students.students .students__header,
+  .submissions.submissions .submissions__hero,
+  .teacher-review.teacher-review .teacher-review__hero,
+  .vocal-page.vocal-page .amv-page-header,
+  .voice-page.voice-page .voice-header,
+  .vocal-evaluation-page.vocal-evaluation-page .vocal-hero
+) {
+  background: var(--amv-ui-brand) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  border-radius: 0 0 13px 13px !important;
+  box-shadow: none !important;
+  padding: clamp(1.35rem, 2.8vw, 2.15rem) clamp(1.15rem, 3.2vw, 2.55rem) !important;
+  margin: 0 0 1rem !important;
+  isolation: isolate;
+}
+
+:is(
+  .profile-page.profile-page .profile-hero,
+  .activate-account.activate-account .activate-account__header,
+  .assignment.assignment .assignment__header,
+  .attendance.attendance .attendance__header,
+  .classwork.classwork .classwork__hero,
+  .course-hub.course-hub .classes-header,
+  .create-assignment.create-assignment .create-assignment__header,
+  .create-lesson.create-lesson .page-header,
+  .quiz-builder.quiz-builder .builder-hero,
+  .create-resource.create-resource .create-resource__header,
+  .dashboard-v3.dashboard-v3 .hero-panel--teacher,
+  .dashboard-v3.dashboard-v3 .hero-panel--student,
+  .edit-assignment.edit-assignment .edit-assignment__header,
+  .edit-lesson.edit-lesson .editor-hero,
+  .gradebook.gradebook .gradebook__hero,
+  .grading-settings.grading-settings .grading-hero,
+  .inscriptions-page.inscriptions-page > .page-header,
+  .my-tasks.my-tasks .tasks-header,
+  .program.program .program-hero,
+  .teacher-attempts.teacher-attempts .teacher-attempts__hero,
+  .resources.resources .resources-hero,
+  .review-page.review-page .review-hero,
+  .review.review .review__header,
+  .student-profile.student-profile .student-profile__hero,
+  .students.students .students__header,
+  .submissions.submissions .submissions__hero,
+  .teacher-review.teacher-review .teacher-review__hero,
+  .vocal-page.vocal-page .amv-page-header,
+  .voice-page.voice-page .voice-header,
+  .vocal-evaluation-page.vocal-evaluation-page .vocal-hero
+) :is(h1, h2) {
+  color: #ffffff !important;
+  font-family: "Arial Narrow", "Roboto Condensed", "Aptos Narrow", Impact, sans-serif !important;
+  font-size: clamp(1.85rem, 3.1vw, 2.8rem) !important;
+  font-weight: 800 !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.018em !important;
+  text-transform: uppercase;
+  text-wrap: balance;
+  margin-block: 0 0.55rem !important;
+}
+
+:is(
+  .profile-page.profile-page .profile-hero,
+  .activate-account.activate-account .activate-account__header,
+  .assignment.assignment .assignment__header,
+  .attendance.attendance .attendance__header,
+  .classwork.classwork .classwork__hero,
+  .course-hub.course-hub .classes-header,
+  .create-assignment.create-assignment .create-assignment__header,
+  .create-lesson.create-lesson .page-header,
+  .quiz-builder.quiz-builder .builder-hero,
+  .create-resource.create-resource .create-resource__header,
+  .dashboard-v3.dashboard-v3 .hero-panel--teacher,
+  .dashboard-v3.dashboard-v3 .hero-panel--student,
+  .edit-assignment.edit-assignment .edit-assignment__header,
+  .edit-lesson.edit-lesson .editor-hero,
+  .gradebook.gradebook .gradebook__hero,
+  .grading-settings.grading-settings .grading-hero,
+  .inscriptions-page.inscriptions-page > .page-header,
+  .my-tasks.my-tasks .tasks-header,
+  .program.program .program-hero,
+  .teacher-attempts.teacher-attempts .teacher-attempts__hero,
+  .resources.resources .resources-hero,
+  .review-page.review-page .review-hero,
+  .review.review .review__header,
+  .student-profile.student-profile .student-profile__hero,
+  .students.students .students__header,
+  .submissions.submissions .submissions__hero,
+  .teacher-review.teacher-review .teacher-review__hero,
+  .vocal-page.vocal-page .amv-page-header,
+  .voice-page.voice-page .voice-header,
+  .vocal-evaluation-page.vocal-evaluation-page .vocal-hero
+) :is(h1, h2) :is(span, em, strong) {
+  color: #ffffff !important;
+}
+
+:is(
+  .profile-page.profile-page .profile-hero,
+  .activate-account.activate-account .activate-account__header,
+  .assignment.assignment .assignment__header,
+  .attendance.attendance .attendance__header,
+  .classwork.classwork .classwork__hero,
+  .course-hub.course-hub .classes-header,
+  .create-assignment.create-assignment .create-assignment__header,
+  .create-lesson.create-lesson .page-header,
+  .quiz-builder.quiz-builder .builder-hero,
+  .create-resource.create-resource .create-resource__header,
+  .dashboard-v3.dashboard-v3 .hero-panel--teacher,
+  .dashboard-v3.dashboard-v3 .hero-panel--student,
+  .edit-assignment.edit-assignment .edit-assignment__header,
+  .edit-lesson.edit-lesson .editor-hero,
+  .gradebook.gradebook .gradebook__hero,
+  .grading-settings.grading-settings .grading-hero,
+  .inscriptions-page.inscriptions-page > .page-header,
+  .my-tasks.my-tasks .tasks-header,
+  .program.program .program-hero,
+  .teacher-attempts.teacher-attempts .teacher-attempts__hero,
+  .resources.resources .resources-hero,
+  .review-page.review-page .review-hero,
+  .review.review .review__header,
+  .student-profile.student-profile .student-profile__hero,
+  .students.students .students__header,
+  .submissions.submissions .submissions__hero,
+  .teacher-review.teacher-review .teacher-review__hero,
+  .vocal-page.vocal-page .amv-page-header,
+  .voice-page.voice-page .voice-header,
+  .vocal-evaluation-page.vocal-evaluation-page .vocal-hero
+) :is(.eyebrow, .eyebrow--light, .tasks-kicker, .vocal-kicker, .vocal-section-label, .attendance__eyebrow, .students__eyebrow, .teacher-attempts__eyebrow, .submissions__eyebrow, .review__eyebrow, .voice-header__eyebrow, .amv-page-header__eyebrow) {
+  color: #ffe2eb !important;
+  opacity: 1 !important;
+}
+
+:is(
+  .profile-page.profile-page .profile-hero,
+  .activate-account.activate-account .activate-account__header,
+  .assignment.assignment .assignment__header,
+  .attendance.attendance .attendance__header,
+  .classwork.classwork .classwork__hero,
+  .course-hub.course-hub .classes-header,
+  .create-assignment.create-assignment .create-assignment__header,
+  .create-lesson.create-lesson .page-header,
+  .quiz-builder.quiz-builder .builder-hero,
+  .create-resource.create-resource .create-resource__header,
+  .edit-assignment.edit-assignment .edit-assignment__header,
+  .edit-lesson.edit-lesson .editor-hero,
+  .gradebook.gradebook .gradebook__hero,
+  .grading-settings.grading-settings .grading-hero,
+  .my-tasks.my-tasks .tasks-header,
+  .program.program .program-hero,
+  .teacher-attempts.teacher-attempts .teacher-attempts__hero,
+  .resources.resources .resources-hero,
+  .review-page.review-page .review-hero,
+  .review.review .review__header,
+  .student-profile.student-profile .student-profile__hero,
+  .students.students .students__header,
+  .submissions.submissions .submissions__hero,
+  .teacher-review.teacher-review .teacher-review__hero,
+  .vocal-page.vocal-page .amv-page-header,
+  .voice-page.voice-page .voice-header,
+  .vocal-evaluation-page.vocal-evaluation-page .vocal-hero
+) > p,
+:is(
+  .attendance.attendance .attendance__header .attendance__description,
+  .students.students .students__header .students__description,
+  .create-assignment.create-assignment .create-assignment__header p,
+  .create-resource.create-resource .create-resource__header p,
+  .teacher-attempts.teacher-attempts .teacher-attempts__hero p,
+  .grading-settings.grading-settings .grading-hero .hero-copy,
+  .review-page.review-page .review-hero p,
+  .vocal-evaluation-page.vocal-evaluation-page .vocal-hero p,
+  .voice-page.voice-page .voice-header p
+) {
+  color: rgba(255, 255, 255, 0.88) !important;
+  max-width: 68ch;
+  line-height: 1.55;
+}
+
+/* Resumen y datos dentro de cabeceras siguen siendo legibles, no tarjetas oscuras. */
+.inscriptions-page.inscriptions-page > .page-header .summary-card,
+.dashboard-v3.dashboard-v3 .hero-panel--teacher .hero-visual-card,
+.dashboard-v3.dashboard-v3 .hero-panel--student .student-life-card,
+.teacher-attempts.teacher-attempts .teacher-attempts__hero-card,
+.grading-settings.grading-settings .grading-hero .hero-status {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: var(--amv-ui-ink) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+}
+
+.dashboard-v3.dashboard-v3 .hero-panel--teacher .hero-visual-card :is(strong, small, span),
+.dashboard-v3.dashboard-v3 .hero-panel--student .student-life-card :is(strong, small, span),
+.teacher-attempts.teacher-attempts .teacher-attempts__hero-card :is(strong, small, span),
+.grading-settings.grading-settings .grading-hero .hero-status :is(strong, small, span),
+.inscriptions-page.inscriptions-page > .page-header .summary-card :is(strong, small, span) {
+  color: var(--amv-ui-ink) !important;
+}
+
+/* CTA de cabecera: blanco/transparente, con buen contraste y sin brillo pesado. */
+:is(
+  .profile-page .profile-hero,
+  .activate-account .activate-account__header,
+  .assignment .assignment__header,
+  .attendance .attendance__header,
+  .classwork .classwork__hero,
+  .course-hub .classes-header,
+  .create-assignment .create-assignment__header,
+  .create-lesson .page-header,
+  .quiz-builder .builder-hero,
+  .create-resource .create-resource__header,
+  .edit-assignment .edit-assignment__header,
+  .edit-lesson .editor-hero,
+  .gradebook .gradebook__hero,
+  .grading-settings .grading-hero,
+  .inscriptions-page > .page-header,
+  .my-tasks .tasks-header,
+  .program .program-hero,
+  .teacher-attempts .teacher-attempts__hero,
+  .resources .resources-hero,
+  .review-page .review-hero,
+  .review .review__header,
+  .student-profile .student-profile__hero,
+  .students .students__header,
+  .submissions .submissions__hero,
+  .teacher-review .teacher-review__hero,
+  .vocal-page .amv-page-header,
+  .voice-page .voice-header,
+  .vocal-evaluation-page .vocal-hero
+) :is(button, a[class*="action"], a[class*="primary"], button[class*="action"], button[class*="primary"]) {
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.76) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+:is(
+  .profile-page .profile-hero,
+  .activate-account .activate-account__header,
+  .assignment .assignment__header,
+  .attendance .attendance__header,
+  .classwork .classwork__hero,
+  .course-hub .classes-header,
+  .create-assignment .create-assignment__header,
+  .create-lesson .page-header,
+  .quiz-builder .builder-hero,
+  .create-resource .create-resource__header,
+  .edit-assignment .edit-assignment__header,
+  .edit-lesson .editor-hero,
+  .gradebook .gradebook__hero,
+  .grading-settings .grading-hero,
+  .inscriptions-page > .page-header,
+  .my-tasks .tasks-header,
+  .program .program-hero,
+  .teacher-attempts .teacher-attempts__hero,
+  .resources .resources-hero,
+  .review-page .review-hero,
+  .review .review__header,
+  .student-profile .student-profile__hero,
+  .students .students__header,
+  .submissions .submissions__hero,
+  .teacher-review .teacher-review__hero,
+  .vocal-page .amv-page-header,
+  .voice-page .voice-header,
+  .vocal-evaluation-page .vocal-hero
+) :is(button, a[class*="action"], a[class*="primary"], button[class*="action"], button[class*="primary"]):hover:not(:disabled) {
+  background: #ffffff !important;
+  color: var(--amv-ui-brand) !important;
+  border-color: #ffffff !important;
+}
+
+/* Botones de acción en el contenido: una sola firma visual, sin degradados. */
+:is(.amv-view-shell.amv-view-shell, .calendar-page.calendar-page, .quiz-builder.quiz-builder, .quiz-page.quiz-page, .lesson-page.lesson-page) :is(
+  .is-primary,
+  .primary-action,
+  .students__primary-action,
+  .lux-button--primary,
+  .amv-primary-action,
+  .academy-button--primary,
+  .button--primary,
+  .btn-primary,
+  .submit-button,
+  .form-submit,
+  .action-button--primary
+) {
+  min-height: 42px;
+  border: 1px solid var(--amv-ui-brand) !important;
+  border-radius: 9px !important;
+  background: var(--amv-ui-brand) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+:is(.amv-view-shell.amv-view-shell, .calendar-page.calendar-page, .quiz-builder.quiz-builder, .quiz-page.quiz-page, .lesson-page.lesson-page) :is(
+  .is-primary,
+  .primary-action,
+  .students__primary-action,
+  .lux-button--primary,
+  .amv-primary-action,
+  .academy-button--primary,
+  .button--primary,
+  .btn-primary,
+  .submit-button,
+  .form-submit,
+  .action-button--primary
+):hover:not(:disabled) {
+  background: var(--amv-ui-brand-hover) !important;
+  border-color: var(--amv-ui-brand-hover) !important;
+  color: #ffffff !important;
+}
+
+:is(.amv-view-shell.amv-view-shell, .calendar-page.calendar-page, .quiz-builder.quiz-builder, .quiz-page.quiz-page, .lesson-page.lesson-page) :is(
+  .is-secondary,
+  .secondary-action,
+  .amv-secondary-action,
+  .button--secondary,
+  .btn-secondary,
+  .lux-button--secondary,
+  .today-button,
+  .back-link,
+  .teacher-attempts__back,
+  .assignment__back
+) {
+  border: 1px solid var(--amv-ui-line) !important;
+  border-radius: 9px !important;
+  background: #ffffff !important;
+  color: var(--amv-ui-ink) !important;
+  box-shadow: none !important;
+  text-decoration: none;
+}
+
+:is(.amv-view-shell.amv-view-shell, .calendar-page.calendar-page, .quiz-builder.quiz-builder, .quiz-page.quiz-page, .lesson-page.lesson-page) :is(
+  .is-secondary,
+  .secondary-action,
+  .amv-secondary-action,
+  .button--secondary,
+  .btn-secondary,
+  .lux-button--secondary,
+  .today-button,
+  .back-link,
+  .teacher-attempts__back,
+  .assignment__back
+):hover:not(:disabled) {
+  border-color: #e3a0b7 !important;
+  background: var(--amv-ui-brand-soft) !important;
+  color: var(--amv-ui-brand-dark) !important;
+}
+
+/* Superficies: elevación mínima; tarjetas y formularios se sienten consistentes. */
+:is(.amv-view-shell.amv-view-shell, .calendar-page.calendar-page, .quiz-builder.quiz-builder, .quiz-page.quiz-page, .lesson-page.lesson-page) :is(
+  .month-card,
+  .agenda-card,
+  .panel,
+  .form-section,
+  .question-card,
+  .question-panel,
+  .amv-card,
+  .vocal-panel,
+  .metric-card,
+  .focus-card,
+  .wide-panel,
+  .student-card,
+  .assignment-card,
+  .submission-card,
+  .attempt-card,
+  .resources-library,
+  .students-directory,
+  .attendance__lesson-selector,
+  .attendance-table-wrap
+) {
+  border-color: var(--amv-ui-line);
+  border-radius: var(--amv-ui-radius);
+  box-shadow: var(--amv-ui-shadow);
+}
+
+/* Calendario: filtros ligeros, rejilla clara y foco evidente. */
+.calendar-page.calendar-page .calendar-toolbar {
+  background: #ffffff;
+  border: 1px solid var(--amv-ui-line);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.calendar-page.calendar-page .filters button {
+  min-height: 30px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #f4f6f9;
+  color: #4b5565;
+  font-weight: 700;
+}
+
+.calendar-page.calendar-page .filters button.active {
+  border-color: #f3b2c7;
+  background: var(--amv-ui-brand-soft);
+  color: var(--amv-ui-brand-dark);
+}
+
+.calendar-page.calendar-page .month-card {
+  overflow: hidden;
+  border: 1px solid var(--amv-ui-line);
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.calendar-page.calendar-page .weekdays {
+  background: #f7f8fb;
+  color: #788394;
+  border-bottom: 1px solid var(--amv-ui-line);
+}
+
+.calendar-page.calendar-page .day-cell {
+  border-color: #edf0f4;
+  background: #ffffff;
+}
+
+.calendar-page.calendar-page .day-cell.is-outside {
+  background: #f8f9fb;
+}
+
+.calendar-page.calendar-page .day-cell.is-today {
+  box-shadow: inset 0 0 0 1px #e8a0b7;
+}
+
+.calendar-page.calendar-page .day-number {
+  color: #263244;
+}
+
+.calendar-page.calendar-page .event-chip {
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+/* Preguntas y formularios: áreas de respuesta cómodas, sin mover elementos. */
+.quiz-page.quiz-page :is(.question-card, .quiz-question, .question-panel, .answer-panel),
+.quiz-builder.quiz-builder :is(.question-card, .question-editor, .question-block) {
+  border: 1px solid var(--amv-ui-line);
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+.quiz-page.quiz-page :is(input[type="radio"], input[type="checkbox"]),
+.quiz-builder.quiz-builder :is(input[type="radio"], input[type="checkbox"]) {
+  accent-color: var(--amv-ui-brand);
+}
+
+.quiz-page.quiz-page .quiz-topbar {
+  background: var(--amv-ui-brand);
+  color: #ffffff;
+  border: 0;
+  border-radius: 0 0 12px 12px;
+  box-shadow: none;
+}
+
+.quiz-page.quiz-page .quiz-topbar :is(a, button, span) {
+  color: #ffffff;
+}
+
+/* Quita solo decoraciones de fondo costosas; conserva indicadores y contenido real. */
+.dashboard-v3.dashboard-v3 .hero-panel__ambient,
+.dashboard-v3.dashboard-v3 .hero-panel__grid,
+.dashboard-v3.dashboard-v3 .floating-orb,
+.vocal-evaluation-page.vocal-evaluation-page .vocal-hero__glow,
+.vocal-evaluation-page.vocal-evaluation-page .vocal-hero__wave,
+.vocal-evaluation-page.vocal-evaluation-page .vocal-hero__particles,
+.lesson-page.lesson-page .amv-hero__soundscape {
+  display: none !important;
+  animation: none !important;
+}
+
+/* Reduce efectos sobre el contenedor completo. */
+:is(.amv-view-shell.amv-view-shell, .calendar-page.calendar-page, .quiz-builder.quiz-builder, .quiz-page.quiz-page, .lesson-page.lesson-page) :is(
+  .glass,
+  .glass-panel,
+  [class*="ambient"],
+  [class*="glow"],
+  [class*="particles"]
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 720px) {
+  :is(
+    .profile-page .profile-hero,
+    .activate-account .activate-account__header,
+    .assignment .assignment__header,
+    .attendance .attendance__header,
+    .classwork .classwork__hero,
+    .course-hub .classes-header,
+    .create-assignment .create-assignment__header,
+    .create-lesson .page-header,
+    .quiz-builder .builder-hero,
+    .create-resource .create-resource__header,
+    .edit-assignment .edit-assignment__header,
+    .edit-lesson .editor-hero,
+    .gradebook .gradebook__hero,
+    .grading-settings .grading-hero,
+    .inscriptions-page > .page-header,
+    .my-tasks .tasks-header,
+    .program .program-hero,
+    .teacher-attempts .teacher-attempts__hero,
+    .resources .resources-hero,
+    .review-page .review-hero,
+    .review .review__header,
+    .student-profile .student-profile__hero,
+    .students .students__header,
+    .submissions .submissions__hero,
+    .teacher-review .teacher-review__hero,
+    .vocal-page .amv-page-header,
+    .voice-page .voice-header,
+    .vocal-evaluation-page .vocal-hero
+  ) {
+    gap: 1rem;
+    padding: 1.25rem 1rem !important;
+  }
+
+  :is(.amv-view-shell.amv-view-shell, .calendar-page.calendar-page, .quiz-builder.quiz-builder, .quiz-page.quiz-page, .lesson-page.lesson-page) :is(button, .button, [class*="button--"], [class*="primary-action"]) {
+    max-width: 100%;
+  }
+
+  .calendar-page.calendar-page .calendar-toolbar__top {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .calendar-page.calendar-page .calendar-toolbar__actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* =========================================================
+   AMV BRAND BANNERS · FINAL NORMALIZATION V2
+   Reference: Alumnos page. Same carmine, white typography,
+   quiet borders and accessible action controls on every view.
+========================================================= */
+:is(
+  .profile-page .profile-hero,
+  .activate-account .activate-account__header,
+  .assignment .assignment__header,
+  .attendance .attendance__header,
+  .classwork .classwork__hero,
+  .course-hub .classes-header,
+  .create-assignment .create-assignment__header,
+  .create-lesson .page-header,
+  .quiz-builder .builder-hero,
+  .create-resource .create-resource__header,
+  .dashboard-v3 .hero-panel--teacher,
+  .dashboard-v3 .hero-panel--student,
+  .edit-assignment .edit-assignment__header,
+  .edit-lesson .editor-hero,
+  .gradebook .gradebook__hero,
+  .grading-settings .grading-hero,
+  .inscriptions-page > .page-header,
+  .my-tasks .tasks-header,
+  .program .program-hero,
+  .teacher-attempts .teacher-attempts__hero,
+  .resources .resources-hero,
+  .review-page .review-hero,
+  .review .review__header,
+  .student-profile .student-profile__hero,
+  .students .students__header,
+  .submissions .submissions__hero,
+  .teacher-review .teacher-review__hero,
+  .vocal-page .amv-page-header,
+  .voice-page .voice-header,
+  .vocal-evaluation-page .vocal-hero,
+  .calendar-page .calendar-page-banner
+) {
+  background: var(--amv-ui-brand) !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
+:is(
+  .profile-page .profile-hero,
+  .activate-account .activate-account__header,
+  .assignment .assignment__header,
+  .attendance .attendance__header,
+  .classwork .classwork__hero,
+  .course-hub .classes-header,
+  .create-assignment .create-assignment__header,
+  .create-lesson .page-header,
+  .quiz-builder .builder-hero,
+  .create-resource .create-resource__header,
+  .dashboard-v3 .hero-panel--teacher,
+  .dashboard-v3 .hero-panel--student,
+  .edit-assignment .edit-assignment__header,
+  .edit-lesson .editor-hero,
+  .gradebook .gradebook__hero,
+  .grading-settings .grading-hero,
+  .inscriptions-page > .page-header,
+  .my-tasks .tasks-header,
+  .program .program-hero,
+  .teacher-attempts .teacher-attempts__hero,
+  .resources .resources-hero,
+  .review-page .review-hero,
+  .review .review__header,
+  .student-profile .student-profile__hero,
+  .students .students__header,
+  .submissions .submissions__hero,
+  .teacher-review .teacher-review__hero,
+  .vocal-page .amv-page-header,
+  .voice-page .voice-header,
+  .vocal-evaluation-page .vocal-hero,
+  .calendar-page .calendar-page-banner
+) :is(h1, h2) {
+  color: #fff !important;
+  font-family: "Arial Narrow", "Roboto Condensed", "Aptos Narrow", Impact, sans-serif !important;
+  font-size: clamp(2rem, 4.4vw, 3.35rem) !important;
+  font-weight: 850 !important;
+  line-height: .98 !important;
+  letter-spacing: -.025em !important;
+  text-transform: uppercase;
+}
+
+:is(
+  .profile-page .profile-hero .profile-kicker,
+  .activate-account .activate-account__header .eyebrow,
+  .assignment .assignment__header .eyebrow,
+  .attendance .attendance__header .attendance__eyebrow,
+  .classwork .classwork__hero .eyebrow,
+  .course-hub .classes-header .course-kicker,
+  .create-assignment .create-assignment__header .eyebrow,
+  .create-lesson .page-header .eyebrow,
+  .quiz-builder .builder-hero .eyebrow,
+  .create-resource .create-resource__header .eyebrow,
+  .dashboard-v3 .hero-panel .eyebrow,
+  .edit-assignment .edit-assignment__header .eyebrow,
+  .edit-lesson .editor-hero .eyebrow,
+  .gradebook .gradebook__hero .eyebrow,
+  .grading-settings .grading-hero .eyebrow,
+  .inscriptions-page > .page-header .eyebrow,
+  .my-tasks .tasks-header .eyebrow,
+  .program .program-hero .eyebrow,
+  .teacher-attempts .teacher-attempts__hero .teacher-attempts__eyebrow,
+  .resources .resources-hero .resources-hero__eyebrow,
+  .review-page .review-hero .eyebrow,
+  .review .review__header .eyebrow,
+  .student-profile .student-profile__hero .eyebrow,
+  .students .students__header .students__eyebrow,
+  .submissions .submissions__hero .submissions__eyebrow,
+  .teacher-review .teacher-review__hero .eyebrow,
+  .vocal-page .amv-page-header .eyebrow,
+  .voice-page .voice-header .voice-header__eyebrow,
+  .vocal-evaluation-page .vocal-hero .vocal-kicker,
+  .calendar-page .calendar-page-banner__eyebrow
+) {
+  color: rgba(255,255,255,.9) !important;
+  opacity: 1 !important;
+}
+
+:is(
+  .profile-page .profile-hero .profile-hero__copy > p,
+  .dashboard-v3 .hero-panel .hero-panel__copy > p,
+  .attendance .attendance__header .attendance__description,
+  .course-hub .classes-header .classes-header__intro > p,
+  .create-assignment .create-assignment__header > p,
+  .create-resource .create-resource__header > p,
+  .gradebook .gradebook__hero .hero-copy,
+  .inscriptions-page > .page-header .page-header__intro > p,
+  .my-tasks .tasks-header > p,
+  .program .program-hero .program-hero__content > p,
+  .resources .resources-hero .resources-hero__copy > p,
+  .students .students__header .students__description,
+  .calendar-page .calendar-page-banner p,
+  .vocal-evaluation-page .vocal-hero > p,
+  .voice-page .voice-header > p
+) {
+  color: rgba(255,255,255,.91) !important;
+  line-height: 1.55;
+}
+
+:is(.profile-page .profile-hero h1 span, .resources .resources-hero h1 span) {
+  color: #fff !important;
+}
+
+/* Keep summary cards readable when they sit inside a red hero banner. */
+.dashboard-v3 .hero-panel .hero-visual-card,
+.dashboard-v3 .hero-panel .student-life-card,
+.inscriptions-page > .page-header .summary-card,
+.gradebook .gradebook__hero .hero-status {
+  background: rgba(255,255,255,.97) !important;
+  color: var(--amv-ui-ink) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.dashboard-v3 .hero-panel .hero-visual-card :is(strong, small, span, p),
+.dashboard-v3 .hero-panel .student-life-card :is(strong, small, span, p),
+.inscriptions-page > .page-header .summary-card :is(strong, small, span),
+.gradebook .gradebook__hero .hero-status :is(strong, small, span) {
+  color: var(--amv-ui-ink) !important;
+}
+
+/* Resource banner: flat, no orb, blur, glow or decorative grid. */
+.resources .resources-hero :is(.resources-hero__glow, .resources-hero__grid, .resources-hero__orb) {
+  display: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+.resources .resources-hero .resources-hero__quick span {
+  border-color: rgba(255,255,255,.42) !important;
+  background: rgba(255,255,255,.08) !important;
+  color: #fff !important;
+  backdrop-filter: none !important;
+}
+.resources .resources-hero .resources-hero__publish {
+  border: 1px solid rgba(255,255,255,.78) !important;
+  background: rgba(255,255,255,.08) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.resources .resources-hero .resources-hero__publish:hover:not(:disabled) {
+  border-color: #fff !important;
+  background: #fff !important;
+  color: var(--amv-ui-brand) !important;
+}
+
+/* El banner de cuenta no tiene fotografía; la edición de foto sigue disponible
+   en la sección de perfil para quien desee administrarla. */
+.profile-page .profile-hero::before { content: none !important; display: none !important; animation: none !important; }
+.profile-page .profile-hero__identity { display: none !important; }
+
+/* Remove heavyweight effects in hero cards without touching page behavior. */
+.dashboard-v3 .hero-panel :is(.hero-panel__ambient, .hero-panel__grid, .floating-orb) {
+  display: none !important;
+  animation: none !important;
+  filter: none !important;
+}
+.dashboard-v3 .hero-panel :is(.hero-visual-card, .student-life-card) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 720px) {
+  .profile-page .profile-hero,
+  .resources .resources-hero,
+  .course-hub .classes-header,
+  .students .students__header,
+  .calendar-page .calendar-page-banner {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    padding: 22px 18px !important;
+    border-radius: 14px !important;
+  }
+
+  .resources .resources-hero .resources-hero__side,
+  .calendar-page .calendar-page-banner__actions {
+    align-items: flex-start !important;
+    width: 100%;
+  }
+}
+
+.course-hub .classes-header .classes-header__count {
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.3) !important;
+  background: rgba(255,255,255,.06) !important;
+  box-shadow: none !important;
+}
+.course-hub .classes-header .classes-header__count :is(strong, span) { color: #fff !important; }
+
+.calendar-page .calendar-page-banner .calendar-page-banner__action {
+  border: 1px solid rgba(255,255,255,.78) !important;
+  background: rgba(255,255,255,.08) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.calendar-page .calendar-page-banner .calendar-page-banner__action:hover:not(:disabled) {
+  border-color: #fff !important;
+  background: #fff !important;
+  color: var(--amv-ui-brand) !important;
+}

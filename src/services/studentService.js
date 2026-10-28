@@ -183,57 +183,49 @@ export const fetchStudentById =
    inscripción -> aprobación -> matrícula -> invitación.
 ========================================================= */
 
-export const insertStudent =
-  async student => {
-    const name =
-      normalizeName(
-        student?.name,
-      )
 
-    const voice =
-      normalizeVoice(
-        student?.voice,
-      )
+export const insertStudent = async student => {
+  const name = normalizeName(student?.name)
+  const voice = normalizeVoice(student?.voice)
 
-    if (!name) {
-      throw new Error(
-        'Debes ingresar el nombre del estudiante.',
-      )
-    }
-
-    if (!voice) {
-      throw new Error(
-        'Debes seleccionar una clasificación vocal.',
-      )
-    }
-
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from('students')
-        .insert({
-          name,
-          voice,
-          active: true,
-        })
-        .select()
-        .single()
-
-    if (error) {
-      console.error(
-        'Error creando estudiante:',
-        error,
-      )
-
-      throw error
-    }
-
-    return normalizeStudent(
-      data,
+  if (!name) {
+    throw new Error(
+      'Debes ingresar el nombre del estudiante.'
     )
   }
+
+  if (!voice) {
+    throw new Error(
+      'Debes seleccionar una clasificación vocal.'
+    )
+  }
+
+  const { data, error } = await supabase.rpc(
+    'create_student_for_current_teacher',
+    {
+      p_name: name,
+      p_voice: voice,
+    }
+  )
+
+  if (error) {
+    console.error('Error creando estudiante:', error)
+    throw error
+  }
+
+  const createdStudent = Array.isArray(data)
+    ? data[0]
+    : data
+
+  if (!createdStudent) {
+    throw new Error(
+      'Supabase no devolvió el estudiante creado.'
+    )
+  }
+
+  return normalizeStudent(createdStudent)
+}
+
 
 /* =========================================================
    ACTUALIZAR ESTUDIANTE

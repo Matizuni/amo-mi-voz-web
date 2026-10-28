@@ -1,2253 +1,707 @@
 <template>
-  <section class="vocal-evaluation-page amv-view-shell">
-    <!-- =========================================================
-         HERO
-    ========================================================== -->
-    <section class="vocal-hero">
-      <div class="vocal-hero__glow vocal-hero__glow--wine"></div>
-      <div class="vocal-hero__glow vocal-hero__glow--gold"></div>
-      <div class="vocal-hero__wave vocal-hero__wave--one"></div>
-      <div class="vocal-hero__wave vocal-hero__wave--two"></div>
-      <div class="vocal-hero__particles" aria-hidden="true">
-        <i v-for="n in 10" :key="n" :style="{ '--i': n }"></i>
-      </div>
-
-      <div class="vocal-hero__copy">
-        <span class="vocal-kicker">
-          <i></i>
-          AMV VOCAL ENGINE · EVALUACIÓN VOCAL
-        </span>
-
-        <h1>
-          Tu voz.
-          <span>Tu evolución.</span>
-        </h1>
-
-        <p>
-          Un espacio dedicado exclusivamente a comprender tu desarrollo vocal
-          a partir de los análisis realizados por AMV.
-        </p>
-
-        <div class="vocal-hero__chips">
-          <span>8 dimensiones</span>
-          <span>Evidencia acústica</span>
-          <span>Progreso pedagógico</span>
-          <span v-if="amvSongTitle">{{ amvSongTitle }} · {{ amvArtist || 'Referencia' }}</span>
+  <main class="amv-student-page">
+    <header class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow"><i></i> AMO MI VOZ · AMV VOCAL ENGINE</span>
+        <h1>Mis audiciones<span>Mi evolución vocal</span></h1>
+        <p>Escucha tus interpretaciones y revisa los resultados de cada análisis en un solo lugar.</p>
+        <div class="hero-tags">
+          <span><icon aria-hidden="true">♫</icon> Mi historial</span>
+          <span><icon aria-hidden="true">◉</icon> Evidencia acústica</span>
+          <span><icon aria-hidden="true">↗</icon> Progreso pedagógico</span>
         </div>
       </div>
+      <div class="hero-mark" aria-hidden="true"><span>AMV</span><small>VOCAL ENGINE</small></div>
+    </header>
 
-      <div class="vocal-hero__score">
-        <div class="vocal-score-ring" :class="{ 'is-ready': amvHasResult }">
-          <div>
-            <strong>{{ amvComparisonQuality ?? '—' }}</strong>
-            <small>{{ amvHasResult ? 'Calidad de comparación' : 'Pendiente' }}</small>
-          </div>
-        </div>
-        <span>{{ amvHasResult ? 'ÚLTIMO ANÁLISIS' : 'SIN ANÁLISIS CONECTADO' }}</span>
-      </div>
-    </section>
+    <div v-if="loading" class="state-card"><span class="spinner"></span><div><strong>Preparando tus audiciones</strong><p>Estamos buscando tus grabaciones y resultados.</p></div></div>
+    <div v-else-if="error" class="state-card state-card--error" role="alert"><strong>No pudimos cargar tus audiciones</strong><p>{{ error }}</p><button class="button button--secondary" @click="loadStudentAuditions">Reintentar</button></div>
 
-    <!-- =========================================================
-         INTRO / ESTADO
-    ========================================================== -->
-    <section class="vocal-intro">
-      <div>
-        <span class="vocal-section-label">EVALUACIÓN VOCAL</span>
-        <h2>Tu perfil vocal</h2>
-        <p>
-          Resultados AMV, fortalezas y prioridades de práctica. No reemplaza
-          la evaluación docente: la complementa con evidencia acústica.
-        </p>
-      </div>
-
-      <div class="vocal-engine-status" :class="{ 'is-ready': amvHasResult }">
-        <span></span>
-        {{ amvHasResult ? 'ANÁLISIS DISPONIBLE' : 'MOTOR LISTO PARA CONECTAR' }}
-      </div>
-    </section>
-
-    <div v-if="amvLoadError" class="amv-load-error" role="alert">
-      <strong>No se pudo cargar el análisis AMV.</strong>
-      <span>{{ amvLoadError }}</span>
-      <button type="button" @click="loadAmvProfile">Reintentar</button>
-    </div>
-
-    <template v-if="amvHasResult">
-      <!-- =======================================================
-           METADATOS PRINCIPALES
-      ======================================================== -->
-      <section class="vocal-metrics">
-        <article>
-          <span>RANGO OBSERVADO</span>
-          <strong>{{ amvRange }}</strong>
-          <small>registro detectado por AMV</small>
-        </article>
-
-        <article>
-          <span>TESITURA OBSERVADA</span>
-          <strong>{{ amvTessitura }}</strong>
-          <small>zona central observada</small>
-        </article>
-
-        <article>
-          <span>CALIDAD DE COMPARACIÓN</span>
-          <strong>{{ amvComparisonQuality !== null ? `${amvComparisonQuality}/100` : '—' }}</strong>
-          <small>{{ amvComparisonStatus }}</small>
-        </article>
+    <template v-else>
+      <section class="section-intro">
+        <div><span class="section-label">TU ESPACIO VOCAL</span><h2>Elige una audición</h2><p>Selecciona una grabación para escucharla y consultar su análisis. Cada resultado corresponde únicamente a esa interpretación.</p></div>
+        <span class="count-pill">{{ recordings.length }} {{ recordings.length === 1 ? 'audición' : 'audiciones' }}</span>
       </section>
 
-      <!-- =======================================================
-           RADAR — SOLO INDICADORES CUANTIFICADOS
-           No mezcla calidad de medición con desempeño.
-      ======================================================== -->
-      <section class="vocal-panel vocal-panel--radar">
-        <header class="vocal-panel__header">
-          <div>
-            <span class="vocal-section-label">AMV PROFILE</span>
-            <h2>Radar de indicadores cuantificados</h2>
-            <p class="amv-panel-subtitle">
-              Lecturas numéricas que AMV puede sostener con evidencia en esta evaluación.
-            </p>
-          </div>
-          <span class="vocal-panel__count">{{ amvScoredIndicatorCount }} indicadores</span>
-        </header>
+      <section v-if="recordings.length" class="audition-layout">
+        <aside class="history panel">
+          <div class="panel-heading"><div><span class="section-label">HISTORIAL</span><h3>Mis grabaciones</h3></div><button class="icon-button" aria-label="Actualizar historial" title="Actualizar" @click="loadStudentAuditions">↻</button></div>
+          <button v-for="recording in recordings" :key="recording.id" class="recording-option" :class="{ 'is-active': String(recording.id) === String(activeRecordingId) }" @click="selectRecording(recording)">
+            <span class="recording-icon">♫</span>
+            <span class="recording-copy"><strong>{{ recording.title || recording.song || 'Audición vocal' }}</strong><small>{{ recording.song || 'Canción sin título' }}<template v-if="recording.artist"> · {{ recording.artist }}</template></small><small>{{ formatDate(recording.recordedAt || recording.createdAt) }}</small></span>
+            <span class="status-dot" :class="{ 'is-done': isCompleted(recording) }" :title="isCompleted(recording) ? 'Análisis completado' : 'Análisis pendiente'"></span>
+          </button>
+          <p class="history-note"><span class="legend-dot is-done"></span> Análisis completado <span class="legend-dot"></span> Pendiente o en proceso</p>
+        </aside>
 
-        <div class="amv-radar-layout amv-radar-layout--clean">
-          <div class="amv-radar" aria-label="Radar AMV de afinación, ritmo y estabilidad">
-            <svg viewBox="0 0 360 360" role="img" aria-labelledby="amv-radar-title amv-radar-desc">
-              <title id="amv-radar-title">Radar de indicadores cuantificados</title>
-              <desc id="amv-radar-desc">
-                Resultado de afinación, ritmo y estabilidad de la interpretación analizada por AMV.
-              </desc>
+        <div v-if="activeRecording" class="results-column">
+          <section class="selected-heading">
+            <div><span class="section-label">AUDICIÓN SELECCIONADA</span><h2>{{ activeRecording.title || activeRecording.song || 'Mi audición' }}</h2><p>{{ activeRecording.song || 'Canción no indicada' }}<template v-if="activeRecording.artist"> · {{ activeRecording.artist }}</template></p></div>
+            <span class="status-pill" :class="{ 'is-done': isCompleted(activeRecording) }"><i></i>{{ isCompleted(activeRecording) ? 'Análisis completado' : 'Análisis pendiente' }}</span>
+          </section>
 
-              <g class="amv-radar-grid amv-radar-grid--triangle">
-                <polygon points="180,42 311,275 49,275"></polygon>
-                <polygon points="180,76 282,258 78,258"></polygon>
-                <polygon points="180,110 253,241 107,241"></polygon>
-                <polygon points="180,144 224,224 136,224"></polygon>
-                <line x1="180" y1="180" x2="180" y2="42"></line>
-                <line x1="180" y1="180" x2="311" y2="275"></line>
-                <line x1="180" y1="180" x2="49" y2="275"></line>
-              </g>
-
-              <polygon
-                class="amv-radar-shape"
-                :points="amvRadarPoints"
-              ></polygon>
-
-              <g class="amv-radar-dot">
-                <circle
-                  v-for="point in amvRadarDots"
-                  :key="point.key"
-                  :cx="point.x"
-                  :cy="point.y"
-                  r="5"
-                ></circle>
-              </g>
-
-              <text x="180" y="25">AFINACIÓN</text>
-              <text x="318" y="284">RITMO</text>
-              <text x="12" y="284">ESTABILIDAD</text>
-            </svg>
-          </div>
-
-          <div class="amv-radar-stats">
-            <article class="amv-score-card amv-score-card--focus">
-              <span>AFINACIÓN</span>
-              <strong>{{ formatScore(amvIntonation) }}</strong>
-              <small>comparación con la referencia</small>
-            </article>
-
-            <article class="amv-score-card amv-score-card--strength">
-              <span>RITMO Y PRECISIÓN</span>
-              <strong>{{ formatScore(amvRhythm) }}</strong>
-              <small>correspondencia temporal</small>
-            </article>
-
-            <article class="amv-score-card">
-              <span>ESTABILIDAD</span>
-              <strong>{{ formatScore(amvStability) }}</strong>
-              <small>índice descriptivo · {{ amvStabilityStatus }}</small>
-            </article>
-
-            <article class="amv-score-card">
-              <span>CALIDAD ACÚSTICA</span>
-              <strong>{{ formatScore(amvAcousticScore) }}</strong>
-              <small>calidad de la medición</small>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- =======================================================
-           OCHO DIMENSIONES
-      ======================================================== -->
-      <section class="vocal-panel vocal-panel--analysis">
-        <div class="vocal-signal" aria-hidden="true">
-          <span v-for="n in 28" :key="n" :style="{ '--i': n }"></span>
-        </div>
-
-        <header class="vocal-panel__header">
-          <div>
-            <span class="vocal-section-label">AMV ANALYSIS</span>
-            <h2>Las 8 dimensiones de tu voz</h2>
-            <p class="amv-panel-subtitle">
-              Una dimensión puede estar puntuada, observada o todavía en desarrollo. AMV no convierte la falta de medición en un cero.
-            </p>
-          </div>
-
-          <div class="amv-dimension-summary" aria-label="Resumen de cobertura de las 8 dimensiones">
-            <span><b>{{ amvScoredDimensionCount }}</b> puntuadas</span>
-            <span><b>{{ amvObservedDimensionCount }}</b> observadas</span>
-            <span><b>{{ amvPendingDimensionCount }}</b> en desarrollo</span>
-          </div>
-        </header>
-
-        <div class="vocal-dimensions">
-          <article
-            v-for="dimension in amvDimensions"
-            :key="dimension.key"
-            class="vocal-dimension amv-dimension-card"
-            :class="`is-${amvDimensionState(dimension.key)}`"
-          >
-            <div class="vocal-dimension__icon">{{ dimension.icon }}</div>
-
-            <div class="vocal-dimension__body">
-              <div class="vocal-dimension__title">
-                <strong>{{ dimension.label }}</strong>
-                <b>{{ amvDimensionValueLabel(dimension.key) }}</b>
-              </div>
-
-              <div v-if="amvDimensionState(dimension.key) === 'score'" class="vocal-dimension__track">
-                <span :style="{ width: `${amvValue(dimension.key)}%` }"></span>
-              </div>
-              <div v-else class="amv-dimension-evidence">
-                <span>{{ amvDimensionEvidence(dimension.key) }}</span>
-              </div>
-
-              <small class="amv-dimension-note">
-                {{ amvDimensionNote(dimension.key) }}
-              </small>
+          <section class="panel audio-panel">
+            <div class="audio-art"><span>♫</span><small>MI VOZ</small></div>
+            <div class="audio-content">
+              <span class="section-label">ESCUCHA TU INTERPRETACIÓN</span>
+              <h3>{{ activeRecording.song || activeRecording.title || 'Grabación vocal' }}</h3>
+              <p>{{ activeRecording.artist ? `Referencia: ${activeRecording.artist}` : 'Escucha con atención y piensa en lo que quieres mejorar.' }}</p>
+              <div v-if="audioLoading" class="audio-message">Preparando reproductor seguro…</div>
+              <audio v-else-if="audioUrl" :key="audioUrl" :src="audioUrl" controls preload="metadata">Tu navegador no puede reproducir este audio.</audio>
+              <div v-else class="audio-message audio-message--error">{{ audioError || 'No se pudo generar el enlace temporal para reproducir esta grabación.' }}</div>
             </div>
-          </article>
+          </section>
+
+          <section class="panel result-panel">
+            <div class="panel-heading result-heading"><div><span class="section-label">RESULTADO AMV</span><h3>Lo que observamos en esta interpretación</h3><p>Los indicadores describen esta grabación; no son un diagnóstico ni una clasificación vocal permanente.</p></div><span class="amv-badge">AMV</span></div>
+
+            <div v-if="!isCompleted(activeRecording)" class="pending-result"><span class="pending-symbol">◷</span><div><strong>Tu análisis todavía no está disponible</strong><p>Cuando AMV termine el procesamiento, actualiza el historial para consultar tus resultados.</p></div><button class="button button--secondary" @click="loadStudentAuditions">Actualizar</button></div>
+
+            <template v-else>
+              <div class="metric-grid">
+                <article class="metric-card"><span>RANGO OBSERVADO</span><strong>{{ studentSummary.observed_range || '—' }}</strong><small>Notas detectadas en esta toma</small></article>
+                <article class="metric-card"><span>TESITURA OBSERVADA</span><strong>{{ studentSummary.observed_tessitura || '—' }}</strong><small>Zona central de la interpretación</small></article>
+                <article class="metric-card"><span>AFINACIÓN</span><strong>{{ formatMetric(studentSummary.intonation_score) }}</strong><small>Comparación con la referencia, si está disponible</small></article>
+                <article class="metric-card"><span>RITMO</span><strong>{{ formatMetric(studentSummary.rhythm_score) }}</strong><small>Correspondencia temporal, si está disponible</small></article>
+              </div>
+
+              <section class="radar-panel" aria-labelledby="student-radar-title">
+                <div class="radar-heading">
+                  <div>
+                    <span class="section-label">AMV PROFILE</span>
+                    <h3 id="student-radar-title">Radar de indicadores vocales</h3>
+                    <p>Una vista técnica de las mediciones cuantificadas en esta audición. No representa una nota global ni una clasificación de voz.</p>
+                  </div>
+                  <span class="radar-count">{{ radarMetrics.length }} indicadores</span>
+                </div>
+                <div v-if="radarMetrics.length >= 3" class="radar-layout">
+                  <div class="radar-visual">
+                    <svg viewBox="0 0 360 330" role="img" aria-label="Radar de afinación, ritmo y estabilidad vocal, expresado sobre 100">
+                      <g class="radar-grid">
+                        <polygon points="180,40 301,250 59,250" />
+                        <polygon points="180,68 277,236 83,236" />
+                        <polygon points="180,96 253,222 107,222" />
+                        <polygon points="180,124 229,208 131,208" />
+                        <line x1="180" y1="180" x2="180" y2="40" />
+                        <line x1="180" y1="180" x2="301" y2="250" />
+                        <line x1="180" y1="180" x2="59" y2="250" />
+                      </g>
+                      <polygon class="radar-area" :points="studentRadarPoints" />
+                      <g class="radar-markers">
+                        <circle v-for="point in studentRadarDots" :key="point.key" :cx="point.x" :cy="point.y" r="5" />
+                      </g>
+                      <text x="180" y="23" text-anchor="middle">{{ radarMetrics[0].label.toUpperCase() }}</text>
+                      <text x="311" y="269" text-anchor="end">{{ radarMetrics[1].label.toUpperCase() }}</text>
+                      <text x="49" y="269" text-anchor="start">{{ radarMetrics[2].label.toUpperCase() }}</text>
+                      <text x="180" y="305" text-anchor="middle" class="radar-scale-note">ESCALA NORMALIZADA 0–100</text>
+                    </svg>
+                  </div>
+                  <div class="radar-indicators">
+                    <article v-for="metric in radarMetrics" :key="metric.key" class="radar-indicator">
+                      <div><span>{{ metric.label }}</span><strong>{{ metric.value.toFixed(1) }}<small>/100</small></strong></div>
+                      <div class="radar-track"><i :style="{ width: `${Math.max(0, Math.min(100, metric.value))}%` }"></i></div>
+                      <p>{{ metric.description }}</p>
+                    </article>
+                    <p class="radar-method-note">Estos valores describen señales de esta grabación. La calidad de comparación y la calidad acústica se mantienen fuera del radar porque describen la medición, no el desempeño vocal.</p>
+                  </div>
+                </div>
+                <div v-else class="radar-unavailable">
+                  <span>◌</span>
+                  <div><strong>El radar necesita más indicadores disponibles</strong><p>AMV solo dibujará el perfil cuando existan al menos tres mediciones numéricas válidas. Así evitamos rellenar datos faltantes o sugerir una precisión que el análisis no ofrece.</p></div>
+                </div>
+              </section>
+
+              <section class="teacher-report panel-subsection">
+                <div class="subsection-heading"><div><span class="section-label">EVALUACIÓN DOCENTE</span><h3>La valoración de tu profesor</h3><p>La pauta docente complementa las mediciones automáticas de AMV.</p></div><span v-if="teacherEvaluation" class="teacher-average">{{ teacherAverage }}<small>/10</small></span></div>
+                <div v-if="teacherEvaluationLoading" class="teacher-state">Cargando evaluación docente…</div>
+                <div v-else-if="teacherEvaluationError" class="teacher-state teacher-state--error">{{ teacherEvaluationError }}</div>
+                <div v-else-if="teacherEvaluation" class="teacher-report-content">
+                  <div class="teacher-score-grid">
+                    <article v-for="dimension in teacherDimensions" :key="dimension.key" class="teacher-score">
+                      <div><strong>{{ dimension.label }}</strong><span>{{ teacherScore(dimension.key) !== null ? `${teacherScore(dimension.key)}/10` : 'Sin puntuar' }}</span></div>
+                      <div class="teacher-score-track"><i :style="{ width: `${(teacherScore(dimension.key) || 0) * 10}%` }"></i></div>
+                    </article>
+                  </div>
+
+                  <section class="teacher-radar-panel" aria-labelledby="teacher-radar-title">
+                    <div class="teacher-radar-heading">
+                      <div>
+                        <span class="section-label">PERFIL PEDAGÓGICO</span>
+                        <h4 id="teacher-radar-title">Radar de las ocho dimensiones vocales</h4>
+                        <p>Visualiza la pauta de tu profesor en una escala de 1 a 10. Este radar representa la evaluación docente, no las mediciones automáticas de AMV.</p>
+                      </div>
+                      <span class="teacher-radar-badge">{{ teacherScoredDimensions }}/8 dimensiones</span>
+                    </div>
+                    <div v-if="teacherScoredDimensions >= 3" class="teacher-radar-layout">
+                      <div class="teacher-radar-visual">
+                        <svg viewBox="0 0 460 430" role="img" aria-label="Radar de ocho dimensiones de evaluación docente en escala de uno a diez">
+                          <g class="teacher-radar-grid">
+                            <polygon v-for="level in [2,4,6,8,10]" :key="'teacher-grid-'+level" :points="teacherRadarGrid(level)" />
+                            <line v-for="(dimension,index) in teacherDimensions" :key="'teacher-axis-'+dimension.key" x1="230" y1="200" :x2="teacherRadarPoint(index,10).x" :y2="teacherRadarPoint(index,10).y" />
+                          </g>
+                          <polygon v-if="teacherScoredDimensions === 8" class="teacher-radar-area" :points="teacherRadarPolygon" />
+                          <g class="teacher-radar-points">
+                            <circle v-for="point in teacherRadarDots" :key="point.key" :cx="point.x" :cy="point.y" r="5" />
+                          </g>
+                          <g class="teacher-radar-labels">
+                            <text v-for="(dimension,index) in teacherDimensions" :key="'teacher-label-'+dimension.key" :x="teacherRadarLabel(index).x" :y="teacherRadarLabel(index).y" :text-anchor="teacherRadarLabel(index).anchor">{{ teacherRadarShortLabel(dimension.label) }}</text>
+                          </g>
+                          <text x="230" y="414" text-anchor="middle" class="teacher-radar-scale">ESCALA DOCENTE · 1–10</text>
+                        </svg>
+                      </div>
+                      <div class="teacher-radar-legend">
+                        <article v-for="dimension in teacherDimensions" :key="'legend-'+dimension.key">
+                          <span>{{ dimension.label }}</span>
+                          <strong>{{ teacherScore(dimension.key) !== null ? `${teacherScore(dimension.key)}/10` : '—' }}</strong>
+                          <div><i :style="{ width: `${(teacherScore(dimension.key) || 0) * 10}%` }"></i></div>
+                        </article>
+                      </div>
+                    </div>
+                    <div v-else class="teacher-radar-empty">
+                      Todavía no hay suficientes puntuaciones docentes para construir el radar. Se necesitan al menos tres dimensiones calificadas.
+                    </div>
+                  </section>
+
+                  <div class="teacher-comments-grid">
+                    <article v-if="teacherEvaluation.strengths"><span class="section-label">FORTALEZAS OBSERVADAS</span><p>{{ teacherEvaluation.strengths }}</p></article>
+                    <article v-if="teacherEvaluation.priorities"><span class="section-label">PRIORIDADES DE MEJORA</span><p>{{ teacherEvaluation.priorities }}</p></article>
+                    <article v-if="teacherEvaluation.observations" class="teacher-comment-wide"><span class="section-label">COMENTARIOS DEL PROFESOR</span><p>{{ teacherEvaluation.observations }}</p></article>
+                    <article v-if="teacherEvaluation.exercise_plan" class="teacher-comment-wide"><span class="section-label">PLAN DE EJERCICIOS</span><p>{{ teacherEvaluation.exercise_plan }}</p></article>
+                  </div>
+                  <p v-if="teacherEvaluation.updated_at" class="teacher-updated">Evaluación actualizada el {{ formatDate(teacherEvaluation.updated_at) }}</p>
+                </div>
+                <div v-else class="teacher-state">Tu profesor todavía no ha guardado una pauta docente para esta audición. Cuando la complete, sus puntuaciones y comentarios aparecerán aquí.</div>
+              </section>
+
+              <div class="learning-grid">
+                <article class="learning-card learning-card--strength"><div class="learning-icon">✦</div><span class="section-label">FORTALEZAS</span><h3>Lo que estás construyendo</h3><ul v-if="studentSummary.strengths.length"><li v-for="(item, i) in studentSummary.strengths" :key="i">{{ item }}</li></ul><p v-else class="muted">El resumen de esta evaluación no incluye fortalezas específicas para mostrar.</p></article>
+                <article class="learning-card learning-card--focus"><div class="learning-icon">◎</div><span class="section-label">PRÓXIMO OBJETIVO</span><h3>Qué puedes trabajar</h3><ul v-if="studentSummary.priority_areas.length"><li v-for="(item, i) in studentSummary.priority_areas" :key="i">{{ item }}</li></ul><p v-else class="muted">No se registraron prioridades específicas en el resumen de esta evaluación.</p></article>
+              </div>
+
+              <section v-if="studentSummary.practice_suggestions.length" class="practice-panel"><span class="section-label">PLAN DE PRÁCTICA</span><h3>Ideas para tu próxima práctica</h3><ol><li v-for="(item, i) in studentSummary.practice_suggestions" :key="i"><span>{{ String(i + 1).padStart(2, '0') }}</span><p>{{ item }}</p></li></ol></section>
+              <details class="technical-details"><summary>Ver detalle técnico del análisis AMV</summary><p v-if="studentSummary.measurement_note" class="measurement-note">{{ studentSummary.measurement_note }}</p><pre>{{ JSON.stringify(technicalResult, null, 2) }}</pre></details>
+              <div class="report-actions"><p>Guarda una copia de este informe con los resultados AMV y la evaluación docente disponible.</p><button class="button button--primary" type="button" @click="downloadReportPdf">↓ Descargar informe PDF</button></div>
+            </template>
+          </section>
         </div>
       </section>
 
-      <!-- =======================================================
-           EVIDENCIA ACÚSTICA
-      ======================================================== -->
-      <section class="vocal-panel amv-acoustic-panel">
-        <header class="vocal-panel__header">
-          <div>
-            <span class="vocal-section-label">EVIDENCIA ACÚSTICA</span>
-            <h2>Lo que AMV observó en esta grabación</h2>
-            <p class="amv-panel-subtitle">
-              Descriptores de la toma analizada. No equivalen por sí solos a diagnóstico clínico ni a un tipo de voz permanente.
-            </p>
-          </div>
-          <span class="vocal-panel__count">{{ amvAcousticStatusLabel }}</span>
-        </header>
-
-        <div class="amv-acoustic-grid">
-          <article class="amv-acoustic-card">
-            <span>VIBRATO</span>
-            <strong>{{ amvVibratoRate !== null ? `${amvVibratoRate.toFixed(2)} Hz` : '—' }}</strong>
-            <small>
-              {{ amvVibratoDepth !== null ? `${amvVibratoDepth.toFixed(1)} cents p-p` : 'Sin dato de profundidad' }}
-              · {{ amvVibratoSegments }} segmentos
-            </small>
-          </article>
-
-          <article class="amv-acoustic-card">
-            <span>DINÁMICA OBSERVADA</span>
-            <strong>{{ amvDynamics !== null ? `${amvDynamics.toFixed(2)} dB` : '—' }}</strong>
-            <small>rango dinámico observado en frames con F0 válido</small>
-          </article>
-
-          <article class="amv-acoustic-card">
-            <span>FORMANTES</span>
-            <strong>{{ amvF1 !== null ? `${amvF1.toFixed(0)} / ${amvF2.toFixed(0)}` : '—' }}</strong>
-            <small>F1 / F2 mediana · F3 {{ amvF3 !== null ? amvF3.toFixed(0) : '—' }} Hz</small>
-          </article>
-
-          <article class="amv-acoustic-card">
-            <span>PAUSAS VOCALES</span>
-            <strong>{{ amvPauseCount }}</strong>
-            <small>
-              pausas ≥ 0,20 s · mediana {{ amvPauseMedian !== null ? `${amvPauseMedian.toFixed(3)} s` : '—' }}
-            </small>
-          </article>
-        </div>
-      </section>
-
-      <!-- =======================================================
-           PEDAGOGÍA
-      ======================================================== -->
-      <section class="vocal-bottom-grid amv-pedagogy-grid">
-        <article class="vocal-insight vocal-insight--strength">
-          <span>FORTALEZAS</span>
-          <h3>Lo que estás construyendo</h3>
-          <p v-if="amvStrengths.length">{{ amvStrengths[0] }}</p>
-          <p v-else>AMV mostrará aquí tus áreas más sólidas cuando exista evidencia suficiente.</p>
-        </article>
-
-        <article class="vocal-insight vocal-insight--focus">
-          <span>PRÓXIMO FOCO</span>
-          <h3>Lo que conviene trabajar</h3>
-          <p v-if="amvPriorities.length">{{ amvPriorities[0] }}</p>
-          <p v-else>AMV mostrará aquí las prioridades pedagógicas detectadas.</p>
-        </article>
-      </section>
-
-      <section class="vocal-panel amv-practice-panel">
-        <header class="vocal-panel__header">
-          <div>
-            <span class="vocal-section-label">PRÁCTICA SUGERIDA</span>
-            <h2>Cómo llevar estos resultados a tu próxima clase</h2>
-          </div>
-        </header>
-
-        <div class="amv-practice-list">
-          <article v-for="(suggestion, index) in amvSuggestions" :key="`${suggestion}-${index}`">
-            <span>{{ String(index + 1).padStart(2, '0') }}</span>
-            <p>{{ suggestion }}</p>
-          </article>
-          <p v-if="!amvSuggestions.length" class="amv-empty-copy">
-            Las sugerencias aparecerán cuando AMV tenga evidencia pedagógica suficiente.
-          </p>
-        </div>
-
-        <div class="amv-measurement-note">
-          <strong>Lectura responsable del resultado</strong>
-          <p>{{ amvMeasurementNote }}</p>
-        </div>
-      </section>
+      <section v-else class="empty-state panel"><div class="empty-note">♫</div><span class="section-label">TU HISTORIAL AMV</span><h2>Aún no hay audiciones disponibles</h2><p>Cuando tu profesor registre una audición y esté vinculada a tu cuenta, aparecerá aquí para que puedas escucharla y revisar sus resultados.</p></section>
     </template>
 
-    <section v-else class="vocal-empty">
-      <div class="vocal-empty__visual">
-        <span class="vocal-empty__pulse"></span>
-        <div class="vocal-empty__note">♪</div>
-        <div class="vocal-empty__orbit vocal-empty__orbit--one"></div>
-        <div class="vocal-empty__orbit vocal-empty__orbit--two"></div>
-      </div>
-
-      <div class="vocal-empty__copy">
-        <span class="vocal-section-label">AMV VOCAL ENGINE</span>
-        <h2>Tu evaluación vocal está esperando tu primera conexión.</h2>
-        <p>
-          Esta pantalla está preparada para recibir los resultados reales del
-          motor y convertirlos en una ficha vocal educativa.
-        </p>
-
-        <div class="vocal-empty__dimensions">
-          <span v-for="dimension in amvDimensions" :key="dimension.key">
-            <i>{{ dimension.icon }}</i>
-            {{ dimension.label }}
-          </span>
-        </div>
-      </div>
-    </section>
-
-    <footer class="vocal-footer">
-      <div class="vocal-footer__line"></div>
-      <span>AMO MI VOZ</span>
-      <i></i>
-      <span>AMV VOCAL INTELLIGENCE</span>
-    </footer>
-  </section>
+    <footer class="page-footer"><span>AMO MI VOZ</span><i></i><span>AMV VOCAL INTELLIGENCE</span></footer>
+  </main>
 </template>
 
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { supabase } from '@/lib/supabase'
+import { fetchVocalRecordings, createVocalRecordingSignedUrl } from '@/services/vocalIntelligenceService'
 
-/* =========================================================
-   ESTADO AMV
-========================================================= */
-const amvResult = ref(null)
-const amvLoadError = ref('')
-const AMV_PROFILE_URL = '/amv/student_vocal_profile_v3.json'
-
-const loadAmvProfile = async () => {
-  try {
-    amvLoadError.value = ''
-
-    const response = await fetch(AMV_PROFILE_URL, {
-      cache: 'no-store',
-    })
-
-    if (!response.ok) {
-      throw new Error(`No se pudo cargar el perfil AMV (${response.status}).`)
-    }
-
-    const profile = await response.json()
-
-    if (!profile || typeof profile !== 'object') {
-      throw new Error('El perfil AMV no tiene un formato válido.')
-    }
-
-    amvResult.value = profile
-  } catch (error) {
-    console.error('Error cargando perfil AMV:', error)
-    amvResult.value = null
-    amvLoadError.value =
-      error?.message ||
-      'No fue posible cargar el análisis AMV.'
-  }
-}
-
-/* =========================================================
-   DIMENSIONES PEDAGÓGICAS
-========================================================= */
-const amvDimensions = [
-  { key: 'intonation', label: 'Afinación', icon: '♪' },
-  { key: 'rhythm', label: 'Ritmo y precisión', icon: '◷' },
-  { key: 'air', label: 'Aire y fraseo', icon: '≈' },
-  { key: 'phonation', label: 'Fonación y emisión', icon: '◉' },
-  { key: 'register', label: 'Registro y transiciones', icon: '↕' },
-  { key: 'resonance', label: 'Resonancia y timbre', icon: '◌' },
-  { key: 'diction', label: 'Dicción y articulación', icon: 'A' },
-  { key: 'expression', label: 'Expresión y musicalidad', icon: '✦' },
+const loading = ref(true)
+const error = ref('')
+const studentId = ref(null)
+const studentDisplayName = ref('')
+const studentVoiceType = ref('')
+const recordings = ref([])
+const activeRecordingId = ref(null)
+const audioUrl = ref('')
+const audioLoading = ref(false)
+const audioError = ref('')
+const teacherEvaluation = ref(null)
+const teacherEvaluationLoading = ref(false)
+const teacherEvaluationError = ref('')
+const teacherDimensions = [
+  { key: 'intonation', label: 'Afinación' },
+  { key: 'rhythm', label: 'Ritmo y precisión' },
+  { key: 'air', label: 'Aire y fraseo' },
+  { key: 'phonation', label: 'Fonación y emisión' },
+  { key: 'register', label: 'Registro y transiciones' },
+  { key: 'resonance', label: 'Resonancia y timbre' },
+  { key: 'diction', label: 'Dicción y articulación' },
+  { key: 'expression', label: 'Expresión y musicalidad' },
 ]
 
-const amvHasResult = computed(() => Boolean(amvResult.value))
+const activeRecording = computed(() =>
+  recordings.value.find(item => String(item.id) === String(activeRecordingId.value)) || null
+)
 
-const amvValue = key => {
-  const value = amvResult.value?.pedagogical_dimensions?.[key]?.score_0_100
-  return Number.isFinite(Number(value)) ? Number(value) : null
+const rawAnalysis = computed(() => activeRecording.value?.analysis || null)
+
+function parseObject(value) {
+  if (!value) return {}
+  if (typeof value === 'object' && !Array.isArray(value)) return value
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return parsed && typeof parsed === 'object' ? parsed : {}
+    } catch { return {} }
+  }
+  return {}
 }
 
-const amvIntonation = computed(() => amvValue('intonation'))
-const amvRhythm = computed(() => amvValue('rhythm'))
-const amvStability = computed(() => {
-  const value = amvResult.value?.pedagogical_dimensions?.stability?.index_0_100
-  return Number.isFinite(Number(value)) ? Number(value) : null
+const technicalResult = computed(() => {
+  const analysis = rawAnalysis.value || {}
+  const summary = parseObject(analysis.summary)
+  const worker = parseObject(analysis.workerResult || analysis.worker_result)
+  return Object.keys(worker).length ? worker : (Object.keys(summary).length ? summary : analysis)
 })
 
-const amvStabilityStatus = computed(() =>
-  amvResult.value?.pedagogical_dimensions?.stability?.status || 'observada',
-)
-
-const amvScoredIndicatorCount = computed(() =>
-  [amvIntonation.value, amvRhythm.value, amvStability.value]
-    .filter(value => Number.isFinite(Number(value))).length,
-)
-
-const amvDimensionState = key => {
-  if (['intonation', 'rhythm'].includes(key)) {
-    return Number.isFinite(amvValue(key)) ? 'score' : 'pending'
-  }
-
-  if (key === 'air') {
-    return amvResult.value?.acoustic_profile?.breath_activity_proxy?.available
-      ? 'observed'
-      : 'pending'
-  }
-
-  if (key === 'register') {
-    return amvResult.value?.observed_pitch ? 'observed' : 'pending'
-  }
-
-  if (key === 'resonance') {
-    return amvResult.value?.acoustic_profile?.formants?.available
-      ? 'observed'
-      : 'pending'
-  }
-
-  return 'pending'
-}
-
-const amvDimensionValueLabel = key => {
-  const state = amvDimensionState(key)
-
-  if (state === 'score') {
-    return `${formatScore(amvValue(key))}%`
-  }
-
-  if (key === 'air' && state === 'observed') {
-    return 'Evidencia parcial'
-  }
-
-  if (key === 'register' && state === 'observed') {
-    return amvRange.value
-  }
-
-  if (key === 'resonance' && state === 'observed') {
-    return 'Descriptivo'
-  }
-
-  return 'En desarrollo'
-}
-
-const amvDimensionEvidence = key => {
-  if (!amvResult.value) return 'Sin datos'
-
-  if (key === 'air') {
-    const count = amvPauseCount.value
-    return count !== null ? `${count} pausas vocales` : 'Proxy no disponible'
-  }
-
-  if (key === 'register') {
-    return amvTessitura.value !== '—'
-      ? `Tesitura ${amvTessitura.value}`
-      : 'Rango no disponible'
-  }
-
-  if (key === 'resonance') {
-    return amvF1.value !== null && amvF2.value !== null
-      ? `F1 ${Math.round(amvF1.value)} · F2 ${Math.round(amvF2.value)} Hz`
-      : 'Formantes no disponibles'
-  }
-
-  return 'Sin evidencia directa'
-}
-
-const amvDimensionNote = key => {
-  const notes = {
-    intonation: 'Puntuación basada en la comparación contra la referencia validada.',
-    rhythm: 'Puntuación temporal frente a la referencia; depende de la calidad de alineación.',
-    air: 'Proxy de pausas vocales. No mide respiración fisiológica ni soporte respiratorio.',
-    phonation: 'AMV todavía no emite una puntuación directa de fonación y emisión.',
-    register: 'Rango y tesitura observados en esta interpretación; no definen un tipo de voz permanente.',
-    resonance: 'Formantes y timbre son descriptores acústicos de esta toma, no una etiqueta permanente.',
-    diction: 'No existe todavía una medición directa de dicción/articulación en este perfil.',
-    expression: 'No existe todavía una puntuación directa de expresión/musicalidad en este perfil.',
-  }
-
-  return notes[key] || 'Estado del indicador no disponible.'
-}
-
-const amvScoredDimensionCount = computed(() =>
-  amvDimensions.filter(d => amvDimensionState(d.key) === 'score').length,
-)
-
-const amvObservedDimensionCount = computed(() =>
-  amvDimensions.filter(d => amvDimensionState(d.key) === 'observed').length,
-)
-
-const amvPendingDimensionCount = computed(() =>
-  amvDimensions.filter(d => amvDimensionState(d.key) === 'pending').length,
-)
-
-/* =========================================================
-   METADATOS REALES
-========================================================= */
-const amvRange = computed(() => {
-  const pitch = amvResult.value?.observed_pitch
-  const low = pitch?.lowest_note
-  const high = pitch?.highest_note
-  return low && high ? `${low}–${high}` : '—'
-})
-
-const amvTessitura = computed(() => {
-  const pitch = amvResult.value?.observed_pitch
-  const low = pitch?.p10_note
-  const high = pitch?.p90_note
-  return low && high ? `${low}–${high}` : '—'
-})
-
-const amvComparisonQuality = computed(() => {
-  const value =
-    amvResult.value?.measurement_quality?.comparison_score_0_100 ??
-    amvResult.value?.comparison_quality?.score_0_100
-  return Number.isFinite(Number(value)) ? Math.round(Number(value)) : null
-})
-
-const amvComparisonStatus = computed(() =>
-  amvResult.value?.measurement_quality?.comparison_status ||
-  amvResult.value?.comparison_quality?.status ||
-  '—',
-)
-
-const amvAcousticScore = computed(() => {
-  const value = amvResult.value?.measurement_quality?.acoustic_score_0_100
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvAcousticStatusLabel = computed(() =>
-  amvResult.value?.measurement_quality?.acoustic_status === 'strong'
-    ? 'EVIDENCIA FUERTE'
-    : 'EVIDENCIA DISPONIBLE',
-)
-
-const amvSongTitle = computed(() =>
-  amvResult.value?.assessment_context?.song_title || '',
-)
-
-const amvArtist = computed(() =>
-  amvResult.value?.assessment_context?.artist || '',
-)
-
-const amvConfidence = computed(() => {
-  const value = amvResult.value?.comparison_quality?.alignment_confidence
-  return Number.isFinite(Number(value)) ? Number(value) * 100 : null
-})
-
-/* =========================================================
-   EVIDENCIA ACÚSTICA
-========================================================= */
-const amvVibrato = computed(() =>
-  amvResult.value?.pedagogical_dimensions?.vibrato ||
-  amvResult.value?.acoustic_profile?.vibrato ||
-  null,
-)
-
-const amvVibratoRate = computed(() => {
-  const value = amvVibrato.value?.rate_hz
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvVibratoDepth = computed(() => {
-  const value = amvVibrato.value?.depth_cents_peak_to_peak
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvVibratoSegments = computed(() => {
-  const value = amvVibrato.value?.segments ?? amvVibrato.value?.segments_analyzed
-  return Number.isFinite(Number(value)) ? Number(value) : 0
-})
-
-const amvDynamics = computed(() => {
-  const value = amvResult.value?.acoustic_profile?.dynamics?.observed_dynamic_range_db
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvF1 = computed(() => {
-  const value = amvResult.value?.acoustic_profile?.formants?.f1_hz?.median
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvF2 = computed(() => {
-  const value = amvResult.value?.acoustic_profile?.formants?.f2_hz?.median
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvF3 = computed(() => {
-  const value = amvResult.value?.acoustic_profile?.formants?.f3_hz?.median
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvPauseCount = computed(() => {
-  const value = amvResult.value?.acoustic_profile?.breath_activity_proxy?.pause_segments_ge_0_20s
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvPauseMedian = computed(() => {
-  const value = amvResult.value?.acoustic_profile?.breath_activity_proxy?.median_pause_seconds
-  return Number.isFinite(Number(value)) ? Number(value) : null
-})
-
-const amvMeasurementNote = computed(() =>
-  amvResult.value?.pedagogical_summary_v321?.student_facing?.measurement_note ||
-  amvResult.value?.measurement_quality?.note ||
-  'Interpreta los resultados junto con el contexto de la clase y las condiciones de captura.',
-)
-
-/* =========================================================
-   RADAR TRIANGULAR — AFINACIÓN / RITMO / ESTABILIDAD
-========================================================= */
-const radarPoint = (value, angleDegrees) => {
-  const center = 180
-  const radius = 138
-  const radians = (angleDegrees * Math.PI) / 180
-  const safeValue = Math.max(0, Math.min(100, Number(value) || 0))
-
-  return {
-    x: center + Math.cos(radians) * radius * (safeValue / 100),
-    y: center + Math.sin(radians) * radius * (safeValue / 100),
-  }
-}
-
-const amvRadarPoints = computed(() => {
-  const points = [
-    radarPoint(amvIntonation.value, -90),
-    radarPoint(amvRhythm.value, 30),
-    radarPoint(amvStability.value, 150),
+const studentSummary = computed(() => {
+  const analysis = rawAnalysis.value || {}
+  const root = technicalResult.value
+  const summary = parseObject(root.summary || analysis.summary)
+  const candidates = [
+    root.student_facing,
+    root.pedagogical_summary_v321?.student_facing,
+    root.pedagogical_summary?.student_facing,
+    summary.student_facing,
+    summary.pedagogical_summary_v321?.student_facing,
+    summary.pedagogical_summary?.student_facing,
+    root,
   ]
-
-  return points
-    .map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`)
-    .join(' ')
+  const data = candidates.find(item => item && typeof item === 'object' && (
+    item.strengths || item.priority_areas || item.practice_suggestions ||
+    item.observed_range || item.observed_tessitura || item.intonation_score !== undefined
+  )) || {}
+  const list = value => Array.isArray(value) ? value.map(item => typeof item === 'string' ? item : item?.text || item?.label || '').filter(Boolean) : typeof value === 'string' && value.trim() ? [value.trim()] : []
+  return {
+    observed_range: data.observed_range || data.range || root.observed_pitch?.range || '',
+    observed_tessitura: data.observed_tessitura || data.tessitura || '',
+    intonation_score: firstNumeric(
+      data.intonation_score, data.intonation_score_0_100, data.intonation?.score_0_100,
+      root.intonation_score, root.intonation_score_0_100,
+      root.pedagogical_dimensions?.intonation?.score_0_100,
+      root.comparison?.intonation_score_0_100, root.comparison?.intonation?.score_0_100,
+      findMetric(root, ['intonation_score_0_100', 'intonation_score'])
+    ),
+    rhythm_score: firstNumeric(
+      data.rhythm_score, data.rhythm_score_0_100, data.rhythm?.score_0_100,
+      root.rhythm_score, root.rhythm_score_0_100,
+      root.pedagogical_dimensions?.rhythm?.score_0_100,
+      root.comparison?.rhythm_score_0_100, root.comparison?.rhythm?.score_0_100,
+      findMetric(root, ['rhythm_score_0_100', 'rhythm_score'])
+    ),
+    stability_score: firstNumeric(
+      data.stability_score_0_100, data.stability_score, data.pitch_stability_score_0_100,
+      root.stability_score_0_100, root.stability_index_0_100, root.pitch_stability_score_0_100,
+      root.pedagogical_dimensions?.stability?.score_0_100,
+      root.stability?.score_0_100, root.pitch_stability?.score_0_100,
+      findMetric(root, ['stability_score_0_100', 'stability_index_0_100', 'pitch_stability_score_0_100'])
+    ),
+    strengths: list(data.strengths || analysis.strengths),
+    priority_areas: list(data.priority_areas || data.priorities || analysis.priorities),
+    practice_suggestions: list(data.practice_suggestions || data.suggestions),
+    measurement_note: data.measurement_note || data.note || root.measurement_quality?.note || '',
+  }
 })
 
-const amvRadarDots = computed(() => [
-  { key: 'intonation', ...radarPoint(amvIntonation.value, -90) },
-  { key: 'rhythm', ...radarPoint(amvRhythm.value, 30) },
-  { key: 'stability', ...radarPoint(amvStability.value, 150) },
-])
+const radarMetrics = computed(() => {
+  const summary = studentSummary.value
+  const candidates = [
+    { key: 'intonation', label: 'Afinación', value: summary.intonation_score, description: 'Correspondencia tonal con la referencia, si está disponible.' },
+    { key: 'rhythm', label: 'Ritmo', value: summary.rhythm_score, description: 'Correspondencia temporal y coordinación rítmica.' },
+    { key: 'stability', label: 'Estabilidad', value: summary.stability_score, description: 'Estabilidad de la señal vocal durante los eventos analizados.' },
+  ]
+  return candidates.filter(item => item.value !== null && item.value !== undefined && Number.isFinite(Number(item.value)) && Number(item.value) >= 0 && Number(item.value) <= 100).map(item => ({ ...item, value: Number(item.value) }))
+})
 
-/* =========================================================
-   PEDAGOGÍA
-========================================================= */
-const amvStrengths = computed(() =>
-  amvResult.value?.pedagogical_summary_v321?.student_facing?.strengths || [],
-)
-
-const amvPriorities = computed(() =>
-  amvResult.value?.pedagogical_summary_v321?.student_facing?.priority_areas || [],
-)
-
-const amvSuggestions = computed(() =>
-  amvResult.value?.pedagogical_summary_v321?.student_facing?.practice_suggestions || [],
-)
-
-/* =========================================================
-   FORMATO
-========================================================= */
-const formatScore = value => {
-  const number = Number(value)
-  return Number.isFinite(number) ? number.toFixed(1) : '—'
+function radarPoint(index, value) {
+  const center = { x: 180, y: 180 }
+  const vertices = [{ x: 180, y: 40 }, { x: 301, y: 250 }, { x: 59, y: 250 }]
+  const vertex = vertices[index]
+  const scale = Math.max(0, Math.min(100, Number(value))) / 100
+  return { x: center.x + (vertex.x - center.x) * scale, y: center.y + (vertex.y - center.y) * scale }
 }
 
-/* =========================================================
-   CICLO DE VIDA
-========================================================= */
-onMounted(loadAmvProfile)
+const studentRadarPoints = computed(() => radarMetrics.value.map((metric, index) => {
+  const point = radarPoint(index, metric.value)
+  return `${point.x},${point.y}`
+}).join(' '))
+
+const studentRadarDots = computed(() => radarMetrics.value.map((metric, index) => ({ key: metric.key, ...radarPoint(index, metric.value) })))
+
+function firstNumeric(...values) {
+  for (const value of values) {
+    if (value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))) return Number(value)
+  }
+  return null
+}
+
+function findMetric(object, keys, depth = 0) {
+  if (!object || typeof object !== 'object' || depth > 7) return null
+  for (const key of keys) {
+    const value = object[key]
+    if (value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))) return Number(value)
+  }
+  for (const [key, value] of Object.entries(object)) {
+    if (value && typeof value === 'object') {
+      const found = findMetric(value, keys, depth + 1)
+      if (found !== null) return found
+    }
+  }
+  return null
+}
+
+function isCompleted(recording) {
+  const status = String(recording?.analysis?.status || '').toLowerCase()
+  return ['completed', 'complete', 'success', 'usable_for_comparison'].includes(status)
+}
+
+function formatMetric(value) {
+  if (value === null || value === undefined || value === '') return '—'
+  const number = Number(value)
+  return Number.isFinite(number) ? `${number.toFixed(1)}${number <= 1 && number >= 0 ? '' : ''}` : String(value)
+}
+
+function formatDate(value) {
+  if (!value) return 'Fecha sin registrar'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 'Fecha sin registrar' : new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' }).format(date)
+}
+
+async function loadTeacherEvaluation(recordingId) {
+  teacherEvaluationLoading.value = true
+  teacherEvaluationError.value = ''
+  try {
+    // The student can only request the evaluation for the currently selected recording.
+    // Supabase RLS must permit SELECT for the owner of that student recording.
+    const { data, error: queryError } = await supabase
+      .from('vocal_teacher_evaluations')
+      .select('recording_id, scores, observations, strengths, priorities, exercise_plan, created_at, updated_at')
+      .eq('recording_id', Number(recordingId))
+      .maybeSingle()
+    if (queryError) throw queryError
+    teacherEvaluation.value = data || null
+  } catch (e) {
+    console.warn('[Mis evaluaciones AMV] No se pudo cargar la pauta docente:', e)
+    teacherEvaluationError.value = 'No fue posible consultar la evaluación docente. Si ya fue guardada, hay que revisar la política RLS de lectura para el alumno.'
+  } finally {
+    teacherEvaluationLoading.value = false
+  }
+}
+
+const teacherAverage = computed(() => {
+  if (!teacherEvaluation.value?.scores) return '—'
+  const values = teacherDimensions.map(d => Number(teacherEvaluation.value.scores[d.key])).filter(n => Number.isFinite(n) && n >= 1 && n <= 10)
+  return values.length ? (values.reduce((sum, n) => sum + n, 0) / values.length).toFixed(1) : '—'
+})
+
+function teacherScore(key) {
+  const value = teacherEvaluation.value?.scores?.[key]
+  const number = Number(value)
+  return value !== null && value !== undefined && value !== '' && Number.isFinite(number) && number >= 1 && number <= 10 ? number : null
+}
+
+const teacherScoredDimensions = computed(() =>
+  teacherDimensions.filter(dimension => teacherScore(dimension.key) !== null).length
+)
+
+function teacherRadarPoint(index, score) {
+  const center = { x: 230, y: 200 }
+  const radius = 132
+  const angle = (-Math.PI / 2) + (index * 2 * Math.PI / teacherDimensions.length)
+  const scale = Math.max(0, Math.min(10, Number(score))) / 10
+  return {
+    x: center.x + Math.cos(angle) * radius * scale,
+    y: center.y + Math.sin(angle) * radius * scale,
+  }
+}
+
+function teacherRadarGrid(level) {
+  return teacherDimensions.map((_, index) => {
+    const point = teacherRadarPoint(index, level)
+    return `${point.x},${point.y}`
+  }).join(' ')
+}
+
+const teacherRadarPolygon = computed(() =>
+  teacherDimensions.map((dimension, index) => {
+    const point = teacherRadarPoint(index, teacherScore(dimension.key) || 0)
+    return `${point.x},${point.y}`
+  }).join(' ')
+)
+
+const teacherRadarDots = computed(() =>
+  teacherDimensions
+    .map((dimension, index) => {
+      const score = teacherScore(dimension.key)
+      if (score === null) return null
+      return { key: dimension.key, ...teacherRadarPoint(index, score) }
+    })
+    .filter(Boolean)
+)
+
+function teacherRadarLabel(index) {
+  const center = { x: 230, y: 200 }
+  const radius = 166
+  const angle = (-Math.PI / 2) + (index * 2 * Math.PI / teacherDimensions.length)
+  const x = center.x + Math.cos(angle) * radius
+  const y = center.y + Math.sin(angle) * radius
+  const cos = Math.cos(angle)
+  return {
+    x,
+    y,
+    anchor: cos > 0.35 ? 'start' : cos < -0.35 ? 'end' : 'middle',
+  }
+}
+
+function teacherRadarShortLabel(label) {
+  const labels = {
+    'Afinación': 'AFINACIÓN',
+    'Ritmo y precisión': 'RITMO',
+    'Aire y fraseo': 'AIRE Y FRASEO',
+    'Fonación y emisión': 'EMISIÓN',
+    'Registro y transiciones': 'REGISTRO',
+    'Resonancia y timbre': 'RESONANCIA',
+    'Dicción y articulación': 'DICCIÓN',
+    'Expresión y musicalidad': 'EXPRESIÓN',
+  }
+  return labels[label] || label.toUpperCase()
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character])
+}
+
+function downloadReportPdf() {
+  if (!activeRecording.value) {
+    error.value = 'Selecciona una audición antes de exportar el informe.'
+    return
+  }
+
+  const recording = activeRecording.value
+  const studentName = studentDisplayName.value || 'Mi informe vocal'
+  const songName = recording.song || recording.title || 'Audición vocal'
+  const voiceType = studentVoiceType.value || 'Clasificación vocal no registrada'
+  const dateLabel = formatDate(recording.recordedAt || recording.createdAt || recording.recorded_at || recording.created_at)
+  const esc = escapeHtml
+  const logoUrl = `${window.location.origin}/amo-mi-voz-logo.png`
+  const teacher = teacherEvaluation.value || {}
+  const average = teacherAverage.value === '—' ? 'Pendiente' : `${teacherAverage.value}/10`
+  const scoreRows = teacherDimensions.map(dimension => {
+    const score = teacherScore(dimension.key)
+    const safeScore = score === null ? 0 : Math.max(0, Math.min(10, score))
+    return `<article class="score-card"><div class="score-line"><span>${esc(dimension.label)}</span><strong>${score === null ? '—' : `${score}/10`}</strong></div><div class="track"><i style="width:${safeScore * 10}%"></i></div></article>`
+  }).join('')
+  const acousticValues = [
+    ['Rango observado', studentSummary.value.observed_range || '—'],
+    ['Tesitura observada', studentSummary.value.observed_tessitura || '—'],
+    ['Afinación automática', formatMetric(studentSummary.value.intonation_score)],
+    ['Correspondencia rítmica', formatMetric(studentSummary.value.rhythm_score)],
+  ]
+  const acousticRows = acousticValues.map(([label, value]) => `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')
+  const listHtml = items => items?.length
+    ? `<ul>${items.slice(0, 3).map(item => `<li>${esc(item)}</li>`).join('')}</ul>`
+    : '<p class="muted">Esta sección se completará cuando el profesor registre observaciones específicas.</p>'
+
+  const makeRadar = (dimensions, getScore, { max = 10, size = 360, center = 180, radius = 112, labelRadius = 148, title = 'Radar de evaluación' } = {}) => {
+    const angleFor = index => -Math.PI / 2 + index * 2 * Math.PI / dimensions.length
+    const point = (index, value, r = radius) => {
+      const scaled = Math.max(0, Math.min(max, Number(value) || 0)) / max * r
+      return { x: center + Math.cos(angleFor(index)) * scaled, y: center + Math.sin(angleFor(index)) * scaled }
+    }
+    const gridLevels = max === 100 ? [20, 40, 60, 80, 100] : [2, 4, 6, 8, 10]
+    const grid = gridLevels.filter(level => level <= max).map(level => {
+      const points = dimensions.map((_, i) => {
+        const p = point(i, level, radius)
+        return `${p.x},${p.y}`
+      }).join(' ')
+      return `<polygon points="${points}"/>`
+    }).join('')
+    const axes = dimensions.map((_, i) => {
+      const p = point(i, max, radius)
+      return `<line x1="${center}" y1="${center}" x2="${p.x}" y2="${p.y}"/>`
+    }).join('')
+    const values = dimensions.map((dimension, i) => {
+      const score = getScore(dimension)
+      return score === null || score === undefined ? null : { dimension, score: Number(score), point: point(i, score) }
+    })
+    const polygon = values.every(Boolean)
+      ? `<polygon class="radar-area" points="${values.map(item => `${item.point.x},${item.point.y}`).join(' ')}"/>`
+      : ''
+    const dots = values.filter(Boolean).map(item => `<circle cx="${item.point.x}" cy="${item.point.y}" r="4"/>`).join('')
+    const labels = dimensions.map((dimension, i) => {
+      const x = center + Math.cos(angleFor(i)) * labelRadius
+      const y = center + Math.sin(angleFor(i)) * labelRadius
+      const anchor = Math.cos(angleFor(i)) > .35 ? 'start' : Math.cos(angleFor(i)) < -.35 ? 'end' : 'middle'
+      const short = dimension.short || dimension.label
+      return `<text x="${x}" y="${y}" text-anchor="${anchor}">${esc(short.toUpperCase())}</text>`
+    }).join('')
+    return `<svg class="report-radar" viewBox="0 0 ${size} ${size}" role="img" aria-label="${esc(title)}"><g class="radar-grid">${grid}${axes}</g>${polygon}<g class="radar-dots">${dots}</g><g class="radar-labels">${labels}</g><text class="radar-scale" x="${center}" y="${size - 8}" text-anchor="middle">ESCALA 0–${max}</text></svg>`
+  }
+
+  const teacherRadar = teacherScoredDimensions.value >= 3
+    ? makeRadar(teacherDimensions.map(d => ({ ...d, short: ({ 'Ritmo y precisión': 'RITMO', 'Aire y fraseo': 'AIRE', 'Fonación y emisión': 'EMISIÓN', 'Registro y transiciones': 'REGISTRO', 'Resonancia y timbre': 'TIMBRE', 'Dicción y articulación': 'DICCIÓN', 'Expresión y musicalidad': 'EXPRESIÓN' })[d.label] || d.label })), d => teacherScore(d.key), { max: 10, title: 'Radar de evaluación docente' })
+    : '<p class="muted">El radar docente aparecerá cuando existan al menos tres dimensiones puntuadas.</p>'
+
+  const acousticRadar = radarMetrics.value.length >= 3
+    ? makeRadar(radarMetrics.value.map(d => ({ ...d, short: d.label })), d => d.value, { max: 100, title: 'Radar de indicadores acústicos' })
+    : '<p class="muted">No hay suficientes mediciones acústicas válidas para construir un radar en esta audición.</p>'
+
+  const practiceItems = (teacher.exercise_plan || '').trim()
+    ? `<div class="teacher-note">${esc(teacher.exercise_plan)}</div>`
+    : listHtml(studentSummary.value.practice_suggestions)
+  const hasPractice = Boolean((teacher.exercise_plan || '').trim() || studentSummary.value.practice_suggestions.length)
+  const strengthsContent = teacher.strengths?.trim() ? `<p>${esc(teacher.strengths)}</p>` : listHtml(studentSummary.value.strengths)
+  const prioritiesContent = teacher.priorities?.trim() ? `<p>${esc(teacher.priorities)}</p>` : listHtml(studentSummary.value.priority_areas)
+
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe vocal · ${esc(studentName)}</title><style>
+  @page{size:A4;margin:11mm 13mm 13mm}*{box-sizing:border-box}html{color:#242332;background:#fff}body{margin:0;font:9.2pt/1.42 'Aptos','Segoe UI',Arial,sans-serif;color:#30313c;-webkit-print-color-adjust:exact;print-color-adjust:exact}h1,h2,h3,p{margin-top:0}h1,h2,h3{line-height:1.18}h1{font-size:29pt;letter-spacing:-1px;margin:19mm 0 4mm;color:#fff}h2{font-size:17pt;color:#252437;margin:0 0 3mm}h3{font-size:10.5pt;color:#92123d;margin:0 0 2mm}.cover{height:270mm;position:relative;overflow:hidden;padding:15mm;background:linear-gradient(145deg,#17131b 0%,#351321 50%,#8f1038 100%);color:#fff;page-break-after:always;break-after:page;display:flex;flex-direction:column;justify-content:space-between}.cover:before{content:'';position:absolute;width:170mm;height:170mm;border:1px solid #ffffff25;border-radius:50%;right:-65mm;top:-45mm}.cover:after{content:'';position:absolute;width:115mm;height:115mm;border:1px solid #e2b54b55;border-radius:50%;right:-30mm;top:-12mm}.cover-top,.cover-main,.cover-bottom{position:relative;z-index:1}.brand{display:flex;align-items:center;gap:7mm}.brand img{width:42mm;max-height:31mm;object-fit:contain;object-position:left center}.brand-copy{font-size:7.5pt;letter-spacing:1.5px;text-transform:uppercase;color:#f2dce4}.brand-copy strong{display:block;color:#e9bd57;font-size:8.5pt;margin-bottom:2mm}.cover-kicker{font-size:8pt;letter-spacing:2.5px;color:#f1c75f;font-weight:800;text-transform:uppercase}.cover h1 span{display:block;color:#f2c65c}.cover-subtitle{font-size:12pt;max-width:125mm;color:#f4e9ed}.cover-rule{width:35mm;height:2px;background:#e7bb51;margin:8mm 0}.cover-identity{margin-top:12mm;padding:7mm;border:1px solid #ffffff35;background:#ffffff0b;border-radius:4mm}.cover-identity small{display:block;color:#f0c45c;font-size:7pt;letter-spacing:2px;text-transform:uppercase;margin-bottom:2mm}.cover-identity strong{display:block;font-size:18pt;color:white;overflow-wrap:anywhere}.cover-identity p{margin:2mm 0 0;color:#f2e5e9;font-size:8.5pt}.cover-bottom{display:flex;justify-content:space-between;align-items:end;border-top:1px solid #ffffff35;padding-top:5mm;color:#eadde2;font-size:8pt}.cover-bottom strong{letter-spacing:2px;color:#f1c65b}.report-page{min-height:0;page-break-after:auto;break-after:auto;padding:0 0 7mm}.report-page + .report-page{margin-top:4mm;padding-top:5mm;border-top:1px solid #e9e0e6}.report-page:last-child{page-break-after:auto;break-after:auto}.eyebrow{font-size:7pt;letter-spacing:1.6px;text-transform:uppercase;color:#a11242;font-weight:800;margin-bottom:2mm}.intro{padding:5mm;background:#f8f2f5;border-left:3px solid #a11242;border-radius:0 3mm 3mm 0;margin:0 0 4mm}.intro p:last-child{margin-bottom:0}.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin:3mm 0 5mm}.summary-card{padding:3.5mm;border:1px solid #e7dfe4;border-radius:3mm}.summary-card span,.metric span{display:block;font-size:7pt;color:#77717c;margin-bottom:1mm}.summary-card strong{font-size:15pt;color:#a11242}.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.2mm}.score-card{padding:2.8mm 3mm;border:1px solid #e9e4e8;border-radius:2.5mm;break-inside:avoid}.score-line{display:flex;justify-content:space-between;gap:4mm;font-size:8.2pt}.score-line strong{color:#a11242;white-space:nowrap}.track{height:3px;border-radius:99px;background:#eee8ec;margin-top:2mm;overflow:hidden}.track i{display:block;height:100%;background:linear-gradient(90deg,#8e1038,#e2b64f);border-radius:99px}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:2.5mm}.metric{padding:3mm;background:#faf8f9;border:1px solid #ece6ea;border-radius:2.5mm}.metric strong{font-size:10pt;color:#252437}.columns{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.note-card{padding:4mm;border:1px solid #e7dfe4;border-radius:3mm;break-inside:avoid}.note-card p:last-child,.note-card ul:last-child{margin-bottom:0}ul,ol{padding-left:5mm;margin:2mm 0}li{margin-bottom:1.5mm}.teacher-note{padding:4mm;background:#f8f5f6;border-radius:3mm;white-space:pre-wrap;overflow-wrap:anywhere}.muted{color:#77717c;font-size:8pt}.footer{margin-top:5mm;padding-top:3mm;border-top:1px solid #e6dfe3;font-size:7pt;color:#77717c;display:flex;justify-content:space-between;gap:5mm}.page-label{color:#a11242;font-weight:800;letter-spacing:1px}.radar-grid polygon{fill:none;stroke:#dfe4ee;stroke-width:1}.radar-grid line{stroke:#e5e8f0;stroke-width:1}.report-radar{display:block;width:100%;max-height:91mm;margin:auto;overflow:visible}.radar-area{fill:rgba(178,13,74,.16);stroke:#b20d4a;stroke-width:2.5;stroke-linejoin:round}.radar-dots circle{fill:#e3b526;stroke:#fff;stroke-width:1.5}.radar-labels text{fill:#64718a;font-size:8px;font-weight:800;letter-spacing:.15px}.radar-scale{fill:#8994a8;font-size:7px;font-weight:800;letter-spacing:.5px}.radar-block{display:grid;grid-template-columns:1fr 1fr;gap:4mm;align-items:center;margin-top:4mm}.radar-card{padding:3mm;border:1px solid #e7dfe4;border-radius:3mm;min-width:0}.radar-card h3{margin-bottom:1mm}.radar-card .muted{margin-bottom:0}.subheading{margin:4mm 0 2mm;font-size:10pt;color:#92123d}.section-spacer{margin-top:4mm}@media print{.report-page{break-inside:avoid}.score-card,.metric,.note-card,.radar-card{break-inside:avoid}h2,h3{break-after:avoid}img{max-width:100%}}
+  </style></head><body>
+  <section class="cover"><div class="cover-top"><div class="brand"><img src="${logoUrl}" alt="Academia de Talentos Amo mi Voz"><div class="brand-copy"><strong>Academia de Talentos</strong>AMO MI VOZ · Vocal Engine</div></div></div><div class="cover-main"><div class="cover-kicker">Informe de progreso vocal</div><h1>Mi voz.<br><span>Mi evolución.</span></h1><p class="cover-subtitle">Un registro de tu interpretación, tus fortalezas y los próximos pasos para seguir desarrollando tu voz.</p><div class="cover-rule"></div><div class="cover-identity"><small>Informe individual de</small><strong>${esc(studentName)}</strong><p>${esc(songName)} · ${esc(dateLabel)}</p><p>Clasificación vocal: ${esc(voiceType)}</p></div></div><div class="cover-bottom"><span>Documento pedagógico personal</span><strong>AMV · ${new Date().getFullYear()}</strong></div></section>
+  <section class="report-page"><p class="eyebrow">01 · Resumen de la audición</p><h2>Tu perfil vocal</h2><div class="intro"><p>Este informe reúne los indicadores acústicos disponibles y la evaluación docente de una interpretación específica. Las puntuaciones describen esta audición; no definen tu talento ni constituyen un diagnóstico médico.</p></div><div class="summary-grid"><div class="summary-card"><span>Promedio de evaluación docente</span><strong>${esc(average)}</strong></div><div class="summary-card"><span>Dimensiones evaluadas</span><strong>${teacherScoredDimensions.value}/8</strong></div></div><h3 class="subheading">Evaluación docente por dimensiones</h3><div class="score-grid">${scoreRows}</div><div class="radar-block"><article class="radar-card"><h3>Radar de evaluación docente</h3><p class="muted">Escala del profesor de 1 a 10.</p>${teacherRadar}</article><article class="radar-card"><h3>Radar de indicadores acústicos</h3><p class="muted">Solo mediciones disponibles, escala 0–100.</p>${acousticRadar}</article></div><div class="footer"><span>AMO MI VOZ · Academia de Talentos</span><span class="page-label">01 / Perfil vocal</span></div></section>
+  <section class="report-page"><p class="eyebrow">02 · Evidencia acústica</p><h2>Indicadores de esta grabación</h2><div class="metrics">${acousticRows}</div><p class="muted section-spacer">Las mediciones automáticas dependen de la calidad de la grabación y de la disponibilidad de una referencia. Se interpretan junto con la escucha y el criterio docente.</p><h3 class="subheading">Retroalimentación pedagógica</h3><div class="columns"><article class="note-card"><h3>Fortalezas observadas</h3>${strengthsContent}</article><article class="note-card"><h3>Prioridades de mejora</h3>${prioritiesContent}</article></div>${teacher.observations?.trim() ? `<div class="section-spacer"><h3>Comentario del profesor</h3><div class="teacher-note">${esc(teacher.observations)}</div></div>` : ''}<div class="footer"><span>AMO MI VOZ · Academia de Talentos</span><span class="page-label">02 / Retroalimentación</span></div></section>
+  <section class="report-page"><p class="eyebrow">03 · Próxima clase</p><h2>Plan de práctica</h2>${hasPractice ? practiceItems : '<p class="muted">El profesor todavía no ha registrado un plan específico para esta audición.</p>'}<h3 class="subheading">Cómo reconocer tu progreso</h3><ol><li>Elige un objetivo concreto antes de comenzar.</li><li>Practica en fragmentos breves, con comodidad y pausas.</li><li>Vuelve a interpretar la misma frase y compara qué cambió.</li><li>Registra qué estrategia te ayudó y qué necesitas seguir trabajando.</li></ol><div class="intro section-spacer"><p>No fuerces la voz. Si aparece dolor, ronquera persistente o tensión creciente, detén la práctica y coméntalo con tu profesor.</p></div><div class="footer"><span>AMO MI VOZ · Academia de Talentos</span><span class="page-label">03 / Continuidad pedagógica</span></div></section>
+  <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),700))<\/script></body></html>`
+
+  const reportWindow = window.open('', '_blank')
+  if (!reportWindow) {
+    error.value = 'El navegador bloqueó la ventana del informe. Permite las ventanas emergentes para generar el PDF.'
+    return
+  }
+  reportWindow.document.open()
+  reportWindow.document.write(html)
+  reportWindow.document.close()
+}
+
+async function resolveStudentId() {
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError) throw authError
+  if (!user) throw new Error('Inicia sesión con tu cuenta de alumno para ver tus audiciones.')
+  const metadata = user.user_metadata || {}
+  studentDisplayName.value = metadata.full_name || metadata.name || metadata.display_name || [metadata.first_name, metadata.last_name].filter(Boolean).join(' ') || user.email?.split('@')[0] || ''
+  studentVoiceType.value = metadata.voice_type || metadata.voice || ''
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('student_id, role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (profileError) throw profileError
+  if (!profile || profile.role !== 'student' || !profile.student_id) {
+    throw new Error('Tu cuenta todavía no está vinculada a una ficha de alumno. Pide a tu profesor que revise la vinculación.')
+  }
+  return Number(profile.student_id)
+}
+
+async function loadStudentAuditions() {
+  loading.value = true
+  error.value = ''
+  try {
+    if (!studentId.value) studentId.value = await resolveStudentId()
+    const items = await fetchVocalRecordings(studentId.value)
+    recordings.value = items
+    const current = items.find(item => String(item.id) === String(activeRecordingId.value))
+    const selected = current || items[0] || null
+    if (selected) await selectRecording(selected)
+    else {
+      activeRecordingId.value = null
+      audioUrl.value = ''
+    }
+  } catch (e) {
+    console.error('[Mis evaluaciones AMV] No se pudieron cargar audiciones:', e)
+    error.value = e?.message || 'No fue posible recuperar tus audiciones.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function selectRecording(recording) {
+  activeRecordingId.value = recording.id
+  teacherEvaluation.value = null
+  teacherEvaluationError.value = ''
+  teacherEvaluationLoading.value = true
+  void loadTeacherEvaluation(recording.id)
+  audioUrl.value = ''
+  audioError.value = ''
+  audioLoading.value = true
+  try {
+    if (recording.audioUrl) {
+      audioUrl.value = recording.audioUrl
+    } else if (recording.storagePath) {
+      audioUrl.value = await createVocalRecordingSignedUrl(recording.storagePath)
+      if (!audioUrl.value) audioError.value = 'No se recibió un enlace temporal para esta grabación.'
+    } else {
+      audioError.value = 'Esta audición no tiene una ruta de audio registrada.'
+    }
+  } catch (e) {
+    console.error('[Mis evaluaciones AMV] Error creando URL de audio:', e)
+    audioError.value = 'No se pudo acceder al audio. La grabación puede seguir en Storage; revisaremos el acceso y la ruta.'
+  } finally {
+    audioLoading.value = false
+  }
+}
+
+onMounted(loadStudentAuditions)
 </script>
 
-<style lang="scss" scoped>
-.vocal-evaluation-page {
-  --ink: #121b2e;
-  --muted: #6f7c91;
-  --line: #dfe5ed;
-  --wine: #a81549;
-  --wine-dark: #721132;
-  --gold: #d5a51d;
-  --green: #2c936b;
-  width: min(1240px, calc(100% - 36px));
-  margin: 0 auto;
-  padding: 24px 0 56px;
-  color: var(--ink);
-}
-
-.vocal-evaluation-page * { box-sizing: border-box; }
-
-.vocal-hero {
-  position: relative;
-  min-height: 330px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 36px;
-  padding: 48px 54px;
-  overflow: hidden;
-  border: 1px solid #e1e5ec;
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 84% 30%, rgba(213,165,29,.18), transparent 26%),
-    radial-gradient(circle at 62% 110%, rgba(168,21,73,.13), transparent 38%),
-    linear-gradient(120deg, #fff 0%, #fbfcfe 58%, #fff9eb 100%);
-  box-shadow: 0 24px 65px rgba(20,30,48,.08);
-}
-
-.vocal-hero:before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 190px;
-  height: 4px;
-  background: linear-gradient(90deg, var(--wine), var(--gold));
-}
-
-.vocal-hero__copy,
-.vocal-hero__score { position: relative; z-index: 2; }
-
-.vocal-hero__copy { max-width: 760px; }
-
-.vocal-kicker,
-.vocal-section-label {
-  display: inline-flex;
-  color: var(--wine);
-  font-size: .69rem;
-  font-weight: 900;
-  letter-spacing: .14em;
-}
-
-.vocal-kicker {
-  align-items: center;
-  gap: 8px;
-}
-
-.vocal-kicker i,
-.vocal-engine-status span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 0 4px rgba(213,165,29,.12);
-}
-
-.vocal-hero h1 {
-  margin: 13px 0 13px;
-  font-size: clamp(3.2rem, 6.4vw, 5.8rem);
-  line-height: .88;
-  letter-spacing: -.07em;
-}
-
-.vocal-hero h1 span {
-  display: block;
-  color: var(--gold);
-}
-
-.vocal-hero p {
-  max-width: 680px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 1rem;
-  line-height: 1.7;
-}
-
-.vocal-hero__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 24px;
-}
-
-.vocal-hero__chips span {
-  padding: 8px 11px;
-  border: 1px solid #e0e5eb;
-  border-radius: 999px;
-  background: rgba(255,255,255,.72);
-  color: #68758a;
-  font-size: .68rem;
-  font-weight: 800;
-}
-
-.vocal-hero__score {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  min-width: 190px;
-}
-
-.vocal-score-ring {
-  width: 170px;
-  height: 170px;
-  padding: 9px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: conic-gradient(var(--wine) 0 20%, var(--gold) 20% 40%, #e8edf2 40% 100%);
-  box-shadow: 0 18px 42px rgba(168,21,73,.12);
-}
-
-.vocal-score-ring > div {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.vocal-score-ring strong {
-  font-size: 2.5rem;
-  letter-spacing: -.06em;
-}
-
-.vocal-score-ring small {
-  margin-top: 2px;
-  color: #8a96a8;
-  font-size: .62rem;
-  font-weight: 800;
-}
-
-.vocal-hero__score > span {
-  color: #8d6f12;
-  font-size: .63rem;
-  font-weight: 900;
-  letter-spacing: .1em;
-}
-
-.vocal-intro {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  margin: 28px 0 16px;
-  padding: 0 6px;
-}
-
-.vocal-intro h2 {
-  margin: 7px 0 5px;
-  font-size: 2rem;
-  letter-spacing: -.045em;
-}
-
-.vocal-intro p {
-  max-width: 760px;
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.vocal-engine-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 13px;
-  border: 1px solid rgba(213,165,29,.25);
-  border-radius: 999px;
-  background: #fffaf0;
-  color: #957516;
-  font-size: .63rem;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.vocal-engine-status.is-ready {
-  border-color: rgba(44,147,107,.2);
-  background: #f1faf6;
-  color: #287a5b;
-}
-
-.vocal-engine-status.is-ready span {
-  background: var(--green);
-  box-shadow: 0 0 0 4px rgba(44,147,107,.1);
-}
-
-.vocal-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.vocal-metrics article,
-.vocal-panel,
-.vocal-insight,
-.vocal-empty {
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 15px 38px rgba(20,30,48,.055);
-}
-
-.vocal-metrics article {
-  padding: 20px;
-}
-
-.vocal-metrics span {
-  display: block;
-  color: #8a96a8;
-  font-size: .62rem;
-  font-weight: 900;
-  letter-spacing: .11em;
-}
-
-.vocal-metrics strong {
-  display: block;
-  margin: 10px 0 3px;
-  font-size: 1.55rem;
-}
-
-.vocal-metrics small { color: #8994a6; }
-
-.vocal-panel { padding: 28px; }
-
-.vocal-panel__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e7ebf0;
-}
-
-.vocal-panel__header h2 {
-  margin: 7px 0 0;
-  font-size: 1.8rem;
-  letter-spacing: -.04em;
-}
-
-.vocal-panel__count {
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: #f6f7f9;
-  color: #758196;
-  font-size: .65rem;
-  font-weight: 850;
-}
-
-.vocal-dimensions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.vocal-dimension {
-  display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 13px;
-  align-items: center;
-  padding: 16px;
-  border: 1px solid #e3e8ee;
-  border-radius: 16px;
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.vocal-dimension:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(20,30,48,.07);
-}
-
-.vocal-dimension.is-pending { opacity: .58; }
-
-.vocal-dimension__icon {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background: #f7edf1;
-  color: var(--wine);
-  font-weight: 900;
-}
-
-.vocal-dimension__title {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.vocal-dimension__title strong { font-size: .84rem; }
-.vocal-dimension__title b {
-  color: var(--wine);
-  font-size: .75rem;
-}
-
-.vocal-dimension__track {
-  height: 7px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: #edf0f4;
-}
-
-.vocal-dimension__track span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--wine), var(--gold));
-}
-
-.vocal-bottom-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.vocal-insight {
-  padding: 24px;
-}
-
-.vocal-insight span {
-  color: var(--wine);
-  font-size: .63rem;
-  font-weight: 900;
-  letter-spacing: .12em;
-}
-
-.vocal-insight h3 {
-  margin: 8px 0 7px;
-  font-size: 1.2rem;
-}
-
-.vocal-insight p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.vocal-insight--focus { background: linear-gradient(135deg, #fff, #fffaf0); }
-
-.vocal-empty {
-  position: relative;
-  display: grid;
-  grid-template-columns: 230px 1fr;
-  gap: 42px;
-  align-items: center;
-  min-height: 390px;
-  padding: 50px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 13% 50%, rgba(168,21,73,.08), transparent 23%),
-    radial-gradient(circle at 85% 20%, rgba(213,165,29,.10), transparent 25%),
-    #fff;
-}
-
-.vocal-empty__visual {
-  position: relative;
-  width: 210px;
-  height: 210px;
-  display: grid;
-  place-items: center;
-}
-
-.vocal-empty__note {
-  position: relative;
-  z-index: 2;
-  width: 96px;
-  height: 96px;
-  display: grid;
-  place-items: center;
-  border-radius: 28px;
-  background: linear-gradient(145deg, var(--wine), #c14270);
-  color: #fff;
-  font-size: 2.4rem;
-  box-shadow: 0 20px 45px rgba(168,21,73,.22);
-}
-
-.vocal-empty__orbit {
-  position: absolute;
-  border: 1px solid rgba(168,21,73,.16);
-  border-radius: 50%;
-}
-
-.vocal-empty__orbit--one {
-  width: 150px;
-  height: 150px;
-}
-
-.vocal-empty__orbit--two {
-  width: 210px;
-  height: 210px;
-  border-color: rgba(213,165,29,.18);
-}
-
-.vocal-empty__copy h2 {
-  max-width: 700px;
-  margin: 9px 0 10px;
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: .98;
-  letter-spacing: -.055em;
-}
-
-.vocal-empty__copy > p {
-  max-width: 760px;
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.vocal-empty__dimensions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 22px;
-  margin-top: 25px;
-}
-
-.vocal-empty__dimensions span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #67748a;
-  font-size: .73rem;
-  font-weight: 750;
-}
-
-.vocal-empty__dimensions i {
-  width: 25px;
-  height: 25px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: #f7edf1;
-  color: var(--wine);
-  font-style: normal;
-}
-
-.vocal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 25px;
-  color: #98a2b1;
-  font-size: .58rem;
-  font-weight: 900;
-  letter-spacing: .12em;
-}
-
-.vocal-footer i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--gold);
-}
-
-@media (max-width: 900px) {
-  .vocal-hero { padding: 38px; }
-  .vocal-hero__score { min-width: 145px; }
-  .vocal-score-ring { width: 135px; height: 135px; }
-  .vocal-empty { grid-template-columns: 1fr; }
-  .vocal-empty__visual { margin: 0 auto; }
-}
-
-@media (max-width: 700px) {
-  .vocal-evaluation-page { width: min(100% - 24px, 1240px); }
-  .vocal-hero { flex-direction: column; align-items: flex-start; }
-  .vocal-hero__score { align-self: center; }
-  .vocal-intro { flex-direction: column; align-items: flex-start; }
-  .vocal-metrics,
-  .vocal-dimensions,
-  .vocal-bottom-grid { grid-template-columns: 1fr; }
-  .vocal-empty { padding: 30px 24px; }
-  .vocal-empty__dimensions { grid-template-columns: 1fr; }
-}
-
-/* =========================================================
-   AMV VISUAL LAYER · MAX
-   Animaciones decorativas, profundidad y microinteracciones.
-   No altera la lógica académica ni los datos.
-========================================================= */
-
-.vocal-hero {
-  isolation: isolate;
-  animation: amvHeroIn .65s cubic-bezier(.2,.8,.2,1) both;
-}
-
-.vocal-hero__glow {
-  position: absolute;
-  pointer-events: none;
-  border-radius: 50%;
-  filter: blur(2px);
-  animation: amvGlowFloat 8s ease-in-out infinite;
-}
-
-.vocal-hero__glow--wine {
-  width: 260px;
-  height: 260px;
-  left: -100px;
-  bottom: -150px;
-  background: radial-gradient(circle, rgba(168,21,73,.16), transparent 68%);
-}
-
-.vocal-hero__glow--gold {
-  width: 330px;
-  height: 330px;
-  right: 5%;
-  top: -190px;
-  background: radial-gradient(circle, rgba(213,165,29,.16), transparent 68%);
-  animation-delay: -3s;
-}
-
-.vocal-hero__wave {
-  position: absolute;
-  z-index: 1;
-  right: 17%;
-  bottom: -80px;
-  width: 430px;
-  height: 170px;
-  border: 1px solid rgba(168,21,73,.08);
-  border-radius: 50%;
-  transform: rotate(-8deg);
-  pointer-events: none;
-}
-
-.vocal-hero__wave--two {
-  right: 9%;
-  bottom: -105px;
-  width: 500px;
-  height: 210px;
-  border-color: rgba(213,165,29,.08);
-  transform: rotate(-12deg);
-}
-
-.vocal-hero__particles {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.vocal-hero__particles i {
-  position: absolute;
-  left: calc((var(--i) * 9%) - 2%);
-  top: calc(12% + (var(--i) * 6%));
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(168,21,73,.2);
-  animation: amvParticle 5s ease-in-out infinite;
-  animation-delay: calc(var(--i) * -0.42s);
-}
-
-.vocal-hero__particles i:nth-child(3n) {
-  width: 5px;
-  height: 5px;
-  background: rgba(213,165,29,.23);
-}
-
-.vocal-score-ring {
-  position: relative;
-  transition: transform .35s ease, box-shadow .35s ease;
-  animation: amvScoreFloat 5s ease-in-out infinite;
-}
-
-.vocal-score-ring:hover {
-  transform: translateY(-5px) scale(1.025);
-  box-shadow: 0 24px 55px rgba(168,21,73,.18);
-}
-
-.vocal-score-ring.is-ready {
-  background: conic-gradient(
-    var(--green) 0 72%,
-    var(--gold) 72% 86%,
-    #e8edf2 86% 100%
-  );
-}
-
-.vocal-score-ring.is-ready:after {
-  content: "";
-  position: absolute;
-  inset: -7px;
-  border: 1px solid rgba(44,147,107,.15);
-  border-radius: 50%;
-  animation: amvRingPulse 2.8s ease-in-out infinite;
-}
-
-.vocal-hero__chips span {
-  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-}
-
-.vocal-hero__chips span:hover {
-  transform: translateY(-3px);
-  border-color: rgba(168,21,73,.2);
-  box-shadow: 0 9px 22px rgba(20,30,48,.07);
-}
-
-.vocal-intro {
-  animation: amvFadeUp .7s .08s both;
-}
-
-.vocal-engine-status {
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-
-.vocal-engine-status:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(213,165,29,.1);
-}
-
-.vocal-metrics {
-  perspective: 900px;
-}
-
-.vocal-metrics article {
-  position: relative;
-  overflow: hidden;
-  transition: transform .28s cubic-bezier(.2,.8,.2,1),
-              box-shadow .28s ease,
-              border-color .28s ease;
-  animation: amvFadeUp .65s both;
-}
-
-.vocal-metrics article:nth-child(2) { animation-delay: .08s; }
-.vocal-metrics article:nth-child(3) { animation-delay: .16s; }
-
-.vocal-metrics article:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 42%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--wine), var(--gold));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .35s ease;
-}
-
-.vocal-metrics article:hover {
-  transform: translateY(-5px) rotateX(1deg);
-  border-color: rgba(168,21,73,.16);
-  box-shadow: 0 20px 42px rgba(20,30,48,.09);
-}
-
-.vocal-metrics article:hover:before {
-  transform: scaleX(1);
-}
-
-.vocal-metrics strong {
-  transition: color .25s ease, transform .25s ease;
-}
-
-.vocal-metrics article:hover strong {
-  color: var(--wine);
-  transform: translateX(2px);
-}
-
-.vocal-panel {
-  position: relative;
-  overflow: hidden;
-  animation: amvFadeUp .75s .2s both;
-}
-
-.vocal-panel--analysis:after {
-  content: "";
-  position: absolute;
-  width: 280px;
-  height: 280px;
-  right: -150px;
-  top: -160px;
-  border: 1px solid rgba(213,165,29,.08);
-  border-radius: 50%;
-  box-shadow: 0 0 0 35px rgba(168,21,73,.025);
-  pointer-events: none;
-}
-
-.vocal-signal {
-  position: absolute;
-  right: 28px;
-  top: 24px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  opacity: .5;
-  pointer-events: none;
-}
-
-.vocal-signal span {
-  width: 2px;
-  height: 14px;
-  border-radius: 5px;
-  background: linear-gradient(to top, var(--wine), var(--gold));
-  animation: amvSignal 1.6s ease-in-out infinite;
-  animation-delay: calc(var(--i) * -0.055s);
-}
-
-.vocal-dimension {
-  position: relative;
-  overflow: hidden;
-  animation: amvDimensionIn .55s both;
-}
-
-.vocal-dimension:nth-child(1) { animation-delay: .03s; }
-.vocal-dimension:nth-child(2) { animation-delay: .07s; }
-.vocal-dimension:nth-child(3) { animation-delay: .11s; }
-.vocal-dimension:nth-child(4) { animation-delay: .15s; }
-.vocal-dimension:nth-child(5) { animation-delay: .19s; }
-.vocal-dimension:nth-child(6) { animation-delay: .23s; }
-.vocal-dimension:nth-child(7) { animation-delay: .27s; }
-.vocal-dimension:nth-child(8) { animation-delay: .31s; }
-
-.vocal-dimension:after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -120%;
-  width: 70%;
-  height: 100%;
-  background: linear-gradient(
-    100deg,
-    transparent,
-    rgba(255,255,255,.55),
-    transparent
-  );
-  transform: skewX(-18deg);
-  transition: left .65s ease;
-  pointer-events: none;
-}
-
-.vocal-dimension:hover:after {
-  left: 140%;
-}
-
-.vocal-dimension__icon {
-  transition: transform .25s ease, background .25s ease, box-shadow .25s ease;
-}
-
-.vocal-dimension:hover .vocal-dimension__icon {
-  transform: rotate(-4deg) scale(1.07);
-  background: linear-gradient(145deg, #f7edf1, #fff7e5);
-  box-shadow: 0 7px 17px rgba(168,21,73,.1);
-}
-
-.vocal-dimension__track span {
-  position: relative;
-  overflow: hidden;
-  animation: amvBarIn .9s cubic-bezier(.2,.8,.2,1) both;
-}
-
-.vocal-dimension__track span:after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.55),
-    transparent
-  );
-  transform: translateX(-100%);
-  animation: amvBarShine 2.8s 1s ease-in-out infinite;
-}
-
-.vocal-bottom-grid {
-  animation: amvFadeUp .7s .35s both;
-}
-
-.vocal-insight {
-  position: relative;
-  overflow: hidden;
-  transition: transform .28s ease, box-shadow .28s ease;
-}
-
-.vocal-insight:after {
-  content: "✦";
-  position: absolute;
-  right: 22px;
-  top: 17px;
-  color: rgba(168,21,73,.09);
-  font-size: 2.5rem;
-  transform: rotate(15deg);
-}
-
-.vocal-insight:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 38px rgba(20,30,48,.08);
-}
-
-.vocal-empty {
-  animation: amvEmptyIn .8s cubic-bezier(.2,.8,.2,1) both;
-}
-
-.vocal-empty__visual {
-  animation: amvVisualFloat 5s ease-in-out infinite;
-}
-
-.vocal-empty__note {
-  position: relative;
-  transition: transform .3s ease, box-shadow .3s ease;
-}
-
-.vocal-empty__note:hover {
-  transform: scale(1.06) rotate(-3deg);
-  box-shadow: 0 24px 55px rgba(168,21,73,.28);
-}
-
-.vocal-empty__pulse {
-  position: absolute;
-  width: 96px;
-  height: 96px;
-  border: 1px solid rgba(168,21,73,.16);
-  border-radius: 28px;
-  animation: amvEmptyPulse 2.8s ease-out infinite;
-}
-
-.vocal-empty__orbit--one {
-  animation: amvOrbit 9s linear infinite;
-}
-
-.vocal-empty__orbit--two {
-  animation: amvOrbitReverse 13s linear infinite;
-}
-
-.vocal-empty__dimensions span {
-  transition: transform .2s ease, color .2s ease;
-}
-
-.vocal-empty__dimensions span:hover {
-  transform: translateX(4px);
-  color: var(--wine);
-}
-
-.vocal-empty__dimensions i {
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.vocal-empty__dimensions span:hover i {
-  transform: scale(1.08);
-  box-shadow: 0 5px 14px rgba(168,21,73,.1);
-}
-
-.vocal-footer {
-  position: relative;
-  animation: amvFadeUp .7s .45s both;
-}
-
-.vocal-footer__line {
-  position: absolute;
-  left: 50%;
-  top: -13px;
-  width: 70px;
-  height: 1px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-
-@keyframes amvHeroIn {
-  from { opacity: 0; transform: translateY(12px) scale(.992); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes amvFadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes amvDimensionIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes amvEmptyIn {
-  from { opacity: 0; transform: scale(.985); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes amvGlowFloat {
-  0%, 100% { transform: translate3d(0,0,0); }
-  50% { transform: translate3d(14px,10px,0); }
-}
-
-@keyframes amvScoreFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes amvRingPulse {
-  0%, 100% { opacity: .25; transform: scale(1); }
-  50% { opacity: .7; transform: scale(1.035); }
-}
-
-@keyframes amvParticle {
-  0%, 100% { opacity: .1; transform: translateY(10px) scale(.8); }
-  50% { opacity: .8; transform: translateY(-14px) scale(1.2); }
-}
-
-@keyframes amvSignal {
-  0%, 100% { transform: scaleY(.65); opacity: .35; }
-  50% { transform: scaleY(1.35); opacity: .85; }
-}
-
-@keyframes amvBarIn {
-  from { transform: scaleX(0); transform-origin: left; }
-  to { transform: scaleX(1); transform-origin: left; }
-}
-
-@keyframes amvBarShine {
-  0%, 55% { transform: translateX(-100%); }
-  75%, 100% { transform: translateX(140%); }
-}
-
-@keyframes amvVisualFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-7px); }
-}
-
-@keyframes amvEmptyPulse {
-  0% { opacity: .65; transform: scale(.95); }
-  70%, 100% { opacity: 0; transform: scale(1.65); }
-}
-
-@keyframes amvOrbit {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes amvOrbitReverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .vocal-evaluation-page *,
-  .vocal-evaluation-page *:before,
-  .vocal-evaluation-page *:after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
-  }
-}
-
-
-
-/* =========================================================
-   AMV RADAR / DIMENSIONS / EVIDENCE · FINAL
-========================================================= */
-.amv-panel-subtitle {
-  margin: 8px 0 0;
-  max-width: 760px;
-  color: var(--muted);
-  font-size: .82rem;
-  line-height: 1.55;
-}
-
-.amv-load-error {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  margin: 0 0 16px;
-  padding: 14px 16px;
-  border: 1px solid rgba(168,21,73,.16);
-  border-radius: 16px;
-  background: #fff6f8;
-  color: #7b2747;
-  box-shadow: 0 10px 25px rgba(168,21,73,.05);
-}
-
-.amv-load-error strong { font-size: .82rem; }
-.amv-load-error span { color: #7e7d85; font-size: .76rem; }
-.amv-load-error button {
-  margin-left: auto;
-  min-height: 38px;
-  padding: 8px 12px;
-  border: 1px solid rgba(168,21,73,.18);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--wine);
-  font-size: .72rem;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.amv-radar-layout--clean {
-  grid-template-columns: minmax(320px, 1.1fr) minmax(290px, .9fr);
-  align-items: center;
-}
-
-.amv-radar-grid--triangle polygon {
-  fill: none;
-}
-
-.amv-radar-grid--triangle line {
-  stroke: rgba(111,124,145,.22);
-}
-
-.amv-radar-stats {
-  align-content: center;
-}
-
-.amv-score-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.amv-score-card--focus {
-  border-color: rgba(168,21,73,.14);
-  background: linear-gradient(145deg, #fff, #fff7fa);
-}
-
-.amv-score-card--strength {
-  border-color: rgba(44,147,107,.15);
-  background: linear-gradient(145deg, #fff, #f6fcf9);
-}
-
-.amv-score-card--focus:before,
-.amv-score-card--strength:before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--wine), var(--gold));
-}
-
-.amv-dimension-summary {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 7px;
-}
-
-.amv-dimension-summary span {
-  padding: 8px 10px;
-  border: 1px solid #e4e8ee;
-  border-radius: 999px;
-  background: #fafbfc;
-  color: #7c8798;
-  font-size: .62rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.amv-dimension-summary b {
-  color: var(--ink);
-  margin-right: 3px;
-}
-
-.amv-dimension-card.is-observed {
-  border-color: rgba(213,165,29,.22);
-  background: linear-gradient(145deg, #fff, #fffdf6);
-}
-
-.amv-dimension-card.is-pending {
-  opacity: .72;
-}
-
-.amv-dimension-card.is-score .vocal-dimension__title b {
-  color: var(--wine);
-}
-
-.amv-dimension-card.is-observed .vocal-dimension__title b {
-  color: #9a7615;
-}
-
-.amv-dimension-evidence {
-  min-height: 7px;
-  display: flex;
-  align-items: center;
-  margin-top: 3px;
-}
-
-.amv-dimension-evidence span {
-  display: inline-flex;
-  padding: 6px 9px;
-  border-radius: 8px;
-  background: #fbf7e9;
-  color: #8c711e;
-  font-size: .68rem;
-  font-weight: 850;
-}
-
-.amv-dimension-note {
-  display: block;
-  margin-top: 7px;
-  color: #8792a3;
-  font-size: .67rem;
-  line-height: 1.45;
-}
-
-.amv-acoustic-panel {
-  margin-top: 16px;
-}
-
-.amv-acoustic-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.amv-acoustic-card {
-  min-height: 132px;
-  padding: 18px;
-  border: 1px solid #e4e9ef;
-  border-radius: 17px;
-  background: linear-gradient(145deg, #fff, #fbfcfe);
-  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-}
-
-.amv-acoustic-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(168,21,73,.12);
-  box-shadow: 0 14px 30px rgba(20,30,48,.06);
-}
-
-.amv-acoustic-card > span {
-  display: block;
-  color: #8994a5;
-  font-size: .6rem;
-  font-weight: 900;
-  letter-spacing: .1em;
-}
-
-.amv-acoustic-card strong {
-  display: block;
-  margin: 9px 0 4px;
-  color: var(--ink);
-  font-size: 1.35rem;
-  letter-spacing: -.04em;
-}
-
-.amv-acoustic-card small {
-  color: #7f8a9d;
-  font-size: .67rem;
-  line-height: 1.45;
-}
-
-.amv-pedagogy-grid {
-  margin-top: 16px;
-}
-
-.amv-practice-panel {
-  margin-top: 16px;
-}
-
-.amv-practice-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.amv-practice-list article {
-  display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 13px;
-  align-items: start;
-  padding: 14px 15px;
-  border: 1px solid #e6eaf0;
-  border-radius: 15px;
-  background: #fbfcfd;
-}
-
-.amv-practice-list article > span {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border-radius: 9px;
-  background: #f7edf1;
-  color: var(--wine);
-  font-size: .65rem;
-  font-weight: 900;
-}
-
-.amv-practice-list p {
-  margin: 2px 0 0;
-  color: #657287;
-  font-size: .78rem;
-  line-height: 1.55;
-}
-
-.amv-empty-copy {
-  margin: 0;
-  color: #7b8798;
-}
-
-.amv-measurement-note {
-  margin-top: 17px;
-  padding: 16px;
-  border: 1px solid rgba(213,165,29,.2);
-  border-radius: 15px;
-  background: #fffaf0;
-}
-
-.amv-measurement-note strong {
-  color: #8e7114;
-  font-size: .72rem;
-  letter-spacing: .04em;
-}
-
-.amv-measurement-note p {
-  margin: 6px 0 0;
-  color: #726f66;
-  font-size: .72rem;
-  line-height: 1.55;
-}
-
-@media (max-width: 980px) {
-  .amv-radar-layout--clean { grid-template-columns: 1fr; }
-  .amv-acoustic-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .amv-dimension-summary { justify-content: flex-start; }
-}
-
-@media (max-width: 700px) {
-  .amv-acoustic-grid { grid-template-columns: 1fr; }
-  .amv-load-error button { width: 100%; margin-left: 0; }
-}
-</style>
-<style lang="scss">
-/* AMV UI POLISH 2026 — visual consistency, accessibility and mobile resilience. */
-.amv-view-shell {
-  --amv-ui-wine: #9f1945;
-  --amv-ui-wine-deep: #7f1237;
-  --amv-ui-gold: #d9a91d;
-  --amv-ui-purple: #7657d9;
-  --amv-ui-cyan: #20b8ae;
-  --amv-ui-ink: #172033;
-  --amv-ui-muted: #6f7c8f;
-  --amv-ui-line: rgba(122, 137, 158, 0.20);
-  --amv-ui-focus: rgba(159, 25, 69, 0.38);
-  --amv-ui-radius-sm: 12px;
-  --amv-ui-radius-md: 18px;
-  --amv-ui-radius-lg: 26px;
-  --amv-ui-shadow: 0 18px 55px rgba(17, 25, 39, 0.09);
-  --amv-ui-shadow-hover: 0 22px 65px rgba(17, 25, 39, 0.14);
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.amv-view-shell::before {
-  content: '';
-  position: absolute;
-  inset: -150px -120px auto auto;
-  width: 420px;
-  height: 420px;
-  pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(159, 25, 69, 0.10), transparent 52%),
-    radial-gradient(circle at 68% 62%, rgba(217, 169, 29, 0.08), transparent 58%);
-  filter: blur(6px);
-  opacity: 0.82;
-  z-index: -1;
-}
-
-.amv-view-shell :where(*, *::before, *::after) {
-  box-sizing: border-box;
-}
-
-.amv-view-shell :where(img, video, svg, canvas) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
-}
-
-.amv-view-shell :where(p, li, td, th, label, small) {
-  overflow-wrap: anywhere;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']) {
-  touch-action: manipulation;
-}
-
-.amv-view-shell :where(button, input, select, textarea) {
-  font: inherit;
-}
-
-.amv-view-shell :where(button) {
-  min-height: 42px;
-}
-
-.amv-view-shell :where(input, select, textarea) {
-  max-width: 100%;
-}
-
-.amv-view-shell :where(a, button, input, select, textarea, [role='button']):focus-visible {
-  outline: 3px solid var(--amv-ui-focus);
-  outline-offset: 3px;
-}
-
-.amv-view-shell :where(button, [role='button']):disabled,
-.amv-view-shell :where(input, select, textarea):disabled {
-  cursor: not-allowed;
-}
-
-.amv-view-shell :where(.button, .btn, .lux-button, .amv-primary-btn, .amv-secondary-action,
-  .primary-action, .secondary-action, .danger-action, .text-link, .action-link,
-  .lightbox__close, .lightbox__nav, .today-button, .quick-action) {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Premium surface language without changing each view's semantic palette. */
-.amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-  .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-  .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-  .production, .sound-console, .state-card, .empty-card, .workspace,
-  .profile-card, .profile-panel, .vocal-card, .weighted-student, .weighted-category) {
-  border-radius: var(--amv-ui-radius-md);
-}
-
-.amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-  .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-  .task-card, .format-card, .production, .state-card, .empty-card) {
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .amv-view-shell :where(.resource-card, .student-card, .lesson-card, .metric-card,
-    .focus-card, .next-class-card, .summary-card, .insight-card, .quiz-card,
-    .task-card, .format-card, .production):not(.is-disabled):hover {
-    transform: translateY(-2px);
-  }
-}
-
-/* Toolbars wrap rather than squeezing controls into unreadable rows. */
-.amv-view-shell :where(.toolbar, .students-toolbar, .calendar-toolbar, .resources-controls,
-  .resources-controls__row, .gradebook-legacy-toolbar, .hero-actions, .actions,
-  .action-row, .question-actions, .filters, .public-jump-nav, .classes-header__actions,
-  .result-action-row, .form-actions, .footer-actions) {
-  min-width: 0;
-}
-
-.amv-view-shell :where(.table-shell, .quiz-table-wrap, .table-wrap, .grade-table-wrap,
-  .data-table-wrap, .scroll-region, .horizontal-scroll) {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.amv-view-shell :where(.table-shell table, .quiz-table-wrap table, .table-wrap table,
-  .grade-table-wrap table, .data-table-wrap table) {
-  max-width: none;
-}
-
-/* Prevent long controls and badges from forcing page-level horizontal overflow. */
-.amv-view-shell :where(.badge, .pill, .chip, .status-pill, .source-badge, .event-chip,
-  .lesson-detail, .student-card__voice, .student-card__status, .course-kicker,
-  .hero-stat, .count, .filename, .meta, .eyebrow) {
-  max-width: 100%;
-}
-
-/* Dialogs/lightboxes stay usable on short laptop and phone viewports. */
-.amv-view-shell :where(.modal, .dialog, .drawer, .lightbox, .lightbox__content,
-  .modal__content, .dialog__content, [role='dialog']) {
-  max-width: min(100%, 100vw);
-}
-
-.amv-view-shell :where(.modal__content, .dialog__content, .lightbox__content,
-  [role='dialog']) {
-  max-height: calc(100dvh - 28px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Public pages: a cleaner editorial frame around content-heavy sections. */
-.amv-view-shell :where(.hero, .hero-panel, .calendar-hero, .resources-hero, .amv-hero,
-  .students__header, .gradebook__hero, .classes-header, .contact-hero, .training-hero,
-  .academy-hero, .inscription-hero) {
-  isolation: isolate;
-}
-
-.amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid) {
-  min-width: 0;
-}
-
-/* Mobile-first resilience. Existing view-specific breakpoints still win where more
-   specific rules exist, while these defaults catch edge cases and tiny screens. */
-@media (max-width: 760px) {
-  .amv-view-shell {
-    overflow-x: clip;
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 22px;
-  }
-
-  .amv-view-shell :where(.hero__grid, .hero-panel__grid, .resources-hero__grid,
-    .calendar-layout, .quiz-layout, .program-layout, .student-profile__grid,
-    .dashboard-grid, .content-grid, .page-grid, .split-layout) {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .amv-view-shell :where(.hero-actions, .actions, .action-row, .form-actions,
-    .footer-actions, .question-actions, .students__header-actions, .hero-stat,
-    .calendar-toolbar, .resources-controls__row) {
-    flex-wrap: wrap;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    min-width: min(100%, 190px);
-  }
-
-  .amv-view-shell :where(.display-title, .page-title, .hero-title, .section-title,
-    .hero-panel__title, .amv-hero h1, .calendar-hero h1, .students__header h1,
-    .gradebook__hero h1) {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    line-height: 1.05;
-  }
-
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .amv-view-shell :where(.students-toolbar, .resources-controls, .calendar-toolbar,
-    .gradebook-legacy-toolbar, .classes-header, .section-heading, .profile-actions) {
-    gap: 10px;
-  }
-
-  .amv-view-shell :where(input, select, textarea, .select, .search-input) {
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 520px) {
-  .amv-view-shell :where(.metric-grid, .focus-grid, .student-grid, .resource-grid,
-    .lessons-list, .quiz-stack, .summary-grid, .insight-row, .calendar-insight-row,
-    .format__grid, .sound__grid, .skills__grid, .productions__grid) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .amv-view-shell :where(.hero, .hero-panel, .amv-hero, .calendar-hero,
-    .resources-hero, .classes-header, .students__header, .gradebook__hero) {
-    border-radius: 18px;
-  }
-
-  .amv-view-shell :where(.card, .panel, .surface, .summary-card, .metric-card,
-    .focus-card, .next-class-card, .insight-card, .agenda-card, .quiz-card,
-    .resource-card, .student-card, .lesson-card, .task-card, .format-card,
-    .production, .state-card, .empty-card) {
-    border-radius: 16px;
-  }
-
-  .amv-view-shell :where(.hero-actions > *, .form-actions > *, .footer-actions > *,
-    .question-actions > *, .result-action > *, .result-next-step__actions > *) {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .amv-view-shell,
-  .amv-view-shell :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
-
-/* AMV RADAR 3.2.2 */
-.vocal-panel--radar { margin-bottom: 16px; }
-.amv-radar-layout {
-  display: grid;
-  grid-template-columns: minmax(320px, 1.15fr) minmax(280px, .85fr);
-  gap: 28px;
-  align-items: center;
-  padding-top: 18px;
-}
-.amv-radar {
-  min-height: 380px;
-  display: grid;
-  place-items: center;
-  border-radius: 26px;
-  background: radial-gradient(circle, rgba(168,21,73,.055), transparent 62%), #fbfcfe;
-  border: 1px solid #e7ebf0;
-}
-.amv-radar svg { width: min(100%, 410px); height: auto; overflow: visible; }
-.amv-radar-grid polygon { fill: none; stroke: #dfe5ed; stroke-width: 1; }
-.amv-radar-grid line { stroke: #e7ebf0; stroke-width: 1; }
-.amv-radar-shape { fill: rgba(168,21,73,.14); stroke: var(--wine); stroke-width: 3; stroke-linejoin: round; }
-.amv-radar-dot circle { fill: var(--gold); stroke: #fff; stroke-width: 2; }
-.amv-radar text { fill: #6f7c91; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-anchor: middle; }
-.amv-radar-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.amv-radar-stats article {
-  padding: 16px; border: 1px solid #e3e8ee; border-radius: 16px; background: #fff;
-}
-.amv-radar-stats span { display:block; color:#8a96a8; font-size:.59rem; font-weight:900; letter-spacing:.1em; }
-.amv-radar-stats strong { display:block; margin-top:7px; color:var(--wine); font-size:1.45rem; letter-spacing:-.04em; }
-.amv-radar-stats small { color:#8994a6; line-height:1.45; }
-.amv-load-error {
-  margin: 0 0 16px; padding: 12px 15px; border-radius: 14px; border:1px solid rgba(168,21,73,.18);
-  background:#fff6f8; color:var(--wine); font-size:.78rem; font-weight:800;
-}
-@media (max-width: 900px) {
-  .amv-radar-layout { grid-template-columns: 1fr; }
-  .amv-radar { min-height: 320px; }
-}
-@media (max-width: 520px) {
-  .amv-radar-stats { grid-template-columns: 1fr; }
+<style scoped>
+.amv-student-page{--ink:#172033;--muted:#728097;--line:#e1e7f0;--wine:#b20d4a;--wine-dark:#760d32;--gold:#e3b526;--green:#238b68;width:min(1440px,calc(100% - 36px));margin:0 auto;padding:24px 0 48px;color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.amv-student-page *{box-sizing:border-box}
+.hero{position:relative;display:flex;justify-content:space-between;align-items:center;gap:28px;overflow:hidden;min-height:270px;padding:clamp(26px,4vw,52px);margin-bottom:30px;border-radius:22px;color:#fff;background:radial-gradient(circle at 83% 22%,rgba(255,255,255,.12),transparent 25%),linear-gradient(118deg,#7c1036 0%,#b70c4b 58%,#ce174f 100%);box-shadow:0 18px 42px rgba(104,15,52,.15)}
+.hero:after{content:"";position:absolute;width:300px;height:300px;right:8%;top:-210px;border:1px solid #ffffff30;border-radius:50%;box-shadow:0 0 0 30px #ffffff08,0 0 0 65px #ffffff06;pointer-events:none}
+.hero-copy{position:relative;z-index:1;max-width:760px}.eyebrow,.section-label{display:block;font-size:.72rem;letter-spacing:.14em;font-weight:850}.eyebrow{color:#ffe5ee}.eyebrow i,.status-pill i{display:inline-block;width:8px;height:8px;margin-right:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 5px #ffffff12}
+.hero h1{margin:18px 0 14px;font-size:clamp(2.35rem,4vw,4rem);line-height:.98;letter-spacing:-.055em;font-weight:850}.hero h1 span{display:block;color:#ffe4ec}.hero p{max-width:700px;margin:0;color:#ffedf2;font-size:1.03rem;line-height:1.7}
+.hero-tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}.hero-tags span{padding:7px 12px;border:1px solid #ffffff50;border-radius:999px;background:#ffffff14;font-size:.76rem;font-weight:750}
+.hero-mark{position:relative;z-index:1;flex:0 0 148px;width:148px;height:148px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #ffffff70;border-radius:50%;background:#ffffff12;box-shadow:inset 0 0 0 9px #ffffff0b}.hero-mark span{font-size:2.1rem;font-weight:900;letter-spacing:-.08em}.hero-mark small{font-size:.55rem;letter-spacing:.16em;font-weight:800}
+.section-intro{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:0 4px 18px}.section-label{color:var(--wine)}.section-intro h2,.selected-heading h2{margin:6px 0;font-size:clamp(1.5rem,2.5vw,2.05rem);letter-spacing:-.045em;line-height:1.15}.section-intro p,.selected-heading p{margin:7px 0 0;color:var(--muted);max-width:760px}.count-pill{flex-shrink:0;padding:8px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:.8rem;font-weight:800;color:#58657a}
+.audition-layout{display:grid;grid-template-columns:minmax(270px,350px) minmax(0,1fr);gap:20px;align-items:start}.panel{border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 10px 32px #18243b08}.history{padding:18px;position:sticky;top:16px}.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.panel-heading h3,.audio-content h3,.learning-card h3,.practice-panel h3{margin:5px 0 0;font-size:1.2rem;letter-spacing:-.035em}.icon-button{width:36px;height:36px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--wine);font-size:1.3rem;cursor:pointer}.recording-option{display:flex;align-items:center;gap:11px;width:100%;margin-top:10px;padding:12px 10px;border:1px solid transparent;border-radius:14px;text-align:left;background:#f8f9fc;color:var(--ink);cursor:pointer;transition:background .18s,border-color .18s,transform .18s}.recording-option:hover{border-color:#e9b7ca;transform:translateY(-1px)}.recording-option.is-active{border-color:#e8a5bd;background:#fff0f5;box-shadow:inset 3px 0 var(--wine)}.recording-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:#f4dce6;color:var(--wine);font-size:1.35rem}.recording-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}.recording-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.86rem}.recording-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:.73rem}.status-dot,.legend-dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:#d4a12a}.status-dot.is-done,.legend-dot.is-done{background:var(--green)}.history-note{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:16px 2px 0;color:var(--muted);font-size:.68rem}.results-column{display:grid;gap:18px;min-width:0}.selected-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:6px 2px}.selected-heading>div{min-width:0}.selected-heading h2{overflow-wrap:anywhere}.status-pill{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;padding:8px 12px;border-radius:999px;background:#fff5dc;color:#956a12;border:1px solid #f0dfad;font-size:.7rem;font-weight:850}.status-pill i{width:7px;height:7px;margin:0;background:currentColor;box-shadow:none}.status-pill.is-done{background:#effaf5;border-color:#c8eadb;color:#237b5d}
+.audio-panel{display:flex;align-items:center;gap:20px;padding:22px}.audio-art{display:flex;flex:0 0 112px;height:112px;flex-direction:column;align-items:center;justify-content:center;border-radius:17px;color:#fff;background:linear-gradient(145deg,#7f1038,#c51150);box-shadow:0 10px 24px #a8154928}.audio-art span{font-size:2.6rem;line-height:1}.audio-art small{margin-top:8px;font-size:.56rem;letter-spacing:.16em;font-weight:850}.audio-content{min-width:0;flex:1}.audio-content p{margin:5px 0 14px;color:var(--muted);font-size:.85rem}.audio-content audio{display:block;width:100%;height:42px;max-width:720px}.audio-message{padding:11px 13px;border-radius:10px;background:#f5f7fb;color:#68768b;font-size:.8rem}.audio-message--error{background:#fff4f6;color:#a51a48}
+.result-panel{padding:22px}.result-heading{align-items:flex-start;margin-bottom:20px}.result-heading>div{min-width:0}.result-heading p{margin:8px 0 0;color:var(--muted);font-size:.84rem}.amv-badge{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:13px;background:#f8e5ed;color:var(--wine);font-size:.78rem;font-weight:900}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.metric-card{padding:16px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,#fff,#fbfcfe)}.metric-card span{display:block;color:#8b97aa;font-size:.63rem;letter-spacing:.09em;font-weight:850}.metric-card strong{display:block;margin:10px 0 5px;font-size:clamp(1.15rem,2vw,1.65rem);letter-spacing:-.05em;overflow-wrap:anywhere}.metric-card small{color:var(--muted);font-size:.72rem;line-height:1.4}
+.radar-panel{margin-top:14px;padding:22px;border:1px solid var(--line);border-radius:18px;background:radial-gradient(circle at 16% 15%,#fbf0f5 0,transparent 36%),linear-gradient(145deg,#fff,#fbfcff);overflow:hidden}.radar-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:1px solid #e9edf4}.radar-heading h3{margin:5px 0;font-size:1.22rem;letter-spacing:-.04em}.radar-heading p{max-width:680px;margin:5px 0 0;color:var(--muted);font-size:.82rem}.radar-count{flex-shrink:0;padding:7px 11px;border-radius:999px;background:#f6e6ed;color:var(--wine);font-size:.72rem;font-weight:850}.radar-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:22px;align-items:center;padding-top:18px}.radar-visual{display:grid;place-items:center;min-width:0;min-height:310px;border:1px solid #e8edf5;border-radius:16px;background:radial-gradient(circle,#fff 0,#fbfcff 70%)}.radar-visual svg{display:block;width:100%;max-width:430px;height:auto;overflow:visible}.radar-grid polygon{fill:none;stroke:#dce4ef;stroke-width:1.1}.radar-grid line{stroke:#dce4ef;stroke-width:1.1}.radar-area{fill:#b20d4a26;stroke:#b20d4a;stroke-width:3;stroke-linejoin:round;filter:drop-shadow(0 4px 5px #b20d4a1a)}.radar-markers circle{fill:#e3b526;stroke:#fff;stroke-width:2.5}.radar-visual svg text{fill:#66748b;font-size:9px;font-weight:850;letter-spacing:.05em}.radar-visual svg .radar-scale-note{fill:#9aa5b6;font-size:8px;letter-spacing:.14em}.radar-indicators{display:grid;gap:11px}.radar-indicator{padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#ffffffd9}.radar-indicator>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px}.radar-indicator span{color:#647189;font-size:.76rem;font-weight:800}.radar-indicator strong{color:var(--ink);font-size:1.05rem;font-weight:900}.radar-indicator strong small{margin-left:2px;color:#98a2b2;font-size:.65rem}.radar-track{height:6px;margin-top:9px;overflow:hidden;border-radius:999px;background:#edf0f6}.radar-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#b20d4a,#e3b526)}.radar-indicator p{margin:7px 0 0;color:var(--muted);font-size:.72rem}.radar-method-note{margin:0;padding:11px 12px;border-left:3px solid #e3b526;border-radius:0 9px 9px 0;background:#fff9e9;color:#7b6a43;font-size:.7rem;line-height:1.5}.radar-unavailable{display:flex;align-items:center;gap:14px;margin-top:16px;padding:17px;border:1px dashed #d9e0eb;border-radius:14px;background:#fbfcfe}.radar-unavailable>span{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:#f8e5ed;color:var(--wine);font-size:1.6rem}.radar-unavailable strong{font-size:.86rem}.radar-unavailable p{margin:4px 0 0;color:var(--muted);font-size:.78rem}
+.learning-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.learning-card{padding:19px;border:1px solid var(--line);border-radius:16px}.learning-card--strength{background:linear-gradient(140deg,#f3fbf7,#fff);border-color:#d5eee2}.learning-card--focus{background:linear-gradient(140deg,#fff8ed,#fff);border-color:#f3e5c9}.learning-icon{display:grid;place-items:center;width:34px;height:34px;margin-bottom:14px;border-radius:10px;background:#dff3e9;color:#247c5c;font-size:1.2rem}.learning-card--focus .learning-icon{background:#ffedcb;color:#9a6a12}.learning-card .section-label{font-size:.65rem}.learning-card h3{margin:7px 0 12px}.learning-card ul{margin:0;padding-left:19px}.learning-card li{margin:7px 0;color:#48556a;font-size:.86rem}.muted{color:var(--muted);font-size:.84rem}.learning-card p{margin:0;color:var(--muted);font-size:.84rem}
+.practice-panel{padding:21px;border:1px solid var(--line);border-radius:18px;background:#fff}.practice-panel h3{margin-bottom:12px}.practice-panel ol{list-style:none;padding:0;margin:0}.practice-panel li{display:flex;gap:13px;align-items:flex-start;padding:12px 0;border-top:1px solid #edf0f5}.practice-panel li>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:10px;background:#f8e5ed;color:var(--wine);font-size:.72rem;font-weight:850}.practice-panel li p{margin:4px 0 0;color:#4d5a70;font-size:.86rem}
+.panel-subsection{margin-top:14px;padding:20px;border:1px solid var(--line);border-radius:17px;background:#fff}.subsection-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:17px}.subsection-heading h3{margin:5px 0;font-size:1.15rem;letter-spacing:-.03em}.subsection-heading p{margin:0;color:var(--muted);font-size:.82rem}.teacher-average{flex-shrink:0;padding:9px 12px;border-radius:12px;background:#f8e5ed;color:var(--wine);font-size:1.3rem;font-weight:900}.teacher-average small{font-size:.7rem}.teacher-state{padding:14px;border-radius:11px;background:#f7f8fb;color:var(--muted);font-size:.84rem}.teacher-state--error{background:#fff4f6;color:#a51a48}.teacher-radar-panel{margin-top:24px;padding:22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,#fff 0%,#fcf9fb 100%)}
+.teacher-radar-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}
+.teacher-radar-heading h4{margin:4px 0 6px;font-size:20px;letter-spacing:-.035em}
+.teacher-radar-heading p{max-width:700px;margin:0;color:var(--muted);line-height:1.65}
+.teacher-radar-badge{flex:none;padding:8px 12px;border-radius:999px;background:#f8e5ed;color:var(--wine);font-size:12px;font-weight:800}
+.teacher-radar-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(260px,.95fr);align-items:center;gap:24px}
+.teacher-radar-visual{min-width:0;padding:12px;border:1px solid #e8eaf1;border-radius:18px;background:radial-gradient(circle at 50% 45%,#fff 0%,#fbf8fa 75%)}
+.teacher-radar-visual svg{display:block;width:100%;height:auto;overflow:visible}
+.teacher-radar-grid polygon{fill:none;stroke:#dfe4ee;stroke-width:1}
+.teacher-radar-grid line{stroke:#e5e8f0;stroke-width:1}
+.teacher-radar-area{fill:rgba(178,13,74,.17);stroke:#b20d4a;stroke-width:2.8;stroke-linejoin:round}
+.teacher-radar-points circle{fill:#e3b526;stroke:#fff;stroke-width:2}
+.teacher-radar-labels text{fill:#64718a;font-size:10px;font-weight:800;letter-spacing:.35px}
+.teacher-radar-scale{fill:#8994a8;font-size:10px;font-weight:800;letter-spacing:1px}
+.teacher-radar-legend{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.teacher-radar-legend article{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:0}
+.teacher-radar-legend article span{display:block;color:var(--muted);font-size:11px;font-weight:700;line-height:1.4}
+.teacher-radar-legend article strong{display:block;margin:4px 0 8px;color:var(--wine);font-size:20px}
+.teacher-radar-legend article div{height:5px;overflow:hidden;border-radius:99px;background:#edf0f5}
+.teacher-radar-legend article i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#b20d4a,#e3b526)}
+.teacher-radar-empty{padding:18px;border:1px dashed #d9deea;border-radius:14px;color:var(--muted);background:#fafbfe}
+@media(max-width:760px){.teacher-radar-heading{display:block}.teacher-radar-badge{display:inline-block;margin-top:12px}.teacher-radar-layout{grid-template-columns:1fr}.teacher-radar-legend{grid-template-columns:1fr 1fr}}
+@media(max-width:430px){.teacher-radar-legend{grid-template-columns:1fr}.teacher-radar-panel{padding:14px}}
+.teacher-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.teacher-score{padding:12px;border:1px solid var(--line);border-radius:12px}.teacher-score>div:first-child{display:flex;justify-content:space-between;gap:12px;align-items:center}.teacher-score strong{font-size:.8rem}.teacher-score span{font-size:.8rem;font-weight:850;color:var(--wine)}.teacher-score-track{height:6px;margin-top:10px;overflow:hidden;border-radius:999px;background:#edf0f6}.teacher-score-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#a80f48,#e3b526)}.teacher-comments-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.teacher-comments-grid article{padding:14px;border-radius:12px;background:#f8f9fc}.teacher-comments-grid p{margin:8px 0 0;color:#48556a;font-size:.85rem;white-space:pre-wrap;overflow-wrap:anywhere}.teacher-comment-wide{grid-column:1/-1}.teacher-updated{margin:12px 0 0;color:var(--muted);font-size:.72rem}.report-actions{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:14px;padding:18px;border:1px solid #f0d6e0;border-radius:15px;background:#fff8fb}.report-actions p{margin:0;color:var(--muted);font-size:.82rem}.technical-details{margin-top:14px;padding:15px 17px;border:1px solid var(--line);border-radius:14px;background:#f9fafc}.technical-details summary{cursor:pointer;color:#59667a;font-size:.82rem;font-weight:800}.technical-details pre{max-height:360px;overflow:auto;padding:14px;border-radius:10px;background:#172033;color:#dce5f3;font-size:.72rem;white-space:pre-wrap;overflow-wrap:anywhere}.measurement-note{color:var(--muted);font-size:.8rem}.pending-result{display:flex;align-items:center;gap:14px;padding:20px;border:1px solid #f1dfb2;border-radius:15px;background:#fffaf0}.pending-symbol{font-size:1.8rem;color:#b17c14}.pending-result div{flex:1}.pending-result strong{font-size:.92rem}.pending-result p{margin:5px 0 0;color:var(--muted);font-size:.8rem}
+.button{border:0;border-radius:11px;padding:10px 14px;font:inherit;font-size:.8rem;font-weight:800;cursor:pointer}.button--primary{background:linear-gradient(120deg,#a80f48,#c41452);color:#fff;box-shadow:0 8px 20px #a8154926}.button--secondary{border:1px solid #dce2eb;background:#fff;color:#455169}.state-card{display:flex;align-items:center;gap:15px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}.state-card p{margin:5px 0 0;color:var(--muted);font-size:.85rem}.state-card--error{align-items:flex-start;flex-direction:column;border-color:#f0c9d5;background:#fff7f9}.state-card--error strong{color:#a51a48}.spinner{width:25px;height:25px;border:3px solid #f1cbd9;border-top-color:var(--wine);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{padding:clamp(28px,5vw,56px);text-align:center}.empty-note{display:grid;place-items:center;width:70px;height:70px;margin:0 auto 18px;border-radius:20px;background:#f8e5ed;color:var(--wine);font-size:2.3rem}.empty-state .section-label{margin-bottom:8px}.empty-state h2{margin:0;font-size:1.6rem;letter-spacing:-.04em}.empty-state p{max-width:560px;margin:10px auto 0;color:var(--muted);font-size:.9rem}.page-footer{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:32px;color:#929db0;font-size:.65rem;font-weight:850;letter-spacing:.13em}.page-footer i{width:5px;height:5px;border-radius:50%;background:var(--gold)}
+@media(max-width:1000px){.audition-layout{grid-template-columns:1fr}.history{position:static}.history .recording-option{display:inline-flex;vertical-align:top;width:calc(50% - 6px);margin-right:5px}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.radar-layout{grid-template-columns:1fr}.radar-visual{min-height:0}.radar-visual svg{max-width:360px}}
+@media(max-width:640px){.radar-panel{padding:15px}.radar-heading{align-items:flex-start}.radar-count{font-size:.65rem}.radar-visual{padding:6px}.teacher-score-grid,.teacher-comments-grid{grid-template-columns:1fr}.teacher-comment-wide{grid-column:auto}.subsection-heading{align-items:flex-start}.report-actions{align-items:stretch;flex-direction:column}.amv-student-page{width:calc(100% - 24px);padding-top:12px}.hero{min-height:0;padding:25px 21px;border-radius:18px}.hero-mark{display:none}.hero h1{font-size:2.45rem}.hero p{font-size:.92rem}.section-intro{align-items:flex-start;flex-direction:column}.history,.result-panel{padding:15px}.history .recording-option{width:100%;margin-right:0}.selected-heading{align-items:flex-start;flex-direction:column}.audio-panel{align-items:flex-start;gap:14px;padding:16px}.audio-art{flex-basis:68px;width:68px;height:68px;border-radius:13px}.audio-art span{font-size:1.9rem}.audio-art small{display:none}.audio-content h3{font-size:1rem}.metric-grid,.learning-grid{grid-template-columns:1fr}.metric-card{padding:14px}.pending-result{align-items:flex-start;flex-wrap:wrap}.pending-result .button{margin-left:40px}.result-heading h3{font-size:1.05rem}.page-footer{font-size:.53rem;letter-spacing:.08em}}
+@media(prefers-reduced-motion:reduce){.amv-student-page *{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media print {
+  @page { size: A4; margin: 14mm; }
+  .amv-student-page { width:100%; max-width:none; padding:0; color:#172033; }
+  .amv-student-page .hero { min-height:0; padding:22px; margin-bottom:16px; box-shadow:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .amv-student-page .hero-mark { display:flex; }
+  .amv-student-page .history, .amv-student-page .icon-button, .amv-student-page .audio-panel, .amv-student-page .report-actions, .amv-student-page .technical-details, .amv-student-page .page-footer, .amv-student-page .section-intro, .amv-student-page .status-pill { display:none!important; }
+  .amv-student-page .audition-layout { display:block; }
+  .amv-student-page .results-column { display:block; }
+  .amv-student-page .selected-heading { margin-bottom:12px; }
+  .amv-student-page .panel { box-shadow:none; break-inside:avoid; }
+  .amv-student-page .result-panel { padding:16px; }
+  .amv-student-page .metric-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .amv-student-page .teacher-score-grid, .amv-student-page .teacher-comments-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .amv-student-page .radar-layout { grid-template-columns:1fr 1fr; }
+  .amv-student-page .radar-panel, .amv-student-page .radar-visual { break-inside:avoid; box-shadow:none; }
+  .amv-student-page .learning-card, .amv-student-page .practice-panel, .amv-student-page .panel-subsection { break-inside:avoid; }
+  .amv-student-page .technical-details pre { display:none; }
 }
 </style>

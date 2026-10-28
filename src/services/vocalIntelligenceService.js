@@ -801,6 +801,45 @@ export const fetchVocalRecordingById =
 
 
 // =========================================================
+// ACTUALIZAR METADATOS DE UNA AUDICIÓN
+// =========================================================
+
+export const updateVocalRecordingMetadata = async (recordingId, { title, song }) => {
+  const normalizedId = Number(recordingId)
+  if (!Number.isFinite(normalizedId)) {
+    throw new Error('El ID de la grabación no es válido.')
+  }
+
+  const cleanTitle = String(title ?? '').trim()
+  if (!cleanTitle) {
+    throw new Error('El título de la audición es obligatorio.')
+  }
+
+  const { data, error } = await supabase
+    .from('vocal_recordings')
+    .update({
+      title: cleanTitle,
+      song: String(song ?? '').trim(),
+    })
+    .eq('id', normalizedId)
+    .select(`
+      *,
+      vocal_ai_analyses (*)
+    `)
+    .single()
+
+  if (error) {
+    console.error('[VocalIntelligence] Error actualizando audición:', error)
+    throw error
+  }
+
+  return normalizeRecording(data)
+}
+
+
+// =========================================================
+
+// =========================================================
 
 // ELIMINAR GRABACIÓN
 

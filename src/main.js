@@ -13,8 +13,8 @@ import reveal from './directives/reveal'
 const app = createApp(App)
 
 app.directive(
-    'reveal',
-    reveal
+  'reveal',
+  reveal
 )
 
 app.use(router)

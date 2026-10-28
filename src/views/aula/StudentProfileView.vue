@@ -113,15 +113,18 @@
         </div>
 
         <div class="student-profile__hero-actions">
-          <button
-            v-if="isTeacher"
-            type="button"
-            class="student-profile__edit-profile"
-            @click="startEditingVocalProfile"
-          >
-            Editar ficha vocal
-          </button>
-        </div>
+
+  <RouterLink
+    :to="isTeacher
+      ? { name: 'aula-amv-admin', query: { studentId: String(student.id) } }
+      : '/aula/evaluaciones'"
+    class="student-profile__edit-profile student-profile__amv-button"
+  >
+    ♫ Evaluación AMV
+  </RouterLink>
+
+
+</div>
       </header>
 
       <!-- ===================================================
@@ -255,23 +258,26 @@
         </header>
 
         <div class="student-profile__quick-grid">
+
+          <!-- EVALUACIÓN AMV -->
           <button
             type="button"
-            class="amv-quick-card"
-            @click="selectProfileTab('evaluaciones')"
+            class="amv-quick-card amv-quick-card--amv"
+            @click="openAmvEvaluation"
+            :aria-label="`Abrir evaluación AMV de ${student?.name || 'este estudiante'}`"
           >
-            <span class="amv-mini-thumb amv-mini-thumb--quiz" aria-hidden="true">
+            <span class="amv-mini-thumb amv-mini-thumb--amv" aria-hidden="true">
               <svg viewBox="0 0 48 48" role="img">
-                <path d="M12 8h24a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4Z"/>
-                <path d="m15 24 5 5 13-14"/>
-                <path d="M16 14h10"/>
+                <path d="M24 7 27.8 18l10.2 2.1-8.8 5.9 2.7 10.1L24 30.2l-9.9 5.9 2.7-10.1-8.8-5.9L18.2 18 24 7Z"/>
+                <path d="M14 40h20"/>
               </svg>
             </span>
-            <span>Evaluaciones</span>
-            <strong>{{ studentQuizAttempts.length }}</strong>
-            <small>{{ pendingQuizReviews }} pendientes de revisión</small>
+            <span>Evaluación AMV</span>
+            <strong>3.2.2</strong>
+            <small>Radar vocal, afinación, ritmo y evolución</small>
           </button>
 
+          <!-- TAREAS -->
           <button
             type="button"
             class="amv-quick-card"
@@ -288,6 +294,7 @@
             <small>{{ reviewedSubmissions.length }} revisadas</small>
           </button>
 
+          <!-- ASISTENCIA -->
           <button
             type="button"
             class="amv-quick-card"
@@ -304,6 +311,7 @@
             <small>{{ pendingAttendanceCount }} clases pendientes</small>
           </button>
 
+          <!-- COMPETENCIAS -->
           <button
             type="button"
             class="amv-quick-card"
@@ -319,21 +327,8 @@
             <small>Afinación, ritmo, respiración y más</small>
           </button>
 
-          <button
-            type="button"
-            class="amv-quick-card"
-            @click="selectProfileTab('voz')"
-          >
-            <span class="amv-mini-thumb amv-mini-thumb--voice" aria-hidden="true">
-              <svg viewBox="0 0 48 48" role="img">
-                <path d="M24 10a5 5 0 0 1 5 5v10a5 5 0 1 1-10 0V15a5 5 0 0 1 5-5Z"/>
-                <path d="M14 23a10 10 0 0 0 20 0M24 33v6M18 39h12"/>
-              </svg>
-            </span>
-            <span>Perfil vocal</span>
-            <strong>{{ vocalProfile?.voice || '—' }}</strong>
-            <small>Tesitura, zona cómoda y observaciones</small>
-          </button>
+
+
         </div>
       </section>
 
@@ -372,7 +367,7 @@
       <section
         id="ficha-vocal"
         class="student-profile__section"
-      
+
         v-show="isProfileTab('voz')"
       >
         <div class="student-profile__section-header">
@@ -693,7 +688,7 @@
       <section
         id="asistencia"
         class="student-profile__section"
-      
+
         v-show="isProfileTab('asistencia')"
       >
         <div class="student-profile__section-header">
@@ -902,7 +897,7 @@
       <section
         id="progreso"
         class="student-profile__section"
-      
+
         v-show="isProfileTab('competencias')"
       >
         <div class="student-profile__section-header">
@@ -1368,7 +1363,8 @@ import {
 
 import {
   RouterLink,
-  useRoute
+  useRoute,
+  useRouter
 } from 'vue-router'
 
 import {
@@ -1421,6 +1417,7 @@ import {
 ========================================================= */
 
 const route = useRoute()
+const router = useRouter()
 
 const {
   isTeacher
@@ -1432,6 +1429,43 @@ const studentId =
       route.params.studentId
     )
   )
+
+const openAmvEvaluation = () => {
+  // Alumnos consultan los resultados publicados en "Mis evaluaciones".
+  // El panel de evaluación individual queda reservado al profesor.
+  if (!isTeacher.value) {
+    router.push('/aula/evaluaciones')
+    return
+  }
+
+  const id = Number(studentId.value)
+
+  if (!Number.isFinite(id) || id <= 0) {
+    return
+  }
+
+  router.push({
+    name: 'aula-estudiante-evaluacion-amv',
+    params: {
+      studentId: id,
+    },
+  })
+}
+
+const openVocalFollowUp = () => {
+  const id = Number(studentId.value)
+
+  if (!Number.isFinite(id) || id <= 0) {
+    return
+  }
+
+  router.push({
+    name: 'aula-estudiante-voz',
+    params: {
+      studentId: id,
+    },
+  })
+}
 
 const student = ref(null)
 const assignments = ref([])
@@ -5359,10 +5393,13 @@ const isProfileTab =
   box-shadow: 0 7px 18px rgba(159,25,69,.16);
 }
 
-.student-profile__edit-profile:hover {
+ .student-profile__edit-profile:hover {
   background: var(--wine-dark);
   transform: translateY(-1px);
 }
+.student-profile__hero-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.student-profile__amv-button { background: linear-gradient(135deg, var(--wine), #c28b14); border-color: transparent; display: inline-flex; align-items: center; gap: 8px; }
+.student-profile__amv-button:hover { background: linear-gradient(135deg, var(--wine-dark), #b47a0d); }
 
 /* =========================================================
    SUMMARY
@@ -6495,7 +6532,7 @@ const isProfileTab =
 .student-profile__quick-grid {
   display: grid;
   grid-template-columns:
-    repeat(5, minmax(0, 1fr));
+    repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -6609,6 +6646,32 @@ const isProfileTab =
 
 
 /* =========================================================
+   QUICK ACCESS GRID · 4 CARDS ALIGNED
+========================================================= */
+.student-profile__quick-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.student-profile__quick-grid .amv-quick-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 132px;
+}
+
+@media (max-width: 900px) {
+  .student-profile__quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .student-profile__quick-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
    AMV VISUAL REDESIGN · V5 MINIMAL / PREMIUM
    Solo UI: mantiene eventos, rutas y lógica existentes.
 ========================================================= */
@@ -6696,6 +6759,7 @@ const isProfileTab =
 .voice-badge { background: rgba(255,255,255,.085); border-color: rgba(255,255,255,.15); }
 .status-badge { background: rgba(70,170,117,.11); border-color: rgba(100,224,155,.18); color: #bcebd2; }
 
+.student-profile__hero-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .student-profile__edit-profile {
   min-height: 42px; padding: 0 15px; border-radius: 12px;
   border-color: rgba(255,255,255,.17); background: rgba(255,255,255,.08);
@@ -6753,13 +6817,13 @@ const isProfileTab =
 .student-profile__overview header span { color: var(--amv-primary); font-size: 9px; letter-spacing: .16em; }
 .student-profile__overview header h2 { margin-top: 4px; font-size: 1.55rem; }
 .student-profile__overview header > p { color: #7b8490; font-size: 12px; }
-.student-profile__quick-grid { gap: 8px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-.student-profile__quick-grid button.amv-quick-card {
+.student-profile__quick-grid { gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.student-profile__quick-grid .amv-quick-card {
   min-height: 118px; padding: 14px; border: 1px solid var(--amv-line); border-radius: 15px; background: #fafbfc; box-shadow: none;
   transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
 }
-.student-profile__quick-grid button.amv-quick-card:hover { transform: translateY(-3px); border-color: rgba(139,36,73,.17); box-shadow: 0 14px 28px rgba(21,25,35,.07); background: #fff; }
-.student-profile__quick-grid button.amv-quick-card::before { display:none; }
+.student-profile__quick-grid .amv-quick-card:hover { transform: translateY(-3px); border-color: rgba(139,36,73,.17); box-shadow: 0 14px 28px rgba(21,25,35,.07); background: #fff; }
+.student-profile__quick-grid .amv-quick-card::before { display:none; }
 .amv-mini-thumb, .amv-card-thumb {
   display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; overflow: hidden;
   border: 1px solid rgba(21,25,35,.06); background: linear-gradient(135deg, #f5f2ed, #f8eaf0);
@@ -6772,10 +6836,14 @@ const isProfileTab =
 .amv-mini-thumb--skills { background: linear-gradient(135deg, #f7f1e4, #fffdfa); }
 .amv-mini-thumb--skills svg { color: var(--amv-accent); }
 .amv-mini-thumb--tasks { background: linear-gradient(135deg, #f2f3f5, #fbf4f7); }
-.amv-mini-thumb--voice { background: linear-gradient(135deg, #f8ebf0, #fcfaf9); }
-.student-profile__quick-grid button.amv-quick-card > span:not(.amv-mini-thumb) { color: #6e7785; font-size: 10px; letter-spacing: .06em; }
-.student-profile__quick-grid button.amv-quick-card strong { margin: 5px 0 3px; color: #242a34; font-size: 22px; }
-.student-profile__quick-grid button.amv-quick-card small { color: #8a929e; font-size: 10px; line-height: 1.35; }
+ .amv-mini-thumb--voice { background: linear-gradient(135deg, #f8ebf0, #fcfaf9); }
+.amv-mini-thumb--amv { background: linear-gradient(135deg, #f8eaf0, #fff4d7); }
+.amv-mini-thumb--amv svg { color: var(--amv-accent); }
+.student-profile__quick-grid .amv-quick-card--amv { border-color: rgba(168,21,73,.16); background: linear-gradient(135deg, #fff, #fffaf0); }
+.student-profile__quick-grid .amv-quick-card--amv:hover { border-color: rgba(168,21,73,.34); box-shadow: 0 16px 30px rgba(168,21,73,.10); }
+.student-profile__quick-grid .amv-quick-card > span:not(.amv-mini-thumb) { color: #6e7785; font-size: 10px; letter-spacing: .06em; }
+.student-profile__quick-grid .amv-quick-card strong { margin: 5px 0 3px; color: #242a34; font-size: 22px; }
+.student-profile__quick-grid .amv-quick-card small { color: #8a929e; font-size: 10px; line-height: 1.35; }
 
 .profile-nav {
   top: 140px; margin-bottom: 22px; padding: 4px; border-radius: 12px; background: rgba(255,255,255,.66); box-shadow: none;
@@ -7250,7 +7318,7 @@ const isProfileTab =
 .student-profile__quick-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .student-profile__quick-grid button {

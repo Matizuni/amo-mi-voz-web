@@ -28,11 +28,12 @@
         <div class="upload-grid">
           <label><span>Título</span><input v-model="uploadForm.title" placeholder="Evaluación septiembre" /></label>
           <label><span>Canción</span><input v-model="uploadForm.song" placeholder="La Bikina" /></label>
-          <label class="upload-file"><span>Archivo de audio</span><input type="file" accept="audio/*" @change="onFile" /></label>
+          <label class="upload-file"><span>Audio del alumno</span><input type="file" accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg" @change="onFile" /></label>
+          <label class="upload-file"><span>Referencia musical (audio o MIDI)</span><input type="file" accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg,.mid,.midi" @change="onReferenceFile" /><small>Necesaria para comparar afinación y ritmo con la canción de referencia.</small></label>
         </div>
         <div class="upload-actions">
           <button type="button" class="amv-secondary-action" @click="uploadOpen=false">Cancelar</button>
-          <button type="button" class="amv-primary-action" :disabled="uploading || !uploadForm.file" @click="handleUpload">{{ uploading ? 'Subiendo…' : 'Subir grabación' }}</button>
+          <button type="button" class="amv-primary-action" :disabled="uploading || !uploadForm.file || !uploadForm.referenceFile" @click="handleUpload">{{ uploading ? 'Subiendo…' : 'Subir grabación y referencia' }}</button>
         </div>
       </section>
 
@@ -78,12 +79,31 @@
         <div v-else class="empty-copy">Todavía no hay grabaciones. La primera muestra servirá como línea base.</div>
         <audio ref="audioRef" @ended="playing=false" @pause="playing=false" @play="playing=true"></audio>
       </section>
+      
+      <section class="teacher-rubric amv-card" v-if="isTeacher">
+        <div class="amv-section-title"><span>PAUTA DOCENTE</span><h2>Evaluación de audición</h2></div>
+        <p class="rubric-intro">Califica cada dimensión de 1 a 5. Estas notas son tu evaluación pedagógica y se guardan separadas del análisis automático.</p>
+        <label class="rubric-recording"><span>Grabación evaluada</span><select v-model="rubricRecordingId"><option value="">Selecciona una grabación</option><option v-for="recording in recordings" :key="recording.id" :value="String(recording.id)">{{ recording.title }} — {{ recording.song || 'Muestra vocal' }}</option></select></label>
+        <div class="rubric-list">
+          <div v-for="dimension in rubricDimensions" :key="dimension.key" class="rubric-row">
+            <div class="rubric-copy"><strong>{{ dimension.number }}. {{ dimension.label }}</strong><small>{{ dimension.description }}</small></div>
+            <div class="rubric-score" role="group" :aria-label="`Nota de ${dimension.label}`">
+              <button v-for="score in [1,2,3,4,5]" :key="score" type="button" :class="{ 'is-selected': Number(rubric.scores[dimension.key]) === score }" :aria-pressed="Number(rubric.scores[dimension.key]) === score" @click="rubric.scores[dimension.key] = score">{{ score }}</button>
+            </div>
+          </div>
+        </div>
+        <label class="rubric-observations"><span>Observaciones del profesor</span><textarea v-model="rubric.observations" rows="3" placeholder="Fortalezas, aspectos por trabajar y recomendaciones…"></textarea></label>
+        <div class="upload-actions"><span class="rubric-status" role="status">{{ rubricMessage }}</span><button type="button" class="amv-primary-action" :disabled="rubricSaving || !rubricRecordingId" @click="saveRubric">{{ rubricSaving ? 'Guardando…' : 'Guardar evaluación docente' }}</button></div>
+        <p class="rubric-footnote">El punto 8 (Expresión) queda disponible, pero no se completa automáticamente. El análisis acústico no sustituye tu juicio docente.</p>
+      </section>
+
     </template>
   </section>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { supabase } from '@/lib/supabase'
 import { RouterLink, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { fetchStudentById } from '@/services/studentService'
@@ -109,7 +129,21 @@ const analyzingId = ref(null)
 const activeRecordingId = ref(null)
 const playing = ref(false)
 const audioRef = ref(null)
-const uploadForm = reactive({ title: '', song: '', file: null })
+const uploadForm = reactive({ title: '', song: '', file: null, referenceFile: null })
+const rubricRecordingId = ref('')
+const rubricSaving = ref(false)
+const rubricMessage = ref('')
+const rubric = reactive({ scores: { intonation: null, rhythm: null, air: null, phonation: null, register: null, resonance: null, diction: null, expression: null }, observations: '' })
+const rubricDimensions = [
+  { number: 1, key: 'intonation', label: 'Afinación', description: 'Canta las notas correctamente y mantiene la altura tonal.' },
+  { number: 2, key: 'rhythm', label: 'Ritmo', description: 'Mantiene el pulso y respeta los tiempos de la canción.' },
+  { number: 3, key: 'air', label: 'Aire y fraseo', description: 'Administra el aire y completa las frases musicales adecuadamente.' },
+  { number: 4, key: 'phonation', label: 'Fonación', description: 'Produce la voz de manera coordinada, sin tensión excesiva observable.' },
+  { number: 5, key: 'register', label: 'Registro', description: 'Utiliza adecuadamente su registro vocal y transita entre zonas de la voz.' },
+  { number: 6, key: 'resonance', label: 'Resonancia', description: 'Consigue una emisión vocal clara y resonante.' },
+  { number: 7, key: 'diction', label: 'Dicción', description: 'Articula las palabras y vocaliza con claridad.' },
+  { number: 8, key: 'expression', label: 'Expresión', description: 'Transmite emociones e interpreta el sentido de la canción.' },
+]
 
 const latestAnalysis = computed(() => recordings.value.find(item => item.analysis?.status === 'completed')?.analysis || null)
 const radarStats = computed(() => VOCAL_DIMENSIONS.map(item => {
@@ -140,12 +174,13 @@ const load = async () => {
 }
 
 const onFile = event => { uploadForm.file = event.target.files?.[0] || null }
+const onReferenceFile = event => { uploadForm.referenceFile = event.target.files?.[0] || null }
 const handleUpload = async () => {
   if (!uploadForm.file) return
   uploading.value = true
   try {
-    await uploadVocalRecording({ studentId: studentId.value, file: uploadForm.file, title: uploadForm.title, song: uploadForm.song })
-    uploadForm.title = ''; uploadForm.song = ''; uploadForm.file = null; uploadOpen.value = false
+    await uploadVocalRecording({ studentId: studentId.value, file: uploadForm.file, referenceFile: uploadForm.referenceFile, title: uploadForm.title, song: uploadForm.song })
+    uploadForm.title = ''; uploadForm.song = ''; uploadForm.file = null; uploadForm.referenceFile = null; uploadOpen.value = false
     await load()
   } catch (error) {
     errorMessage.value = error?.message || 'No pudimos subir la grabación.'
@@ -171,6 +206,47 @@ const analyze = async recording => {
   finally { analyzingId.value = null }
 }
 
+const resetRubric = () => {
+  rubric.scores = { intonation: null, rhythm: null, air: null, phonation: null, register: null, resonance: null, diction: null, expression: null }
+  rubric.observations = ''
+  rubricMessage.value = ''
+}
+
+const loadRubric = async () => {
+  resetRubric()
+  if (!rubricRecordingId.value) return
+  try {
+    const { data, error } = await supabase.from('vocal_teacher_evaluations').select('scores, observations').eq('recording_id', Number(rubricRecordingId.value)).maybeSingle()
+    if (error) throw error
+    if (data) { rubric.scores = { ...rubric.scores, ...(data.scores || {}) }; rubric.observations = data.observations || '' }
+  } catch (error) {
+    console.error('[AMV] No se pudo cargar la pauta docente:', error)
+    rubricMessage.value = 'No se pudo cargar la pauta. Verifica que aplicaste la migración SQL incluida.'
+  }
+}
+
+const saveRubric = async () => {
+  if (!rubricRecordingId.value) return
+  rubricSaving.value = true
+  rubricMessage.value = ''
+  try {
+    const invalid = rubricDimensions.filter(d => !Number.isInteger(Number(rubric.scores[d.key])) || Number(rubric.scores[d.key]) < 1 || Number(rubric.scores[d.key]) > 5)
+    if (invalid.length) throw new Error(`Completa las notas del 1 al 5: ${invalid.map(d => d.label).join(', ')}.`)
+    const selected = recordings.value.find(item => Number(item.id) === Number(rubricRecordingId.value))
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (userError || !userData?.user?.id) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.')
+    const payload = { recording_id: Number(rubricRecordingId.value), student_id: studentId.value, teacher_id: userData.user.id, scores: Object.fromEntries(Object.entries(rubric.scores).map(([key, value]) => [key, Number(value)])), observations: rubric.observations.trim() || null, updated_at: new Date().toISOString() }
+    const { error } = await supabase.from('vocal_teacher_evaluations').upsert(payload, { onConflict: 'recording_id' })
+    if (error) throw error
+    rubricMessage.value = `Evaluación guardada${selected ? ` para ${selected.title}` : ''}.`
+  } catch (error) {
+    rubricMessage.value = error?.message || 'No fue posible guardar la evaluación.'
+  } finally { rubricSaving.value = false }
+}
+
+watch(recordings, value => { if (!rubricRecordingId.value && value.length) rubricRecordingId.value = String(value[0].id) }, { immediate: true })
+watch(rubricRecordingId, () => { if (rubricRecordingId.value) loadRubric() })
+
 const analysisStatus = recording => {
   const status = recording.analysis?.status
   if (status === 'completed') return 'Analizado'
@@ -183,7 +259,7 @@ onMounted(load)
 </script>
 
 <style scoped>
-.vocal-page{padding-bottom:56px}.vocal-back{display:inline-flex;margin-bottom:18px;color:#667085;text-decoration:none;font-weight:750}.vocal-notice{margin-bottom:18px;padding:14px 16px;border:1px solid #eadcb0;border-radius:14px;background:#fff8e7;color:#5d4a16}.vocal-notice p{margin:4px 0 0;font-size:.85rem}.vocal-state{padding:24px}.vocal-state--error{border-color:#efc7cc}.upload-panel{padding:22px;margin-bottom:18px}.upload-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:12px;margin-top:18px}.upload-grid label{display:grid;gap:7px;color:#475467;font-size:.78rem;font-weight:800}.upload-grid input{padding:0 12px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#172033}.upload-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}.vocal-overview{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(360px,1.1fr);gap:18px;margin-bottom:18px}.vocal-overview>article{padding:22px}.analysis-summary{margin:18px 0;color:#344359;font-size:1rem;line-height:1.7}.summary-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}.summary-columns>div{padding:14px;border-radius:12px;background:#f7f8fa}.summary-columns span{color:#9f1945;font-size:.7rem;font-weight:900;letter-spacing:.08em}.summary-columns ul{padding-left:18px;margin:10px 0 0;color:#475467}.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat-card{padding:16px}.stat-card__top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.stat-card__top span{color:#344359;font-size:.78rem;font-weight:800}.stat-card__top strong{white-space:nowrap;color:#9f1945}.stat-track{height:7px;margin:12px 0;background:#edf0f4;border-radius:999px;overflow:hidden}.stat-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#9f1945,#d9a91d)}.stat-card p{margin:0;color:#667085;font-size:.78rem}.recordings{padding:22px}.recordings__heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}.recordings__heading small{color:#667085}.recording-list{margin-top:18px;display:grid}.recording-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid #edf0f4}.recording-play{width:42px;height:42px;border:0;border-radius:50%;background:#172033;color:#fff;cursor:pointer}.recording-copy{display:grid;gap:4px}.recording-copy strong{color:#172033}.recording-copy span{color:#667085;font-size:.78rem}.analysis-chip{padding:7px 10px;border-radius:999px;background:#f2f4f7;color:#667085;font-size:.7rem;font-weight:850}.analysis-chip--completed{background:#eaf6f0;color:#20704f}.analysis-chip--processing{background:#fff8e7;color:#876810}.analysis-chip--failed{background:#fdecef;color:#a43544}.analyze-button{min-height:40px;padding:0 12px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#9f1945;font-weight:800;cursor:pointer}.empty-copy{margin-top:16px;padding:18px;border:1px dashed #ccd5df;border-radius:12px;background:#fafbfc;color:#667085}.recordings audio{display:none}@media(max-width:1000px){.stats-grid{grid-template-columns:repeat(2,1fr)}.vocal-overview{grid-template-columns:1fr}.upload-grid{grid-template-columns:1fr 1fr}.upload-file{grid-column:1/-1}}@media(max-width:680px){.stats-grid,.summary-columns,.upload-grid{grid-template-columns:1fr}.recording-row{grid-template-columns:42px 1fr}.analysis-chip,.analyze-button{grid-column:2}.upload-actions{display:grid;grid-template-columns:1fr}.upload-actions>*{width:100%}}
+.vocal-page{padding-bottom:56px}.teacher-rubric{padding:22px;margin-top:18px}.rubric-intro,.rubric-footnote{color:#667085;font-size:.86rem;line-height:1.5}.rubric-recording,.rubric-observations{display:grid;gap:8px;margin:16px 0;color:#475467;font-size:.8rem;font-weight:800}.rubric-recording select,.rubric-observations textarea{width:100%;padding:12px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#172033;font:inherit}.rubric-list{display:grid}.rubric-row{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:14px 0;border-top:1px solid #edf0f4}.rubric-copy{display:grid;gap:5px}.rubric-copy strong{color:#172033}.rubric-copy small{color:#667085;max-width:560px;line-height:1.45}.rubric-score{display:flex;gap:6px;flex-shrink:0}.rubric-score button{width:36px;height:36px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#475467;font-weight:800;cursor:pointer}.rubric-score button.is-selected{background:#9f1945;border-color:#9f1945;color:white}.rubric-status{color:#20704f;font-size:.82rem}.upload-grid small{font-size:.72rem;color:#667085;font-weight:500}.recordings audio{display:block;width:100%;margin-top:12px}@media(max-width:680px){.rubric-row{align-items:flex-start;flex-direction:column}.rubric-score{width:100%}.rubric-score button{flex:1}.teacher-rubric{padding:16px}}.vocal-back{display:inline-flex;margin-bottom:18px;color:#667085;text-decoration:none;font-weight:750}.vocal-notice{margin-bottom:18px;padding:14px 16px;border:1px solid #eadcb0;border-radius:14px;background:#fff8e7;color:#5d4a16}.vocal-notice p{margin:4px 0 0;font-size:.85rem}.vocal-state{padding:24px}.vocal-state--error{border-color:#efc7cc}.upload-panel{padding:22px;margin-bottom:18px}.upload-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:12px;margin-top:18px}.upload-grid label{display:grid;gap:7px;color:#475467;font-size:.78rem;font-weight:800}.upload-grid input{padding:0 12px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#172033}.upload-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}.vocal-overview{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(360px,1.1fr);gap:18px;margin-bottom:18px}.vocal-overview>article{padding:22px}.analysis-summary{margin:18px 0;color:#344359;font-size:1rem;line-height:1.7}.summary-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}.summary-columns>div{padding:14px;border-radius:12px;background:#f7f8fa}.summary-columns span{color:#9f1945;font-size:.7rem;font-weight:900;letter-spacing:.08em}.summary-columns ul{padding-left:18px;margin:10px 0 0;color:#475467}.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat-card{padding:16px}.stat-card__top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.stat-card__top span{color:#344359;font-size:.78rem;font-weight:800}.stat-card__top strong{white-space:nowrap;color:#9f1945}.stat-track{height:7px;margin:12px 0;background:#edf0f4;border-radius:999px;overflow:hidden}.stat-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#9f1945,#d9a91d)}.stat-card p{margin:0;color:#667085;font-size:.78rem}.recordings{padding:22px}.recordings__heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}.recordings__heading small{color:#667085}.recording-list{margin-top:18px;display:grid}.recording-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid #edf0f4}.recording-play{width:42px;height:42px;border:0;border-radius:50%;background:#172033;color:#fff;cursor:pointer}.recording-copy{display:grid;gap:4px}.recording-copy strong{color:#172033}.recording-copy span{color:#667085;font-size:.78rem}.analysis-chip{padding:7px 10px;border-radius:999px;background:#f2f4f7;color:#667085;font-size:.7rem;font-weight:850}.analysis-chip--completed{background:#eaf6f0;color:#20704f}.analysis-chip--processing{background:#fff8e7;color:#876810}.analysis-chip--failed{background:#fdecef;color:#a43544}.analyze-button{min-height:40px;padding:0 12px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#9f1945;font-weight:800;cursor:pointer}.empty-copy{margin-top:16px;padding:18px;border:1px dashed #ccd5df;border-radius:12px;background:#fafbfc;color:#667085}.recordings audio{display:none}@media(max-width:1000px){.stats-grid{grid-template-columns:repeat(2,1fr)}.vocal-overview{grid-template-columns:1fr}.upload-grid{grid-template-columns:1fr 1fr}.upload-file{grid-column:1/-1}}@media(max-width:680px){.stats-grid,.summary-columns,.upload-grid{grid-template-columns:1fr}.recording-row{grid-template-columns:42px 1fr}.analysis-chip,.analyze-button{grid-column:2}.upload-actions{display:grid;grid-template-columns:1fr}.upload-actions>*{width:100%}}
 </style>
 
 

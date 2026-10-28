@@ -491,6 +491,11 @@ const teacherNav = [
   { label: 'Inscripciones', to: '/aula/inscripciones', icon: 'inbox' },
   { label: 'Asistencia', to: '/aula/asistencia', icon: 'attendance' },
   { label: 'Calificaciones', to: '/aula/calificaciones', icon: 'grades' },
+  {
+  label: 'AMV Vocal Engine',
+  to: '/aula/amv',
+  icon: 'progress',
+},
 ]
 
 const studentNav = computed(() => [
@@ -598,6 +603,7 @@ const sectionNames = {
   'aula-evaluacion': 'Evaluación',
   'aula-mis-evaluaciones': 'Mis evaluaciones',
   'aula-evaluacion-revision': 'Resultado de evaluación',
+  'aula-amv-admin': 'AMV Vocal Engine',
 }
 
 const isNavActive = item => {
